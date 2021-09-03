@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<userConfig>
+	<procedure name = "delay">
+		<rulesOnEndOfCall>
+			<rule>
+				<executableAction>
+					<param>newDelay( </param>
+					<formatRule >>0</formatRule>
+					<param>)</param>
+				</executableAction>			
+			</rule>
+		</rulesOnEndOfCall>
+	</procedure>
+</userConfig>
