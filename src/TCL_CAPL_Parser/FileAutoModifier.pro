@@ -117,6 +117,7 @@ SOURCES += \
     app.cpp \
     appwindow.cpp \
     main.cpp \
-    tclToCAPL.cpp
+    tclToCAPL.cpp \
+    test.cpp
 
 
