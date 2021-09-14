@@ -127,6 +127,8 @@ public:
                         inline ListItem* currentItem()const{return static_cast<ListItem*>(QTreeWidget::currentItem());}
                         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(QTreeWidget::itemAt(p));}
                         bool eventFilter(QObject* oj, QEvent* ev)override;
+                        //void mouseReleaseEvent(QMouseEvent* ev)override;
+                        void contextMenuEvent(QContextMenuEvent* ev)override;
                     };
 
                     class OutputsList : public QListWidget{
@@ -260,7 +262,9 @@ public:
                     protected:
                         inline ListItem* currentItem()const{return static_cast<ListItem*>(Super::currentItem());}
                         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(Super::itemAt(p));}
-                        bool eventFilter(QObject* oj, QEvent* ev)override;
+                       // bool eventFilter(QObject* oj, QEvent* ev)override;
+                        //void mouseReleaseEvent(QMouseEvent* ev) override;
+                        void contextMenuEvent(QContextMenuEvent* ev)override;
                         inline void addNewOutput(){
                             addItem(new ListItem(this));
                         }
@@ -377,7 +381,8 @@ public:
         //inline ListItem* currentItem()const{return static_cast<ListItem*>(list.currentItem());}
         //inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(list.itemAt(p));}
 
-        bool eventFilter(QObject* obj, QEvent* ev)override;
+        //bool eventFilter(QObject* obj, QEvent* ev)override;
+        void contextMenuEvent(QContextMenuEvent *event) override;
 
         inline ListItem* currentItem()const{return static_cast<ListItem*>(list.currentItem());}
         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(list.itemAt(p));}

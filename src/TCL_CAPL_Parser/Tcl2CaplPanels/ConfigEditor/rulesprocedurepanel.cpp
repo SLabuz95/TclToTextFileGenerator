@@ -1,3 +1,4 @@
+
 #include"rulesprocedurepanel.hpp"
 #include<QApplication>
 #include<QMenu>
@@ -49,59 +50,59 @@ void RulesProcedurePanel::QuickRulesList::execRequest_ContextMenu<RulesProcedure
     list.clear();
 }
 
-bool RulesProcedurePanel::QuickRulesList::eventFilter(QObject *obj, QEvent *ev){
-    if(ev->type() ==  QEvent::ContextMenu)
-        {
-            QContextMenuEvent* cev = static_cast<QContextMenuEvent*>(ev);
+void RulesProcedurePanel::QuickRulesList::contextMenuEvent(QContextMenuEvent *ev){
+    QContextMenuEvent* cev = static_cast<QContextMenuEvent*>(ev);
 
-            ListItem* item = itemAt(cev->pos());
+    ListItem* item = itemAt(cev->pos());
 
-            // Specify file and error checking
+    // Specify file and error checking
 
-            using Actions = QList<QAction*>;
-            using ActionFuncs = QList<QuickRulesList::Request_ContextMenu_Func>;
-            using Request = QuickRulesList::Request_ContextMenu;
-            Actions actions;
-            ActionFuncs actionFuncs;
-            QMenu* menu = nullptr;
+    using Actions = QList<QAction*>;
+    using ActionFuncs = QList<QuickRulesList::Request_ContextMenu_Func>;
+    using Request = QuickRulesList::Request_ContextMenu;
+    Actions actions;
+    ActionFuncs actionFuncs;
+    QMenu* menu = nullptr;
 
-            menu = new QMenu;
-            if(item){
-                actions = {
-                  new QAction("Dodaj regułe"),
-                  new QAction("Klonuj regułe"),
-                  new QAction("Usuń regułe"),
-                  new QAction("Usuń wszystkie reguły")
-                };
-                actionFuncs = {
-                    &QuickRulesList::execRequest_ContextMenu<Request::AddRule>,
-                    &QuickRulesList::execRequest_ContextMenu<Request::CloneRule>,
-                    &QuickRulesList::execRequest_ContextMenu<Request::RemoveRule>,
-                    &QuickRulesList::execRequest_ContextMenu<Request::ClearRules>,
-                };
-            }else{
-                actions = {
-                    new QAction("Dodaj regułe"),
-                    new QAction("Usuń wszystkie reguły")
-                };
-                actionFuncs = {
-                    &QuickRulesList::execRequest_ContextMenu<Request::AddRule>,
-                    &QuickRulesList::execRequest_ContextMenu<Request::ClearRules>,
-                };
-            }
+    menu = new QMenu;
+    if(item){
+        actions = {
+          new QAction("Dodaj regułe"),
+          new QAction("Klonuj regułe"),
+          new QAction("Usuń regułe"),
+          new QAction("Usuń wszystkie reguły")
+        };
+        actionFuncs = {
+            &QuickRulesList::execRequest_ContextMenu<Request::AddRule>,
+            &QuickRulesList::execRequest_ContextMenu<Request::CloneRule>,
+            &QuickRulesList::execRequest_ContextMenu<Request::RemoveRule>,
+            &QuickRulesList::execRequest_ContextMenu<Request::ClearRules>,
+        };
+    }else{
+        actions = {
+            new QAction("Dodaj regułe"),
+            new QAction("Usuń wszystkie reguły")
+        };
+        actionFuncs = {
+            &QuickRulesList::execRequest_ContextMenu<Request::AddRule>,
+            &QuickRulesList::execRequest_ContextMenu<Request::ClearRules>,
+        };
+    }
 
-            // After configuration
-            if(menu){
-                menu->addActions(actions);
-                int index = actions.indexOf( menu->exec(cev->globalPos()));
-                if(index >= 0){
-                    Q_ASSERT_X(index < actionFuncs.size(), "QuickRulesList Menu", "Index error for action functions");
-                    (this->*(actionFuncs.at(index)))(item);
-                }
-                delete menu, menu = nullptr;
-            }
+    // After configuration
+    if(menu){
+        menu->addActions(actions);
+        int index = actions.indexOf( menu->exec(cev->globalPos()));
+        if(index >= 0){
+            Q_ASSERT_X(index < actionFuncs.size(), "QuickRulesList Menu", "Index error for action functions");
+            (this->*(actionFuncs.at(index)))(item);
         }
+        delete menu, menu = nullptr;
+    }
+    return;
 }
+
+
 
 RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ExpectedArgumentsList(){
     setEditTriggers(QAbstractItemView::DoubleClicked);
@@ -238,101 +239,99 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
     }
 }
 
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::contextMenuEvent(QContextMenuEvent *mev){
 
-bool RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::eventFilter(QObject* obj, QEvent* ev){
+        ListItem* item = itemAt(mev->pos());
 
-    if(ev->type() == QEvent::MouseButtonRelease and obj == viewport()){
-        QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
-        if(mev->button() == Qt::RightButton){
-            ListItem* item = itemAt(mev->pos());
+        using Actions = QList<QAction*>;
+        using ActionFuncs = QList<Request_ContextMenu_Func>;
+        using Request = Request_ContextMenu;
 
-            using Actions = QList<QAction*>;
-            using ActionFuncs = QList<Request_ContextMenu_Func>;
-            using Request = Request_ContextMenu;
+        Actions actions;
+        ActionFuncs actionFuncs;
+        QMenu* menu = new QMenu;
 
-            Actions actions;
-            ActionFuncs actionFuncs;
-            QMenu* menu = new QMenu;
+        if(item){
+            // Specify file and error checking
 
-            if(item){
-                // Specify file and error checking
-
-                switch(item->type()){
-                case ListItem::ItemType::IndexItem:
-                {
-                    actions = {
-                        new QAction("Dodaj indeks"),
-                        new QAction("Dodaj argument"),
-                        new QAction("Edytuj indeks"),
-                        new QAction("Usun indeks"),
-                        new QAction("Usun wszystkie argumenty"),
-                        new QAction("Usun wszystkie indeksy")
-                    };
-                    actionFuncs = {
-                        &Self::execRequest_ContextMenu<Request::NewIndex>,
-                        &Self::execRequest_ContextMenu<Request::NewArgument>,
-                        &Self::execRequest_ContextMenu<Request::EditIndex>,
-                        &Self::execRequest_ContextMenu<Request::RemoveIndex>,
-                        &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>,
-                        &Self::execRequest_ContextMenu<Request::RemoveAllArguments>,
-                    };
-                }
-                    break;
-                case ListItem::ItemType::ArgumentItem:
-                {
-                    actions = {
-                        new QAction("Dodaj indeks"),
-                        new QAction("Dodaj argument"),
-                        new QAction("Edytuj indeks"),
-                        new QAction("Edytuj argument"),
-                        new QAction("Usun indeks"),
-                        new QAction("Usun argument"),
-                        new QAction("Usun wszystkie argumenty"),
-                        new QAction("Usun wszystkie indeksy")
-                    };
-                    actionFuncs = {
-                        &Self::execRequest_ContextMenu<Request::NewIndex>,
-                        &Self::execRequest_ContextMenu<Request::NewArgument>,
-                        &Self::execRequest_ContextMenu<Request::EditIndex>,
-                        &Self::execRequest_ContextMenu<Request::EditArgument>,
-                        &Self::execRequest_ContextMenu<Request::RemoveIndex>,
-                        &Self::execRequest_ContextMenu<Request::RemoveArgument>,
-                        &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>,
-                        &Self::execRequest_ContextMenu<Request::RemoveAllArguments>,
-                    };
-                }
-                    break;
-
-                default:
-                    delete menu;
-                    menu = nullptr;
-                }
-            }else{
-                menu = new QMenu;
+            switch(item->type()){
+            case ListItem::ItemType::IndexItem:
+            {
                 actions = {
                     new QAction("Dodaj indeks"),
+                    new QAction("Dodaj argument"),
+                    new QAction("Edytuj indeks"),
+                    new QAction("Usun indeks"),
+                    new QAction("Usun wszystkie argumenty"),
                     new QAction("Usun wszystkie indeksy")
                 };
                 actionFuncs = {
                     &Self::execRequest_ContextMenu<Request::NewIndex>,
-                    &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>
+                    &Self::execRequest_ContextMenu<Request::NewArgument>,
+                    &Self::execRequest_ContextMenu<Request::EditIndex>,
+                    &Self::execRequest_ContextMenu<Request::RemoveIndex>,
+                    &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>,
+                    &Self::execRequest_ContextMenu<Request::RemoveAllArguments>,
                 };
-
             }
-            // After configuration
-            if(menu){
-                menu->addActions(actions);
-                int index = actions.indexOf( menu->exec(mev->globalPosition().toPoint()));
-                if(index >= 0){
-                    Q_ASSERT_X(index < actionFuncs.size(), "ExpectedArgumentList Menu", "Index error for action functions");
-                    (this->*(actionFuncs.at(index)))(item);
-                }
+                break;
+            case ListItem::ItemType::ArgumentItem:
+            {
+                actions = {
+                    new QAction("Dodaj indeks"),
+                    new QAction("Dodaj argument"),
+                    new QAction("Edytuj indeks"),
+                    new QAction("Edytuj argument"),
+                    new QAction("Usun indeks"),
+                    new QAction("Usun argument"),
+                    new QAction("Usun wszystkie argumenty"),
+                    new QAction("Usun wszystkie indeksy")
+                };
+                actionFuncs = {
+                    &Self::execRequest_ContextMenu<Request::NewIndex>,
+                    &Self::execRequest_ContextMenu<Request::NewArgument>,
+                    &Self::execRequest_ContextMenu<Request::EditIndex>,
+                    &Self::execRequest_ContextMenu<Request::EditArgument>,
+                    &Self::execRequest_ContextMenu<Request::RemoveIndex>,
+                    &Self::execRequest_ContextMenu<Request::RemoveArgument>,
+                    &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>,
+                    &Self::execRequest_ContextMenu<Request::RemoveAllArguments>,
+                };
+            }
+                break;
+
+            default:
                 delete menu;
                 menu = nullptr;
             }
-        }
-    }
+        }else{
+            menu = new QMenu;
+            actions = {
+                new QAction("Dodaj indeks"),
+                new QAction("Usun wszystkie indeksy")
+            };
+            actionFuncs = {
+                &Self::execRequest_ContextMenu<Request::NewIndex>,
+                &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>
+            };
 
+        }
+        // After configuration
+        if(menu){
+            menu->addActions(actions);
+            int index = actions.indexOf( menu->exec(mev->globalPos()));
+            if(index >= 0){
+                Q_ASSERT_X(index < actionFuncs.size(), "ExpectedArgumentList Menu", "Index error for action functions");
+                (this->*(actionFuncs.at(index)))(item);
+            }
+            delete menu;
+            menu = nullptr;
+        }
+    return ;
+}
+
+
+bool RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::eventFilter(QObject* obj, QEvent* ev){
     if(ev->type() == QEvent::MouseButtonDblClick and obj == viewport()){
         QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
         curEditItem = itemAt(mev->pos());
@@ -535,64 +534,55 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Outp
     clear();
 }
 
-bool RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::eventFilter(QObject* obj, QEvent* ev){
-    if(ev->type() == QEvent::MouseButtonRelease and obj == viewport()){
-        QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
-        if(mev->button() == Qt::RightButton){
-            ListItem* item = itemAt(mev->pos());
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::contextMenuEvent(QContextMenuEvent *ev){
+        ListItem* item = itemAt(ev->pos());
 
-            using Actions = QList<QAction*>;
-            using ActionFuncs = QList<Request_ContextMenu_Func>;
-            using Request = Request_ContextMenu;
+        using Actions = QList<QAction*>;
+        using ActionFuncs = QList<Request_ContextMenu_Func>;
+        using Request = Request_ContextMenu;
 
-            Actions actions;
-            ActionFuncs actionFuncs;
-            QMenu* menu = new QMenu;
+        Actions actions;
+        ActionFuncs actionFuncs;
+        QMenu* menu = new QMenu;
 
-            if(item){
-                // Specify file and error checking
-                    actions = {
-                        new QAction("Dodaj nowy"),
-                        new QAction("Usun element"),
-                        new QAction("Usun wszystkie")
-                    };
-                    actionFuncs = {
-                        &Self::execRequest_ContextMenu<Request::New>,
-                        &Self::execRequest_ContextMenu<Request::Remove>,
-                        &Self::execRequest_ContextMenu<Request::RemoveAll>
-                    };
-
-            }else{
-                menu = new QMenu;
+        if(item){
+            // Specify file and error checking
                 actions = {
                     new QAction("Dodaj nowy"),
+                    new QAction("Usun element"),
                     new QAction("Usun wszystkie")
                 };
                 actionFuncs = {
                     &Self::execRequest_ContextMenu<Request::New>,
+                    &Self::execRequest_ContextMenu<Request::Remove>,
                     &Self::execRequest_ContextMenu<Request::RemoveAll>
                 };
 
-            }
-            // After configuration
-            if(menu){
-                menu->addActions(actions);
-                int index = actions.indexOf( menu->exec(mev->globalPosition().toPoint()));
-                if(index >= 0){
-                    Q_ASSERT_X(index < actionFuncs.size(), "OutputsList Menu", "Index error for action functions");
-                    (this->*(actionFuncs.at(index)))(item);
-                }
-                delete menu;
-                menu = nullptr;
-            }
+        }else{
+            menu = new QMenu;
+            actions = {
+                new QAction("Dodaj nowy"),
+                new QAction("Usun wszystkie")
+            };
+            actionFuncs = {
+                &Self::execRequest_ContextMenu<Request::New>,
+                &Self::execRequest_ContextMenu<Request::RemoveAll>
+            };
+
         }
-    }
-
-
-    return Super::eventFilter(obj, ev);
-
+        // After configuration
+        if(menu){
+            menu->addActions(actions);
+            int index = actions.indexOf( menu->exec(ev->globalPos()));
+            if(index >= 0){
+                Q_ASSERT_X(index < actionFuncs.size(), "OutputsList Menu", "Index error for action functions");
+                (this->*(actionFuncs.at(index)))(item);
+            }
+            delete menu;
+            menu = nullptr;
+        }
+    return;
 }
-
 
 RulesProcedurePanel::QuickRulesList::RulesList::RulesList(){
     // Initiailzie
