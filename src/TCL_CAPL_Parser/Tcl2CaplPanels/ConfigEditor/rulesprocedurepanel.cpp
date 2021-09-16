@@ -103,8 +103,9 @@ void RulesProcedurePanel::QuickRulesList::contextMenuEvent(QContextMenuEvent *ev
 }
 
 
-
 RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ExpectedArgumentsList(){
+    ItemDelegate* itemDelegateObj = new ItemDelegate(*this);
+    setItemDelegate(itemDelegateObj);
     setEditTriggers(QAbstractItemView::DoubleClicked);
     setSortingEnabled(true);
     viewport()->installEventFilter(this);
@@ -142,6 +143,53 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
 
 }
 
+QWidget* RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ItemDelegate::
+createEditor(QWidget* parent,
+             const QStyleOptionViewItem& option,
+             const QModelIndex& index) const
+{
+    // For List Item Type == EmptyStringItem dont edit
+    QLineEdit* editor = nullptr;
+    if(not (list.itemFromIndex(index)->type() == ListItem::ItemType::EmptyStringItem) ){
+        editor = new QLineEdit(parent);
+        if(not index.parent().isValid())
+            editor->setValidator(new QRegularExpressionValidator(QRegularExpression(RegExpCore::regExprForIntRange_MinusNinetyNine2NinetyNine)));
+    }
+   return editor;
+}
+
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ItemDelegate::
+setEditorData(QWidget* editor,
+              const QModelIndex& index) const
+{
+   QItemDelegate::setEditorData(editor, index);
+}
+
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ItemDelegate::
+setModelData(QWidget* editor,
+             QAbstractItemModel* model,
+             const QModelIndex& index) const
+{
+   QItemDelegate::setModelData(editor, model, index);
+}
+
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ItemDelegate::
+updateEditorGeometry(QWidget* editor,
+                     const QStyleOptionViewItem& option,
+                     const QModelIndex& index) const
+{
+   QItemDelegate::updateEditorGeometry(editor, option, index);
+}
+
+QString RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ListItem::
+toolTipText() const{
+    switch(type()){
+    case ItemType::IndexItem:       return QStringLiteral("Indeks: ") + text(0);
+    case ItemType::ArgumentItem:    return QStringLiteral("Argument: \"") + text(0) + QStringLiteral("\"");
+    }
+}
+
+
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ListItem::addArgument()
 {
     Q_ASSERT_X(type() == ItemType::IndexItem , "ExpectedArgumentsList::ListItem::addArgument", "Item isnt IndexItem");
@@ -154,6 +202,30 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
     qDebug() << treeWidget()->isPersistentEditorOpen(newItem);
 }
 
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ListItem::addEmptyStringArgument()
+{
+    Q_ASSERT_X(type() == ItemType::IndexItem , "ExpectedArgumentsList::ListItem::addEmptyStringArgument", "Item isnt IndexItem");
+
+    bool emptyArgumentDoesntExist = true;
+    // Confirm that EmptyArgumentItem doesnt exist
+    for(int itemIndex = 0 ; itemIndex < childCount(); itemIndex++){
+        if(child(itemIndex)->type() == ItemType::EmptyStringItem){
+            emptyArgumentDoesntExist = false;
+            break;
+        }
+    }
+
+    if(emptyArgumentDoesntExist){
+        ListItem* newItem = new ListItem(ListItem::ItemType::EmptyStringItem);
+        addChild(newItem);
+        if(not isExpanded()) setExpanded(true);
+        treeWidget()->addEditItem(newItem);
+
+        qDebug() << treeWidget()->isPersistentEditorOpen(newItem);
+    }
+
+}
+
 template<>
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::execRequest_ContextMenu
 <RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::Request_ContextMenu::NewIndex>(ListItem* item){
@@ -164,7 +236,9 @@ template<>
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::execRequest_ContextMenu
 <RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::Request_ContextMenu::NewArgument>(ListItem* item){
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::NewArgument>", "Item is null");
-    if(item->type() == ListItem::ItemType::ArgumentItem)    item = item->parent();
+    if(item->type() == ListItem::ItemType::ArgumentItem or item->type() == ListItem::ItemType::EmptyStringItem) {
+        item = item->parent();
+    }
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::NewArgument>", "Item parent is null");
     Q_ASSERT_X(item->type() == ListItem::ItemType::IndexItem , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::NewArgument>", "Item isnt IndexItem");
 
@@ -173,11 +247,27 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
 
 template<>
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::execRequest_ContextMenu
+<RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::Request_ContextMenu::AddEmptyStringArg>(ListItem* item){
+    Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::AddEmptyStringArg>", "Item is null");
+    if(item->type() == ListItem::ItemType::ArgumentItem or item->type() == ListItem::ItemType::EmptyStringItem){
+        item = item->parent();
+    }
+    Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::AddEmptyStringArg>", "Item parent is null");
+    Q_ASSERT_X(item->type() == ListItem::ItemType::IndexItem, "execRequest_ContextMenu<AddEmptyStringArg::Request_ContextMenu::AddEmptyStringArg>", "Item isnt IndexItem");
+
+    item->addEmptyStringArgument();
+}
+
+
+template<>
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::execRequest_ContextMenu
 <RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::Request_ContextMenu::RemoveIndex>(ListItem* item){
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveIndex>", "Item parent is null");
-    if(item->type() == ListItem::ItemType::ArgumentItem)    item = item->parent();
+    if(item->type() == ListItem::ItemType::ArgumentItem or item->type() == ListItem::ItemType::EmptyStringItem) {
+        item = item->parent();
+    }
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveIndex>", "Item is null");
-    Q_ASSERT_X(item->type() == ListItem::ItemType::IndexItem , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveIndex>", "Item isnt IndexItem");
+    Q_ASSERT_X(item->type() == ListItem::ItemType::IndexItem, "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveIndex>", "Item isnt IndexItem");
 
     if(curEditItem == item) clearEditItem();
     delete item;
@@ -187,7 +277,9 @@ template<>
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::execRequest_ContextMenu
 <RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::Request_ContextMenu::EditIndex>(ListItem* item){
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::EditIndex>", "Item is null");
-    if(item->type() == ListItem::ItemType::ArgumentItem)    item = item->parent();
+    if(item->type() == ListItem::ItemType::ArgumentItem or item->type() == ListItem::ItemType::EmptyStringItem){
+        item = item->parent();
+    }
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::EditIndex>", "Item parent is null");
     Q_ASSERT_X(item->type() == ListItem::ItemType::IndexItem , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::EditIndex>", "Item isnt IndexItem");
 
@@ -199,7 +291,7 @@ template<>
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::execRequest_ContextMenu
 <RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::Request_ContextMenu::RemoveArgument>(ListItem* item){
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveArgument>", "Item parent is null");
-    Q_ASSERT_X(item->type() == ListItem::ItemType::ArgumentItem , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveArgument>", "Item isnt ArgumentItem");
+    Q_ASSERT_X(item->type() == ListItem::ItemType::ArgumentItem or item->type() == ListItem::ItemType::EmptyStringItem, "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveArgument>", "Item isnt ArgumentItem");
 
     if(curEditItem == item) clearEditItem();
     delete item;
@@ -209,7 +301,7 @@ template<>
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::execRequest_ContextMenu
 <RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::Request_ContextMenu::EditArgument>(ListItem* item){
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::EditArgument>", "Item parent is null");
-    Q_ASSERT_X(item->type() == ListItem::ItemType::ArgumentItem , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::EditArgument>", "Item isnt ArgumentItem");
+    Q_ASSERT_X(item->type() == ListItem::ItemType::ArgumentItem or item->type() == ListItem::ItemType::EmptyStringItem, "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::EditArgument>", "Item isnt ArgumentItem");
 
     if(not item->parent()->isExpanded()) item->parent()->setExpanded(true);
     addEditItem(item);
@@ -226,7 +318,9 @@ template<>
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::execRequest_ContextMenu
 <RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::Request_ContextMenu::RemoveAllArguments>(ListItem* item){
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveAllArguments>", "Item is null");
-    if(item->type() == ListItem::ItemType::ArgumentItem)    item = item->parent();
+    if(item->type() == ListItem::ItemType::ArgumentItem or item->type() == ListItem::ItemType::EmptyStringItem){
+        item = item->parent();
+    }
     Q_ASSERT_X(item , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveAllArguments>", "Item parent is null");
     Q_ASSERT_X(item->type() == ListItem::ItemType::IndexItem , "execRequest_ContextMenu<ExpectedArgumentsList::Request_ContextMenu::RemoveAllArguments>", "Item isnt IndexItem");
 
@@ -260,14 +354,16 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
                 actions = {
                     new QAction("Dodaj indeks"),
                     new QAction("Dodaj argument"),
+                    new QAction("Dodaj pusty argument"),
                     new QAction("Edytuj indeks"),
                     new QAction("Usun indeks"),
-                    new QAction("Usun wszystkie argumenty"),
-                    new QAction("Usun wszystkie indeksy")
+                    new QAction("Usun wszystkie indeksy"),
+                    new QAction("Usun wszystkie argumenty")
                 };
                 actionFuncs = {
                     &Self::execRequest_ContextMenu<Request::NewIndex>,
                     &Self::execRequest_ContextMenu<Request::NewArgument>,
+                    &Self::execRequest_ContextMenu<Request::AddEmptyStringArg>,
                     &Self::execRequest_ContextMenu<Request::EditIndex>,
                     &Self::execRequest_ContextMenu<Request::RemoveIndex>,
                     &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>,
@@ -275,21 +371,24 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
                 };
             }
                 break;
+            case ListItem::ItemType::EmptyStringItem:
             case ListItem::ItemType::ArgumentItem:
             {
                 actions = {
                     new QAction("Dodaj indeks"),
                     new QAction("Dodaj argument"),
+                    new QAction("Dodaj pusty argument"),
                     new QAction("Edytuj indeks"),
                     new QAction("Edytuj argument"),
                     new QAction("Usun indeks"),
                     new QAction("Usun argument"),
-                    new QAction("Usun wszystkie argumenty"),
-                    new QAction("Usun wszystkie indeksy")
+                    new QAction("Usun wszystkie indeksy"),
+                    new QAction("Usun wszystkie argumenty ")
                 };
                 actionFuncs = {
                     &Self::execRequest_ContextMenu<Request::NewIndex>,
                     &Self::execRequest_ContextMenu<Request::NewArgument>,
+                    &Self::execRequest_ContextMenu<Request::AddEmptyStringArg>,
                     &Self::execRequest_ContextMenu<Request::EditIndex>,
                     &Self::execRequest_ContextMenu<Request::EditArgument>,
                     &Self::execRequest_ContextMenu<Request::RemoveIndex>,
@@ -343,8 +442,47 @@ bool RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
 
     if(ev->type() == QEvent::ChildRemoved and obj == viewport()){
         if(curEditItem){
+            // Confirm that index or argument isnt duplicated
             if(curEditItem->text(0).isEmpty()){
                 delete curEditItem;
+            }else{
+                // Confirm that index or argument isnt duplicated
+                // Remove if its
+                bool indexOrArgumentIsntDuplicated = true;
+                QString textToCompare = curEditItem->text(0);
+                switch(curEditItem->type()){
+                case ListItem::ItemType::ArgumentItem:
+                {
+                    ListItem* parentItem = curEditItem->parent();
+                    for(int itemIndex = 0 ; itemIndex < parentItem->childCount(); itemIndex++){
+                        if(parentItem->child(itemIndex) != curEditItem and
+                                parentItem->child(itemIndex)->type() == ListItem::ItemType::ArgumentItem and
+                                 parentItem->child(itemIndex)->text(0) == textToCompare){
+                            indexOrArgumentIsntDuplicated = false;
+                            break;
+                        }
+                    }
+                }
+                    break;
+                case ListItem::ItemType::IndexItem:
+                {
+                    for(int itemIndex = 0 ; itemIndex < topLevelItemCount(); itemIndex++){
+                        if(topLevelItem(itemIndex) != curEditItem and
+                                topLevelItem(itemIndex)->text(0) == textToCompare){
+                            indexOrArgumentIsntDuplicated = false;
+                            break;
+                        }
+                    }
+                }
+                    break;
+                }
+
+                if(indexOrArgumentIsntDuplicated){
+                    curEditItem->setToolTip(0, curEditItem->toolTipText());
+                }else{
+                    delete curEditItem;
+                }
+
             }
             curEditItem = nullptr;
         }
@@ -353,6 +491,9 @@ bool RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
 }
 
 RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::OutputsList(){
+    setMovement(QListView::Snap);
+    setDefaultDropAction(Qt::DropAction::MoveAction);
+    setDragDropMode(QAbstractItemView::InternalMove);
     viewport()->installEventFilter(this);
 }
 

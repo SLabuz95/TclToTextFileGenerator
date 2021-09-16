@@ -15,6 +15,7 @@
 #include<QLabel>
 #include<QApplication>
 #include"Tcl2Capl/controllerconfig.hpp"
+#include<QItemDelegate>
 
 class RulesProcedurePanel : public QWidget{
     using ProcedureRef = Tcl2CaplControllerConfig::Procedure&;
@@ -50,16 +51,40 @@ public:
                 class ItemContent : public QWidget{
 
                     class ExpectedArgumentsList : public QTreeWidget{
+                    private:
+                        class ItemDelegate : public QItemDelegate{
+                            ItemDelegate() = delete;
+                        public:
+                            explicit ItemDelegate(ExpectedArgumentsList& list, QObject* parent = nullptr) : QItemDelegate(parent), list(list){}
+
+                        protected:
+                            ExpectedArgumentsList& list;
+
+                            QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+                            void setEditorData(QWidget* editor, const QModelIndex& index) const;
+                            void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
+                            void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+                        };
 
                         class EAL_Item : public QTreeWidgetItem{
-                            EAL_Item();
+                        private:
+                            //EAL_Item();
                         public:
                             enum class ItemType{
                                 IndexItem,
-                                ArgumentItem
+                                ArgumentItem,
+                                EmptyStringItem
                             };
                             EAL_Item(ItemType type) : type_(type){
-                                 setFlags(flags() | Qt::ItemIsEditable);
+                                switch(type){
+                                case ItemType::EmptyStringItem:
+                                    setText(0, "<Brak argumentu>");
+                                    setToolTip(0, "Brak argumentu");
+                                    break;
+                                default:
+                                    setFlags(flags() | Qt::ItemIsEditable);
+                                    break;
+                                }
                             }
                         protected:
                             ItemType type_;
@@ -67,8 +92,11 @@ public:
                             inline ItemType type()const{return type_;}
                             inline EAL_Item* parent()const{return static_cast<EAL_Item*>(QTreeWidgetItem::parent());}
                             inline ExpectedArgumentsList* treeWidget()const{return static_cast<ExpectedArgumentsList*>(QTreeWidgetItem::treeWidget());}
+                            inline EAL_Item* child(int index) const{return static_cast<EAL_Item*>(QTreeWidgetItem::child(index));}
 
                             void addArgument();
+                            void addEmptyStringArgument();
+                            QString toolTipText() const;
                         };
                         using ListItem = EAL_Item;
                         using Self = ExpectedArgumentsList;
@@ -77,6 +105,7 @@ public:
                         enum class Request_ContextMenu{
                             NewIndex,
                             NewArgument,
+                            AddEmptyStringArg,
                             EditIndex,
                             EditArgument,
                             RemoveIndex,
@@ -126,6 +155,8 @@ public:
 
                         inline ListItem* currentItem()const{return static_cast<ListItem*>(QTreeWidget::currentItem());}
                         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(QTreeWidget::itemAt(p));}
+                        inline ListItem* topLevelItem(int index)const{return static_cast<ListItem*>(QTreeWidget::topLevelItem(index));}
+                        inline ListItem* itemFromIndex(const QModelIndex& index)const{return static_cast<ListItem*>(QTreeWidget::itemFromIndex(index));}
                         bool eventFilter(QObject* oj, QEvent* ev)override;
                         //void mouseReleaseEvent(QMouseEvent* ev)override;
                         void contextMenuEvent(QContextMenuEvent* ev)override;
@@ -260,14 +291,47 @@ public:
                     public:
                         OutputsList();
                     protected:
+                        ListItem* lastPressedItem = nullptr;
+
                         inline ListItem* currentItem()const{return static_cast<ListItem*>(Super::currentItem());}
                         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(Super::itemAt(p));}
-                       // bool eventFilter(QObject* oj, QEvent* ev)override;
+                        inline ListItem* item(int index)const{return static_cast<ListItem*>(QListWidget::item(index));}
+                        inline ListItem* lastItem()const{return item(count() - 1);}
+
+                        // bool eventFilter(QObject* oj, QEvent* ev)override;
                         //void mouseReleaseEvent(QMouseEvent* ev) override;
                         void contextMenuEvent(QContextMenuEvent* ev)override;
                         inline void addNewOutput(){
                             addItem(new ListItem(this));
                         }
+
+                        void mousePressEvent(QMouseEvent* ev)override{
+                            lastPressedItem = itemAt(ev->pos());
+                            QListWidget::mousePressEvent(ev);
+                        }
+
+                         void dropEvent(QDropEvent* ev)override{
+                             ListItem* dropItem = itemAt(ev->position().toPoint());
+                             if(lastPressedItem){
+                                 const QPoint dropPos = ev->position().toPoint();
+                                 if(lastPressedItem == lastItem()){   // Is last Item // next condition - drop point is below or equal bottom of item rect - ignore
+                                     if(visualItemRect(lastPressedItem).bottom() <= dropPos.y())
+                                         return; //WARNING: Ignore DropEvent (Bug: item is deleted with item content)
+                                 }else{  //  Drop region is in upper half of rect of item below - Ignore
+                                     if( // Drop item is below drag item
+                                             row(lastPressedItem) + 1 == row(dropItem) and
+                                         // Drop region is in upper half of rect of item below
+                                             dropPos.y() >= visualItemRect(lastPressedItem).bottom() and
+                                             dropPos.y() <= visualItemRect(item(row(lastPressedItem) + 1)).center().y())
+                                     {
+                                         return; // Ignore
+                                     }
+                                 }
+                             }
+
+                             QListWidget::dropEvent(ev);
+                         }
+
                     };
 
                     ListItem& item_;
