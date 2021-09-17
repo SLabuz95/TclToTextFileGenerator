@@ -31,7 +31,8 @@ public:
     using AdvancedRule = RulesFactory::Product<RulesType::RawRule>;
     using RulesForArgument = RulesFactory::Product<RulesType::RulesForArgument>;
 
-    using RawRuleRefs = QList<RawRule*>;
+    using RawRuleRef = RawRule*;
+    using RawRuleRefs = QList<RawRuleRef>;
     using RulesForArguments = QList<RulesForArgument>;
 
     class Procedure{    // For config only

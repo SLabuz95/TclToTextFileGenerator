@@ -108,7 +108,7 @@ public:
     void toRule(UserProcedureRule&) override;
     inline LastInsertedIndexIter addIndex(Index index){return expectedArgumentsByIndex.insert(index, {});}
     inline bool isIndexExist(Index index)const{return expectedArgumentsByIndex.keys().contains(index);}
-    inline ExpectedArgumentsByIndex& getExpectedArgumentsByIndex(){}
+    inline ExpectedArgumentsByIndex& getExpectedArgumentsByIndex(){return expectedArgumentsByIndex;}
     inline WriteActions& writeActions(){return writeActions_;}
     void toXmlContent(QXmlStreamWriter& xmlWriter) override;
 };

@@ -22,6 +22,8 @@ class RulesProcedurePanel : public QWidget{
 public:
     class QuickRulesList : public QWidget{
         using QuickRulesRef = Tcl2CaplControllerConfig::RawRuleRefs&;
+        using QuickRuleRef = Tcl2CaplControllerConfig::RawRuleRef;
+        using QuickRule = Tcl2CaplControllerConfig::QuickRule;
 
     public:
         enum class ToolOptions : uint{
@@ -75,7 +77,7 @@ public:
                                 ArgumentItem,
                                 EmptyStringItem
                             };
-                            EAL_Item(ItemType type) : type_(type){
+                            EAL_Item(ItemType type, QString value = QString()) : type_(type){
                                 switch(type){
                                 case ItemType::EmptyStringItem:
                                     setText(0, "<Brak argumentu>");
@@ -85,6 +87,15 @@ public:
                                     setFlags(flags() | Qt::ItemIsEditable);
                                     break;
                                 }
+                                if(not value.isEmpty())
+                                {
+                                    setText(0, value);
+                                    setToolTip(0, toolTipText());
+                                }
+                            }
+
+                            EAL_Item(ItemType type, QString index, QStringList& arguments) : EAL_Item(type, index){
+                               loadArguments(arguments);
                             }
                         protected:
                             ItemType type_;
@@ -96,6 +107,8 @@ public:
 
                             void addArgument();
                             void addEmptyStringArgument();
+                            void loadArguments(QStringList&);
+                            void loadArgument(QString&);
                             QString toolTipText() const;
                         };
                         using ListItem = EAL_Item;
@@ -150,6 +163,7 @@ public:
                         ExpectedArgumentsList();
                         void addIndex();
                         void addEditItem(ListItem*);
+                        void loadExpectedArguments(QuickRule& rule);
                         void clearEditItem();
                     protected:
 
@@ -179,9 +193,10 @@ public:
                                 IndexItem,
                                 ArgumentsFromItem,
                                // SeparatorItem,
-                                TargetItem,
+                                FormatItem,
                                 Size
                             };
+
 
                             class ItemContent : public QWidget{
                                 using Parent = Self;
@@ -198,8 +213,6 @@ public:
                                 inline constexpr static std::underlying_type_t<ItemType> numbOfItemTypes(){
                                     return static_cast<std::underlying_type_t<ItemType>>(Parent::ItemType::Size);
                                 }
-
-
 
                                 template<Parent::ItemType itemToCheck, Parent::ItemType itemTypeCreatingLayout = Parent::ItemType::Size, Parent::ItemType ...itemTypesCreatingLayout>
                                 inline constexpr static bool isOutputContentLayoutCreatedForSpecifiedType(){
@@ -259,7 +272,6 @@ public:
                         protected:
                             ItemContent* itemContent = nullptr;
 
-
                             inline void init(){
                                 if(listWidget()){
                                     listWidget()->setItemWidget(this, itemContent);
@@ -304,6 +316,7 @@ public:
                         inline void addNewOutput(){
                             addItem(new ListItem(this));
                         }
+                        void loadOutputs(QuickRule&);
 
                         void mousePressEvent(QMouseEvent* ev)override{
                             lastPressedItem = itemAt(ev->pos());
@@ -345,7 +358,7 @@ public:
                     OutputsList outputsList;
 
                 public:
-                    ItemContent(ListItem& item);
+                    ItemContent(ListItem& item, QuickRuleRef rule = nullptr);
                     ItemContent(ItemContent* item);
                     ~ItemContent(){}
 
@@ -356,9 +369,9 @@ public:
 
             public:
                 ListItem() = delete;
-                ListItem(RulesList& list){
+                ListItem(RulesList& list, QuickRuleRef rule = nullptr){
                     list.addItem(this);
-                    itemContent = new ItemContent(*this);
+                    itemContent = new ItemContent(*this, rule);
                     listWidget().setItemWidget(this, itemContent);
                     setSizeHint(itemContent->sizeHint());
                 }
@@ -388,9 +401,17 @@ public:
             inline ListItem* item(int index)const{return static_cast<ListItem*>(QListWidget::item(index));}
             inline ListItem* lastItem()const{return item(count() - 1);}
 
+            void loadRules(QuickRulesRef);
+
             inline void addNewItem(){
                 //ListItem* newItem = nullptr;
                 new ListItem(*this);
+                //newItem->init();
+            }
+
+            inline void addNewItem(QuickRuleRef rule){
+                //ListItem* newItem = nullptr;
+                new ListItem(*this, rule);
                 //newItem->init();
             }
 
@@ -452,11 +473,9 @@ public:
         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(list.itemAt(p));}
 
     public:
-        void loadProcedure(QuickRulesRef);
-
+        inline void loadRules(QuickRulesRef rules){list.loadRules(rules);}
 
     };
-
 
     using Layout = QVBoxLayout;
     using TitleBar = QLabel;

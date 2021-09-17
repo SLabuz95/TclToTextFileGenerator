@@ -12,7 +12,16 @@ RulesProcedurePanel::RulesProcedurePanel(){
 }
 
 void RulesProcedurePanel::loadProcedure(ProcedureRef procedureRef){
+    quickRulesList.loadRules(procedureRef.rulesOnEndOfCall());
+}
 
+
+void RulesProcedurePanel::QuickRulesList::RulesList::loadRules(QuickRulesRef rules)
+{
+    using QuickRule = std::decay_t<QuickRulesRef>::Iterator;
+    setUpdatesEnabled(false);
+    for(QuickRule rule = rules.begin(); rule < rules.end(); rule++)
+        addNewItem(*rule);
 }
 
 
@@ -126,6 +135,18 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
     qDebug() << isPersistentEditorOpen(curEditItem);
 }
 
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::loadExpectedArguments(QuickRule& rule)
+{
+    using ArgumentsByIndexIter = QuickRule::ExpectedArgumentsByIndex::Iterator;
+    for(ArgumentsByIndexIter argumentsByIndexIter = rule.getExpectedArgumentsByIndex().begin();
+        argumentsByIndexIter != rule.getExpectedArgumentsByIndex().end();
+        argumentsByIndexIter++)
+    {
+        curEditItem = new ListItem(ListItem::ItemType::IndexItem, QString::number(argumentsByIndexIter.key()), argumentsByIndexIter.value());
+        addTopLevelItem(curEditItem);
+    }
+}
+
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::clearEditItem()
 {
     if(curEditItem){
@@ -223,7 +244,22 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
 
         qDebug() << treeWidget()->isPersistentEditorOpen(newItem);
     }
+}
 
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ListItem::loadArguments(QStringList& arguments){
+    using ArgumentsByIndexIter = QuickRule::ExpectedArgumentsByIndex::Iterator;
+    for(QStringList::Iterator argument = arguments.begin();
+        argument != arguments.end();
+        argument++)
+    {
+        loadArgument(*argument);
+    }
+}
+
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ListItem::loadArgument(QString& argument)
+{
+    ListItem* newItem = new ListItem(ListItem::ItemType::ArgumentItem, argument);
+    addChild(newItem);
 }
 
 template<>
@@ -497,6 +533,17 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsLi
     viewport()->installEventFilter(this);
 }
 
+void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::loadOutputs(QuickRule &rule){
+    using WriteActionsIter = QuickRule::WriteActions::Iterator;
+    for(WriteActionsIter writeAction = rule.writeActions().begin();
+        writeAction != rule.writeActions().end();
+        writeAction++)
+    {
+        //curEditItem = new ListItem(ListItem::ItemType::IndexItem, QString::number(argumentsByIndexIter.key()), argumentsByIndexIter.value());
+        //addTopLevelItem(curEditItem);
+    }
+}
+
 RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::ListItem::ItemContent::ItemContent(Parent* parent)
     : parent(parent)
 {
@@ -539,6 +586,13 @@ bool RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Outp
     {
         if(obj == outputTitleComboBox.view()){
             createOutputContentLayout_priv(fromULying(outputTitleComboBox.currentIndex()));
+        }
+    }
+        break;
+    case QEvent::MouseButtonPress:
+    {
+        if(obj == &outputTitleRemoveButton){
+            delete parent;
         }
     }
         break;
@@ -620,6 +674,33 @@ protected:
 
 };
 
+template<>
+class RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::ListItem::ItemContent::OutputContent
+<RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::ListItem::ItemType::FormatItem> : public QFormLayout
+{
+public:
+    OutputContent() : formatRule(new QComboBox){
+        const QStringList formatRuleComboBoxOptions =
+        {
+            "Raw",    // Orginal Interpreter Read
+            "TclFormat",
+            "CaplFormat",
+            "ProcedureParametersStat",    // Number
+            "Command",
+            "SnprintfFormat"
+        };
+
+        addRow("Format: ", formatRule);
+        formatRule->addItems(formatRuleComboBoxOptions);
+        formatRule->view()->installEventFilter(this);
+    }
+    ~OutputContent(){}
+
+protected:
+    QComboBox* formatRule = nullptr;
+
+};
+
 template<RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::ListItem::ItemType _ItemType>
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::ListItem::ItemContent::createOutputContentLayout
 ()
@@ -630,9 +711,9 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Outp
             // List of all types which create layouts
             ItemType::PlainTextItem,
             ItemType::ArgumentsFromItem,
-            ItemType::IndexItem//,
+            ItemType::IndexItem,
            // ItemType::SeparatorItem,
-           // ItemType::TargetItem
+            ItemType::FormatItem
             >())
     {        
         mainLayout.addRow(outputContentLayout = new OutputContent<_ItemType>());        
@@ -649,7 +730,7 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsLi
     &Self::createOutputContentLayout<Parent::ItemType::IndexItem>,
     &Self::createOutputContentLayout<Parent::ItemType::ArgumentsFromItem>,
     //&Self::createOutputContentLayout<Parent::ItemType::SeparatorItem>,
-    &Self::createOutputContentLayout<Parent::ItemType::TargetItem>,
+    &Self::createOutputContentLayout<Parent::ItemType::FormatItem>,
 };
 
 
@@ -737,8 +818,9 @@ RulesProcedurePanel::QuickRulesList::RulesList::RulesList(){
 
 }
 
-RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemContent(ListItem& item)
-: item_(item){
+RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemContent(ListItem& item, QuickRuleRef rule)
+: item_(item){    
+    // Setup layout
     centralLayout.setSpacing(0);
 
     closeButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCloseButton));
@@ -764,6 +846,19 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemConte
     centralLayout.addWidget(&quickRuleInput);
 
     setLayout(&centralLayout);
+
+    // Rule available
+    if(rule){   // Exists
+        QuickRule& quickRule = *static_cast<QuickRule*>(rule);
+        // NumbOfArguments
+        if(quickRule.getNumbOfArguments() != -1){
+            numbOfArgumentCondition.setText(QString::number(quickRule.getNumbOfArguments()));
+        }
+        // ControlFlag
+        ruleControlComboBox.setCurrentIndex(static_cast<std::underlying_type_t<ControlFlag>>(quickRule.controlFlag()));
+        // Expected Arguments
+        expectedArgumentsList.loadExpectedArguments(quickRule);
+    }
 }
 
 RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemContent(ItemContent* itemF)
