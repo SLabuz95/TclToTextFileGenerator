@@ -152,8 +152,6 @@ public:
                             }
                         }
 
-
-
                         inline void editItem(ListItem* item){
                             curEditItem = item;
                             QTreeWidget::editItem(item);
@@ -197,7 +195,6 @@ public:
                                 Size
                             };
 
-
                             class ItemContent : public QWidget{
                                 using Parent = Self;
                                 using Self = ItemContent;
@@ -228,13 +225,13 @@ public:
                                 using OutputTitleRemoveButton = QPushButton;
                                 using OutputContentLayout = QLayout*;
 
-                                Parent::ItemType curType = Parent::ItemType::Size;
-
                                 MainLayout mainLayout;
                                 OutputTitleLayout outputTitleLayout;
                                 OutputTitleComboBox outputTitleComboBox;
                                 OutputTitleRemoveButton outputTitleRemoveButton;
                                 OutputContentLayout outputContentLayout = nullptr;
+
+                                Parent::ItemType curType = Parent::ItemType::Size;
 
                                 inline void createOutputContentLayout_priv(Parent::ItemType type){
                                     if(type != curType){
@@ -299,6 +296,17 @@ public:
 
                         template<Request_ContextMenu>
                         void execRequest_ContextMenu(ListItem*);
+
+                        using OutputOption2FormatRuleMap = const QMap<const QString, FormatParametersType>;
+                        OutputOption2FormatRuleMap outputOption2FormatRuleMap =
+                        {
+                            {"Tekst", FormatParametersType::},
+                            "Nazwa procedury",
+                            "Argument o indeksie",
+                            "Wszystkie argumenty od wybranego indeksu",
+                            //"Separator",
+                            "Format"
+                        };
 
                     public:
                         OutputsList();

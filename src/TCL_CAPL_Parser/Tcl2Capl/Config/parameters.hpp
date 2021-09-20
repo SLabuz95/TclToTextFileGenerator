@@ -18,8 +18,9 @@ namespace Parameters {
     enum Type : uint{
         FCT_Begin,
 
-        FormattedString = FCT_Begin, // To generate raw rule
-        Integer,    // Like in Interpreter
+        String = FCT_Begin,
+        FormattedString,
+        Integer,
         List,   // List of Parameters
 
         FCT_End,

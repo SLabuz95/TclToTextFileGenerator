@@ -1,4 +1,3 @@
-
 #include"rulesprocedurepanel.hpp"
 #include<QApplication>
 #include<QMenu>
@@ -539,6 +538,7 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Outp
         writeAction != rule.writeActions().end();
         writeAction++)
     {
+
         //curEditItem = new ListItem(ListItem::ItemType::IndexItem, QString::number(argumentsByIndexIter.key()), argumentsByIndexIter.value());
         //addTopLevelItem(curEditItem);
     }
