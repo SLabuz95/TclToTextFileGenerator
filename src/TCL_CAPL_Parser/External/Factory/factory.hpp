@@ -5,8 +5,11 @@
 #include<type_traits>
 #include<QString>
 
+
+
 //namespace Factory {
 
+// Supporting functions
     template<typename EnumType>
     requires (std::is_enum_v<EnumType>)
     inline static constexpr std::underlying_type_t<EnumType> FCT_toUnderlying(EnumType value){
@@ -20,43 +23,47 @@
         return static_cast<EnumType>(type + 1);    // return old value
     }
 
+// Factory Definitions
     template <class ProductsEnumType>
+    requires std::is_enum_v<ProductsEnumType>
     class FactoryProductDefinition{
     public:
         using Type = ProductsEnumType;
-        class ProductInterface;
-    };
+        class ProductCommonInterface;
+        class ProductCommonImplementation;
 
-        template <class ProductDef>
-    /*requires
-    (std::is_same_v<ProductDef, FactoryProductDefinition> and
-     std::is_enum_v<ProductDef::Type> and
-     std::is_same_v<std::underlying_type_t<typename ProductDef::Type>, uint> and
-     FCT_toUnderlying<typename ProductDef::Type>(ProductDef::Type::FCT_Begin) == 0 and*/
-     //FCT_toUnderlying<ProductDef::Type>(ProductDef::Type::FCT_End) - FCT_toUnderlying<ProductDef::Type>(ProductDef::Type::FCT_Begin) > 0/* and
-     //(ProductDef::Type::FCT_End - ProductDef::Type::FCT_Begin) >= 0*/)
-    class FactoryProductInterface : public ProductDef::ProductInterface{
-    public:
-        using Type = typename ProductDef::Type;
-
-        using Interface = typename ProductDef::ProductInterface;
-        template<typename ...Args>
-        FactoryProductInterface(Args... args) : ProductDef::ProductInterface(args...){}
-        virtual ~FactoryProductInterface(){}
-        inline virtual Type type()const = 0;
+        static_assert (std::is_base_of_v<ProductCommonImplementation , ProductCommonInterface>, "ProductCommonInterface must derive from ProductCommonImplementation");
     };
 
 
     template <typename ProductsEnumType>
     class Factory{
+        /*requires
+        (std::is_same_v<ProductDef, FactoryProductDefinition> and
+         std::is_enum_v<ProductDef::Type> and
+         std::is_same_v<std::underlying_type_t<typename ProductDef::Type>, uint> and
+         FCT_toUnderlying<typename ProductDef::Type>(ProductDef::Type::FCT_Begin) == 0 and*/
+         //FCT_toUnderlying<ProductDef::Type>(ProductDef::Type::FCT_End) - FCT_toUnderlying<ProductDef::Type>(ProductDef::Type::FCT_Begin) > 0/* and
+         //(ProductDef::Type::FCT_End - ProductDef::Type::FCT_Begin) >= 0*/)
 
         Factory() = delete;
         Factory(const Factory& ) = delete;
 
         using ProductDefinition = FactoryProductDefinition<ProductsEnumType>;
 
+       class FactoryCommonInterface : public ProductDefinition::BaseProductInterface{
         public:
-        using ProductInterface = FactoryProductInterface<ProductDefinition>;
+            using Type = typename ProductDefinition::Type;
+
+            using Interface = typename ProductDefinition::ProductInterface;
+            template<typename ...Args>
+            FactoryCommonInterface(Args... args) : ProductDefinition::ProductInterface(args...){}
+            virtual ~FactoryCommonInterface(){}
+            inline virtual Type type()const = 0;
+        };
+       using ProductInterface = FactoryCommonInterface<ProductDefinition>;
+
+        public:
 
         template<ProductsEnumType ProductType>
         //requires (ProductType >= ProductsEnumType::FCT_Begin and ProductType < ProductsEnumType::FCT_End)
@@ -90,7 +97,7 @@
 
         public:
         template<ProductsEnumType productType>
-        static FactoryProductInterface<ProductsEnumType>* create(){
+        static ProductBase<ProductsEnumType>* create(){
             return Product<productType>();
         }
 

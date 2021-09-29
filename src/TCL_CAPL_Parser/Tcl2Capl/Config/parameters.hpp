@@ -33,8 +33,8 @@ namespace FormatParameters {
     enum Type : uint{
         FCT_Begin,
 
-        INDEX_OR_FULL_LINE = FCT_Begin, // To generate raw rule
-        ARGS_AFTER_INDEX,    // Like in Interpreter
+        INDEX_OR_FULL_LINE = FCT_Begin,
+        ARGS_AFTER_INDEX,
         SEPARATOR,
         TARGET,
 
@@ -65,7 +65,7 @@ public:
     ProductInterface(){}
     virtual ~ProductInterface(){}
 
-    inline virtual RawFormatType rawFormatType()const = 0;
+    inline virtual RawFormatType rawFormatType() const = 0;
     virtual void toXmlContent(QXmlStreamWriter& xmlWriter){};
 };
 
