@@ -71,9 +71,25 @@ public:
 
 // Product Types
 
+
 template<>
 template<>
-class ParametersFactory::Product<ParametersType::FormattedString> : private QString, public ProductBase<ParametersType::FormattedString>{
+class ParametersFactory::Product<ParametersType::String> : public ProductBase<ParametersType::FormattedString>{
+public:
+    Product(){}
+    ~Product(){}
+
+protected:
+    QString content;
+
+public:
+   void toXmlContent(QXmlStreamWriter& xmlWriter) override;
+
+};
+
+template<>
+template<>
+class ParametersFactory::Product<ParametersType::FormattedString> : public ProductBase<ParametersType::FormattedString>{
 public:
     Product(){}
     ~Product(){}

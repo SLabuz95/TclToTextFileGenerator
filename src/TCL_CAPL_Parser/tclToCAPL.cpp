@@ -121,8 +121,8 @@ KeywordsMap TextInterpreter::keywordsMap ={
     {QStringLiteral("AddFunctionDefinition").toLower(), Action::Executable::AddFunctionDefinition},
     {QStringLiteral("AddPreExpression").toLower(), Action::Executable::AddPreExpression},
     {QStringLiteral("AddUserInteraction").toLower(), Action::Executable::AddUserInteraction},
-    //{QStringLiteral("FinalizeForEach"), Action::Executable::FinalizeForEach},  // Make it private
-    //{QStringLiteral("AddSnprintf"), Action::Executable::AddSnprintf},// Make it private
+    //{QStringLiteral("FinalizeForEach"), Action::Executable::FinalizeForEach},  // private
+    //{QStringLiteral("AddSnprintf"), Action::Executable::AddSnprintf},// private
 };
 
  QMap<const QString,  FormatRule> Format::ruleMap

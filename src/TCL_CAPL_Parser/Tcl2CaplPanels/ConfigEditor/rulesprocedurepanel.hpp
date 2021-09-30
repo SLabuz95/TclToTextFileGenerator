@@ -297,10 +297,11 @@ public:
                         template<Request_ContextMenu>
                         void execRequest_ContextMenu(ListItem*);
 
-                        using OutputOption2FormatRuleMap = const QMap<const QString, FormatParametersType>;
+                        //using OutputOption2FormatRuleMap = const QMap<const QString, FormatParametersType>;
+                        using OutputOption2FormatRuleMap = const QStringList;
                         OutputOption2FormatRuleMap outputOption2FormatRuleMap =
                         {
-                            {"Tekst", FormatParametersType::},
+                            "Tekst",
                             "Nazwa procedury",
                             "Argument o indeksie",
                             "Wszystkie argumenty od wybranego indeksu",
