@@ -1,6 +1,6 @@
 #include"xmlfilereader.hpp"
-//#include"FileReader/Reader/filereaderprivreadinfo.hpp"
-//#include"FileReader/Interpreter/filereaderinterpreterpriv.hpp"
+//#include"External/FileReader/Reader/filereaderprivreadinfo.hpp"
+//#include"External/FileReader/Interpreter/filereaderinterpreterpriv.hpp"
 using XML_Reader = FSD_XML::Reader;
 
 template<>

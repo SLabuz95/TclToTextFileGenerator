@@ -1,10 +1,10 @@
 #ifndef XMLFILEREADER_HPP
 #define XMLFILEREADER_HPP
 
-//#include"FileReader/Reader/filereader.hpp"
-#include"FileReader/FilesSpecificData/XML/FRI_FSD_XML.hpp"
+//#include"External/FileReader/Reader/filereader.hpp"
+#include"External/FileReader/FilesSpecificData/XML/FRI_FSD_XML.hpp"
 #include<QXmlStreamReader>
-#include"FileReader/Reader/filereader.hpp"
+#include"External/FileReader/Reader/filereader.hpp"
 template<>
 struct FileReader_Configuration<FSD_XML::Reader::Stat>{
 

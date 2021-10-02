@@ -1,7 +1,7 @@
-#include"filereaderpriv.hpp"
-#include"FileReader/Interpreter/filereaderinterpreterpriv.hpp"
-#include"filereaderprivreadinfo.hpp"
-#include"FileReader/Interpreter/filereaderinterpreterprivreadinfo.hpp"
+#include"External/FileReader/Reader/filereaderpriv.hpp"
+#include"External/FileReader/Interpreter/filereaderinterpreterpriv.hpp"
+#include"External/FileReader/Reader/filereaderprivreadinfo.hpp"
+#include"External/FileReader/Interpreter/filereaderinterpreterprivreadinfo.hpp"
 #include<QFileDialog>
 #include<QDebug>
 #include<QMutexLocker>

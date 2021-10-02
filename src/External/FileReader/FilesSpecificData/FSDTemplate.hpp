@@ -2,10 +2,10 @@
 #define FSDTEMPLATE_HPP
 
 
-#include"FileReader/COMManager/FRI_COM_Manager.hpp"
-//#include"FileReader/Interpreter/filereaderinterpreter.hpp"
+#include"External/FileReader/COMManager/FRI_COM_Manager.hpp"
+//#include"External/FileReader/Interpreter/filereaderinterpreter.hpp"
 #include"FSDDataModelBase.hpp"
-#include"FileReader/Interpreter/statsconfiguration.hpp"
+#include"External/FileReader/Interpreter/statsconfiguration.hpp"
 
 
 

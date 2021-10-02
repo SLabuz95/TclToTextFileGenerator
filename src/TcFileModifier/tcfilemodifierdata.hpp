@@ -1,7 +1,7 @@
 #ifndef TCFILEMODIFIERDATA_HPP
 #define TCFILEMODIFIERDATA_HPP
 
-#include"FileReader/FilesSpecificData/FSDTemplate.hpp"
+#include"External/FileReader/FilesSpecificData/FSDTemplate.hpp"
 #include<QFile>
 #include<QDir>
 /*

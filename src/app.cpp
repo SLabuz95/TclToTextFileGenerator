@@ -1,5 +1,5 @@
 #include"app.hpp"
-#include"StartUpError/startuperror.hpp"
+#include"External/StartUpError/startuperror.hpp"
 #include<QFileDialog>
 #include<QDirIterator>
 #include"TcFileModifier/tcfilemodifier.hpp"

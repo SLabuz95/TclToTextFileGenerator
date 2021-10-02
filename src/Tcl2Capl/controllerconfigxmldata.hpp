@@ -1,7 +1,7 @@
 #ifndef Tcl2CaplControllerConfigXmlDataHPP
 #define Tcl2CaplControllerConfigXmlDataHPP
 
-#include"FileReader/FilesSpecificData/FSDTemplate.hpp"
+#include"External/FileReader/FilesSpecificData/FSDTemplate.hpp"
 #include"Tcl2Capl/controllerconfig.hpp"
 //#include"tclToCAPL.hpp"
 

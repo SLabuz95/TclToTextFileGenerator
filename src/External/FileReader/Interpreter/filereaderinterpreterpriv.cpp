@@ -1,4 +1,4 @@
-#include"filereaderinterpreterpriv.hpp"
+#include"External/FileReader/Interpreter/filereaderinterpreterpriv.hpp"
 
 QVarLengthArray<ProcessingFunction_FRI_Priv, (int)FileReaderInterpreter_Priv_Stat::SIZE> FileReaderInterpreter_Priv::fileReaderInterpreterPriv_processingFunctions = {
         &FileReaderInterpreter_Priv::noStatReturned,

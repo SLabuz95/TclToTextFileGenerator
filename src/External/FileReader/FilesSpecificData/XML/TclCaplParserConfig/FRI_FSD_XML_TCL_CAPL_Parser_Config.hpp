@@ -1,7 +1,7 @@
 #ifndef FRI_FSD_XML_TCL_CAPL_PARSER_CONFIG_H
 #define FRI_FSD_XML_TCL_CAPL_PARSER_CONFIG_H
-#include"FileReader/FilesSpecificData/XML/FRI_FSD_XML.hpp"
-#include"FileReader/FilesSpecificData/FSDConfig.hpp"
+#include"External/FileReader/FilesSpecificData/XML/FRI_FSD_XML.hpp"
+#include"External/FileReader/FilesSpecificData/FSDConfig.hpp"
 #include"Tcl2Capl/controllerconfigxmldata.hpp"
 
 // Test Module Section ------------------------------------------------------

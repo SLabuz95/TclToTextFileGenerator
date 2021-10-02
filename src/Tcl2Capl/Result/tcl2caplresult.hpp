@@ -2,7 +2,7 @@
 #define TCL2CAPLRESULT_HPP
 
 #include<QDir>
-#include"FileReader/FilesSpecificData/FSDTemplate.hpp"
+#include"External/FileReader/FilesSpecificData/FSDTemplate.hpp"
 #include"tclToCAPL.hpp"
 #include"Tcl2Capl/controller.hpp"
 

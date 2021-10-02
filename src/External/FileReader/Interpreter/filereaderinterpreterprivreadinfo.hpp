@@ -1,7 +1,7 @@
 #ifndef FILEREADERINTERPRETERPRIVREADINFO_HPP
 #define FILEREADERINTERPRETERPRIVREADINFO_HPP
 
-//#include"filereaderinterpreterpriv.hpp"
+//#include"External/FileReaderinterpreterpriv.hpp"
 #include<QVector>
 class FileReaderInterpreter_Priv_ReadInfo{
 public:

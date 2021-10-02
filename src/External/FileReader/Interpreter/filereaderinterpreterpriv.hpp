@@ -1,13 +1,13 @@
 #ifndef FILEREADERINTERPRETERPRIV_HPP
 #define FILEREADERINTERPRETERPRIV_HPP
 
-#include"filereaderinterpreterprivreadinfo.hpp"
+#include"External/FileReader/Interpreter/filereaderinterpreterprivreadinfo.hpp"
 #include<QVarLengthArray>
-#include"FileReader/COMManager/FRI_COM_Manager.hpp"
-//#include"FileReader/FilesSpecificData/FSDTemplate.hpp"
-//#include"FileReader/Reader/filereader.hpp"
-#include"FileReader/Interpreter/filereaderinterpreterprivreadinfo.hpp"
-//#include"FileReader/FilesSpecificData/FSD_Config_Priv.hpp"
+#include"External/FileReader/COMManager/FRI_COM_Manager.hpp"
+//#include"External/FileReader/FilesSpecificData/FSDTemplate.hpp"
+//#include"External/FileReader/Reader/filereader.hpp"
+#include"External/FileReader/Interpreter/filereaderinterpreterprivreadinfo.hpp"
+//#include"External/FileReader/FilesSpecificData/FSD_Config_Priv.hpp"
 
 enum class FileReaderInterpreter_Priv_Stat{
     NO_STAT,

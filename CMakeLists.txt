@@ -17,7 +17,6 @@ file(GLOB_RECURSE sources src/*.cpp)
 file(GLOB_RECURSE headers src/*.hpp)
 
 add_executable(TclCaplParserCMake
-    src/TCL_CAPL_Parser/main.cpp
     ${sources}
     ${headers}
     )

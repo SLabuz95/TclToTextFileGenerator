@@ -1,9 +1,9 @@
 #ifndef TCLINTERPRETERPRIV_HPP
 #define TCLINTERPRETERPRIV_HPP
 
-#include"RegExpCore/regexprcore.hpp"
-#include"Improvements/class.hpp"
-#include"StartUpError/startuperror.hpp"
+#include"External/RegExpCore/regexprcore.hpp"
+#include"External/Improvements/class.hpp"
+#include"External/StartUpError/startuperror.hpp"
 #include<QFile>
 
 class TCLInterpreterPriv{

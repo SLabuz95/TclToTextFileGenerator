@@ -1,7 +1,7 @@
 #ifndef FRI_FSD_XML_HPP
 #define FRI_FSD_XML_HPP
 
-#include"FileReader/FilesSpecificData/FSD_Config_Priv.hpp"
+#include"External/FileReader/FilesSpecificData/FSD_Config_Priv.hpp"
 
 //#include<QXmlSimpleReader>
 #include<QXmlStreamAttributes>

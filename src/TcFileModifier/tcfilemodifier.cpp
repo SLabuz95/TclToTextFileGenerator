@@ -1,7 +1,7 @@
 #include"tcfilemodifier.hpp"
-//#include"FileReader/FilesSpecificData/CANoeFilesFormat/TestEnvironment/FRI_FSD_CANoe_TestEnvironment.hpp"
-//#include"FileReader/FilesSpecificData/XML/VSysvar/FRI_FSD_XML_VSysVar.hpp"
-#include"RegExpCore/regexprcore.hpp"
+//#include"External/FileReader/FilesSpecificData/CANoeFilesFormat/TestEnvironment/FRI_FSD_CANoe_TestEnvironment.hpp"
+//#include"External/FileReader/FilesSpecificData/XML/VSysvar/FRI_FSD_XML_VSysVar.hpp"
+#include"External/RegExpCore/regexprcore.hpp"
 #include"tclToCAPL.hpp"
 
 

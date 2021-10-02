@@ -1,10 +1,10 @@
 #ifndef FILEREADER_HPP
 #define FILEREADER_HPP
 
-#include"filereaderpriv.hpp"
+#include"External/FileReader/Reader/filereaderpriv.hpp"
 //#include"CompileTimeErrorFunctions/compiletimeerrorfunctions.hpp"
-#include"FileReader/Reader/filereaderprivreadinfo.hpp"
-#include"FileReader/Reader/filereaderconfiguration.hpp"
+#include"External/FileReader/Reader/filereaderprivreadinfo.hpp"
+#include"External/FileReader/Reader/filereaderconfiguration.hpp"
 
 template<class FSD>    // Interpreter Type - Mainly for overriding Filters
 class FileReader;

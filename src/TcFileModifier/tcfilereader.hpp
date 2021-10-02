@@ -2,8 +2,8 @@
 #define TCFILEREADER_HPP
 
 #include"tcfilereaderconfig.hpp"
-#include"FileReader/Reader/filereader.hpp"
-//#include"FileReader/Reader/filereader.hpp"
+#include"External/FileReader/Reader/filereader.hpp"
+//#include"External/FileReader/Reader/filereader.hpp"
 template<>
 struct FileReader_Configuration<FSD_ByLine::Reader::Stat>{
 

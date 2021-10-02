@@ -1,13 +1,13 @@
 #ifndef FILEREADERINTERPRETER_HPP
 #define FILEREADERINTERPRETER_HPP
 
-#include"filereaderinterpreterpriv.hpp"
-#include"FileReader/Reader/filereader.hpp"
-//#include"FileReader/Reader/filereaderpriv.hpp"
-#include"FileReader/FilesSpecificData/FSDTemplate.hpp"
+#include"External/FileReader/Interpreter/filereaderinterpreterpriv.hpp"
+#include"External/FileReader/Reader/filereader.hpp"
+//#include"External/FileReader/Reader/filereaderpriv.hpp"
+#include"External/FileReader/FilesSpecificData/FSDTemplate.hpp"
 #include<QFileInfo>
 #include<QDebug>
-#include"FileReader/FilesSpecificData/FSD_Config_Priv.hpp"
+#include"External/FileReader/FilesSpecificData/FSD_Config_Priv.hpp"
 
 template <class FSD>
 class FileReaderInterpreter_Configuration_Priv;

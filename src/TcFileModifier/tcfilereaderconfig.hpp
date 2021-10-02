@@ -2,7 +2,7 @@
 #define TCFILEREADERCONFIG_HPP
 
 
-#include"FileReader/FilesSpecificData/FSD_Config_Priv.hpp"
+#include"External/FileReader/FilesSpecificData/FSD_Config_Priv.hpp"
 
 using FSD_ByLine = FSD<FSDTypes::ByLine>;
 

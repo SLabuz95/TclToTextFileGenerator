@@ -2,13 +2,13 @@
 #define FILEREADERPRIV_HPP
 #include<QString>
 
-#include"FileReader/COMManager/FRI_COM_Manager.hpp"
-//#include"FileReader/Interpreter/filereaderinterpreterpriv.hpp"
-//#include"filereaderprivreadinfo.hpp"
+#include"External/FileReader/COMManager/FRI_COM_Manager.hpp"
+//#include"External/FileReader/Interpreter/filereaderinterpreterpriv.hpp"
+//#include"External/FileReaderprivreadinfo.hpp"
 //#include<QFile>
 //#include<QVarLengthArray>
 //#include<QFileInfo>
-#include"filereaderprivreadinfo.hpp"
+#include"External/FileReader/Reader/filereaderprivreadinfo.hpp"
 
 enum class FileReader_Priv_ReadStat{
     NO_STAT,

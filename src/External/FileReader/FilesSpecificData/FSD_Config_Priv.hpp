@@ -2,7 +2,7 @@
 #define FSD_CONFIG_PRIV_HPP
 #include"FSD_Config_Control.hpp"
 #include"FSDTemplate.hpp"
-#include"FileReader/Interpreter/filereaderinterpreter.hpp"
+#include"External/FileReader/Interpreter/filereaderinterpreter.hpp"
 
 
 template <class FSD>

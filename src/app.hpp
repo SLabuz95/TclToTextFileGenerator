@@ -7,7 +7,7 @@
 #include"appwindow.hpp"
 #include<QTableWidget>
 
-#include"StartUpError/startuperror.hpp"
+#include"External/StartUpError/startuperror.hpp"
 #include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
 #include"Tcl2Capl/controllerconfigmanager.hpp"
 

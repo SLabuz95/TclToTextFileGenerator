@@ -61,7 +61,7 @@
             virtual ~FactoryCommonInterface(){}
             inline virtual Type type()const = 0;
         };
-       using ProductInterface = FactoryCommonInterface<ProductDefinition>;
+       using ProductInterface = FactoryCommonInterface;
 
         public:
 
@@ -97,7 +97,7 @@
 
         public:
         template<ProductsEnumType productType>
-        static ProductBase<ProductsEnumType>* create(){
+        static ProductBase<productType>* create(){
             return Product<productType>();
         }
 

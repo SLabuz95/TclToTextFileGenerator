@@ -2,7 +2,7 @@
 #define FILESLIST_HPP
 
 #include<QTreeWidget>
-#include"Utils/class.hpp"
+#include"External/Utils/class.hpp"
 #include"filesListRootSelection.hpp"
 #include<QFileInfo>
 
