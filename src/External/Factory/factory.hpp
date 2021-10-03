@@ -32,7 +32,7 @@
         class ProductCommonInterface;
         class ProductCommonImplementation;
 
-        static_assert (std::is_base_of_v<ProductCommonImplementation , ProductCommonInterface>, "ProductCommonInterface must derive from ProductCommonImplementation");
+        //static_assert (std::is_base_of_v<ProductCommonImplementation , ProductCommonInterface>, "ProductCommonInterface must derive from ProductCommonImplementation");
     };
 
 
