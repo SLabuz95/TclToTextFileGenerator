@@ -29,8 +29,8 @@
     class FactoryProductDefinition{
     public:
         using Type = ProductsEnumType;
-        class ProductCommonInterface;
-        class ProductCommonImplementation;
+        class ProductInterface;
+        class ProductImplementation;
 
         //static_assert (std::is_base_of_v<ProductCommonImplementation , ProductCommonInterface>, "ProductCommonInterface must derive from ProductCommonImplementation");
     };
@@ -51,35 +51,33 @@
 
         using ProductDefinition = FactoryProductDefinition<ProductsEnumType>;
 
-       class FactoryCommonInterface : public ProductDefinition::BaseProductInterface{
         public:
-            using Type = typename ProductDefinition::Type;
+        class FactoryCommonInterface : public ProductDefinition::ProductInterface{
+         public:
+             using Type = typename ProductDefinition::Type;
 
-            using Interface = typename ProductDefinition::ProductInterface;
-            template<typename ...Args>
-            FactoryCommonInterface(Args... args) : ProductDefinition::ProductInterface(args...){}
-            virtual ~FactoryCommonInterface(){}
-            inline virtual Type type()const = 0;
-        };
-       using ProductInterface = FactoryCommonInterface;
-
-        public:
+             using Interface = typename ProductDefinition::ProductInterface;
+             template<typename ...Args>
+             FactoryCommonInterface(Args... args) : ProductDefinition::ProductInterface(args...){}
+             virtual ~FactoryCommonInterface(){}
+             inline virtual Type type()const = 0;
+         };
 
         template<ProductsEnumType ProductType>
         //requires (ProductType >= ProductsEnumType::FCT_Begin and ProductType < ProductsEnumType::FCT_End)
-        class ProductBase : public ProductInterface{
-            using Interface = ProductInterface;
+        class ProductBase : public FactoryCommonInterface{
+            using Interface = FactoryCommonInterface;
         public:
-            ProductBase() : ProductInterface(){}
+            ProductBase() : Interface(){}
             template<typename ...Args>
-            ProductBase(Args... args) : ProductInterface(args...){}
+            ProductBase(Args... args) : Interface(args...){}
             virtual ~ProductBase(){}
             //ProductBase(ProductInterface&& interface) : ProductInterface(interface){}
             inline typename Interface::Type type()const override final{return ProductType;}
         };
 
-        using ProductBasePtr = ProductInterface*;
-        using ProductBaseRef = ProductInterface&;
+        using ProductBasePtr = FactoryCommonInterface*;
+        using ProductBaseRef = FactoryCommonInterface&;
         using ListOfBases = QList<ProductBasePtr>;
 
         template<ProductsEnumType type>
@@ -92,7 +90,7 @@
         }
 
         inline static constexpr std::underlying_type_t<ProductsEnumType> numbOfProducts(){return toUnderlyng(ProductsEnumType::FCT_End) - toUnderlyng(ProductsEnumType::FCT_Begin);}
-        using CreateFunction = ProductInterface *const (Factory::*)();
+        using CreateFunction = FactoryCommonInterface *const (Factory::*)();
         using CreateFunctionTable = CreateFunction[numbOfProducts() /*toUnderlyng(ProductsEnumType::FCT_End) - toUnderlyng(ProductsEnumType::FCT_Begin)*/];
 
         public:

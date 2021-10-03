@@ -95,7 +95,7 @@ public:
     ~Product(){}
 
 protected:
-    FormatParametersFactory::ProductInterface* data = nullptr;
+    FormatParametersFactory::FactoryCommonInterface* data = nullptr;
 
 public:
    void toXmlContent(QXmlStreamWriter& xmlWriter) override;
@@ -141,7 +141,7 @@ public:
     ~Product(){}
 
 protected:
-    FormatParametersFactory::ProductInterface* data = nullptr;
+    FormatParametersFactory::FactoryCommonInterface* data = nullptr;
 
 public:
    void toXmlContent(QXmlStreamWriter& xmlWriter) override;
@@ -157,7 +157,7 @@ public:
     ~Product(){}
 
 protected:
-    FormatParametersFactory::ProductInterface* data = nullptr;
+    FormatParametersFactory::FactoryCommonInterface* data = nullptr;
 
 public:
    void toXmlContent(QXmlStreamWriter& xmlWriter) override;
@@ -173,7 +173,7 @@ public:
     ~Product(){}
 
 protected:
-    FormatParametersFactory::ProductInterface* data = nullptr;
+    FormatParametersFactory::FactoryCommonInterface* data = nullptr;
 
 public:
    void toXmlContent(QXmlStreamWriter& xmlWriter) override;
@@ -189,7 +189,7 @@ public:
     ~Product(){}
 
 protected:
-    FormatParametersFactory::ProductInterface* data = nullptr;
+    FormatParametersFactory::FactoryCommonInterface* data = nullptr;
 
 public:
    void toXmlContent(QXmlStreamWriter& xmlWriter) override;

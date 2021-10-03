@@ -26,7 +26,7 @@ public:
 
 public:    
 
-    using RawRule = RulesFactory::ProductInterface;
+    using RawRule = RulesFactory::FactoryCommonInterface;
     using QuickRule = RulesFactory::Product<RulesType::QuickRule>;
     using AdvancedRule = RulesFactory::Product<RulesType::RawRule>;
     using RulesForArgument = RulesFactory::Product<RulesType::RulesForArgument>;

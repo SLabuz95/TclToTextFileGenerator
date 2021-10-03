@@ -149,7 +149,7 @@ void RulesFactory::Product<RulesType::RawRule>::toRule(UserProcedureRule &rule)
 
     // TODO: AdvancedRule for CotrollerConfig required
 
-    rule = Rule(conditions, executables, RulesFactory::ProductInterface::controlFlag());
+    rule = Rule(conditions, executables, RulesFactory::FactoryCommonInterface::controlFlag());
 }
 
 

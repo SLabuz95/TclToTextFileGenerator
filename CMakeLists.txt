@@ -16,6 +16,15 @@ find_package(Qt6 COMPONENTS Widgets Core REQUIRED)
 file(GLOB_RECURSE sources src/*.cpp)
 file(GLOB_RECURSE headers src/*.hpp)
 
+file(GLOB_RECURSE dirsAndFiles src/*)
+set(includeDirs "")
+foreach(item ${dirsAndFiles})
+    if(IS_DIRECTORY ${item})
+        list(APPEND includeDirs ${item})
+    endif()
+endforeach()
+
+
 add_executable(TclCaplParserCMake
     ${sources}
     ${headers}
@@ -25,7 +34,7 @@ target_include_directories(TclCaplParserCMake
     PRIVATE
 
     )
-include_directories(src)
+include_directories(src ${includeDir})
 
 target_link_libraries(TclCaplParserCMake
     PRIVATE
