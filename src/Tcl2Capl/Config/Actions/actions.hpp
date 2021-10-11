@@ -3,7 +3,7 @@
 
 #include"tclToCAPL.hpp"
 #include"External/Factory/factory.hpp"
-#include"parameters.hpp"
+#include"Tcl2Capl/Config/Parameters/parameters.hpp"
 
 using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
 using Settings = TclProcedureInterpreter::ProdecuresSettings;
@@ -14,17 +14,11 @@ using Mode = Settings::InterpreterMode;
 using ControlFlag = UserProcedureRule::Control;
 
 // Product Definition
-namespace ConditionalActions {
-    using Type = UserProcedure::Action::Conditional;
-}
-
 namespace ExecutableActions {
     using Type = UserProcedure::Action::Executable;
 }
 
-using ConditionalsTypes = ConditionalActions::Type;
 using ExecutablesTypes = ExecutableActions::Type;
-using ConditionalsFactory = Factory<ConditionalsTypes>;
 using ExecutablesFactory = Factory<ExecutablesTypes>;
 
 template <>

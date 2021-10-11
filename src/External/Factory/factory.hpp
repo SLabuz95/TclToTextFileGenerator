@@ -4,8 +4,8 @@
 #include<iostream>
 #include<type_traits>
 #include<QString>
+#include"External/Factory/ProductDefinition/productdef.hpp"
 
-/*
 
 //namespace Factory {
 
@@ -25,7 +25,8 @@
 
 
 // Factory Definitions
-    template <typename ProductsEnumType>
+    template <typename ProductsList>
+    requires (std::is_enum_v<ProductsList>)
     class Factory{
         /*requires
         (std::is_same_v<ProductDef, FactoryProductDefinition> and
@@ -34,92 +35,78 @@
          FCT_toUnderlying<typename ProductDef::Type>(ProductDef::Type::FCT_Begin) == 0 and*/
          //FCT_toUnderlying<ProductDef::Type>(ProductDef::Type::FCT_End) - FCT_toUnderlying<ProductDef::Type>(ProductDef::Type::FCT_Begin) > 0/* and
          //(ProductDef::Type::FCT_End - ProductDef::Type::FCT_Begin) >= 0*/)
-/*
+
+        // Products Definition
+        using ProductDefinition = ProductDefinition<ProductsList>;
+        using ProductBase = ProductDefinition;
+
         Factory() = delete;
         Factory(const Factory& ) = delete;
 
-        class FactoryProductDefinition{
-
+        template<ProductsList ProductType>
+        requires (ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End)
+        class ImplementationData{
             public:
-                using Type = ProductsEnumType;
-                class ProductInterface;
-                class ProductImplementation;
-
-                //static_assert (std::is_base_of_v<ProductCommonImplementation , ProductCommonInterface>, "ProductCommonInterface must derive from ProductCommonImplementation");
-            };
-        using ProductDefinition = FactoryProductDefinition;
-
-        template<ProductsEnumType ProductType>
-        //requires (ProductType >= ProductsEnumType::FCT_Begin and ProductType < ProductsEnumType::FCT_End)
-        class ProductBase : public ProductDefinition{
-            using Interface = ProductDefinition;
-        public:
-            ProductBase() : Interface(){}
-            template<typename ...Args>
-            ProductBase(Args... args) : Interface(args...){}
-            virtual ~ProductBase(){}
-            //ProductBase(ProductInterface&& interface) : ProductInterface(interface){}
-            inline typename Interface::Type type()const final{return ProductType;}
+            static constexpr ProductsList productType(){return ProductType;}
+            struct Properties;
+            class Methods;
         };
-
-        template<ProductsEnumType ProductType>
-        //requires (ProductType >= ProductsEnumType::FCT_Begin and ProductType < ProductsEnumType::FCT_End)
-        class ProductImplementation : public ProductDefinition{
-            using Interface = ProductDefinition;
-        public:
-            ProductBase() : Interface(){}
-            template<typename ...Args>
-            ProductBase(Args... args) : Interface(args...){}
-            virtual ~ProductBase(){}
-            //ProductBase(ProductInterface&& interface) : ProductInterface(interface){}
-            inline typename Interface::Type type()const final{return ProductType;}
-        };
-
-        template<ProductsEnumType ProductType>
-        //requires (ProductType >= ProductsEnumType::FCT_Begin and ProductType < ProductsEnumType::FCT_End)
-        class ProductInterface : public ProductDefinition{
-            using Interface = ProductDefinition;
-        public:
-            ProductBase() : Interface(){}
-            template<typename ...Args>
-            ProductBase(Args... args) : Interface(args...){}
-            virtual ~ProductBase(){}
-            //ProductBase(ProductInterface&& interface) : ProductInterface(interface){}
-            inline typename Interface::Type type()const final{return ProductType;}
-        };
-
-        class Product{
-
-        };
-
-        using ProductBasePtr = FactoryCommonInterface*;
-        using ProductBaseRef = FactoryCommonInterface&;
-        using ListOfBases = QList<ProductBasePtr>;
-
-        template<ProductsEnumType type>
-        //requires (type >= ProductsEnumType::FCT_Begin and type < ProductsEnumType::FCT_End)
-        class Product;
 
         private:
-        inline static constexpr std::underlying_type_t<ProductsEnumType> toUnderlyng(ProductsEnumType value){
-            return static_cast<std::underlying_type_t<ProductsEnumType>>(value);
+        template<ProductsList ProductType>
+        //requires std::is_base_of_v<Properties, Methods>
+        using IS_PROPERTIES_BASE_OF_METHODS = void;
+        public:
+
+        template<ProductsList ProductType>
+        class Implementation : public ImplementationData<ProductType>::Methods{};
+
+        // Interface
+        template<ProductsList ProductType>
+        requires (ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End)
+        class InterfaceData {
+        public:
+            class Methods;
+            //static_assert (  std::is_base_of_v<Properties, Methods>, "ERROR");
+        };
+
+        private:
+        template<class Implementation, class Methods>
+        //requires std::is_base_of_v<Properties, Methods>
+        using IS_Methods_BASE_OF_Implementation = void;
+        public:
+
+        template<ProductsList ProductType>
+        class Interface : protected InterfaceData::Methods{};
+
+        template<ProductsList ProductType>
+        class Product : public Interface<ProductType>{};
+
+
+        using ProductBasePtr = ProductBase*;
+        using ProductBaseRef = ProductBase&;
+        using ListOfBases = QList<ProductBase>;
+
+        private:
+        inline static constexpr std::underlying_type_t<ProductsList> toUnderlyng(ProductsList value){
+            return static_cast<std::underlying_type_t<ProductsList>>(value);
         }
 
-        inline static constexpr std::underlying_type_t<ProductsEnumType> numbOfProducts(){return toUnderlyng(ProductsEnumType::FCT_End) - toUnderlyng(ProductsEnumType::FCT_Begin);}
-        using CreateFunction = FactoryCommonInterface *const (Factory::*)();
-        using CreateFunctionTable = CreateFunction[numbOfProducts() /*toUnderlyng(ProductsEnumType::FCT_End) - toUnderlyng(ProductsEnumType::FCT_Begin)];
+        inline static constexpr std::underlying_type_t<ProductsList> numbOfProducts(){return toUnderlyng(ProductsList::FCT_End) - toUnderlyng(ProductsList::FCT_Begin);}
+        using CreateFunction =  ProductBase*const (Factory::*)();
+        using CreateFunctionTable = CreateFunction[numbOfProducts()];
 
-/*        public:
-        template<ProductsEnumType productType>
-        static ProductBase<productType>* create(){
-            return Product<productType>();
+        public:
+        template<ProductsList productType>
+        static ProductBase* create(){
+            return new Product<productType>();
         }
 
 
         private:
         static constexpr CreateFunction initCreateFunctionTable(){
-            for(ProductsEnumType productType = ProductsEnumType::FCT_Begin; productType < ProductsEnumType::FCT_End; productType++){
-                static_assert (std::is_base_of_v<ProductBase<productType>, Product<productType>>, "Invalid product base");
+            for(ProductsList productType = ProductsList::FCT_Begin; productType < ProductsList::FCT_End; productType++){
+                //static_assert (std::is_base_of_v<ProductBase<productType>, Product<productType>>, "Invalid product base");
                 createFunctionTable[toUnderlyng(productType)] = &Factory::create<productType>;
             }
 
@@ -130,6 +117,6 @@
 
     };
 //};
-*/
+
 
 #endif // FACTORY_HPP
