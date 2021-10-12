@@ -1,24 +1,32 @@
 #ifndef COMPARENUMBOFARGS_HPP
 #define COMPARENUMBOFARGS_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Conditional/definition.hpp"
 
 template<>
 template<>
-struct ConditionalsFactory::ImplementationData<ConditionalsTypes::CompareNumbOfArguments>::Properties{
+struct ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareNumbOfArguments>::Properties
+: public ConditionalsProductDefinition::Definition
+{
+protected:
+    //IntegerParam numbOfArgs;
 
 };
 
 template<>
 template<>
-class ConditionalsFactory::ImplementationData<ConditionalsTypes::CompareNumbOfArguments>::Methods{
+class ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareNumbOfArguments>::Methods
+: protected ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareNumbOfArguments>::Properties
+{
 
 };
 
 template<>
 template<>
-class ConditionalsFactory::InterfaceData<ConditionalsTypes::CompareNumbOfArguments>::Methods{
+class ConditionalsProducts::InterfaceData<ConditionalsTypes::CompareNumbOfArguments>::Methods
+: protected ConditionalsProducts::Implementation<ConditionalsTypes::CompareNumbOfArguments>
+{
 
 };
 

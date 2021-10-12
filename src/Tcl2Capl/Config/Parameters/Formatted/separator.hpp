@@ -1,29 +1,31 @@
 #ifndef SEPARATOR_HPP
 #define SEPARATOR_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/Formatted/definition.hpp"
 
 template<>
 template<>
-struct FormatParametersFactory::ImplementationData<FormatParametersType::SEPARATOR>::Properties{
+struct FormatParametersProducts::ImplementationData<FormatParametersType::SEPARATOR>::Properties
+: protected FormatParametersProductDefinition::Definition
+{
 protected:
-    //FormatParametersFactory::FactoryCommonInterface* data = nullptr;
+    //FormatParametersProducts::FactoryCommonInterface* data = nullptr;
 
 };
 
 template<>
 template<>
-class FormatParametersFactory::ImplementationData<FormatParametersType::SEPARATOR>::Methods
-: protected FormatParametersFactory::ImplementationData<FormatParametersType::SEPARATOR>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::SEPARATOR>::Methods
+: protected FormatParametersProducts::ImplementationData<FormatParametersType::SEPARATOR>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersFactory::InterfaceData<FormatParametersType::SEPARATOR>::Methods
-: public FormatParametersFactory::Implementation<FormatParametersType::SEPARATOR>
+class FormatParametersProducts::InterfaceData<FormatParametersType::SEPARATOR>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::SEPARATOR>
 {
 public:
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;

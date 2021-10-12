@@ -1,8 +1,8 @@
-#ifndef DEFINITION_HPP
-#define DEFINITION_HPP
+#ifndef DEFINITION_CONDITIONAL_HPP
+#define DEFINITION_CONDITIONAL_HPP
 
 #include"tclToCAPL.hpp"
-#include"External/Factory/factory.hpp"
+#include"External/Factory/ProductDefinition/productdef.hpp"
 
 using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
 using Settings = TclProcedureInterpreter::ProdecuresSettings;
@@ -19,7 +19,7 @@ namespace ConditionalActions {
 
 using ConditionalsTypes = ConditionalActions::Type;
 using ConditionalsProductDefinition = ProductDefinition<ConditionalsTypes>;
-using ConditionalsFactory = Factory<ConditionalsTypes>;
+//using ConditionalsFactory = Factory<ConditionalsTypes>;
 
 
 template <>
@@ -39,5 +39,6 @@ class ConditionalsProductDefinition::InterfaceData::Methods{
     //inline virtual RawFormatType rawFormatType() const = 0;
 };
 
+using ConditionalsProducts = ProductsConfiguration<ConditionalsTypes>;
 
-#endif // DEFINITION_HPP
+#endif // DEFINITION_CONDITIONAL_HPP

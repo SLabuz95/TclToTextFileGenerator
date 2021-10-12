@@ -1,12 +1,14 @@
 #ifndef STRING_HPP
 #define STRING_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/definition.hpp"
 
 template<>
 template<>
-struct ParametersFactory::ImplementationData<ParametersType::String>::Properties{
+struct ParametersProducts::ImplementationData<ParametersType::String>::Properties
+: protected ParametersProductDefinition::Definition
+{
 protected:
     QString content;
 
@@ -14,16 +16,16 @@ protected:
 
 template<>
 template<>
-class ParametersFactory::ImplementationData<ParametersType::String>::Methods
-: protected ParametersFactory::ImplementationData<ParametersType::String>::Properties
+class ParametersProducts::ImplementationData<ParametersType::String>::Methods
+: protected ParametersProducts::ImplementationData<ParametersType::String>::Properties
 {
 
 };
 
 template<>
 template<>
-class ParametersFactory::InterfaceData<ParametersType::String>::Methods
-: public ParametersFactory::Implementation<ParametersType::String>
+class ParametersProducts::InterfaceData<ParametersType::String>::Methods
+: public ParametersProducts::Implementation<ParametersType::String>
 {
 public:
    // void toXmlContent(QXmlStreamWriter& xmlWriter) override;

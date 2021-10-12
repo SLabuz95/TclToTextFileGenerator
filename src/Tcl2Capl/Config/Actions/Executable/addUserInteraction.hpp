@@ -1,24 +1,33 @@
 #ifndef ADDUSERINTERACTION_HPP
 #define ADDUSERINTERACTION_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
 
+
 template<>
 template<>
-struct ExecutablesFactory::ImplementationData<ExecutablesTypes::AddUserInteraction>::Properties{
+struct ExecutablesProducts::ImplementationData<ExecutablesTypes::AddUserInteraction>::Properties
+: protected ExecutablesProductDefinition::Definition
+{
+protected:
+    //ListParam outputParams;
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::ImplementationData<ExecutablesTypes::AddUserInteraction>::Methods{
+class ExecutablesProducts::ImplementationData<ExecutablesTypes::AddUserInteraction>::Methods
+: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::AddUserInteraction>::Properties
+{
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::InterfaceData<ExecutablesTypes::AddUserInteraction>::Methods{
+class ExecutablesProducts::InterfaceData<ExecutablesTypes::AddUserInteraction>::Methods
+: protected ExecutablesProducts::Implementation<ExecutablesTypes::AddUserInteraction>
+{
 
 };
 

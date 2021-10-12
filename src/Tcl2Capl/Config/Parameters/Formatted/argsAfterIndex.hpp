@@ -1,29 +1,31 @@
 #ifndef ARGSAFTERINDEX_HPP
 #define ARGSAFTERINDEX_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/Formatted/definition.hpp"
 
 template<>
 template<>
-struct FormatParametersFactory::ImplementationData<FormatParametersType::ARGS_AFTER_INDEX>::Properties{
+struct FormatParametersProducts::ImplementationData<FormatParametersType::ARGS_AFTER_INDEX>::Properties
+: protected FormatParametersProductDefinition::Definition
+{
 protected:
-    //FormatParametersFactory::FactoryCommonInterface* data = nullptr;
+    //FormatParametersProducts::FactoryCommonInterface* data = nullptr;
 
 };
 
 template<>
 template<>
-class FormatParametersFactory::ImplementationData<FormatParametersType::ARGS_AFTER_INDEX>::Methods
-: protected FormatParametersFactory::ImplementationData<FormatParametersType::ARGS_AFTER_INDEX>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::ARGS_AFTER_INDEX>::Methods
+: protected FormatParametersProducts::ImplementationData<FormatParametersType::ARGS_AFTER_INDEX>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersFactory::InterfaceData<FormatParametersType::ARGS_AFTER_INDEX>::Methods
-: public FormatParametersFactory::Implementation<FormatParametersType::ARGS_AFTER_INDEX>
+class FormatParametersProducts::InterfaceData<FormatParametersType::ARGS_AFTER_INDEX>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::ARGS_AFTER_INDEX>
 {
 public:
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;

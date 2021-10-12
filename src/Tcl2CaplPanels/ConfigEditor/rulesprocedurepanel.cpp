@@ -136,14 +136,14 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
 
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::loadExpectedArguments(QuickRule& rule)
 {
-    using ArgumentsByIndexIter = QuickRule::ExpectedArgumentsByIndex::Iterator;
+    /*using ArgumentsByIndexIter = QuickRule::ExpectedArgumentsByIndex::Iterator;
     for(ArgumentsByIndexIter argumentsByIndexIter = rule.getExpectedArgumentsByIndex().begin();
         argumentsByIndexIter != rule.getExpectedArgumentsByIndex().end();
         argumentsByIndexIter++)
     {
         curEditItem = new ListItem(ListItem::ItemType::IndexItem, QString::number(argumentsByIndexIter.key()), argumentsByIndexIter.value());
         addTopLevelItem(curEditItem);
-    }
+    }*/
 }
 
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::clearEditItem()
@@ -246,13 +246,13 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Expe
 }
 
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ListItem::loadArguments(QStringList& arguments){
-    using ArgumentsByIndexIter = QuickRule::ExpectedArgumentsByIndex::Iterator;
+    /*using ArgumentsByIndexIter = QuickRule::ExpectedArgumentsByIndex::Iterator;
     for(QStringList::Iterator argument = arguments.begin();
         argument != arguments.end();
         argument++)
     {
         loadArgument(*argument);
-    }
+    }*/
 }
 
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ExpectedArgumentsList::ListItem::loadArgument(QString& argument)
@@ -533,7 +533,7 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsLi
 }
 
 void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::loadOutputs(QuickRule &rule){
-    using WriteActionsIter = QuickRule::WriteActions::Iterator;
+   /* using WriteActionsIter = QuickRule::WriteActions::Iterator;
     for(WriteActionsIter writeAction = rule.writeActions().begin();
         writeAction != rule.writeActions().end();
         writeAction++)
@@ -541,7 +541,7 @@ void RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::Outp
 
         //curEditItem = new ListItem(ListItem::ItemType::IndexItem, QString::number(argumentsByIndexIter.key()), argumentsByIndexIter.value());
         //addTopLevelItem(curEditItem);
-    }
+    }*/
 }
 
 RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::OutputsList::ListItem::ItemContent::ItemContent(Parent* parent)
@@ -849,7 +849,7 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemConte
 
     // Rule available
     if(rule){   // Exists
-        QuickRule& quickRule = *static_cast<QuickRule*>(rule);
+        /*QuickRule& quickRule = *static_cast<QuickRule*>(rule);
         // NumbOfArguments
         if(quickRule.getNumbOfArguments() != -1){
             numbOfArgumentCondition.setText(QString::number(quickRule.getNumbOfArguments()));
@@ -857,7 +857,7 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemConte
         // ControlFlag
         ruleControlComboBox.setCurrentIndex(static_cast<std::underlying_type_t<ControlFlag>>(quickRule.controlFlag()));
         // Expected Arguments
-        expectedArgumentsList.loadExpectedArguments(quickRule);
+        expectedArgumentsList.loadExpectedArguments(quickRule);*/
     }
 }
 

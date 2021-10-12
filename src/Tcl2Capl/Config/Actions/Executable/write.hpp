@@ -1,24 +1,32 @@
 #ifndef WRITE_HPP
 #define WRITE_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
 
 template<>
 template<>
-struct ExecutablesFactory::ImplementationData<ExecutablesTypes::Write>::Properties{
+struct ExecutablesProducts::ImplementationData<ExecutablesTypes::Write>::Properties
+: protected ExecutablesProductDefinition::Definition
+{
+protected:
+    //ListParam outputParamaters;
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::ImplementationData<ExecutablesTypes::Write>::Methods{
+class ExecutablesProducts::ImplementationData<ExecutablesTypes::Write>::Methods
+: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::Write>::Properties
+{
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::InterfaceData<ExecutablesTypes::Write>::Methods{
+class ExecutablesProducts::InterfaceData<ExecutablesTypes::Write>::Methods
+: protected ExecutablesProducts::Implementation<ExecutablesTypes::Write>
+{
 
 };
 

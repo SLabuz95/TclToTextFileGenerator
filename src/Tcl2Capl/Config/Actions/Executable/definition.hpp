@@ -1,5 +1,5 @@
-#ifndef DEFINITION_HPP
-#define DEFINITION_HPP
+#ifndef DEFINITION_EXECUTABLE_HPP
+#define DEFINITION_EXECUTABLE_HPP
 
 #include"tclToCAPL.hpp"
 #include"External/Factory/factory.hpp"
@@ -19,7 +19,6 @@ namespace ExecutableActions {
 
 using ExecutablesTypes = ExecutableActions::Type;
 using ExecutablesProductDefinition = ProductDefinition<ExecutablesTypes>;
-using ExecutablesFactory = Factory<ExecutablesTypes>;
 
 
 template <>
@@ -39,4 +38,6 @@ class ExecutablesProductDefinition::InterfaceData::Methods{
     //inline virtual RawFormatType rawFormatType() const = 0;
 };
 
-#endif // DEFINITION_HPP
+using ExecutablesProducts = ProductsConfiguration<ExecutablesTypes>;
+
+#endif // DEFINITION_EXECUTABLE_HPP

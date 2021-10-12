@@ -4,7 +4,7 @@
 #include<iostream>
 #include<type_traits>
 #include<QString>
-#include"External/Factory/ProductDefinition/productdef.hpp"
+#include"External/Factory/products.hpp"
 
 
 //namespace Factory {
@@ -37,55 +37,21 @@
          //(ProductDef::Type::FCT_End - ProductDef::Type::FCT_Begin) >= 0*/)
 
         // Products Definition
-        using ProductDefinition = ProductDefinition<ProductsList>;
+        using ProductDefinition = typename  ProductDefinition<ProductsList>::Definition;
+
+        public:
         using ProductBase = ProductDefinition;
 
+        protected:
         Factory() = delete;
         Factory(const Factory& ) = delete;
-
+public:
         template<ProductsList ProductType>
-        requires (ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End)
-        class ImplementationData{
-            public:
-            static constexpr ProductsList productType(){return ProductType;}
-            struct Properties;
-            class Methods;
-        };
-
-        private:
-        template<ProductsList ProductType>
-        //requires std::is_base_of_v<Properties, Methods>
-        using IS_PROPERTIES_BASE_OF_METHODS = void;
-        public:
-
-        template<ProductsList ProductType>
-        class Implementation : public ImplementationData<ProductType>::Methods{};
-
-        // Interface
-        template<ProductsList ProductType>
-        requires (ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End)
-        class InterfaceData {
-        public:
-            class Methods;
-            //static_assert (  std::is_base_of_v<Properties, Methods>, "ERROR");
-        };
-
-        private:
-        template<class Implementation, class Methods>
-        //requires std::is_base_of_v<Properties, Methods>
-        using IS_Methods_BASE_OF_Implementation = void;
-        public:
-
-        template<ProductsList ProductType>
-        class Interface : protected InterfaceData::Methods{};
-
-        template<ProductsList ProductType>
-        class Product : public Interface<ProductType>{};
-
+        class Product : public ProductsConfiguration<ProductsList>::Interface<ProductType>{};
 
         using ProductBasePtr = ProductBase*;
         using ProductBaseRef = ProductBase&;
-        using ListOfBases = QList<ProductBase>;
+        //using ListOfBases = QList<ProductBase>;
 
         private:
         inline static constexpr std::underlying_type_t<ProductsList> toUnderlyng(ProductsList value){

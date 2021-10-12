@@ -1,14 +1,16 @@
 #ifndef RAW_HPP
 #define RAW_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Rules/definition.hpp"
 #include"Tcl2Capl/Config/Actions/Conditional/definition.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
 
 template<>
 template<>
-struct RulesFactory::ImplementationData<RulesTypes::RawRule>::Properties{
+struct RulesProducts::ImplementationData<RulesTypes::RawRule>::Properties
+: protected RulesProductDefinition::Definition
+{
 public:
     //using ConditionalActions = ConditionalsFactory::ListOfBases;
     //using ExecutableActions = ExecutablesFactory::ListOfBases;
@@ -21,13 +23,13 @@ protected:
 
 template<>
 template<>
-class RulesFactory::ImplementationData<RulesTypes::RawRule>::Methods : public RulesFactory::ImplementationData<RulesTypes::RawRule>::Properties{
+class RulesProducts::ImplementationData<RulesTypes::RawRule>::Methods : public RulesProducts::ImplementationData<RulesTypes::RawRule>::Properties{
 
 };
 
 template<>
 template<>
-class RulesFactory::InterfaceData<RulesTypes::RawRule>::Methods : public RulesFactory::Implementation<RulesTypes::RawRule>{
+class RulesProducts::InterfaceData<RulesTypes::RawRule>::Methods : public RulesProducts::Implementation<RulesTypes::RawRule>{
     //inline ConditionalActions& conditions(){return conditions_;}
     //inline ExecutableActions& executables(){return executables_;}
    //void toRule(UserProcedureRule&) override;

@@ -1,8 +1,9 @@
-#ifndef DEFINITION_HPP
-#define DEFINITION_HPP
+#ifndef DEFINITION_RULES_HPP
+#define DEFINITION_RULES_HPP
 
 #include"tclToCAPL.hpp"
-#include"External/Factory/factory.hpp"
+#include"External/Factory/ProductDefinition/productdef.hpp"
+//#include"External/Factory/factory.hpp"
 
 using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
 using Settings = TclProcedureInterpreter::ProdecuresSettings;
@@ -28,7 +29,7 @@ namespace Rules {
 
 using RulesTypes = Rules::Type;
 using RulesProductDefinition = ProductDefinition<RulesTypes>;
-using RulesFactory = Factory<RulesTypes>;
+//using RulesFactory = Factory<RulesTypes>;
 
 
 template <>
@@ -50,9 +51,10 @@ class RulesProductDefinition::InterfaceData::Methods : public RulesProductDefini
 
     inline void changeControlFlag(ControlFlag cf){controlFlag_ = cf;}
     inline ControlFlag controlFlag()const{return controlFlag_;}
-    virtual void toRule(UserProcedureRule&) = 0;
-    virtual void toXmlContent(QXmlStreamWriter& xmlWriter);
+   // virtual void toRule(UserProcedureRule&) = 0;
+    //virtual void toXmlContent(QXmlStreamWriter& xmlWriter);
 };
 
+using RulesProducts = ProductsConfiguration<RulesTypes>;
 
-#endif // DEFINITION_HPP
+#endif // DEFINITION_RULES_HPP

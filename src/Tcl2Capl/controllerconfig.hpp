@@ -2,8 +2,8 @@
 #define CONTROLLERCONFIG_H
 
 #include"tclToCAPL.hpp"
-#include"Config/rules.hpp"
-#include"Config/parameters.hpp"
+#include"Tcl2Capl/Config/Parameters/FCT_products.hpp"
+#include"Tcl2Capl/Config/Rules/FCT_products.hpp"
 
 class Tcl2CaplControllerConfigXmlData;
 class Tcl2CaplControllerConfig{
@@ -26,10 +26,10 @@ public:
 
 public:    
 
-    using RawRule = RulesFactory::FactoryCommonInterface;
-    using QuickRule = RulesFactory::Product<RulesType::QuickRule>;
-    using AdvancedRule = RulesFactory::Product<RulesType::RawRule>;
-    using RulesForArgument = RulesFactory::Product<RulesType::RulesForArgument>;
+    using RawRule = RulesFactory::ProductBase;
+    using QuickRule = RulesFactory::Product<RulesTypes::QuickRule>;
+    using AdvancedRule = RulesFactory::Product<RulesTypes::RawRule>;
+    using RulesForArgument = RulesFactory::Product<RulesTypes::RulesForArgument>;
 
     using RawRuleRef = RawRule*;
     using RawRuleRefs = QList<RawRuleRef>;
@@ -68,8 +68,8 @@ public:
             for(RawRuleRefs::Iterator rule = rulesOnEndOfCall_.begin();
                 rule != rulesOnEndOfCall_.end(); rule++)
             {
-                if(not ((*rule)->type() == RulesType::QuickRule))
-                    return false;
+                //if(not ((*rule)->type() == RulesType::QuickRule))
+                  //  return false;
             }
             return true;
         }

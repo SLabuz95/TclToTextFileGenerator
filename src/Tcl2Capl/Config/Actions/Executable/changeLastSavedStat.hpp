@@ -1,25 +1,32 @@
 #ifndef CHANGELASTSAVEDSTAT_HPP
 #define CHANGELASTSAVEDSTAT_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
 
 template<>
 template<>
-struct ExecutablesFactory::ImplementationData<ExecutablesTypes::ChangeLastSavedStat>::Properties{
+struct ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastSavedStat>::Properties
+: protected ExecutablesProductDefinition::Definition
+{
+protected:
+    //IntegerParam newStat;
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::ImplementationData<ExecutablesTypes::ChangeLastSavedStat>::Methods{
+class ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastSavedStat>::Methods
+: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastSavedStat>::Properties
+{
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::InterfaceData<ExecutablesTypes::ChangeLastSavedStat>::Methods{
+class ExecutablesProducts::InterfaceData<ExecutablesTypes::ChangeLastSavedStat>::Methods
+: protected ExecutablesProducts::Implementation<ExecutablesTypes::ChangeLastSavedStat>
+{
 
 };
-
 #endif // CHANGELASTSAVEDSTAT_HPP

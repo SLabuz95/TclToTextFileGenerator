@@ -1,24 +1,32 @@
 #ifndef ADDPREEXPRESSION_HPP
 #define ADDPREEXPRESSION_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
 
 template<>
 template<>
-struct ExecutablesFactory::ImplementationData<ExecutablesTypes::AddPreExpression>::Properties{
+struct ExecutablesProducts::ImplementationData<ExecutablesTypes::AddPreExpression>::Properties
+: protected ExecutablesProductDefinition::Definition
+{
+protected:
+    //ListParam outputParams;
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::ImplementationData<ExecutablesTypes::AddPreExpression>::Methods{
+class ExecutablesProducts::ImplementationData<ExecutablesTypes::AddPreExpression>::Methods
+: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::AddPreExpression>::Properties
+{
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::InterfaceData<ExecutablesTypes::AddPreExpression>::Methods{
+class ExecutablesProducts::InterfaceData<ExecutablesTypes::AddPreExpression>::Methods
+: protected ExecutablesProducts::Implementation<ExecutablesTypes::AddPreExpression>
+{
 
 };
 

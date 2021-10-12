@@ -1,30 +1,32 @@
 #ifndef INDEXORFULLLINE_HPP
 #define INDEXORFULLLINE_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/Formatted/definition.hpp"
 
 template<>
 template<>
-struct FormatParametersFactory::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Properties{
+struct FormatParametersProducts::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Properties
+: protected FormatParametersProductDefinition::Definition
+{
 
 protected:
-   // FormatParametersFactory::FactoryCommonInterface* data = nullptr;
+   // FormatParametersProducts::FactoryCommonInterface* data = nullptr;
 
 };
 
 template<>
 template<>
-class FormatParametersFactory::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Methods
-: protected FormatParametersFactory::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Methods
+: protected FormatParametersProducts::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersFactory::InterfaceData<FormatParametersType::INDEX_OR_FULL_LINE>::Methods
-: public FormatParametersFactory::Implementation<FormatParametersType::INDEX_OR_FULL_LINE>
+class FormatParametersProducts::InterfaceData<FormatParametersType::INDEX_OR_FULL_LINE>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::INDEX_OR_FULL_LINE>
 {
 public:
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;

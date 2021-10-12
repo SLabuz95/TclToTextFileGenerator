@@ -2,12 +2,14 @@
 #define QUICK_HPP
 
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Rules/definition.hpp"
 
 template<>
 template<>
-struct RulesFactory::ImplementationData<RulesTypes::QuickRule>::Properties{
+struct RulesProducts::ImplementationData<RulesTypes::QuickRule>::Properties
+: protected RulesProductDefinition::Definition
+{
 public:
     using NumbOfArguments = UserProcedure::NumbOfArguments;
     using NumbOfAcceptableConditions = uint;
@@ -34,13 +36,13 @@ protected:
 
 template<>
 template<>
-class RulesFactory::ImplementationData<RulesTypes::QuickRule>::Methods  : public RulesFactory::ImplementationData<RulesTypes::QuickRule>::Properties{
+class RulesProducts::ImplementationData<RulesTypes::QuickRule>::Methods  : public RulesProducts::ImplementationData<RulesTypes::QuickRule>::Properties{
 
 };
 
 template<>
 template<>
-class RulesFactory::InterfaceData<RulesTypes::QuickRule>::Methods : public RulesFactory::Implementation<RulesTypes::QuickRule>{
+class RulesProducts::InterfaceData<RulesTypes::QuickRule>::Methods : public RulesProducts::Implementation<RulesTypes::QuickRule>{
 public:
     inline NumbOfAcceptableConditions getNumbOfAcceptableConditions() const{return numbOfAcceptableConditions;}
     inline NumbOfArguments& getNumbOfArguments(){return numbOfArguments;}

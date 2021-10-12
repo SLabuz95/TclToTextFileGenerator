@@ -1,24 +1,32 @@
 #ifndef TCLPARSE_HPP
 #define TCLPARSE_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
 
 template<>
 template<>
-struct ExecutablesFactory::ImplementationData<ExecutablesTypes::TclParse>::Properties{
+struct ExecutablesProducts::ImplementationData<ExecutablesTypes::TclParse>::Properties
+: protected ExecutablesProductDefinition::Definition
+{
+protected:
+    //ListParam formattedStringToParse;
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::ImplementationData<ExecutablesTypes::TclParse>::Methods{
+class ExecutablesProducts::ImplementationData<ExecutablesTypes::TclParse>::Methods
+: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::TclParse>::Properties
+{
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::InterfaceData<ExecutablesTypes::TclParse>::Methods{
+class ExecutablesProducts::InterfaceData<ExecutablesTypes::TclParse>::Methods
+: protected ExecutablesProducts::Implementation<ExecutablesTypes::TclParse>
+{
 
 };
 

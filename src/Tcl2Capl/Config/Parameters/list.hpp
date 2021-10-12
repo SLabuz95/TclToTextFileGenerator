@@ -2,12 +2,14 @@
 #define LIST_HPP
 
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/definition.hpp"
 
 template<>
 template<>
-struct ParametersFactory::ImplementationData<ParametersType::List>::Properties{
+struct ParametersProducts::ImplementationData<ParametersType::List>::Properties
+: protected ParametersProductDefinition::Definition
+{
 protected:
    // ListOfBases params;
 
@@ -15,8 +17,8 @@ protected:
 
 template<>
 template<>
-class ParametersFactory::ImplementationData<ParametersType::List>::Methods
-: protected ParametersFactory::ImplementationData<ParametersType::List>::Properties
+class ParametersProducts::ImplementationData<ParametersType::List>::Methods
+: protected ParametersProducts::ImplementationData<ParametersType::List>::Properties
 {
 protected:
 
@@ -24,8 +26,8 @@ protected:
 
 template<>
 template<>
-class ParametersFactory::InterfaceData<ParametersType::List>::Methods
-: public ParametersFactory::Implementation<ParametersType::List>
+class ParametersProducts::InterfaceData<ParametersType::List>::Methods
+: public ParametersProducts::Implementation<ParametersType::List>
 {
 public:
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;

@@ -1,5 +1,5 @@
-#ifndef DEFINITION_HPP
-#define DEFINITION_HPP
+#ifndef DEFINITION_PARAMETERS_HPP
+#define DEFINITION_PARAMETERS_HPP
 
 #include"tclToCAPL.hpp"
 #include"External/Factory/factory.hpp"
@@ -30,7 +30,6 @@ namespace Parameters {
 
 using ParametersType = Parameters::Type;
 using ParametersProductDefinition = ProductDefinition<ParametersType>;
-using ParametersFactory = Factory<ParametersType>;
 
 
 template <>
@@ -50,5 +49,6 @@ class ParametersProductDefinition::InterfaceData::Methods : public ParametersPro
     //inline virtual RawFormatType rawFormatType() const = 0;
 };
 
+using ParametersProducts = ProductsConfiguration<ParametersType>;
 
-#endif // DEFINITION_HPP
+#endif // DEFINITION_PARAMETERS_HPP

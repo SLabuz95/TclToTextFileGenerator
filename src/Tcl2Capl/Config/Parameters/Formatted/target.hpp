@@ -1,30 +1,31 @@
 #ifndef TARGET_HPP
 #define TARGET_HPP
 
-
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/Formatted/definition.hpp"
 
 template<>
 template<>
-struct FormatParametersFactory::ImplementationData<FormatParametersType::TARGET>::Properties{
+struct FormatParametersProducts::ImplementationData<FormatParametersType::TARGET>::Properties
+: protected FormatParametersProductDefinition::Definition
+{
 protected:
-   // FormatParametersFactory::FactoryCommonInterface* data = nullptr;
+   // FormatParametersProducts::FactoryCommonInterface* data = nullptr;
 
 };
 
 template<>
 template<>
-class FormatParametersFactory::ImplementationData<FormatParametersType::TARGET>::Methods
-: protected FormatParametersFactory::ImplementationData<FormatParametersType::TARGET>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::TARGET>::Methods
+: protected FormatParametersProducts::ImplementationData<FormatParametersType::TARGET>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersFactory::InterfaceData<FormatParametersType::TARGET>::Methods
-: public FormatParametersFactory::Implementation<FormatParametersType::TARGET>
+class FormatParametersProducts::InterfaceData<FormatParametersType::TARGET>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::TARGET>
 {
 public:
    // void toXmlContent(QXmlStreamWriter& xmlWriter) override;

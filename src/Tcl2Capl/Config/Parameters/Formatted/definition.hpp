@@ -1,5 +1,5 @@
-#ifndef DEFINITION_HPP
-#define DEFINITION_HPP
+#ifndef DEFINITION_PARAMETERS_FORMATTED_HPP
+#define DEFINITION_PARAMETERS_FORMATTED_HPP
 
 #include"tclToCAPL.hpp"
 #include"External/Factory/factory.hpp"
@@ -30,8 +30,6 @@ namespace FormatParameters {
 
 using FormatParametersType = FormatParameters::Type;
 using FormatParametersProductDefinition = ProductDefinition<FormatParametersType>;
-using FormatParametersFactory = Factory<FormatParametersType>;
-
 
 template <>
 struct FormatParametersProductDefinition::ImplementationData::Properties{
@@ -50,4 +48,7 @@ class FormatParametersProductDefinition::InterfaceData::Methods{
     //inline virtual RawFormatType rawFormatType() const = 0;
 };
 
-#endif // DEFINITION_HPP
+using FormatParametersProducts = ProductsConfiguration<FormatParametersType>;
+
+
+#endif // DEFINITION_PARAMETERS_FORMATTED_HPP

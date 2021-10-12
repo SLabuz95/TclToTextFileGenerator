@@ -1,24 +1,30 @@
 #ifndef ADDFUNCTIONDEFINITION_HPP
 #define ADDFUNCTIONDEFINITION_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
 
 template<>
 template<>
-struct ExecutablesFactory::ImplementationData<ExecutablesTypes::AddFunctionDefinition>::Properties{
+struct ExecutablesProducts::ImplementationData<ExecutablesTypes::AddFunctionDefinition>::Properties
+: protected ExecutablesProductDefinition::Definition
+{
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::ImplementationData<ExecutablesTypes::AddFunctionDefinition>::Methods{
+class ExecutablesProducts::ImplementationData<ExecutablesTypes::AddFunctionDefinition>::Methods
+: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::AddFunctionDefinition>::Properties
+{
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::InterfaceData<ExecutablesTypes::AddFunctionDefinition>::Methods{
+class ExecutablesProducts::InterfaceData<ExecutablesTypes::AddFunctionDefinition>::Methods
+: protected ExecutablesProducts::Implementation<ExecutablesTypes::AddFunctionDefinition>
+{
 
 };
 

@@ -1,12 +1,14 @@
 #ifndef INTEGER_HPP
 #define INTEGER_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/definition.hpp"
 
 template<>
 template<>
-struct ParametersFactory::ImplementationData<ParametersType::Integer>::Properties{
+struct ParametersProducts::ImplementationData<ParametersType::Integer>::Properties
+: protected ParametersProductDefinition::Definition
+{
 public:
     inline static constexpr int NO_VALUE = INT32_MIN;
 protected:
@@ -15,8 +17,8 @@ protected:
 
 template<>
 template<>
-class ParametersFactory::ImplementationData<ParametersType::Integer>::Methods
-: protected ParametersFactory::ImplementationData<ParametersType::Integer>::Properties
+class ParametersProducts::ImplementationData<ParametersType::Integer>::Methods
+: protected ParametersProducts::ImplementationData<ParametersType::Integer>::Properties
 {
 protected:
 
@@ -24,8 +26,8 @@ protected:
 
 template<>
 template<>
-class ParametersFactory::InterfaceData<ParametersType::Integer>::Methods
-: public ParametersFactory::Implementation<ParametersType::Integer>
+class ParametersProducts::InterfaceData<ParametersType::Integer>::Methods
+: public ParametersProducts::Implementation<ParametersType::Integer>
 {
 public:
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;

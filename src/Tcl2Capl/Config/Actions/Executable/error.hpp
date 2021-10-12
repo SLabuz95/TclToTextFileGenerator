@@ -1,24 +1,32 @@
 #ifndef ERROR_HPP
 #define ERROR_HPP
 
-#include"External/Factory/factory.hpp"
+#include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
 
 template<>
 template<>
-struct ExecutablesFactory::ImplementationData<ExecutablesTypes::Error>::Properties{
+struct ExecutablesProducts::ImplementationData<ExecutablesTypes::Error>::Properties
+: protected ExecutablesProductDefinition::Definition
+{
+protected:
+    //ListParam outputParams;
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::ImplementationData<ExecutablesTypes::Error>::Methods{
+class ExecutablesProducts::ImplementationData<ExecutablesTypes::Error>::Methods
+: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::Error>::Properties
+{
 
 };
 
 template<>
 template<>
-class ExecutablesFactory::InterfaceData<ExecutablesTypes::Error>::Methods{
+class ExecutablesProducts::InterfaceData<ExecutablesTypes::Error>::Methods
+: protected ExecutablesProducts::Implementation<ExecutablesTypes::Error>
+{
 
 };
 
