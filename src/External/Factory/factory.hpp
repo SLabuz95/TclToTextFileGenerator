@@ -4,7 +4,11 @@
 #include<iostream>
 #include<type_traits>
 #include<QString>
+<<<<<<< HEAD
 #include"External/Factory/products.hpp"
+=======
+#include"External/Factory/ProductDefinition/productdef.hpp"
+>>>>>>> refs/remotes/TclToTextGenerator/dev
 
 
 //namespace Factory {
@@ -37,6 +41,7 @@
          //(ProductDef::Type::FCT_End - ProductDef::Type::FCT_Begin) >= 0*/)
 
         // Products Definition
+<<<<<<< HEAD
         using ProductDefinition = typename  ProductDefinition<ProductsList>::Definition;
 
         public:
@@ -52,6 +57,57 @@ public:
         using ProductBasePtr = ProductBase*;
         using ProductBaseRef = ProductBase&;
         //using ListOfBases = QList<ProductBase>;
+=======
+        using ProductDefinition = ProductDefinition<ProductsList>;
+        using ProductBase = ProductDefinition;
+
+        Factory() = delete;
+        Factory(const Factory& ) = delete;
+
+        template<ProductsList ProductType>
+        requires (ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End)
+        class ImplementationData{
+            public:
+            static constexpr ProductsList productType(){return ProductType;}
+            struct Properties;
+            class Methods;
+        };
+
+        private:
+        template<ProductsList ProductType>
+        //requires std::is_base_of_v<Properties, Methods>
+        using IS_PROPERTIES_BASE_OF_METHODS = void;
+        public:
+
+        template<ProductsList ProductType>
+        class Implementation : public ImplementationData<ProductType>::Methods{};
+
+        // Interface
+        template<ProductsList ProductType>
+        requires (ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End)
+        class InterfaceData {
+        public:
+            class Methods;
+            //static_assert (  std::is_base_of_v<Properties, Methods>, "ERROR");
+        };
+
+        private:
+        template<class Implementation, class Methods>
+        //requires std::is_base_of_v<Properties, Methods>
+        using IS_Methods_BASE_OF_Implementation = void;
+        public:
+
+        template<ProductsList ProductType>
+        class Interface : protected InterfaceData::Methods{};
+
+        template<ProductsList ProductType>
+        class Product : public Interface<ProductType>{};
+
+
+        using ProductBasePtr = ProductBase*;
+        using ProductBaseRef = ProductBase&;
+        using ListOfBases = QList<ProductBase>;
+>>>>>>> refs/remotes/TclToTextGenerator/dev
 
         private:
         inline static constexpr std::underlying_type_t<ProductsList> toUnderlyng(ProductsList value){

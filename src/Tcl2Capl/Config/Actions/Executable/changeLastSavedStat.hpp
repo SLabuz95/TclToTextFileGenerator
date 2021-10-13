@@ -29,4 +29,5 @@ class ExecutablesProducts::InterfaceData<ExecutablesTypes::ChangeLastSavedStat>:
 {
 
 };
+
 #endif // CHANGELASTSAVEDSTAT_HPP
