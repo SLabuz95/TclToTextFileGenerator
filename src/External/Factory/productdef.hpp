@@ -1,27 +1,32 @@
-#ifndef PRODUCTDEFINITIONIMPLEMENTATION_HPP
-#define PRODUCTDEFINITIONIMPLEMENTATION_HPP
+#ifndef PRODUCTDEF_HPP
+#define PRODUCTDEF_HPP
 
 #include<type_traits>
+#include"External/Factory/products.hpp"
 
-template<class ProductsList>
-requires (std::is_enum_v<ProductsList>)
+template<class ProductsList_>
+requires (std::is_enum_v<ProductsList_>)
 class ProductDefinition {
     public:
+    using ProductsList = ProductsList_;
     // Implementation
     class ImplementationData {
     public:
-        class Properties;
+        struct Properties;
         class Methods;
 
         //static_assert (  std::is_base_of_v<Properties, Methods>, "ERROR");
     };
 
 
+    private:
     template<class Properties, class Methods>
     //requires std::is_base_of_v<Properties, Methods>
-    class ImplementationPriv : protected Methods{};
+    using IS_PROPERTIES_BASE_OF_METHODS = void;
+    public:
 
-    using Implementation = ImplementationPriv<typename  ImplementationData::Properties, typename ImplementationData::Methods>;
+    class Implementation : protected ImplementationData::Methods{};
+
 
     // Interface
     class InterfaceData {
@@ -31,12 +36,13 @@ class ProductDefinition {
         //static_assert (  std::is_base_of_v<Properties, Methods>, "ERROR");
     };
 
-
+    private:
     template<class Implementation, class Methods>
-    //requires std::is_base_of_v<Implementation, Methods>
-    class InterfacePriv : protected Methods{};
+    //requires std::is_base_of_v<Properties, Methods>
+    using IS_Methods_BASE_OF_Implementation = void;
+    public:
 
-    using Interface = InterfacePriv<Implementation, typename InterfaceData::Methods>;
+    class Interface : protected InterfaceData::Methods{};
 
     class Definition : public Interface{};
 
@@ -69,8 +75,6 @@ class AnimalInterfaceData::Methods : public ProductDefinition<Animals>::Implemen
 
 using AnimalsDefinition = ProductDefinition<Animals>::Definition;
 
-AnimalsDefinition animalDefinition;
 
 
-
-#endif // PRODUCTDEFINITIONIMPLEMENTATION_HPP
+#endif // PRODUCTDEF_HPP

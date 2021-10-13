@@ -1,5 +1,7 @@
 #include"tcl2caplfileparserinstance.hpp"
-#include"tcl2caplfileparserpanel.hpp"
+//#include"tcl2caplfileparserpanel.hpp"
+#include"appwindow.hpp"
+#include<QSplitter>
 #include<QEvent>
 #include<QMessageBox>
 #include<QDesktopServices>
@@ -10,7 +12,7 @@
 #include"External/FileReader/FilesSpecificData/XML/TclCaplParserConfig/FRI_FSD_XML_TCL_CAPL_Parser_Config.hpp"
 #include<QContextMenuEvent>
 
-Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(Tcl2CaplFileParserPanel & panel)
+Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(AppWindow & panel)
     : QSplitter(Qt::Horizontal),
       panel(panel),
       filesList(*this),
@@ -36,13 +38,13 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(Tcl2CaplFileParserPanel &
     inputProcedureConfigPath.setReadOnly(true);
 
     // - inputProcedureConfigSelection
-    inputProcedureConfigSelection.installEventFilter(this);
+    //inputProcedureConfigSelection.installEventFilter(this);
 
     // - outputDirPath
     outputDirPath.setReadOnly(true);
 
     // - outputDirSelection
-    outputDirSelection.installEventFilter(this);
+    //outputDirSelection.installEventFilter(this);
 
     // - readDefinitionsButton
     readDefinitionsButton.setToolTip("Aktualne");
@@ -145,7 +147,7 @@ bool Tcl2CaplFileParserInstance::eventFilter(QObject *obj, QEvent *ev){
         break;
     }
 
-    return Super::eventFilter(obj, ev);
+    //return Super::eventFilter(obj, ev);
 }
 
 Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readNewInputConfig_dialog(){
