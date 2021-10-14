@@ -10,7 +10,7 @@
 
 class Tcl2CaplFileParserInstance;
 class FileInstanceResultPanel : public QWidget{
-    using UserProceduresConfig = UserInputConfig;
+    using UserProceduresConfig = UserInputConfig::UserInputConfigData;
     struct ProgressBarData{
         QTreeWidgetItem* item = nullptr;
         int maxLength = 0;

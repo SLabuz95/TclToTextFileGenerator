@@ -36,20 +36,29 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(AppWindow & panel)
 
     // - inputProcedureConfigPath
     inputProcedureConfigPath.setReadOnly(true);
+    // [0.9.0]
+    inputProcedureConfigPath.setDisabled(true);
+    // [0.9.0] End
 
     // - inputProcedureConfigSelection
     //inputProcedureConfigSelection.installEventFilter(this);
+    // [0.9.0]
+    //inputProcedureConfigSelection.setDisabled(true);
+    // [0.9.0] End
 
     // - outputDirPath
     outputDirPath.setReadOnly(true);
 
     // - outputDirSelection
-    //outputDirSelection.installEventFilter(this);
+    outputDirSelection.installEventFilter(this);
 
     // - readDefinitionsButton
     readDefinitionsButton.setToolTip("Aktualne");
     readDefinitionsButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogApplyButton));
-    readDefinitionsButton.installEventFilter(this);
+    // [0.9.0]
+    //readDefinitionsButton.installEventFilter(this);
+    readDefinitionsButton.setDisabled(true);
+    // [0.9.0] End
 
     // - generateCaplButton
     generateCaplButton.installEventFilter(this);
@@ -74,9 +83,9 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(AppWindow & panel)
     inputConfig.setLayout(&inputLayout);
 
     // - outputBox
-    outputLayout.addWidget(&readDefinitionsButton, 1, 0);
-    outputLayout.addWidget(&generateCaplButton, 1, 1);
-    outputLayout.addWidget(&generateCaplReportModeButton, 1, 2);
+    outputLayout.addWidget(&readDefinitionsButton, 0, 0);
+    outputLayout.addWidget(&generateCaplButton, 0, 1);
+    outputLayout.addWidget(&generateCaplReportModeButton, 0, 2);
 
     outputLayout.setAlignment(Qt::AlignTop);
     outputBox.setLayout(&outputLayout);
@@ -84,7 +93,7 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(AppWindow & panel)
     // Config Splitter
     configSplitter.addWidget(&inputConfig);
     configSplitter.addWidget(&outputBox);
-    configSplitter.setContentsMargins(0,0,0,0);
+    //configSplitter.setContentsMargins(0,0,0,0);
 
     // - centralWidget
     addWidget(&filesList);
@@ -147,7 +156,7 @@ bool Tcl2CaplFileParserInstance::eventFilter(QObject *obj, QEvent *ev){
         break;
     }
 
-    //return Super::eventFilter(obj, ev);
+    return Super::eventFilter(obj, ev);
 }
 
 Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readNewInputConfig_dialog(){
@@ -181,7 +190,7 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readProceduresConf
     FSD_XML_TclCaplParserConfigInterpreter::Config parserConfigInterpreter(tempUserDefinitionsData);
     QStringList blackList;
     QString filePath;
-    if(!(filePath = parserConfigInterpreter.readFileByFilePath(iniConfig.filePath(), QStringList())).isEmpty()){
+    if(not (filePath = parserConfigInterpreter.readFileByFilePath(iniConfig.filePath(), QStringList())).isEmpty()){
         // Check for interpreter errors
         if(parserConfigInterpreter.isError()){   // if error true
             qDebug() << parserConfigInterpreter.error();
@@ -234,7 +243,7 @@ void Tcl2CaplFileParserInstance::generateCapl(){
         addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
         instanceWidget->show();
 
-        //instanceWidget->generateCapl(tempUserProceduresConfig_);
+        instanceWidget->generateCapl(tempUserProceduresConfig_);
     }  catch (std::exception& e) {
         qDebug() << e.what();
         delete instanceWidget, instanceWidget = nullptr;
@@ -275,7 +284,7 @@ void Tcl2CaplFileParserInstance::generateCaplRaportMode(){
     if(inputsList.count() <= 0)
         return;
 
-    if(!outputDirPath.text().isEmpty() and not QFileInfo(outputDirPath.text()).exists())
+    if(not outputDirPath.text().isEmpty() and not QFileInfo(outputDirPath.text()).exists())
     {
         QMessageBox::critical(nullptr, "Output Dir doesnt exist", "Output has been changed to Input Parent Folder");
         outputDirPath.clear();
@@ -301,7 +310,7 @@ void Tcl2CaplFileParserInstance::generateCaplRaportMode(){
         addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
         instanceWidget->show();
 
-        //instanceWidget->generateCaplInWriteOnlyMode(tempUserProceduresConfig_);
+        instanceWidget->generateCaplInWriteOnlyMode(tempUserProceduresConfig_);
     }  catch (std::exception& e) {
         qDebug() << e.what();
         delete instanceWidget, instanceWidget = nullptr;
@@ -346,25 +355,26 @@ void Tcl2CaplFileParserInstance::execRequest_FileInfoRef<Tcl2CaplFileParserInsta
     if(file.exists())
     {
         if(file.isDir()){
-            definitionsList.newFolderButtonClicked(file.filePath());
+            definitionsList.newFolder(file.filePath());
         }else{
             if(file.isFile() and file.suffix() == "tcl")
-                definitionsList.newFileButtonClicked(file.filePath());
+                definitionsList.newFile(file.filePath());
         }
     }
 }
 
 template <>
 void Tcl2CaplFileParserInstance::execRequest_FileInfoRef<Tcl2CaplFileParserInstance::Request_FileInfoRef::AddToInputs>(QFileInfo& file){
+
     if(file.exists())
     {
         if(file.isDir()){
-            inputsList.newFolderButtonClicked(file.filePath());
+            inputsList.newFolder(file.filePath());
         }else{
             if(file.isFile() and file.suffix() == "tc")
-                inputsList.newFileButtonClicked(file.filePath());
+                inputsList.newFile(file.filePath());
         }
-    }
+    }    
 }
 
 template <>

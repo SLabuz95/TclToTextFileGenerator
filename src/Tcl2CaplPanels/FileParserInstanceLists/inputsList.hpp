@@ -19,9 +19,11 @@ class InputsList : public QWidget{
         public:
             QHBoxLayout layout;
             QLabel info;
+            /* [0.9.0]
             QPushButton fileButton;
             QPushButton folderButton;
             QPushButton removeButton;
+            [0.9.0] End */
             bool active = true;
         };
         InputsListElement(QString path)
@@ -32,9 +34,11 @@ class InputsList : public QWidget{
             setToolTip(QFileInfo(path).filePath());
 
         }
+        /* [0.9.0]
         inline QPushButton& fileButtonRef(){return innerWidget()->fileButton;}
         inline QPushButton& folderButtonRef(){return innerWidget()->folderButton;}
         inline QPushButton& removeButtonRef(){return innerWidget()->removeButton;}
+        [0.9.0] End */
         inline InnerWidget* innerWidget(){return static_cast<InnerWidget*>(QListWidgetItem::listWidget()->itemWidget(this));}
         inline InputsList* listWidget(){return static_cast<InputsList*>(listWidget());}
 
@@ -42,16 +46,20 @@ class InputsList : public QWidget{
         void initItemWidget(InputsList& list){
             InnerWidget* widget = new InnerWidget;
             widget->info.setText(QFileInfo(toolTip()).fileName());
+            /* [0.9.0]
             widget->folderButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DirIcon));
             widget->fileButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_FileIcon));
             widget->removeButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarCloseButton));
             widget->folderButton.installEventFilter(&list);
             widget->fileButton.installEventFilter(&list);
             widget->removeButton.installEventFilter(&list);
+            [0.9.0] End*/
             widget->layout.addWidget(&widget->info, Qt::AlignLeft);
+            /* [0.9.0]
             widget->layout.addWidget(&widget->fileButton, Qt::AlignRight);
             widget->layout.addWidget(&widget->folderButton, Qt::AlignRight);
             widget->layout.addWidget(&widget->removeButton, Qt::AlignRight);
+            [0.9.0] End */
             widget->layout.setSpacing(0);
             widget->layout.setContentsMargins(0,0,0,0);
             widget->setLayout(&widget->layout);
@@ -74,59 +82,38 @@ class InputsList : public QWidget{
         }
 
     };
+
+    using Request_ContextMenu_Func = void (InputsList::*)(InputsListElement*);
+    enum class Request_ContextMenu{
+        AddFolder,
+        AddFile,
+        EditFolder,
+        EditFile,
+        Remove,
+        Clear,
+        Size
+    };
+    template<Request_ContextMenu>
+    void execRequest_ContextMenu(InputsListElement*);
+
     QVBoxLayout layout;
     QLabel title;
     QListWidget list;
-
+/* [0.9.0]
     QListWidgetItem lastElement;
     QWidget lastElementWidget;
     QHBoxLayout lastElementLayout;
 
     QPushButton newFileButton;
     QPushButton newFolderButton;
-
+[0.9.0] End */
 protected:
+    /* [0.9.0]
     void editFileButtonClicked(InputsListElement*);
     void editFolderButtonClicked(InputsListElement* );
-    inline void removeItemButtonClicked(InputsListElement* item_)const{delete item_;}
+    [0.9.0] End */
 
-    bool eventFilter(QObject* obj, QEvent* ev) override
-    {
-        switch(ev->type()){
-        case QEvent::MouseButtonPress:
-        {
-            QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
-            if(obj == &newFileButton){
-                QString mainPath =  QFileDialog::getOpenFileName(nullptr, QString("Wybierz plik z definicjami:"), QString(), QString("Skrypt (*.tc)"));
-                newFileButtonClicked(mainPath);
-            }else{
-                if(obj == &newFolderButton){
-                    QString mainDirPath =  QFileDialog::getExistingDirectory(nullptr, QString("Wybierz folder z definicjami:"));
-                    newFolderButtonClicked(mainDirPath);
-                }else{
-                    InputsListElement* item_ = static_cast<InputsListElement*>(list.itemAt(mev->pos()));
-                    if(item_ and item_ != &lastElement){
-                        if(obj == &item_->fileButtonRef()){  // FileButton
-                            editFileButtonClicked(item_);
-                        }else{
-                            if(obj == &item_->folderButtonRef()) // FolderButton
-                            {
-                                editFolderButtonClicked(item_);
-                            }else{
-                                if(obj == &item_->removeButtonRef())// Remove Button
-                                    removeItemButtonClicked(item_);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-            break;
-        default:
-            break;
-        }
-        return QWidget::eventFilter(obj, ev);
-    }
+    bool eventFilter(QObject* obj, QEvent* ev) override;
 
 public:
     using InputsListElement = InputsListElement;
@@ -135,29 +122,31 @@ public:
         title.setText("Skrypty Tcl");
         title.setAlignment(Qt::AlignCenter);
 
+        /*
         lastElementLayout.addWidget(&newFileButton, Qt::AlignRight);
         lastElementLayout.addWidget(&newFolderButton, Qt::AlignRight);
         newFileButton.installEventFilter(this);
         newFileButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_FileIcon));
         newFolderButton.installEventFilter(this);
         newFolderButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DirIcon));
+
         lastElementWidget.setLayout(&lastElementLayout);
         lastElementLayout.setSpacing(0);
         lastElementLayout.setContentsMargins(0,0,0,0);
          list.addItem(&lastElement);
          list.setItemWidget(&lastElement, &lastElementWidget);
         lastElementWidget.show();
-
+[0.9.0] End */
         layout.addWidget(&title);
         layout.addWidget(&list);
         setLayout(&layout);
-
+        list.viewport()->installEventFilter(this);
 
     }
 
     inline void addElement(InputsListElement* element)
     {
-        list.insertItem(trueLastItemIndex(), element);
+        list.insertItem(count(), element);
         element->initItemWidget(*this);
     }
 
@@ -167,16 +156,17 @@ public:
     inline InputsListElement* item(int row)const{
         return static_cast<InputsListElement*>(list.item(row));
     }
-    inline int count()const{return trueLastItemIndex();}
+    inline InputsListElement* currentItem()const{return static_cast<InputsListElement*>(list.currentItem());}
+    inline InputsListElement* itemAt(const QPoint& p)const{return static_cast<InputsListElement*>(list.itemAt(p));}
 
-    inline int trueLastItemIndex()const{return list.count() - 1;}
+    inline int count()const{return list.count();}
 
-    void newFileButtonClicked(QString mainPath);
-    void newFolderButtonClicked(QString mainPath);
+    void newFile(QString );
+    void newFolder(QString );
 
     inline bool checkActive(){
         bool allActive = true;
-        for(int itemIndex = 0; itemIndex < trueLastItemIndex(); itemIndex++)
+        for(int itemIndex = 0; itemIndex < count(); itemIndex++)
         {
             if(allActive){
                 allActive = item(itemIndex)->isActive();

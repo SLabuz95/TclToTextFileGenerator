@@ -4,7 +4,7 @@
 #include<iostream>
 #include<type_traits>
 #include<QString>
-#include"External/Factory/ProductDefinition/productdef.hpp"
+#include"External/Factory/productdef.hpp"
 
 template <typename ProductsList>
 requires (std::is_enum_v<ProductsList>)

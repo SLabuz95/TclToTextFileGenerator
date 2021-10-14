@@ -26,9 +26,7 @@ FileInstanceResultPanel::FileInstanceResultPanel
 
     mainLayout.addWidget(&errorsList);
 
-
     // - mainLayout
-
     setLayout(&mainLayout);
 
     installEventFilter(this);
@@ -245,6 +243,7 @@ void FileInstanceResultPanel::prepareResultData(ProgressBarDatas& readyProgressB
 
 void FileInstanceResultPanel::configureProgressBars(ProgressBarDatas& readyProgressBarDatas)
 {
+    /*
     // Configurate Error List Progress Bars
     if(!readyProgressBarDatas.isEmpty()){
 
@@ -263,7 +262,7 @@ void FileInstanceResultPanel::configureProgressBars(ProgressBarDatas& readyProgr
             }
         }
 
-    }
+    }*/
 }
 
 void FileInstanceResultPanel::prepareGeneratorControl(){
@@ -324,7 +323,7 @@ void FileInstanceResultPanel::endGeneratorControl(){
 
 void FileInstanceResultPanel::generateCapl(UserProceduresConfig& userConfig){
     prepareGeneratorControl();
-    //tcl2Capl.generateCaplsFromFolderWithTcls(this, userConfig);
+    tcl2Capl.generateCaplsFromFolderWithTcls(this, userConfig);
 }
 
 void FileInstanceResultPanel::generateCaplInWriteOnlyMode(UserProceduresConfig& userConfig){

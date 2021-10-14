@@ -26,7 +26,6 @@ AppWindow::AppWindow(App& app)
 
     //setCentralWidget(&appModePanel);
     //setCentralWidget(&tcl2CaplFileParserPanel);
-    installEventFilter(this);
 
     // ToolBar Setup
     using ToolButton = ToolButton*;
@@ -46,6 +45,7 @@ AppWindow::AppWindow(App& app)
     setTabPosition(Qt::TopDockWidgetArea, QTabWidget::TabPosition::North);
     //newInstance();
     //fileWatcher.start();
+    installEventFilter(this);
 
     show();
 }
@@ -55,8 +55,8 @@ void AppWindow::newInstance(){
     if(!(tabName = QInputDialog::getText(nullptr, QStringLiteral("Nowy projekt"), QStringLiteral("Type tab name:"))).isNull() or !tabName.isEmpty()){
         QDockWidget* newInstance = new QDockWidget(tabName);
         Tcl2CaplFileParserInstance* instanceWidget = new Tcl2CaplFileParserInstance(*this);
-         newInstance->setWidget(instanceWidget);
-        //newInstance->setAttribute(Qt::WA_DeleteOnClose);
+        newInstance->setAttribute(Qt::WA_DeleteOnClose);
+        newInstance->setWidget(instanceWidget);
         addDockWidget(Qt::TopDockWidgetArea, newInstance);
 
         show();

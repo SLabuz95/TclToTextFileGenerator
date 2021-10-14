@@ -57,7 +57,6 @@ protected:
 
     bool tryToManageProceduresName(QString, QString);
 
-
 public:
     inline bool anyChanges()const{
         return not (newProcedures.isEmpty() and removedProcedures.isEmpty());

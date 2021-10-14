@@ -2,7 +2,7 @@
 #define DEFINITION_RULES_HPP
 
 #include"tclToCAPL.hpp"
-#include"External/Factory/ProductDefinition/productdef.hpp"
+#include"External/Factory/productdef.hpp"
 //#include"External/Factory/factory.hpp"
 
 using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;

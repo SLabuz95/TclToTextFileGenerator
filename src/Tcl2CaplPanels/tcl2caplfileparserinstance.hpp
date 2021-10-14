@@ -78,8 +78,8 @@ class Tcl2CaplFileParserInstance : public QSplitter{
     GenerateCaplReportModeButton generateCaplReportModeButton;
 
     // Temp Data from ConfigFile
-    //using UserProceduresConfig = UserInputConfig;
-    //UserProceduresConfig tempUserProceduresConfig_;
+    using UserProceduresConfig = UserInputConfig::UserInputConfigData;
+    UserProceduresConfig tempUserProceduresConfig_;
 
 public:
     using Request_FileInfoRef_Func = void (Tcl2CaplFileParserInstance::*)(QFileInfo&);

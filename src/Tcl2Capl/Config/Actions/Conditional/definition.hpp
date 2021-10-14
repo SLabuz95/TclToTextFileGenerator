@@ -2,7 +2,7 @@
 #define DEFINITION_CONDITIONAL_HPP
 
 #include"tclToCAPL.hpp"
-#include"External/Factory/ProductDefinition/productdef.hpp"
+#include"External/Factory/productdef.hpp"
 
 using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
 using Settings = TclProcedureInterpreter::ProdecuresSettings;
