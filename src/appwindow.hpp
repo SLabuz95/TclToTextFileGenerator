@@ -13,12 +13,13 @@
 #include"Tcl2CaplPanels/FileWatcher/fileWatcher.hpp"
 
 class App;
-
+class Tcl2CaplInstructionPanel;
 class AppWindow : public QMainWindow{
 public:
     enum class ToolOptions : uint{
         Begin,
         NewParser = ToolOptions::Begin,
+        RuntimeInterpreter,
 
         NumbOfOptions
     };
@@ -34,6 +35,7 @@ protected:
     ToolButtonTexts toolOptionsNames =
     {
         QStringLiteral("Nowa konfiguracja"),
+        QStringLiteral("Interpreter")
     };
     using ToolButtons =  ToolButton[numbOfToolOptions];
 
@@ -54,9 +56,11 @@ protected:
     //Tcl2CaplFileParserPanel tcl2CaplFileParserPanel;
     //Tcl2CaplInstructionPanel tcl2CaplInstructionParserPanel;
 
-    App& app;    
+    App& app;
+    Tcl2CaplInstructionPanel* instructionPanel = nullptr;
 
     static ToolButtonsFunctions toolButtonsPressed;
+
 
 protected:
 

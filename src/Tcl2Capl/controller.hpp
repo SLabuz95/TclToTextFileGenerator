@@ -88,9 +88,9 @@ private:
 
     // Thread Main Function
     void run() override;
-    void generateDefinitions_impl();
-    void generateCapls_impl();
-    void writeResults();
+    bool generateDefinitions_impl();
+    bool generateCapls_impl();
+    bool writeResults();
 
     // Interface -------------
 public:

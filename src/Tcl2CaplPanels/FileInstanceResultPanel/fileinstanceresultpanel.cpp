@@ -33,7 +33,8 @@ FileInstanceResultPanel::FileInstanceResultPanel
 }
 
 bool FileInstanceResultPanel::eventFilter(QObject *obj, QEvent *ev){
-    if(ev->type() == Tcl2CaplProgressEvent::eventType_static() and generatorControl.inProgress){
+    if(ev->type() == Tcl2CaplProgressEvent::eventType_static()
+            and generatorControl.inProgress){
         Tcl2CaplProgressEvent* progressEv = Tcl2CaplProgressEvent::cast(ev);
         if(progressEv){
             if(progressEv->isCriticalError()){
@@ -43,8 +44,8 @@ bool FileInstanceResultPanel::eventFilter(QObject *obj, QEvent *ev){
                 tcl2Capl.requestInterruption();
                 delete this;
                 return false;
-            }else{
-                nextGeneratorControl(progressEv->getErrorsNumber());
+            }else{                
+                nextGeneratorControl(progressEv->errorMsg(), progressEv->getErrorsNumber());
             }
         }
     }
@@ -54,6 +55,13 @@ bool FileInstanceResultPanel::eventFilter(QObject *obj, QEvent *ev){
 
 void FileInstanceResultPanel::prepareResultData(ProgressBarDatas& readyProgressBarDatas){
     //int currentLevel = 0;
+
+    errorsList.addTopLevelItem(new QTreeWidgetItem(
+                                   QStringList{
+                                       QDir(tcl2Capl.outputDirPath()).dirName(),
+                                        "0", "Pending"}));
+
+    /* [0.9.0]
     using NameFilters = const QStringList;
     NameFilters permittedDefinitionSuffixs = QStringList{"tcl"};
     NameFilters permittedInputSuffixs = QStringList{"tc"};
@@ -238,7 +246,7 @@ void FileInstanceResultPanel::prepareResultData(ProgressBarDatas& readyProgressB
     }
 
     //qDebug() << formatCount;
-
+    [0.9.0] End */
 }
 
 void FileInstanceResultPanel::configureProgressBars(ProgressBarDatas& readyProgressBarDatas)
@@ -267,10 +275,29 @@ void FileInstanceResultPanel::configureProgressBars(ProgressBarDatas& readyProgr
 
 void FileInstanceResultPanel::prepareGeneratorControl(){
     generatorControl.inProgress = true;
-    generatorControl.children.append({errorsList.topLevelItem(0)});
+    //generatorControl.children.append({errorsList.topLevelItem(0)});
 }
 
-void FileInstanceResultPanel::nextGeneratorControl(uint errorsCount){   // On End of File read
+void FileInstanceResultPanel::nextGeneratorControl(const QString& errorMsg, uint errorsCount){   // On End of File read
+    //WARNING: Temporarly changed
+    const char PROGRESS_SIGN = '-';
+    const int MAX_NUMB_OF_PROGRESS_SIGNS = 10;
+    constexpr int PENDING_STRING_LENGTH = QAnyStringView("Pending").size();
+    // Just overrride "Pending" with "Pending" + number_of_Progress_signs
+    // At 2 column (Progress info)
+
+    if(errorMsg == "END"){
+        endGeneratorControl();
+        errorsList.topLevelItem(0)->setText(2, "Done");
+    }else{
+        if(errorsCount > 0)
+            errorsList.topLevelItem(0)->setText(1,QString::number(errorsList.topLevelItem(0)->text(1).toInt() + errorsCount));
+        errorsList.topLevelItem(0)->setText(2, QString("Pending") +
+                    QString(((errorsList.topLevelItem(0)->text(2).size() - PENDING_STRING_LENGTH) + 1) % MAX_NUMB_OF_PROGRESS_SIGNS, PROGRESS_SIGN)
+                    );
+    }
+
+
     //errorsList.setUpdatesEnabled(false);
     /*GeneratorControl::ChildControl* tempChild =
             (not generatorControl.children.isEmpty())?
@@ -329,8 +356,7 @@ void FileInstanceResultPanel::generateCapl(UserProceduresConfig& userConfig){
 void FileInstanceResultPanel::generateCaplInWriteOnlyMode(UserProceduresConfig& userConfig){
     //using Mode = UserProceduresConfig::ProceduresSettings::InterpreterMode;
     prepareGeneratorControl();
-    //userConfig.proceduresSettings().setMode(Mode::TestCaseReport);
-    //tcl2Capl.generateCaplsFromFolderWithTcls(this, userConfig);
-    //userConfig.proceduresSettings().setMode(Mode::TestCase);
+    userConfig.writeOnlyProcedures() = {"stc_section"};
+    tcl2Capl.generateCaplsFromFolderWithTcls(this, userConfig, Mode::TestCaseReport);
 }
 

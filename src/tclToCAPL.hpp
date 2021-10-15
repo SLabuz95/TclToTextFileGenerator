@@ -467,6 +467,17 @@ private:
                     for(Parameter param = _rawParameters.begin(); param < _rawParameters.end(); param++)
                         param->clearMemory();
                 }
+                QString tryToAddEndOfExpressionSign()const{
+                    if(name() == "expr_parser")
+                        return QString();
+                    if( not _parameters.isEmpty()){
+                        switch(_parameters.last().stat()){
+                        case Stat::EndOfCodeBlock:
+                            return QString("\n");
+                        }
+                    }
+                    return QString(";\n");
+                }
                 // End of Interface |||||||||||||||||||||||||||||||||||||||||||||
         };
         // ----
@@ -480,7 +491,9 @@ private:
             enum class InterpreterMode : quint8{
                 TestCase,
                 TestCaseReport,
-                PredefinitionsOnly,
+                // No Write To File Modes
+                NoWriteToFileModes,
+                PredefinitionsOnly = NoWriteToFileModes,
 
                 NumbOfModes
             } mode_ = InterpreterMode::TestCase;
@@ -493,6 +506,7 @@ private:
 
         public:
             inline InterpreterMode mode(){return mode_;}
+            inline bool isWriteToFileMode(){return mode_ < InterpreterMode::NoWriteToFileModes; }
             inline void appendWriteOnlyProcedure(WriteOnlyProcedures procedure){
                 writeOnlyProcedures_.append(procedure);
                 writeOnlyProcedures_.removeDuplicates();

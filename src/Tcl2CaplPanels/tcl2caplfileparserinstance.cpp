@@ -201,7 +201,7 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readProceduresConf
                 // BlackList PlaceHoldered
             }else{
                 //xmlTestModulesByPath.insert(tempTestModule, filePath);
-                qDebug() << "TC Read Success: " << filePath;
+                //qDebug() << "TC Read Success: " << filePath;
                 //tempUserProceduresConfig_ = tempUserDefinitionsData;
             }
         }
@@ -235,19 +235,16 @@ void Tcl2CaplFileParserInstance::generateCapl(){
 
     // Prepare Result DockWidget (FileInstanceResultPanel)
     FileInstanceResultPanel* instanceWidget = nullptr;
-    try {
-        instanceWidget = new FileInstanceResultPanel(*this, definitions, inputs, outputDirPath.text());
-        /*QDockWidget* newInstance = new QDockWidget("tabName");
-        newInstance->setWidget(instanceWidget);
-        newInstance->setAttribute(Qt::WA_DeleteOnClose);
-        addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
-        instanceWidget->show();
 
-        instanceWidget->generateCapl(tempUserProceduresConfig_);
-    }  catch (std::exception& e) {
-        qDebug() << e.what();
-        delete instanceWidget, instanceWidget = nullptr;
-    }
+    instanceWidget = new FileInstanceResultPanel(*this, definitions, inputs, outputDirPath.text());
+    /*QDockWidget* newInstance = new QDockWidget("tabName");
+    newInstance->setWidget(instanceWidget);
+    newInstance->setAttribute(Qt::WA_DeleteOnClose);
+    addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
+    instanceWidget->show();
+
+    instanceWidget->generateCapl(tempUserProceduresConfig_);
+
 
 /*
     QString writeResultError;
@@ -302,19 +299,15 @@ void Tcl2CaplFileParserInstance::generateCaplRaportMode(){
 
     // Prepare Result DockWidget (FileInstanceResultPanel)
     FileInstanceResultPanel* instanceWidget = nullptr;
-    try {
-        instanceWidget = new FileInstanceResultPanel(*this, definitions, inputs, outputDirPath.text());
-        /*QDockWidget* newInstance = new QDockWidget("tabName");
-        newInstance->setWidget(instanceWidget);
-        newInstance->setAttribute(Qt::WA_DeleteOnClose);
-        addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
-        instanceWidget->show();
+    instanceWidget = new FileInstanceResultPanel(*this, definitions, inputs, outputDirPath.text());
+    /*QDockWidget* newInstance = new QDockWidget("tabName");
+    newInstance->setWidget(instanceWidget);
+    newInstance->setAttribute(Qt::WA_DeleteOnClose);
+    addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
+    instanceWidget->show();
 
-        instanceWidget->generateCaplInWriteOnlyMode(tempUserProceduresConfig_);
-    }  catch (std::exception& e) {
-        qDebug() << e.what();
-        delete instanceWidget, instanceWidget = nullptr;
-    }
+    instanceWidget->generateCaplInWriteOnlyMode(tempUserProceduresConfig_);
+
     /*tcl2Capl.userProceduresConfig().proceduresSettings().setWriteOnlyMode(true);
     if(!tcl2Capl.generateCaplsFromFolderWithTcls(inputDirPath.text(), outputDirPath.text()).isEmpty()){
         QMessageBox::critical(nullptr, "Generate Capl Error", tcl2Capl.error());

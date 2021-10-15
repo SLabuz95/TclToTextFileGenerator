@@ -4,11 +4,13 @@
 #include"TcFileModifier/tcfilemodifier.hpp"
 #include<QApplication>
 #include"tcl2caplprogressevent.hpp"
+#include<QStandardPaths>
 
 
 UserInputConfig::UserInputConfig(UserInputConfigData& configData)
     : userProcedures_(UserProcedures(configData.getNumbOfUserProcedures())),
-      userDefaultProcedure_(configData.defaultProcedure().toProcedureWithRawRules())
+      userDefaultProcedure_(configData.defaultProcedure().toProcedureWithRawRules()),
+      settings_(configData.settings())
 {
     UserInputConfigData::Procedures& userConfigProcedures = configData.userProcedures();
     UserInputConfigData::Procedures::Iterator configProcedure = userConfigProcedures.begin();
@@ -114,22 +116,25 @@ void Tcl2CaplController::prepareOutputDirs(QString output){
 
     }*/
     if(output.isEmpty())
-        outputDir.setPath(QDir::homePath());
+        outputDir.setPath(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
     else
         outputDir.setPath(output);
-    setReportFilePath(outputDir);
-    setCaplDefinitionsFilePath(outputDir);
 }
 
 void Tcl2CaplController::run(){
-    generateDefinitions_impl();
-    generateCapls_impl();
-
+    generateDefinitions_impl() and
+    generateCapls_impl() and
     writeResults();
+    quit();
 }
 
-void Tcl2CaplController::generateDefinitions_impl(){
+bool Tcl2CaplController::generateDefinitions_impl(){
+    //TODO: Memory Leaks
+    using ErrorMsg = QString;
+    const ErrorMsg ERROR_PREFIX = "Definition File Error: ";
+    ErrorMsg errorMsg;
     // Preconditions
+    UserInputConfig::Settings::InterpreterMode savedMode = userInputConfig_.proceduresSettings().mode();
     userInputConfig_.proceduresSettings().setMode(Settings::InterpreterMode::PredefinitionsOnly);
 
     CAPLFunctionDefinitions caplFunctionDefinitions;
@@ -140,8 +145,8 @@ void Tcl2CaplController::generateDefinitions_impl(){
         // Preconditions - for failed - break - if doesnt exist, add Ignored item
         QFileInfo&& fileInfo = QFileInfo(*definitionPath);
         if(not fileInfo.exists()){
-            QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent("No File"));
-
+            errorMsg = ERROR_PREFIX + fileInfo.absoluteFilePath() + " Not Found";
+            QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg));
             break; // !!!!!!! BREAK LOOP
         }
 
@@ -157,108 +162,123 @@ void Tcl2CaplController::generateDefinitions_impl(){
             if(!(filePath = tcFileModifier.readFileByFilePath(fileInfo.filePath(), QStringList())).isEmpty()){
                 // Check for interpreter errors
                 if(tcFileModifier.isError()){   // if error true
-                    qDebug() << tcFileModifier.error();
+                    qDebug() << tcFileModifier.error();                    
+                    errorMsg = ERROR_PREFIX + tcFileModifier.error();
                 }else{
                    // if Data Model != nullptr, then file has been read
                     if(tcFileModifier.getOnTheBlackList()){
                         // BlackList PlaceHoldered
                     }else{
                         //xmlTestModulesByPath.insert(tempTestModule, filePath);
-                        qDebug() << "TC Read Success: " << filePath;
+                        //qDebug() << "TC Read Success: " << filePath;
                     }
                 }
             }
-            QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(tcFileData.testCaseErrors()));
+            QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg, tcFileData.testCaseErrors()));
         }else{
-            QDir dir(fileInfo.filePath());
-            dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-            dir.setSorting(QDir::Name);
-            QVector<QDirIterator*> dirs({new QDirIterator(dir)});
-            QVector<Tcl2CaplResult::Tcl2CaplReadData*> tcFileData{new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions)};
-            using NameFilters = const QStringList;
-            NameFilters permittedFileSuffixes = QStringList{"tcl"};
+            if(QFileInfo(*definitionPath).isDir()){
+                QDir dir(fileInfo.filePath());
+                dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+                dir.setSorting(QDir::Name);
+                QVector<QDirIterator*> dirs({new QDirIterator(dir)});
+                QVector<Tcl2CaplResult::Tcl2CaplReadData*> tcFileData{new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions)};
+                using NameFilters = const QStringList;
+                NameFilters permittedFileSuffixes = QStringList{"tcl"};
 
-            while(!dirs.isEmpty()){
-                while(dirs.last()->hasNext()){
-                    QFileInfo fileInfo(dirs.last()->next());
-                    // Directory
-
-                    if(fileInfo.isDir()){
-                        QDir dir(fileInfo.filePath());
-                        dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-                        dir.setSorting(QDir::Name);
-                        if(dir.dirName() != tcFileData.at(0)->dir().dirName()){ // Ignore if dir name == first output dir name
-                            dirs.append(new QDirIterator(dir));
-                            tcFileData.append(new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions));
-                        }
-                    }else{
-                        if(fileInfo.isFile() and permittedFileSuffixes.contains(fileInfo.completeSuffix())){
-                            //Use Interpreter
-                            TcFileModifier::Config tcFileModifier(*tcFileData.last());
-                            QStringList blackList;
-                            QString filePath;
-                            //tcFileData.clearInterpreter();
-                            tcFileData.last()->setCurrentTCLFileName( fileInfo.fileName());
-                            if(!(filePath = tcFileModifier.readFileByFilePath(fileInfo.filePath(), QStringList())).isEmpty()){
-                                // Check for interpreter errors
-                                if(tcFileModifier.isError()){   // if error true
-                                    qDebug() << tcFileModifier.error();
-                                }else{
-                                   // if Data Model != nullptr, then file has been read
-                                    if(tcFileModifier.getOnTheBlackList()){
-                                        // BlackList PlaceHoldered
+                while(not dirs.isEmpty()){
+                    while(dirs.last()->hasNext()){
+                        QFileInfo fileInfo(dirs.last()->next());
+                        // Directory
+                        if(fileInfo.isDir()){
+                            QDir dir(fileInfo.filePath());
+                            dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
+                            dir.setSorting(QDir::Name);
+                            if(dir.dirName() != tcFileData.at(0)->dir().dirName()){ // Ignore if dir name == first output dir name
+                                dirs.append(new QDirIterator(dir));
+                                tcFileData.append(new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions));
+                            }
+                        }else{
+                            if(fileInfo.isFile() and permittedFileSuffixes.contains(fileInfo.completeSuffix())){
+                                //Use Interpreter
+                                TcFileModifier::Config tcFileModifier(*tcFileData.last());
+                                QStringList blackList;
+                                QString filePath;
+                                ErrorMsg localErrorMsg;
+                                //tcFileData.clearInterpreter();
+                                tcFileData.last()->setCurrentTCLFileName( fileInfo.fileName());
+                                if(!(filePath = tcFileModifier.readFileByFilePath(fileInfo.filePath(), QStringList())).isEmpty()){
+                                    // Check for interpreter errors
+                                    if(tcFileModifier.isError()){   // if error true
+                                        qDebug() << tcFileModifier.error();
+                                        localErrorMsg = ERROR_PREFIX + tcFileModifier.error();
+                                        errorMsg = localErrorMsg;
                                     }else{
-                                        //xmlTestModulesByPath.insert(tempTestModule, filePath);
-                                        qDebug() << "TC Read Success: " << filePath;
+                                       // if Data Model != nullptr, then file has been read
+                                        if(tcFileModifier.getOnTheBlackList()){
+                                            // BlackList PlaceHoldered
+                                        }else{
+                                            //xmlTestModulesByPath.insert(tempTestModule, filePath);
+                                            //qDebug() << "TC Read Success: " << filePath;
+                                        }
                                     }
                                 }
+                                QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(localErrorMsg, tcFileData.last()->testCaseErrors()));
                             }
-                            QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(tcFileData.last()->testCaseErrors()));
                         }
                     }
-                }
-                delete dirs.takeLast();
-                if(not tcFileData.isEmpty()){
-                    if(tcFileData.last()->isInitiliazed()){
-                        addResult(tcFileData.last()->generateResult());
-                        predefinitions.append(tcFileData.last()->predefinitions());
+                    delete dirs.takeLast();
+                    if(not tcFileData.isEmpty()){
+                        if(tcFileData.last()->isInitiliazed()){
+                            addResult(tcFileData.last()->generateResult());
+                            predefinitions.append(tcFileData.last()->predefinitions());
+                        }
+                        delete tcFileData.takeLast();
                     }
-                    delete tcFileData.takeLast();
                 }
             }
         }
 
     }
     // Postconditions
-    userInputConfig_.proceduresSettings().setMode(Settings::InterpreterMode::TestCase);
+    userInputConfig_.proceduresSettings().setMode(savedMode);
     //qDebug() << formatCount;
     for(Predefinitions::Iterator predefinition = predefinitions.begin(); predefinition < predefinitions.end(); predefinition++){
         qDebug() << predefinition->type + " " + predefinition->value;
     }
+    return errorMsg.isEmpty();
 }
 
-void Tcl2CaplController::generateCapls_impl(){
+bool Tcl2CaplController::generateCapls_impl(){
+    //TODO: Memory Leaks
+    using ErrorMsg = QString;
+    const ErrorMsg ERROR_PREFIX = "Definition File Error: ";
+    ErrorMsg errorMsg;
     CAPLFunctionDefinitions caplFunctionDefinitions;
+    QDir outputDir = this->outputDir;
 
     int i = 0;
-    QString dirName = outputDir.dirName();
-    if(userOutputDir.isEmpty()){
-        dirName = outputDir.dirName();
-    }
 
     for(i = 0; i < 1000; i++){
         QString outputDirName = "FAMOut_" + QString::number(i);
-        if(!QFile::exists(outputDir.path() + "/" + outputDirName)){
-            if(!outputDir.mkdir(outputDirName) || !outputDir.cd(outputDirName))
+        if(not QFile::exists(outputDir.path() + "/" + outputDirName)){
+            if(not outputDir.mkdir(outputDirName) or not outputDir.cd(outputDirName))
             {
-                throw std::runtime_error(QString("Output Directory: Failed in New Directory " + QString::number(i)).toLocal8Bit());
+                errorMsg = ERROR_PREFIX + QString("Output Directory: Failed For New Directory " + QString::number(i));
+                QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg));
+                return errorMsg.isEmpty();
+                //throw std::runtime_error(QString("Output Directory: Failed in New Directory " + QString::number(i)).toLocal8Bit());
             }
             break;
         }
     }
     if(i == 1000){
-        throw std::runtime_error("mkDir Failed: Max Numb of Output Directory Has been exceeded.");
+        errorMsg = ERROR_PREFIX + QString("mkDir Failed: Max Numb of Output Directory Has been exceeded.");
+        QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg));
+        return errorMsg.isEmpty();
     }
+
+    setReportFilePath(outputDir);
+    setCaplDefinitionsFilePath(outputDir);
 
     for(QStringList::Iterator input = inputPaths().begin();
         input < inputPaths().end(); input++)
@@ -267,51 +287,55 @@ void Tcl2CaplController::generateCapls_impl(){
         QFileInfo&& inputFile = QFileInfo(*input);
 
         if(not inputFile.exists()){
-            QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent("File doesnt exist"));
+            QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(inputFile.filePath() + " doesnt exist"));
+            break;
         }else{
             // If file
             if(inputFile.isFile()){
-
-                throw std::runtime_error("Not implemented");
-
                 Tcl2CaplResult::Tcl2CaplReadData tcFileData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions);
                 TcFileModifier::Config tcFileModifier(tcFileData);
                 QStringList blackList;
                 QString filePath;
                 //tcFileData.clearInterpreter();
                 tcFileData.setCurrentTCLFileName( inputFile.fileName());
+                errorMsg.clear();
                 if(!(filePath = tcFileModifier.readFileByFilePath(inputFile.filePath(), QStringList())).isEmpty()){
                     // Check for interpreter errors
                     if(tcFileModifier.isError()){   // if error true
                         qDebug() << tcFileModifier.error();
+                        errorMsg = ERROR_PREFIX + tcFileModifier.error();
                     }else{
                        // if Data Model != nullptr, then file has been read
                         if(tcFileModifier.getOnTheBlackList()){
                             // BlackList PlaceHoldered
                         }else{
                             //xmlTestModulesByPath.insert(tempTestModule, filePath);
-                            qDebug() << "TC Read Success: " << filePath;
+                            //qDebug() << "TC Read Success: " << filePath;
                         }
                     }
                 }
-                QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(tcFileData.testCaseErrors()));
+                QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg, tcFileData.testCaseErrors()));
             }else{
                 int i = 0;
                 QString dirName = inputFile.fileName();
-
                 for(i = 0; i < 1000; i++){
-                    QString outputDirName = "FAMOut_" + dirName + "_" + QString::number(i);
-                    if(!QFile::exists(outputDir.path() + "/" + outputDirName)){
-                        if(!outputDir.mkdir(outputDirName) || !outputDir.cd(outputDirName))
+                    QString outputDirName = "Out_" + dirName + "_" + QString::number(i);
+                    if(not QFile::exists(outputDir.path() + "/" + outputDirName)){
+                        if(!outputDir.mkdir(outputDirName) or not outputDir.cd(outputDirName))
                         {
-                            throw std::runtime_error(QString("Output Directory: Failed in New Directory " + QString::number(i)).toLocal8Bit());
+                            errorMsg = ERROR_PREFIX + QString("Output Directory: Failed in New Directory " + QString::number(i));
+                            QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg));
+                            return errorMsg.isEmpty();
                         }
                         break;
                     }
                 }
                 if(i == 1000){
-                    throw std::runtime_error("mkDir Failed: Max Numb of Output Directory Has been exceeded.");
+                    errorMsg = ERROR_PREFIX + QString("mkDir Failed: Max Numb of Output Directory Has been exceeded.");
+                    QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg));
+                    return errorMsg.isEmpty();
                 }
+                errorMsg.clear();
                 QDir dir(inputFile.filePath());
                 dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
                 dir.setSorting(QDir::Name);
@@ -330,14 +354,16 @@ void Tcl2CaplController::generateCapls_impl(){
                             QDir dir(fileInfo.filePath());
                             dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
                             dir.setSorting(QDir::Name);
+                            errorMsg.clear();
 
                             if(dir.dirName() != tcFileData.at(0)->dir().dirName()){ // Ignore if dir name == first output dir name
                                 if(!outputDir.mkdir(dir.dirName()) || !outputDir.cd(dir.dirName()))
                                 {
                                     reportFile.setFileName("");
                                     caplDefinitionsFile.setFileName("");
-                                    QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent("Internal Error - FileSystem Error"));
-                                    return;
+                                    errorMsg = ERROR_PREFIX + QString("Internal Error - FileSystem Error");
+                                    QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg));
+                                    return errorMsg.isEmpty();
                                 }
                                 dirs.append(new QDirIterator(dir));
                                 tcFileData.append(new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions));
@@ -350,21 +376,23 @@ void Tcl2CaplController::generateCapls_impl(){
                                 QString filePath;
                                 //tcFileData.clearInterpreter();
                                 tcFileData.last()->setCurrentTCLFileName( fileInfo.fileName());
+                                errorMsg.clear();
                                 if(!(filePath = tcFileModifier.readFileByFilePath(fileInfo.filePath(), QStringList())).isEmpty()){
                                     // Check for interpreter errors
                                     if(tcFileModifier.isError()){   // if error true
                                         qDebug() << tcFileModifier.error();
+                                        errorMsg = ERROR_PREFIX + tcFileModifier.error();
                                     }else{
                                        // if Data Model != nullptr, then file has been read
                                         if(tcFileModifier.getOnTheBlackList()){
                                             // BlackList PlaceHoldered
                                         }else{
                                             //xmlTestModulesByPath.insert(tempTestModule, filePath);
-                                            qDebug() << "TC Read Success: " << filePath;
+                                            //qDebug() << "TC Read Success: " << filePath;
                                         }
                                     }
                                 }
-                                QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(tcFileData.last()->testCaseErrors()));
+                                QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg, tcFileData.last()->testCaseErrors()));
                             }
                         }
                     }
@@ -382,14 +410,14 @@ void Tcl2CaplController::generateCapls_impl(){
         }
     }
     caplFunctionDefinitions.writeCaplFunctionDefinitions(caplDefinitionsFile);
-
-    QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(0));
+    //WARNING: Temporary exploit (ErrorMsg == "END") to inform about end of processing - remove after taking care of Result Panel
+    QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(QString("END"), 0));
 
     //qDebug() << formatCount;
-
+    return errorMsg.isEmpty();
 }
 
-void Tcl2CaplController::writeResults(){
+bool Tcl2CaplController::writeResults(){
     using Result = Results::Iterator;
     Error error;
     if(reportFile.isOpen()){

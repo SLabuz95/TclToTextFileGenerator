@@ -5,6 +5,7 @@
 #include<QEvent>
 #include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
 #include"Tcl2CaplPanels/tcl2caplfileparserinstance.hpp"
+#include"Tcl2CaplPanels/tcl2caplinstructionpanel.hpp"
 
 #include<QEvent>
 #include<QInputDialog>
@@ -90,9 +91,20 @@ void AppWindow::toolButtonPressed
     newInstance();
 }
 
+template<>
+void AppWindow::toolButtonPressed
+<PanelToolOption::RuntimeInterpreter>()
+{
+    if(instructionPanel == nullptr){ // No Interpreter
+        instructionPanel = new Tcl2CaplInstructionPanel(*this);
+        instructionPanel->show();
+    }
+}
+
 
 
 AppWindow::ToolButtonsFunctions AppWindow::toolButtonsPressed =
 {
     &AppWindow::toolButtonPressed<PanelToolOption::NewParser>,
+    &AppWindow::toolButtonPressed<PanelToolOption::RuntimeInterpreter>
 };

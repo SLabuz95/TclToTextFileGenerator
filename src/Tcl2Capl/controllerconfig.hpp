@@ -137,6 +137,7 @@ public:
     inline void setMode(Mode m){_mode = m;}
     inline Mode mode(){return _mode;}
     inline WriteOnlyProcedures& writeOnlyProcedures(){return _settings.writeOnlyProcedures();}
+    inline Settings& settings(){return _settings;}
 
     inline bool  isDefault(){
         return _settings.writeOnlyProcedures().isEmpty() and

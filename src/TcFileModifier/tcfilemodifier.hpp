@@ -57,7 +57,8 @@ enum class FSD_ByLine_TcFileModifierData::Stat{
 template<>
 template<>
 struct FSD_ByLine_TcFileModifierData::Data{
-    Data(UserInputConfig& userConfig, CAPLFunctionDefinitionsRef caplFunctionDefinitionsRef) : tclToCaplInterpreter_(userConfig, caplFunctionDefinitionsRef){}
+    Data(UserInputConfig& userConfig, CAPLFunctionDefinitionsRef caplFunctionDefinitionsRef)
+        : tclToCaplInterpreter_(userConfig, caplFunctionDefinitionsRef){}
 
     using Variables = QStringList;
     struct CAN{        

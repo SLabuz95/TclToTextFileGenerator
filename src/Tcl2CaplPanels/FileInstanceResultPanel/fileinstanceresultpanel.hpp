@@ -69,7 +69,7 @@ protected:
     void configureProgressBars(ProgressBarDatas&);
 
     void prepareGeneratorControl();
-    void nextGeneratorControl(uint errorsCount);
+    void nextGeneratorControl(const QString&, uint errorsCount);
     void endGeneratorControl();
 
 public:
