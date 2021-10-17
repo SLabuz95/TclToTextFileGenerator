@@ -147,6 +147,23 @@ const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_TEST_CASE_INFO =
                 }
             }
         },
+        {   // Ignore single #@DOMAIN
+            {   // Conditions (1)
+                {   // (1) Compare all With "#@DOMAIN"
+                    ActionStat::COMPARE,
+                    {
+                        QString::number(1), // Compare Strings list size
+                        "#@DOMAIN",
+                        QString::number(4), // Formated string size
+                        "", QString("T") + Format::cast_target_str(Format::Target::RAW),
+                        "", QChar(static_cast<std::underlying_type_t<Format::Rule>>(Format::Rule::INDEX_OR_FULL_LINE))
+                    }
+                },
+            },
+            {   // Actions (0)
+                // No Actions
+            }
+        },
         {   // #@DOMAIN (arg1 = String)
             {   // Conditions (1)
                 {   // (1) Starts With "#@DOMAIN"
@@ -2035,8 +2052,6 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INTERPRET>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Interpret";
-    if(interpreterData->curLine == 354)
-        qDebug() << interpreterData->curLine;
     if(!interpreterData->lineData.isEmpty())
         if(interpreterData->tclToCaplInterpreter_.toCAPL(interpreterData->lineData) == TCLInterpreter::Error::Error){
             qDebug() << "CRITICAL_ERROR" + interpreterData->tclToCaplInterpreter_.error();

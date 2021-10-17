@@ -493,8 +493,34 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
         {   // Dynamic Rules
 
         },
-        {   // On Move Rules
+        {   // U
+            {   // Dynamic
 
+            },
+            {   // On Move
+                {
+                    {   // Conditions
+                        {
+                            ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                            {
+                               QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfList))
+                           },
+                        }
+                    },
+                    {   // Executables
+                        {// Parse [expr_parser =-1]
+                           ProcedureDefinition::Action::Executable::TclParse,
+                           {"expr_parser ",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ">0",
+                           }
+                       },
+                    }
+                }
+            }
         },
         {   // On End of Call
             {   // Rule 1: Tcl Parse -> write Result
@@ -502,16 +528,15 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                  // No conditions
                 },
                  {
-                     {// Parse [expr_parser =-1]
-                        ProcedureDefinition::Action::Executable::TclParse,
-                        {"expr_parser ",
+                    {// Parse [expr_parser =-1]
+                       ProcedureDefinition::Action::Executable::Write,
+                       {
+                        ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         "@ ",
                          ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                         ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                             ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
-                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                         ">0",
-                        }
-                    },
+                        ">0",
+                       }
+                   },
                  }
             }
         }
@@ -2951,11 +2976,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
-    case Stat::Operator:
-    {
-        return throwError(ERROR_PREFIX + "Not Implemented list after operator: " + lastSavedStat().caplCommand());
-    }
-        break;
+    case Stat::Operator:    
     case Stat::StringInQuotes:
     {
         if(!whitespace)
@@ -3120,6 +3141,11 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
         return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
+    case Stat::EndOfCodeBlock:
+    {
+        if(moveArgumentToFunctionCall() == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
     case Stat::FunctionCall:
     {
         if(not lastSavedStat().isFunctionReady()){
@@ -3218,7 +3244,6 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                         lastSavedStat().setStat( Stat::EndOfCodeBlock);
                     }
                         break;
-
                     default:
                         return throwError(ERROR_PREFIX + "Unknown stat for Function Call");;
                     }
@@ -4172,9 +4197,17 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     if(false){
         case Stat::Snprintf:
         {
-            if(not lastSavedStat().isFunctionReady()){
+            // Theoretycly add as sign
+
+            if(not lastSavedStat().isFunctionReady()){  // If not ready, use as sign
+                /*
                 if(Error::Error == saveStatWithParsingControl({Stat::PendingString, ";"}))
                     return throwError(ERROR_PREFIX + error());
+                    */
+                if(Error::Error == saveStatWithParsingControl({Stat::PendingString, ";"}))
+                    return throwError(ERROR_PREFIX + error());
+                // Do nothing more
+                break;
             }else{
 
             }
@@ -4215,7 +4248,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
         }
     }*/
     if(false){
-        case  Stat::PendingSnprintf:
+        case Stat::PendingSnprintf:
         {
             if(!lastSavedStat().isFunctionReady()) // Incomplete
                 return throwError(ERROR_PREFIX + "Incomplete Pedning Snprintf ?");
@@ -4227,12 +4260,12 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     case Stat::StringInQuotes:
+    case Stat::Const:
     case Stat::String:
     {
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
-
     case Stat::FunctionCall:
     {
         if(lastSavedStat().isFunctionReady()){   // Complete
@@ -4349,26 +4382,26 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
     case Stat::CodeBlock:
     {
         QString tempStr = textInterpreter.restOfString();
+        addExpressionToCodeBlock({"//" + tempStr + "\n"});
+        if(Error::Error == saveStatWithParsingControl({Stat::Comment}))
+            return throwError(ERROR_PREFIX + error());
+        proccessingStats.append(Stat::EndOfString);
+
         if(tempStr.endsWith("\\")){
-            return throwError(ERROR_PREFIX + "Comment Extender");
-        }else{
-            addExpressionToCodeBlock({"//" + tempStr + "\n"});
-            if(Error::Error == saveStatWithParsingControl({Stat::Comment}))
-                return throwError(ERROR_PREFIX + error());
-            proccessingStats.append(Stat::EndOfString);
+            addPendingProcessingStat(Stat::Comment);
         }
     }
         break;
     case Stat::MainCodeBlock:
     {
         QString tempStr = textInterpreter.restOfString();
+        addExpressionToMainCodeBlock({"//" + tempStr + "\n"});
+        if(Error::Error == saveStatWithParsingControl({Stat::Comment}))
+            return throwError(ERROR_PREFIX + error());
+        proccessingStats.append(Stat::EndOfString);
+
         if(tempStr.endsWith("\\")){
-            return throwError(ERROR_PREFIX + "Comment Extender");
-        }else{
-            addExpressionToMainCodeBlock({"//" + tempStr + "\n"});
-            if(Error::Error == saveStatWithParsingControl({Stat::Comment}))
-                return throwError(ERROR_PREFIX + error());
-            proccessingStats.append(Stat::EndOfString);
+            addPendingProcessingStat(Stat::Comment);
         }
     }
         break;
@@ -4472,7 +4505,9 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
     case Stat::Snprintf:
     {
         if(not lastSavedStat().isFunctionReady()){
-            return throwError(ERROR_PREFIX + "End of String for Snprintf ?");
+            // Assumption failed -- Do nothing
+            break;
+            //return throwError(ERROR_PREFIX + "End of String for Snprintf ?");
         }
     }
     if(false){
@@ -6025,13 +6060,23 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
         return Error::Error;
     textInterpreter.initialize(tclCommand);
     proccessingStats = pendingProccessingStats;
+    pendingProccessingStats = {};
     while(!proccessingStats.isEmpty()){
+        Stat savedProccessingStat = proccessingStats.last();
         if(callInterpretFunction() == Error::Error){
             if(processError() == Error::Error)
                 return Error::Error;
         }
+        tclProceduresInterpreter.dynamicProcedureCheck();
+        if(isError()){
+            if(processError() == Error::Error)
+                return Error::Error;
+        }
+        if(savedProccessingStat == Stat::EndOfString){
+            textInterpreter.deinitialize();
+            return Error::NoError;
+        }
     }
-    pendingProccessingStats = {};
     while(textInterpreter.runSearchingMode() == Result::StatFound){
         if(textInterpreter.throwErrorIfUnknownStringForForbiddenRule() == Error::Error){
             throwError("TCL Interpreter: Unknown String is Forbidden");
