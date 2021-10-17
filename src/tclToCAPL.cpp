@@ -2951,11 +2951,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
-    case Stat::Operator:
-    {
-        return throwError(ERROR_PREFIX + "Not Implemented list after operator: " + lastSavedStat().caplCommand());
-    }
-        break;
+    case Stat::Operator:    
     case Stat::StringInQuotes:
     {
         if(!whitespace)
@@ -3120,6 +3116,11 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
         return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
+    case Stat::EndOfCodeBlock:
+    {
+        if(moveArgumentToFunctionCall() == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
     case Stat::FunctionCall:
     {
         if(not lastSavedStat().isFunctionReady()){
@@ -3218,7 +3219,6 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                         lastSavedStat().setStat( Stat::EndOfCodeBlock);
                     }
                         break;
-
                     default:
                         return throwError(ERROR_PREFIX + "Unknown stat for Function Call");;
                     }
@@ -4172,9 +4172,17 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     if(false){
         case Stat::Snprintf:
         {
-            if(not lastSavedStat().isFunctionReady()){
+            // Theoretycly add as sign
+
+            if(not lastSavedStat().isFunctionReady()){  // If not ready, use as sign
+                /*
                 if(Error::Error == saveStatWithParsingControl({Stat::PendingString, ";"}))
                     return throwError(ERROR_PREFIX + error());
+                    */
+                if(Error::Error == saveStatWithParsingControl({Stat::PendingString, ";"}))
+                    return throwError(ERROR_PREFIX + error());
+                // Do nothing more
+                break;
             }else{
 
             }
@@ -4215,7 +4223,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
         }
     }*/
     if(false){
-        case  Stat::PendingSnprintf:
+        case Stat::PendingSnprintf:
         {
             if(!lastSavedStat().isFunctionReady()) // Incomplete
                 return throwError(ERROR_PREFIX + "Incomplete Pedning Snprintf ?");
@@ -4227,12 +4235,12 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     case Stat::StringInQuotes:
+    case Stat::Const:
     case Stat::String:
     {
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
-
     case Stat::FunctionCall:
     {
         if(lastSavedStat().isFunctionReady()){   // Complete
@@ -4472,7 +4480,9 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
     case Stat::Snprintf:
     {
         if(not lastSavedStat().isFunctionReady()){
-            return throwError(ERROR_PREFIX + "End of String for Snprintf ?");
+            // Assumption failed -- Do nothing
+            break;
+            //return throwError(ERROR_PREFIX + "End of String for Snprintf ?");
         }
     }
     if(false){
