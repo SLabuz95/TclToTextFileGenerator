@@ -96,15 +96,7 @@ private:
 public:
     Tcl2CaplController(QStringList& definitions, QStringList& inputPath, QString& outputPath);
 
-    ~Tcl2CaplController(){
-        // Clear memory
-        using Result = Results::Iterator;
-        for(Result result = results.begin(); result < results.end(); result++){
-            delete (*result); // Pointer to Pointer -> get Access to correct memory
-        }
-        terminate();
-        //quitAndWait();
-    }
+    ~Tcl2CaplController();
 
     inline void quitAndWait(){quit(); wait();}
     inline bool isError()const{return not _error.isEmpty();}

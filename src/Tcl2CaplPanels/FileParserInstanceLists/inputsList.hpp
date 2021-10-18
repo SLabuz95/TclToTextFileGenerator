@@ -73,14 +73,13 @@ class InputsList : public QWidget{
         }
         inline bool isActive(){
             bool exist = false;
-            if(QFile::exists(toolTip())){
+            if(exist = QFile::exists(toolTip())){
                 setBackground(Qt::transparent);
             }else{
                 setBackground(Qt::red);
             }
-            return exist and isActive();
+            return exist;
         }
-
     };
 
     using Request_ContextMenu_Func = void (InputsList::*)(InputsListElement*);

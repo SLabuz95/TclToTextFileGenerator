@@ -145,7 +145,7 @@ public:
                 _userDefaultProcedure.isDefault();
     }
 
-    bool writeToFile(QFile file);
+    //bool writeToFile(QFile file);
     QString toXmlContent();
 
 };

@@ -63,6 +63,7 @@ bool FileReader_Priv::exec(){
 bool FileReader_Priv::resultChecking(){
     readInfo.clearStats();
     readInfo.closeFile();
+    return true;
 }
 
 bool FileReader_Priv::openFile(){

@@ -21,7 +21,7 @@ public:
     FileReaderInterpreter(FileReaderInterpreter_Configuration_Priv<FSD>& config) : FileReaderInterpreter_Priv(config.COMChannel), config(config), errorMsg(config.errorMsg){}
     ~FileReaderInterpreter(){config.deinitialize();}
 
-    inline bool ERROR_CALL(typename FSD::ErrorMsg error){errorMsg = error;}
+    inline void ERROR_CALL(typename FSD::ErrorMsg error){errorMsg = error;}
 protected:
     FileReaderInterpreter_Configuration_Priv<FSD>& config;
     typename FSD::ErrorRef errorMsg;

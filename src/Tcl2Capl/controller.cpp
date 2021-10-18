@@ -24,6 +24,16 @@ UserInputConfig::UserInputConfig(UserInputConfigData& configData)
     TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToUserProcedureDefintions(*this);
 }
 
+Tcl2CaplController::~Tcl2CaplController(){
+    // Clear memory
+    using Result = Results::Iterator;
+    for(Result result = results.begin(); result < results.end(); result++){
+        delete (*result); // Pointer to Pointer -> get Access to correct memory
+    }
+    terminate();
+    //quitAndWait();
+}
+
 //#include"userdefinitions_helper.hpp"
 //#include"External/FileReader/FilesSpecificData/XML/TclCaplParserConfig/FRI_FSD_XML_TCL_CAPL_Parser_Config.hpp"
 Tcl2CaplController::Tcl2CaplController(QStringList& definitions, QStringList& inputPaths, QString& outputPath)
@@ -430,5 +440,5 @@ bool Tcl2CaplController::writeResults(){
         if(!(error = (*result)->writeResult()).isEmpty())
             throwError(error);
     }
-
+    return true;
 }

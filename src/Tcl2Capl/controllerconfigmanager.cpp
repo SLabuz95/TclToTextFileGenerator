@@ -173,8 +173,8 @@ InfoPtr ControllerConfigManager::registerConfig(EventHandlerPtr subsriber, Info:
             infosBySubsribers.insert(returnInfo = new Info(configPath, configFile.lastModified(), config), {subsriber});
 
         return returnInfo;
-    }
-    return nullptr;*/
+    }*/
+    return nullptr;
 }
 
 
@@ -189,8 +189,8 @@ InfoPtr ControllerConfigManager::reregisterConfig(InfoPtr infoF, Info::ConfigPat
             if(readConfig(configFile, config) == true)
                 infoF->updateConfig(config);
          }
-    }
-    return  (_lastErrorMsg = "Internal Error", nullptr);*/
+    }*/
+    return  (_lastErrorMsg = "Internal Error", nullptr);
 }
 
 bool ControllerConfigManager::saveConfigOnly(InfoPtr infoPtr){

@@ -206,7 +206,10 @@ toolTipText() const{
     switch(type()){
     case ItemType::IndexItem:       return QStringLiteral("Indeks: ") + text(0);
     case ItemType::ArgumentItem:    return QStringLiteral("Argument: \"") + text(0) + QStringLiteral("\"");
+    default:
+        break;
     }
+    return QString();
 }
 
 
