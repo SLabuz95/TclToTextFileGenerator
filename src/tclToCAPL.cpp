@@ -3244,6 +3244,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                         lastSavedStat().setStat( Stat::EndOfCodeBlock);
                     }
                         break;
+
                     default:
                         return throwError(ERROR_PREFIX + "Unknown stat for Function Call");;
                     }
@@ -4266,6 +4267,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
+
     case Stat::FunctionCall:
     {
         if(lastSavedStat().isFunctionReady()){   // Complete
@@ -6077,6 +6079,7 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
             return Error::NoError;
         }
     }
+    pendingProccessingStats = {};
     while(textInterpreter.runSearchingMode() == Result::StatFound){
         if(textInterpreter.throwErrorIfUnknownStringForForbiddenRule() == Error::Error){
             throwError("TCL Interpreter: Unknown String is Forbidden");
