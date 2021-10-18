@@ -41,3 +41,7 @@ target_link_libraries(TclCaplParserCMake
     Qt6::Widgets
     Qt6::Core
     )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set_property(TARGET TclCaplParserCMake PROPERTY WIN32_EXECUTABLE true)
+endif()

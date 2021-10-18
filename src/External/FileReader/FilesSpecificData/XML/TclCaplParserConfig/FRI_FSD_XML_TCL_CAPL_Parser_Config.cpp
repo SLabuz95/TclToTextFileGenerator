@@ -364,6 +364,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
         return true;*/
     }
         break;
+    default:
+        break;
     }
 
     interpreterData->dmStats.removeLast();
@@ -509,8 +511,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
     interpreterData->rulesForArgumentsUsed = true;
     interpreterData->arguments.append(index);
-    interpreterData->dmStats.append({&definition->rulesForArguments[index], Stat::RulesForArgument});
-    return true;*/
+    interpreterData->dmStats.append({&definition->rulesForArguments[index], Stat::RulesForArgument});*/
+    return true;
 }
 
 template<>template<>template<>
@@ -524,8 +526,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     interpreterData->rulesForUnspecifiedArgumentUsed = true;
-    interpreterData->dmStats.append({&definition->rulesForUnspecifiedArgument, Stat::RulesForUnspecifiedArgument});
-    return true;*/
+    interpreterData->dmStats.append({&definition->rulesForUnspecifiedArgument, Stat::RulesForUnspecifiedArgument});*/
+    return true;
 }
 
 template<>template<>template<>
@@ -539,8 +541,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     interpreterData->rulesOnEndOfCallUsed = true;
-    interpreterData->dmStats.append({&definition->rulesOnEndOfProcedureCall, Stat::RulesOnEndOfCall});
-    return true;*/
+    interpreterData->dmStats.append({&definition->rulesOnEndOfProcedureCall, Stat::RulesOnEndOfCall});*/
+    return true;
 }
 
 template<>template<>template<>
@@ -554,8 +556,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     interpreterData->dynamicRulesUsed = true;
-    interpreterData->dmStats.append({&rulesForArgument->rules, Stat::DynamicRules});
-    return true;*/
+    interpreterData->dmStats.append({&rulesForArgument->rules, Stat::DynamicRules});*/
+    return true;
 }
 
 template<>template<>template<>
@@ -569,8 +571,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     interpreterData->onMoveRulesUsed = true;
-    interpreterData->dmStats.append({&rulesForArgument->rulesOnMoveArgument, Stat::RulesOnMove});
-    return true;*/
+    interpreterData->dmStats.append({&rulesForArgument->rulesOnMoveArgument, Stat::RulesOnMove});*/
+    return true;
 }
 
 template<>template<>template<>
@@ -594,8 +596,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         interpreterData->tempRule = Data::Rule();
     }
 
-    interpreterData->dmStats.append({&interpreterData->tempRule, Stat::Rule});
-    return true;*/
+    interpreterData->dmStats.append({&interpreterData->tempRule, Stat::Rule});*/
+    return true;
 }
 
 template<>template<>template<>
@@ -619,8 +621,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
     interpreterData->clearCurActionParameterIndex();
     interpreterData->tempRule.conditions.append(Data::Conditional(conditional));
-    interpreterData->dmStats.append({&interpreterData->tempRule.conditions.last(), Stat::ConditionalAction});
-    return true;*/
+    interpreterData->dmStats.append({&interpreterData->tempRule.conditions.last(), Stat::ConditionalAction});*/
+    return true;
 }
 
 template<>template<>template<>
@@ -644,8 +646,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
     interpreterData->clearCurActionParameterIndex();
     interpreterData->tempRule.actions.append(Data::Executable(executable));
-    interpreterData->dmStats.append({&interpreterData->tempRule.actions.last(), Stat::ExecutableAction});
-    return true;*/
+    interpreterData->dmStats.append({&interpreterData->tempRule.actions.last(), Stat::ExecutableAction});*/
+    return true;
 }
 
 template<>template<>template<>

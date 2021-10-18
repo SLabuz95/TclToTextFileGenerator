@@ -2166,6 +2166,9 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
             return caplCommand();
         }
     }
+        break;
+    default:
+        break;
     }
     return QString();
 }
@@ -5557,7 +5560,8 @@ CheckingResult TextInterpreter::checkingPriv(){
             index++;
         }
             break;
-
+        default:
+            break;
         }
         currentChar++;
 
@@ -5777,6 +5781,8 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
                 case Rules::value_type::Control::NoBreakRuleCheck:
                     ruleCondtionsPassed = false;
                     break;
+                default:
+                    break;
                 }
             }
         }
@@ -5982,6 +5988,8 @@ Error TclProcedureInterpreter::dynamicProcedureArgumentCheck_priv(){
             case Rules::value_type::Control::NoBreakRuleCheck:
                 ruleCondtionsPassed = false;
                 break;
+            default:
+                break;
             }
         }
     }
@@ -6040,6 +6048,8 @@ Error TclProcedureInterpreter::onArgumentProcedureCheck_priv(){
                 break;
             case Rules::value_type::Control::NoBreakRuleCheck:
                 ruleCondtionsPassed = false;
+                break;
+            default:
                 break;
             }
         }
@@ -6205,6 +6215,7 @@ QString TclProcedureInterpreter::toString(SavedStat &stat, ProcedureDefinition::
     default:
         break;
     }*/
+    return QString();
 }
 
 
@@ -6732,6 +6743,8 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
             throwError(ERROR_PREFIX + "Its illegal to change FunctionCall, Snprintf or PendingSnprintf");
             return ;
         }
+        default:
+            break;
     }
 
     if(parameters.size() != 1){
