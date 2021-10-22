@@ -1,5 +1,5 @@
-#include"../controllerconfig.hpp"
-
+//#include"../controllerconfig.hpp"
+/*
 
 void FactoryProductDefinition<RulesType>::ProductInterface::toXmlContent(QXmlStreamWriter& xmlWriter){
     // CONFIG_TAG
@@ -60,7 +60,7 @@ void Tcl2CaplControllerConfig::AdvancedRule::toXmlContent(QXmlStreamWriter& xmlW
     xmlWriter.writeStartElement("advancedRule");
     ProductInterface::toXmlContent(xmlWriter);
 
-    /*// Conditionals
+    // Conditionals
     using Condition = ConditionalActions::Iterator;
     for(Condition condition = conditions().begin(); condition < conditions().end(); condition++){
         (*condition)->toXmlContent(xmlWriter);
@@ -70,7 +70,7 @@ void Tcl2CaplControllerConfig::AdvancedRule::toXmlContent(QXmlStreamWriter& xmlW
     using Executable = ExecutableActions::Iterator;
     for(Executable executable = executables().begin(); executable < executables().end(); executable++){
         (*executable)->toXmlContent(xmlWriter);
-    }*/
+    }
 
     xmlWriter.writeEndElement();
 }
@@ -100,3 +100,4 @@ void Tcl2CaplControllerConfig::RulesForArgument::toXmlContent(QXmlStreamWriter& 
     xmlWriter.writeEndElement();
 }
 
+*/

@@ -12,6 +12,7 @@
 #include<QTextEdit>
 #include<QSplitter>
 //#include"Tcl2Capl/userdefinitions_helper.hpp"
+#include"Tcl2Capl/controller.hpp"
 #include<QMimeData>
 #include<QCompleter>
 #include<QResizeEvent>
@@ -20,19 +21,30 @@ class Tcl2CaplInstructionPanel;
 
 
 class Tcl2CaplInstructionInstance : public QMainWindow{
+
     class InputTextEdit : public QTextEdit{
         //TODO: Dodac notVisible, zsynhronizowac z rodzicem i completerem i sprawdzic czy completer dziala
     public:
-        InputTextEdit() : QTextEdit(), completerHelper(this){
+        InputTextEdit() : QTextEdit()//[0.9.0] , completerHelper(this)
+        {
+            /* [0.9.0]
             completerHelper.setGeometry(this->rect().bottomLeft().x(), this->rect().bottomLeft().y() - completerHelper.height(),
                                         this->rect().width(), completerHelper.height());
             completerHelper.setFocusPolicy(Qt::NoFocus);
+            [0.9.0] End*/
         }
 
     protected:
+        /* [0.9.0]
         QLineEdit completerHelper;
         QCompleter completer;
 
+        void resizeEvent(QResizeEvent* ev)override{
+            completerHelper.setGeometry(this->rect().bottomLeft().x(), this->rect().bottomLeft().y() - completerHelper.height(),
+                                       this->rect().width(), completerHelper.height());
+            QTextEdit::resizeEvent(ev);
+        }
+        [0.9.0] End*/
         void insertFromMimeData(const QMimeData* data)override{
             // Replace "\x93" and "\x94"  coding from text to "\"" (copied from word document etc)
             QTextEdit::insertFromMimeData(data);
@@ -40,12 +52,6 @@ class Tcl2CaplInstructionInstance : public QMainWindow{
             str.replace(QString(QByteArray("\xE2\x80\x9C")), "\"").replace(QString(QByteArray("\xE2\x80\x9D")), "\"");
             setPlainText(str);
          }
-
-        void resizeEvent(QResizeEvent* ev)override{
-            completerHelper.setGeometry(this->rect().bottomLeft().x(), this->rect().bottomLeft().y() - completerHelper.height(),
-                                       this->rect().width(), completerHelper.height());
-            QTextEdit::resizeEvent(ev);
-        }
 
     };
 
@@ -101,8 +107,8 @@ class Tcl2CaplInstructionInstance : public QMainWindow{
     QLineEdit completerHelper;
 
     // Temp Data from ConfigFile
-    //using UserProceduresConfig = UserDefinitionsData;
-    //UserProceduresConfig tempUserProceduresConfig_;
+    using UserProceduresConfig = UserInputConfig::UserInputConfigData;
+    UserProceduresConfig tempUserProceduresConfig_;
 
 public:
     using Error = QString;

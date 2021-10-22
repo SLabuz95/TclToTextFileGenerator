@@ -2,8 +2,12 @@
 
 Tcl2CaplResult::Tcl2CaplReadData::InitializeStatus Tcl2CaplResult::Tcl2CaplReadData::initialize(){
     if(initializeStatus == InitializeStatus::NOT_INITIALIZED){
-        _file.setFileName(_dir.path() + "/" + _dir.dirName() + ".can");
-        return initializeStatus = InitializeStatus::INITIALIZE_SUCCESS;
+        if(userConfig_.proceduresSettings().isWriteToFileMode()){
+            _file.setFileName(_dir.path() + "/" + _dir.dirName() + ".can");
+            return initializeStatus = InitializeStatus::INITIALIZE_SUCCESS;
+        }else{
+            return initializeStatus;
+        }
     }
     return InitializeStatus::ALREADY_INITIALIZED;
 }

@@ -4,7 +4,7 @@
 #include<QDockWidget>
 #include<QEvent>
 #include<QInputDialog>
-
+/*
 Tcl2CaplFileParserPanel::Tcl2CaplFileParserPanel(AppWindow& appWindow)
     : appWindow(appWindow)
 {
@@ -79,6 +79,7 @@ void Tcl2CaplFileParserPanel::execRequest_FileWatcher_update(Tcl2CaplFileParserI
 }*/
 
 // PRESSED
+/*
 template<>
 void Tcl2CaplFileParserPanel::toolButtonPressed
 <PanelToolOption::NewParser>()
@@ -92,3 +93,4 @@ Tcl2CaplFileParserPanel::ToolButtonsFunctions Tcl2CaplFileParserPanel::toolButto
 {
     &Tcl2CaplFileParserPanel::toolButtonPressed<PanelToolOption::NewParser>,
 };
+*/

@@ -1,5 +1,7 @@
 #include"tcl2caplfileparserinstance.hpp"
-#include"tcl2caplfileparserpanel.hpp"
+//#include"tcl2caplfileparserpanel.hpp"
+#include"appwindow.hpp"
+#include<QSplitter>
 #include<QEvent>
 #include<QMessageBox>
 #include<QDesktopServices>
@@ -10,7 +12,7 @@
 #include"External/FileReader/FilesSpecificData/XML/TclCaplParserConfig/FRI_FSD_XML_TCL_CAPL_Parser_Config.hpp"
 #include<QContextMenuEvent>
 
-Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(Tcl2CaplFileParserPanel & panel)
+Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(AppWindow & panel)
     : QSplitter(Qt::Horizontal),
       panel(panel),
       filesList(*this),
@@ -34,9 +36,15 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(Tcl2CaplFileParserPanel &
 
     // - inputProcedureConfigPath
     inputProcedureConfigPath.setReadOnly(true);
+    // [0.9.0]
+    inputProcedureConfigPath.setDisabled(true);
+    // [0.9.0] End
 
     // - inputProcedureConfigSelection
-    inputProcedureConfigSelection.installEventFilter(this);
+    //inputProcedureConfigSelection.installEventFilter(this);
+    // [0.9.0]
+    //inputProcedureConfigSelection.setDisabled(true);
+    // [0.9.0] End
 
     // - outputDirPath
     outputDirPath.setReadOnly(true);
@@ -47,7 +55,10 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(Tcl2CaplFileParserPanel &
     // - readDefinitionsButton
     readDefinitionsButton.setToolTip("Aktualne");
     readDefinitionsButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogApplyButton));
-    readDefinitionsButton.installEventFilter(this);
+    // [0.9.0]
+    //readDefinitionsButton.installEventFilter(this);
+    readDefinitionsButton.setDisabled(true);
+    // [0.9.0] End
 
     // - generateCaplButton
     generateCaplButton.installEventFilter(this);
@@ -72,9 +83,9 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(Tcl2CaplFileParserPanel &
     inputConfig.setLayout(&inputLayout);
 
     // - outputBox
-    outputLayout.addWidget(&readDefinitionsButton, 1, 0);
-    outputLayout.addWidget(&generateCaplButton, 1, 1);
-    outputLayout.addWidget(&generateCaplReportModeButton, 1, 2);
+    outputLayout.addWidget(&readDefinitionsButton, 0, 0);
+    outputLayout.addWidget(&generateCaplButton, 0, 1);
+    outputLayout.addWidget(&generateCaplReportModeButton, 0, 2);
 
     outputLayout.setAlignment(Qt::AlignTop);
     outputBox.setLayout(&outputLayout);
@@ -82,7 +93,7 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(Tcl2CaplFileParserPanel &
     // Config Splitter
     configSplitter.addWidget(&inputConfig);
     configSplitter.addWidget(&outputBox);
-    configSplitter.setContentsMargins(0,0,0,0);
+    //configSplitter.setContentsMargins(0,0,0,0);
 
     // - centralWidget
     addWidget(&filesList);
@@ -179,7 +190,7 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readProceduresConf
     FSD_XML_TclCaplParserConfigInterpreter::Config parserConfigInterpreter(tempUserDefinitionsData);
     QStringList blackList;
     QString filePath;
-    if(!(filePath = parserConfigInterpreter.readFileByFilePath(iniConfig.filePath(), QStringList())).isEmpty()){
+    if(not (filePath = parserConfigInterpreter.readFileByFilePath(iniConfig.filePath(), QStringList())).isEmpty()){
         // Check for interpreter errors
         if(parserConfigInterpreter.isError()){   // if error true
             qDebug() << parserConfigInterpreter.error();
@@ -190,7 +201,7 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readProceduresConf
                 // BlackList PlaceHoldered
             }else{
                 //xmlTestModulesByPath.insert(tempTestModule, filePath);
-                qDebug() << "TC Read Success: " << filePath;
+                //qDebug() << "TC Read Success: " << filePath;
                 //tempUserProceduresConfig_ = tempUserDefinitionsData;
             }
         }
@@ -224,19 +235,16 @@ void Tcl2CaplFileParserInstance::generateCapl(){
 
     // Prepare Result DockWidget (FileInstanceResultPanel)
     FileInstanceResultPanel* instanceWidget = nullptr;
-    try {
-        instanceWidget = new FileInstanceResultPanel(*this, definitions, inputs, outputDirPath.text());
-        /*QDockWidget* newInstance = new QDockWidget("tabName");
-        newInstance->setWidget(instanceWidget);
-        newInstance->setAttribute(Qt::WA_DeleteOnClose);
-        addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
-        instanceWidget->show();
 
-        //instanceWidget->generateCapl(tempUserProceduresConfig_);
-    }  catch (std::exception& e) {
-        qDebug() << e.what();
-        delete instanceWidget, instanceWidget = nullptr;
-    }
+    instanceWidget = new FileInstanceResultPanel(*this, definitions, inputs, outputDirPath.text());
+    /*QDockWidget* newInstance = new QDockWidget("tabName");
+    newInstance->setWidget(instanceWidget);
+    newInstance->setAttribute(Qt::WA_DeleteOnClose);
+    addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
+    instanceWidget->show();
+
+    instanceWidget->generateCapl(tempUserProceduresConfig_);
+
 
 /*
     QString writeResultError;
@@ -273,7 +281,7 @@ void Tcl2CaplFileParserInstance::generateCaplRaportMode(){
     if(inputsList.count() <= 0)
         return;
 
-    if(!outputDirPath.text().isEmpty() and not QFileInfo(outputDirPath.text()).exists())
+    if(not outputDirPath.text().isEmpty() and not QFileInfo(outputDirPath.text()).exists())
     {
         QMessageBox::critical(nullptr, "Output Dir doesnt exist", "Output has been changed to Input Parent Folder");
         outputDirPath.clear();
@@ -291,19 +299,15 @@ void Tcl2CaplFileParserInstance::generateCaplRaportMode(){
 
     // Prepare Result DockWidget (FileInstanceResultPanel)
     FileInstanceResultPanel* instanceWidget = nullptr;
-    try {
-        instanceWidget = new FileInstanceResultPanel(*this, definitions, inputs, outputDirPath.text());
-        /*QDockWidget* newInstance = new QDockWidget("tabName");
-        newInstance->setWidget(instanceWidget);
-        newInstance->setAttribute(Qt::WA_DeleteOnClose);
-        addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
-        instanceWidget->show();
+    instanceWidget = new FileInstanceResultPanel(*this, definitions, inputs, outputDirPath.text());
+    /*QDockWidget* newInstance = new QDockWidget("tabName");
+    newInstance->setWidget(instanceWidget);
+    newInstance->setAttribute(Qt::WA_DeleteOnClose);
+    addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
+    instanceWidget->show();
 
-        //instanceWidget->generateCaplInWriteOnlyMode(tempUserProceduresConfig_);
-    }  catch (std::exception& e) {
-        qDebug() << e.what();
-        delete instanceWidget, instanceWidget = nullptr;
-    }
+    instanceWidget->generateCaplInWriteOnlyMode(tempUserProceduresConfig_);
+
     /*tcl2Capl.userProceduresConfig().proceduresSettings().setWriteOnlyMode(true);
     if(!tcl2Capl.generateCaplsFromFolderWithTcls(inputDirPath.text(), outputDirPath.text()).isEmpty()){
         QMessageBox::critical(nullptr, "Generate Capl Error", tcl2Capl.error());
@@ -344,25 +348,26 @@ void Tcl2CaplFileParserInstance::execRequest_FileInfoRef<Tcl2CaplFileParserInsta
     if(file.exists())
     {
         if(file.isDir()){
-            definitionsList.newFolderButtonClicked(file.filePath());
+            definitionsList.newFolder(file.filePath());
         }else{
             if(file.isFile() and file.suffix() == "tcl")
-                definitionsList.newFileButtonClicked(file.filePath());
+                definitionsList.newFile(file.filePath());
         }
     }
 }
 
 template <>
 void Tcl2CaplFileParserInstance::execRequest_FileInfoRef<Tcl2CaplFileParserInstance::Request_FileInfoRef::AddToInputs>(QFileInfo& file){
+
     if(file.exists())
     {
         if(file.isDir()){
-            inputsList.newFolderButtonClicked(file.filePath());
+            inputsList.newFolder(file.filePath());
         }else{
             if(file.isFile() and file.suffix() == "tc")
-                inputsList.newFileButtonClicked(file.filePath());
+                inputsList.newFile(file.filePath());
         }
-    }
+    }    
 }
 
 template <>

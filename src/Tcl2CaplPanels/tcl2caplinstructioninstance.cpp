@@ -169,13 +169,14 @@ Tcl2CaplInstructionInstance::readInputConfig(){
 }
 
 void Tcl2CaplInstructionInstance::generateCapl(){
-    if(not readInputConfig())
-        return;
+    //if(not readInputConfig())
+      //  return;
 
     CAPLFunctionDefinitions caplFunctionDefinitions;
-    //TcFileModifier::Data data(tempUserProceduresConfig_, caplFunctionDefinitions);
-    //QFile file_DONT_USE_PH_ONLY;
-    //Tcl2CaplResult::Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, tempUserProceduresConfig_);
+    UserInputConfig userInputConfig(tempUserProceduresConfig_);
+    TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
+    QFile file_DONT_USE_PH_ONLY;
+    Tcl2CaplResult::Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, userInputConfig, caplFunctionDefinitions);
     QString inputTclText = inputTclConfig.toPlainText();
     QString outputCaplText;
     QString errorText;
@@ -184,15 +185,15 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     QTextStream textStream(&inputTclText, QIODevice::ReadOnly);
     while(not textStream.atEnd())
     {
-       // data.lineData = textStream.readLine();
-        //if(data.tclToCaplInterpreter_.toCAPL(data.lineData) == TCLInterpreter::Error::Error){
+        data.lineData = textStream.readLine();
+        if(data.tclToCaplInterpreter_.toCAPL(data.lineData) == TCLInterpreter::Error::Error){
             QMessageBox::critical(nullptr, QString("Tcl Interpreter"), QString("Internal Critical Error"));
             return;
-        //}
+        }
     }
     errorsText.clear();
     outputText.clear();
-    //data.tclToCaplInterpreter_.printErrorReport(errorText);
+    data.tclToCaplInterpreter_.printErrorReport(errorText);
     if(not errorText.isEmpty()){
         errorText.append(QString("</table>\n</div>\n</div>\n<hr>\n</body></html>").toUtf8());
         errorsText.setHtml(errorText);
@@ -200,7 +201,7 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     }
 
     // No Errors
-    //outputCaplText.append(data.tclToCaplInterpreter_.printPredefinitions() + data.tclToCaplInterpreter_.readCaplCommand());
+    outputCaplText.append(data.tclToCaplInterpreter_.printPredefinitions() + data.tclToCaplInterpreter_.readCaplCommand());
     outputText.setText(outputCaplText);
 
 

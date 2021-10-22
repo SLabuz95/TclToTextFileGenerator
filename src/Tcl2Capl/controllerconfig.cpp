@@ -35,13 +35,13 @@ Tcl2CaplControllerConfig::UserProcedure Tcl2CaplControllerConfig::Procedure::toP
     Rules::Iterator newRule = rulesOnEndOfCall.begin();
     for(; rawRuleRef < this->rulesOnEndOfCall().end(); rawRuleRef++, newRule++)
     {
-        (*rawRuleRef)->toRule((*newRule));
+        //(*rawRuleRef)->toRule((*newRule));
     }
 
     return UserProcedure(name(), rulesForArguments, rulesForArgument, rulesOnEndOfCall);
 }
 
-
+/*
 void Tcl2CaplControllerConfig::QuickRule::toRule(UserProcedureRule &rule)
 {
     using ConditionalActions = Tcl2CaplControllerConfig::ConditionalActions;
@@ -99,7 +99,7 @@ void Tcl2CaplControllerConfig::QuickRule::toRule(UserProcedureRule &rule)
                 if( not index->second.isEmpty() and index->first < numbOfArguments)
                 {
                     // For negative indexes
-                    if( index->first < 0 and numbOfArguments + index->first/*Negative value*/ < 0 ){
+                    if( index->first < 0 and numbOfArguments + index->first/*Negative value*//* < 0 ){
                          break;  // Constraints not satisifed
                     }
 
@@ -157,11 +157,11 @@ void Tcl2CaplControllerConfig::RulesForArgument::toRule(UserProcedureRule &rule)
 {
 
 }
-
+*/
 bool operator==(const Tcl2CaplControllerConfig::Procedure& lhs, const Tcl2CaplControllerConfig::Procedure& rhs){
     return lhs.name() == rhs.name();
 }
-
+/*
 bool Tcl2CaplControllerConfig::writeToFile(QFile file){
     QFileInfo fileInfo(file);
 
@@ -172,8 +172,8 @@ bool Tcl2CaplControllerConfig::writeToFile(QFile file){
 
     // Write
 
-
-}
+    return true;
+}*/
 
 QString Tcl2CaplControllerConfig::toXmlContent(){
     QString xmlContent;
@@ -213,10 +213,10 @@ void Tcl2CaplControllerConfig::Procedure::toXmlContent(QXmlStreamWriter& xmlWrit
     }
     // Rules
     for(RawRuleRefs::Iterator ruleOnEndOfCall = rulesOnEndOfCall_.begin(); ruleOnEndOfCall != rulesOnEndOfCall_.end(); ruleOnEndOfCall++){
-        (*ruleOnEndOfCall)->toXmlContent(xmlWriter);
+       // (*ruleOnEndOfCall)->toXmlContent(xmlWriter);
     }
     for(RulesForArguments::Iterator ruleForArgument = rulesForArguments().begin(); ruleForArgument != rulesForArguments().end(); ruleForArgument++){
-        ruleForArgument->toXmlContent(xmlWriter);
+       // ruleForArgument->toXmlContent(xmlWriter);
     }
     // End of Element
     xmlWriter.writeEndElement();

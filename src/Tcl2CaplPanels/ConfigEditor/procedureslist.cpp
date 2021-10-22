@@ -154,7 +154,6 @@ bool ProceduresList::eventFilter(QObject* obj, QEvent* ev){
             ListItem* item = itemAt(cev->pos());
 
             // Specify file and error checking
-
             using Actions = QList<QAction*>;
             using ActionFuncs = QList<ProceduresList::Request_ContextMenu_Func>;
             using Request = ProceduresList::Request_ContextMenu;

@@ -365,12 +365,12 @@ protected:
     inline bool isStringIntNumber(QString str)const{return str.lastIndexOf(QRegularExpression(RegExpCore::regExpForInt)) == 0;}
     inline bool isStringUIntNumber(QString str)const{return str.lastIndexOf(QRegularExpression(RegExpCore::regExpForUint)) == 0;}
 
-    using AddExpressionToCodeBlockFunction = void (TCLInterpreterPriv::*)(CAPLCommands);
+    using AddExpressionToCodeBlockFunction = void (TCLInterpreterPriv::*)(CAPLCommands, QString);
 public:
     AddExpressionToCodeBlockFunction addExpressionToCodeBlockFunction = &TCLInterpreterPriv::addExpressionToCodeBlock_standard;
     inline void addPreexpressionsToMainCodeBlock(){
-        if(!preexpressions().isEmpty()){ // Not Empty
-            addExpressionToMainCodeBlock(preexpressions());
+        if(not preexpressions().isEmpty()){ // Not Empty
+            addExpressionToMainCodeBlock(preexpressions(), "\n");
             //lastSavedStat().appendCAPLCommand("\n");
             preexpressions().clear();
         }
@@ -378,9 +378,9 @@ public:
 
 
     inline void addPreexpressionsToCodeBlock(){
-        if(!preexpressions().isEmpty()){ // Not Empty
+        if(not preexpressions().isEmpty()){ // Not Empty
             //lastSavedStat().appendCAPLCommand("\n");
-            addExpressionToCodeBlock(preexpressions());
+            addExpressionToCodeBlock(preexpressions(), "\n");
             preexpressions().clear();
         }
     }
@@ -388,25 +388,25 @@ public:
     /*inline void addExpressionToMainCodeBlock(CAPLCommand command){command.isEmpty() or
                                                                 If not empty (caplCommand.append(((!caplCommand.isEmpty())? QString(";\n") : QString()) + command ), true);
                                                                }*/
-    inline void addExpressionToMainCodeBlock(CAPLCommands commands){
+    inline void addExpressionToMainCodeBlock(CAPLCommands commands, QString postfix = QString()){
         if(commands.size() > 0){
-            caplCommand.append(((caplCommand.size() > 0)? QString("\n") : QString()) + commands.join("\n"));
+            caplCommand.append(commands.join("\n") + postfix);
         }
     }
     /*inline void addExpressionToCodeBlock(CAPLCommand command){command.isEmpty() or
                                                                 If not empty  ( lastSavedStat().setCAPLCommand( lastSavedStat().caplCommand() +  command + "\n"), true);
                                                                }*/
-    inline void addExpressionToCodeBlock(CAPLCommands commands){
-        (this->*addExpressionToCodeBlockFunction)(commands);
+    inline void addExpressionToCodeBlock(CAPLCommands commands, QString postfix = QString()){
+        (this->*addExpressionToCodeBlockFunction)(commands, postfix);
     }
 
-    inline void addExpressionToCodeBlock_standard(CAPLCommands commands){
+    inline void addExpressionToCodeBlock_standard(CAPLCommands commands, QString postfix){
         if(commands.size() > 0)
-            lastSavedStat().appendCAPLCommand(((lastSavedStat().caplCommand().size() > 0)? QString("\n") : QString()) +/*QString(";\n") +*/ commands.join("\n"));
+            lastSavedStat().appendCAPLCommand(commands.join("\n") + postfix);
     }
 
-    inline void addExpressionToCodeBlock_writeOnlyProcedure(CAPLCommands commands){
-        addExpressionToMainCodeBlock(commands);
+    inline void addExpressionToCodeBlock_writeOnlyProcedure(CAPLCommands commands, QString postfix){
+        addExpressionToMainCodeBlock(commands, postfix);
     }
 
     inline CAPLCommand& readCaplCommand(){return caplCommand;}
@@ -427,7 +427,7 @@ public:
     inline PredefinitionsControl& predefinitionsControl(){return _predefinitionsControl;}
     inline void prepareCodeBlockContent(){
         QString predefinitions = predefinitionsControl().getPredefinitionsGroupStr();
-        if(!predefinitions.isEmpty())
+        if(not predefinitions.isEmpty())
             lastSavedStat().setCAPLCommand(predefinitions + lastSavedStat().caplCommand());
     }
 

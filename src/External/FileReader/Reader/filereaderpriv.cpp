@@ -63,12 +63,13 @@ bool FileReader_Priv::exec(){
 bool FileReader_Priv::resultChecking(){
     readInfo.clearStats();
     readInfo.closeFile();
+    return true;
 }
 
 bool FileReader_Priv::openFile(){
-    qDebug() << readInfo.getFile().fileName();
+    //qDebug() << readInfo.getFile().fileName();
     if(readInfo.openFile()){
-        qDebug() << readInfo.getFile().fileName() << "Open Event";
+       // qDebug() << readInfo.getFile().fileName() << "Open Event";
     }else{
         if(not readInfo.getFile().exists()){
             setErrorType(Error::FileDoesntExistError);
@@ -85,7 +86,7 @@ QFile* FileReader_Priv::fileAccess(){
 
 bool FileReader_Priv::closeFile(){
     readInfo.closeFile();
-    qDebug() << readInfo.getFile().fileName() << "Close Event";
+    //qDebug() << readInfo.getFile().fileName() << "Close Event";
     return isNoError();
 }
 
@@ -96,7 +97,7 @@ bool FileReader_Priv::initialize(){
         {NS_FRI_COM_Manager::Commands::EXEC_STAT, &interpreterStat},
         {NS_FRI_COM_Manager::Commands::DATA, &filePath}
     };
-    qDebug() << readInfo.getFile().fileName() << "Init Event";
+    //qDebug() << readInfo.getFile().fileName() << "Init Event";
 
     return processCOMMessage(cmds);
 }
@@ -104,7 +105,7 @@ bool FileReader_Priv::initialize(){
 bool FileReader_Priv::deinitialize(){
     // Interpreter and Interpreter COnfig deinitialization in Interpreter Config Destructor
     readInfo.clearStats();
-    qDebug() << readInfo.getFile().fileName() << "Deinit Event";
+    //qDebug() << readInfo.getFile().fileName() << "Deinit Event";
     return isNoError();
 }
 

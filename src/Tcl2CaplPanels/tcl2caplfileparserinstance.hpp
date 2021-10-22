@@ -18,7 +18,8 @@
 #include"FileParserInstanceLists/definitionsList.hpp"
 #include"FileParserInstanceLists/inputsList.hpp"
 
-class Tcl2CaplFileParserPanel;
+//class Tcl2CaplFileParserPanel;
+class AppWindow;
 #include<QApplication>
 #include"FileParserInstanceLists/filesList.hpp"
 #include"FileParserInstanceLists/filesListElement.hpp"
@@ -53,7 +54,8 @@ class Tcl2CaplFileParserInstance : public QSplitter{
     const QString GENERATE_CAPL_WRITE_ONLY_MODE_BUTTON_TEXT = QStringLiteral("Generuj skrypty CAPL - Tryb raportowy");
 
 
-    Tcl2CaplFileParserPanel& panel;
+    //Tcl2CaplFileParserPanel& panel;
+    AppWindow& panel;
     FilesList filesList;
     ConfigSplitter configSplitter;
     InputConfig inputConfig;
@@ -76,14 +78,14 @@ class Tcl2CaplFileParserInstance : public QSplitter{
     GenerateCaplReportModeButton generateCaplReportModeButton;
 
     // Temp Data from ConfigFile
-    //using UserProceduresConfig = UserInputConfig;
-    //UserProceduresConfig tempUserProceduresConfig_;
+    using UserProceduresConfig = UserInputConfig::UserInputConfigData;
+    UserProceduresConfig tempUserProceduresConfig_;
 
 public:
     using Request_FileInfoRef_Func = void (Tcl2CaplFileParserInstance::*)(QFileInfo&);
 
     using Error = QString;
-    Tcl2CaplFileParserInstance(Tcl2CaplFileParserPanel& panel);
+    Tcl2CaplFileParserInstance(AppWindow& panel);
     ~Tcl2CaplFileParserInstance();
 
     void generateCapl();

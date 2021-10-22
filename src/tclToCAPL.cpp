@@ -311,7 +311,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                     {
                         ProcedureDefinition::Action::Executable::Write,
                         {
-                            "continue;",
+                            "continue",
                         }
                     }
                 }
@@ -351,7 +351,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                     {
                         ProcedureDefinition::Action::Executable::Write,
                         {
-                            "return;",
+                            "return",
                         }
                     }
                 }
@@ -364,8 +364,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {
                             "return ",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=0",
-                            ";"
+                            "=0"
                         }
                     }
                 }
@@ -398,7 +397,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                             "(",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=0",
-                            ");"
+                            ")"
                         }
                     }
                 }
@@ -494,8 +493,34 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
         {   // Dynamic Rules
 
         },
-        {   // On Move Rules
+        {   // U
+            {   // Dynamic
 
+            },
+            {   // On Move
+                {
+                    {   // Conditions
+                        {
+                            ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                            {
+                               QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfList))
+                           },
+                        }
+                    },
+                    {   // Executables
+                        {// Parse [expr_parser =-1]
+                           ProcedureDefinition::Action::Executable::TclParse,
+                           {"expr_parser ",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ">0",
+                           }
+                       },
+                    }
+                }
+            }
         },
         {   // On End of Call
             {   // Rule 1: Tcl Parse -> write Result
@@ -503,16 +528,15 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                  // No conditions
                 },
                  {
-                     {// Parse [expr_parser =-1]
-                        ProcedureDefinition::Action::Executable::TclParse,
-                        {"expr_parser ",
+                    {// Parse [expr_parser =-1]
+                       ProcedureDefinition::Action::Executable::Write,
+                       {
+                        ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         "@ ",
                          ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                         ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                             ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
-                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                         ">0",
-                        }
-                    },
+                        ">0",
+                       }
+                   },
                  }
             }
         }
@@ -1563,7 +1587,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
         }
     },
     // End of Definition ================================================,
-     {
+     /*{
          "foreach",
          {   // Rules for Arguments
              {  // Argument 1
@@ -1732,7 +1756,9 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
          {   // Unspecified Arguments
 
          },
-         {   // On End of Call
+         {
+            /* previous definition
+            // On End of Call
              {   // Rule 1
 
                  {
@@ -1744,10 +1770,51 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                          {}
                      }
                  }
-
              }
+                         *//*
+            {
+                {   // No conditions
+
+                },
+                {
+                    /*
+                    [First release 0.9.0] Change rule for ForEach Procedure to form:
+                    //"/* ForEach Procedure Parsing Temporarly Disabled\n
+                      <procedure_name> <first_arg> <second_arg>\n changed
+                     to if(false) with parseable block expression*/
+                    //\n if(false)\n{<parsed_block_expr>}"
+                    /*
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {
+                            "/* ForEach Procedure Parsing Temporarly Disabled\n",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                            + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::INDEX_OR_FULL_LINE)
+                            + QString(""),
+                            " ",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::INDEX_OR_FULL_LINE)
+                            + QString("0"),
+                            " ",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::INDEX_OR_FULL_LINE)
+                            + QString("1"),
+                            "\n changed to if(0) with parseable block expression*//*\nif(0)\n",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                            + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::CaplFormat),
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::INDEX_OR_FULL_LINE)
+                            + QString("2")
+                        }
+                    }
+                }
+            }
          }
-     }
+     } */
 };
 
 
@@ -2099,6 +2166,9 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
             return caplCommand();
         }
     }
+        break;
+    default:
+        break;
     }
     return QString();
 }
@@ -2909,11 +2979,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
-    case Stat::Operator:
-    {
-        return throwError(ERROR_PREFIX + "Not Implemented list after operator: " + lastSavedStat().caplCommand());
-    }
-        break;
+    case Stat::Operator:    
     case Stat::StringInQuotes:
     {
         if(!whitespace)
@@ -3078,6 +3144,11 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
         return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
+    case Stat::EndOfCodeBlock:
+    {
+        if(moveArgumentToFunctionCall() == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
     case Stat::FunctionCall:
     {
         if(not lastSavedStat().isFunctionReady()){
@@ -4130,9 +4201,17 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     if(false){
         case Stat::Snprintf:
         {
-            if(not lastSavedStat().isFunctionReady()){
+            // Theoretycly add as sign
+
+            if(not lastSavedStat().isFunctionReady()){  // If not ready, use as sign
+                /*
                 if(Error::Error == saveStatWithParsingControl({Stat::PendingString, ";"}))
                     return throwError(ERROR_PREFIX + error());
+                    */
+                if(Error::Error == saveStatWithParsingControl({Stat::PendingString, ";"}))
+                    return throwError(ERROR_PREFIX + error());
+                // Do nothing more
+                break;
             }else{
 
             }
@@ -4173,7 +4252,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
         }
     }*/
     if(false){
-        case  Stat::PendingSnprintf:
+        case Stat::PendingSnprintf:
         {
             if(!lastSavedStat().isFunctionReady()) // Incomplete
                 return throwError(ERROR_PREFIX + "Incomplete Pedning Snprintf ?");
@@ -4185,6 +4264,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     case Stat::StringInQuotes:
+    case Stat::Const:
     case Stat::String:
     {
         if(moveArgumentToFunctionCall() == Error::Error)
@@ -4307,26 +4387,26 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
     case Stat::CodeBlock:
     {
         QString tempStr = textInterpreter.restOfString();
+        addExpressionToCodeBlock({"//" + tempStr + "\n"});
+        if(Error::Error == saveStatWithParsingControl({Stat::Comment}))
+            return throwError(ERROR_PREFIX + error());
+        proccessingStats.append(Stat::EndOfString);
+
         if(tempStr.endsWith("\\")){
-            return throwError(ERROR_PREFIX + "Comment Extender");
-        }else{
-            addExpressionToCodeBlock({"//" + tempStr + "\n"});
-            if(Error::Error == saveStatWithParsingControl({Stat::Comment}))
-                return throwError(ERROR_PREFIX + error());
-            proccessingStats.append(Stat::EndOfString);
+            addPendingProcessingStat(Stat::Comment);
         }
     }
         break;
     case Stat::MainCodeBlock:
     {
         QString tempStr = textInterpreter.restOfString();
+        addExpressionToMainCodeBlock({"//" + tempStr + "\n"});
+        if(Error::Error == saveStatWithParsingControl({Stat::Comment}))
+            return throwError(ERROR_PREFIX + error());
+        proccessingStats.append(Stat::EndOfString);
+
         if(tempStr.endsWith("\\")){
-            return throwError(ERROR_PREFIX + "Comment Extender");
-        }else{
-            addExpressionToMainCodeBlock({"//" + tempStr});
-            if(Error::Error == saveStatWithParsingControl({Stat::Comment}))
-                return throwError(ERROR_PREFIX + error());
-            proccessingStats.append(Stat::EndOfString);
+            addPendingProcessingStat(Stat::Comment);
         }
     }
         break;
@@ -4430,7 +4510,9 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
     case Stat::Snprintf:
     {
         if(not lastSavedStat().isFunctionReady()){
-            return throwError(ERROR_PREFIX + "End of String for Snprintf ?");
+            // Assumption failed -- Do nothing
+            break;
+            //return throwError(ERROR_PREFIX + "End of String for Snprintf ?");
         }
     }
     if(false){
@@ -5478,7 +5560,8 @@ CheckingResult TextInterpreter::checkingPriv(){
             index++;
         }
             break;
-
+        default:
+            break;
         }
         currentChar++;
 
@@ -5698,6 +5781,8 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
                 case Rules::value_type::Control::NoBreakRuleCheck:
                     ruleCondtionsPassed = false;
                     break;
+                default:
+                    break;
                 }
             }
         }
@@ -5727,6 +5812,7 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
 
 Error TCLInterpreter::finalizeProcedureCall(){
     const QString ERROR_DESCRIPTION = "TCL_Internal::finalizeProcedureCall";
+    const QString END_OF_EXPRESSION_SIGN = ";\n";
     if(!isPrelastSavedStat())
         return throwError(ERROR_DESCRIPTION + " No stats");
     if(lastSavedStat().stat() != Stat::FunctionCall)
@@ -5734,9 +5820,9 @@ Error TCLInterpreter::finalizeProcedureCall(){
     if(lastSavedStat().isFunctionReady())
         return throwError(ERROR_DESCRIPTION + "Function call is already complete.");
     switch(prelastSavedStat().stat()){
-    case Stat::FunctionCall:
     case Stat::Snprintf:
     case Stat::PendingSnprintf:
+    case Stat::FunctionCall:
     {
         if(tclProceduresInterpreter.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
                 removeProcedureCall() == Error::Error*/)
@@ -5746,7 +5832,6 @@ Error TCLInterpreter::finalizeProcedureCall(){
             if(moveArgumentToSnprintf() == Error::Error)
                 return throwError(ERROR_DESCRIPTION + error());
         }
-
     }
         break;
     case Stat::CodeBlock:
@@ -5757,7 +5842,7 @@ Error TCLInterpreter::finalizeProcedureCall(){
                 /*Preexpressions to Command */
                 ( addPreexpressionsToCodeBlock(),
                   snprintfController().clear(),
-                  addExpressionToCodeBlock({tempStat.caplCommand()}) ,
+                  addExpressionToCodeBlock({tempStat.caplCommand() + tclProceduresInterpreter.lastProcedureCall().tryToAddEndOfExpressionSign()}),
                  false) or
                 // Continue conditional expression
                 removeProcedureCall() == Error::Error)
@@ -5787,7 +5872,7 @@ Error TCLInterpreter::finalizeProcedureCall(){
                 /*Preexpressions to Command */
                 (   addPreexpressionsToMainCodeBlock(),
                     snprintfController().clear(),
-                    addExpressionToMainCodeBlock({tempStat.caplCommand()}) ,
+                    addExpressionToMainCodeBlock({tempStat.caplCommand() + tclProceduresInterpreter.lastProcedureCall().tryToAddEndOfExpressionSign()}) ,
                  false) or
                 // Continue conditional expression
                 ( tclProceduresInterpreter.lastProcedureCall().clearMemory(),
@@ -5903,6 +5988,8 @@ Error TclProcedureInterpreter::dynamicProcedureArgumentCheck_priv(){
             case Rules::value_type::Control::NoBreakRuleCheck:
                 ruleCondtionsPassed = false;
                 break;
+            default:
+                break;
             }
         }
     }
@@ -5962,6 +6049,8 @@ Error TclProcedureInterpreter::onArgumentProcedureCheck_priv(){
             case Rules::value_type::Control::NoBreakRuleCheck:
                 ruleCondtionsPassed = false;
                 break;
+            default:
+                break;
             }
         }
     }
@@ -5983,10 +6072,21 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
         return Error::Error;
     textInterpreter.initialize(tclCommand);
     proccessingStats = pendingProccessingStats;
+    pendingProccessingStats = {};
     while(!proccessingStats.isEmpty()){
+        Stat savedProccessingStat = proccessingStats.last();
         if(callInterpretFunction() == Error::Error){
             if(processError() == Error::Error)
                 return Error::Error;
+        }
+        tclProceduresInterpreter.dynamicProcedureCheck();
+        if(isError()){
+            if(processError() == Error::Error)
+                return Error::Error;
+        }
+        if(savedProccessingStat == Stat::EndOfString){
+            textInterpreter.deinitialize();
+            return Error::NoError;
         }
     }
     pendingProccessingStats = {};
@@ -6115,6 +6215,7 @@ QString TclProcedureInterpreter::toString(SavedStat &stat, ProcedureDefinition::
     default:
         break;
     }*/
+    return QString();
 }
 
 
@@ -6150,6 +6251,7 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                         if(arg->isEmpty()){
                             // FULL LINE ----------------
                             switch(target){
+                            case Target::TclFormat:
                             case Target::CaplFormat:
                                 dest += lastProcedureName();
                                 break;
@@ -6641,6 +6743,8 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
             throwError(ERROR_PREFIX + "Its illegal to change FunctionCall, Snprintf or PendingSnprintf");
             return ;
         }
+        default:
+            break;
     }
 
     if(parameters.size() != 1){
@@ -6685,6 +6789,8 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
         return;
     }
 
+    if(not str.endsWith(";\n"))
+        str.append(";");
     tclInterpreter.preexpressions().append(str);
 }
 
