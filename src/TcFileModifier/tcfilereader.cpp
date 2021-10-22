@@ -43,7 +43,7 @@ template<>
 template<>
 bool FileReader_ByLine::processingFunction<ByLine_Reader::Stat::READ_NEXT_LINE>(){
     QString line = readInfo.getFile().readLine();
-    line = line.trimmed();
+    //line = line.trimmed();
     int stat = static_cast<int>(FSD_ByLine::FileSpecificInterpreterStat::PROCESS_LINE);
     stat += static_cast<int>(FileReaderInterpreter_Priv_Stat::SIZE);
     NS_FRI_COM_Manager::ChannelDatas cmds = {

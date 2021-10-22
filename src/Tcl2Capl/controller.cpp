@@ -239,8 +239,8 @@ bool Tcl2CaplController::generateDefinitions_impl(){
                     delete dirs.takeLast();
                     if(not tcFileData.isEmpty()){
                         if(tcFileData.last()->isInitiliazed()){
-                            addResult(tcFileData.last()->generateResult());
-                            predefinitions.append(tcFileData.last()->predefinitions());
+                            //addResult(tcFileData.last()->generateResult());
+                            //predefinitions.append(tcFileData.last()->predefinitions());
                         }
                         delete tcFileData.takeLast();
                     }
@@ -402,6 +402,9 @@ bool Tcl2CaplController::generateCapls_impl(){
                                         }
                                     }
                                 }
+                                Tcl2CaplResult& tcl2CaplResult = tcFileModifier.dataModel.generateResult();
+                                tcl2CaplResult.writeResult();
+                                delete &tcl2CaplResult;
                                 QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg, tcFileData.last()->testCaseErrors()));
                             }
                         }
@@ -410,7 +413,7 @@ bool Tcl2CaplController::generateCapls_impl(){
                     delete dirs.takeLast();
                     if(not tcFileData.isEmpty()){
                         if(tcFileData.last()->isInitiliazed()){
-                            addResult(tcFileData.last()->generateResult());
+                           // addResult(tcFileData.last()->generateResult());
                         }
                         delete tcFileData.takeLast();
 

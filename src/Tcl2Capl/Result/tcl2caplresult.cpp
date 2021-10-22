@@ -1,15 +1,9 @@
 #include"tcl2caplresult.hpp"
 
 Tcl2CaplResult::Tcl2CaplReadData::InitializeStatus Tcl2CaplResult::Tcl2CaplReadData::initialize(){
-    if(initializeStatus == InitializeStatus::NOT_INITIALIZED){
-        if(userConfig_.proceduresSettings().isWriteToFileMode()){
-            _file.setFileName(_dir.path() + "/" + _dir.dirName() + ".can");
-            return initializeStatus = InitializeStatus::INITIALIZE_SUCCESS;
-        }else{
-            return initializeStatus;
-        }
-    }
-    return InitializeStatus::ALREADY_INITIALIZED;
+    _file.setFileName(_dir.path() + "/" + currentTCLFileName());
+    _fileContent.clear();
+    return initializeStatus = InitializeStatus::INITIALIZE_SUCCESS;
 }
 
 Tcl2CaplResult& Tcl2CaplResult::Tcl2CaplReadData::generateResult(){
@@ -30,6 +24,11 @@ Tcl2CaplResult::Error Tcl2CaplResult::writeResult(){
 
     // Write to file
     _scriptFile.write(_script.content().toUtf8());
+
+    /*if(duplicatesFiles.contains(_scriptFile.fileName()))
+        qDebug() << _scriptFile.fileName();
+     else
+        duplicatesFiles.append(_scriptFile.fileName());*/
 
     _scriptFile.close();
     return QString();

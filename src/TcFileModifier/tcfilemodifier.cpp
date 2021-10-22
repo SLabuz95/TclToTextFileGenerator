@@ -103,7 +103,7 @@ CAN::VtSignals CAN::_signals =
 const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_TEST_CASE_INFO =
 {
     { // Phase 1: BugFinder Testcase Description
-        { // #@NAME (arg1 = String)
+        /*{ // #@NAME (arg1 = String)
           { // Conditions (1)
             {
                 ActionStat::SPLIT, {"\\s+"}
@@ -202,22 +202,23 @@ const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_TEST_CASE_INFO =
                                                    "", "=1"}
                 }
             }
-        },
+        },*/
         {   // #@REQ (arg1 = String)
-            {   // Conditions (1)
+            {   // Conditions (1) + Split to work properly
+                {
+                    ActionStat::SPLIT, {"\\s+"}
+                },
                 {   // (1) Starts With "#@REQ"
                     ActionStat::STARTS_WITH, {"#@REQ"}
                 },
             },
             {   // Actions (2)
                 {
-                    ActionStat::WRITE_TO_TC_INFO, {QString::number(static_cast<uint>(TC_Info_Data::REQUIREMENTS)),
-                                                   "", "@; ",
-                                                   "", ">0"}
+                    ActionStat::CHANGE_REQUIREMENT, {}
                 }
             }
         },
-        {   // #@DOC (arg1 = String)
+        /*{   // #@DOC (arg1 = String)
             {   // Conditions (1)
                 {   // (1) Starts With "#@DOC"
                     ActionStat::STARTS_WITH, {"#@DOC"}
@@ -268,7 +269,7 @@ const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_TEST_CASE_INFO =
                                                    "", "=1"}
                 }
             }
-        },
+        },*/
           {   // #@VER %version: (arg2 = String) %
               {   // Conditions (1)
                   {   // (1) Starts With "#@VER"
@@ -281,8 +282,7 @@ const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_TEST_CASE_INFO =
               },
               {   // Actions (2)
                   {
-                      ActionStat::WRITE_TO_TC_INFO, {QString::number(static_cast<uint>(TC_Info_Data::VERSION)),
-                                                     "", "=2"}
+                      ActionStat::INCR_REQUIREMENT_VERSION
                   }
               }
           },
@@ -294,29 +294,17 @@ const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_TEST_CASE_INFO =
             },
             {   // Actions (2)                
                 {
-                    ActionStat::WRITE_TO_TC_INFO, {QString::number(static_cast<uint>(TC_Info_Data::VERSION)),
-                                                   "", "=1"}
+                    ActionStat::INCR_REQUIREMENT_VERSION
                 }
             }
-        },
-      { // Any #@ -> Ignore it
-        {   // Condition (1)
-            {   // (1) Starts With "#@"
-                ActionStat::STARTS_WITH, {"#@"}
-            },
-        },
-        {   // Actions (1)
-            {   // (1): Comment Out
-                ActionStat::COMMENT_OUT, {}
-            }
         }
-      }
     },
     {   //On End
         {   // On No Rules Actions
             {   // Actions (2)
                 {   // (2): Phase CHANGE_PHASE
-                    ActionStat::CHANGE_PHASE, {QString::number(static_cast<uint>(Phase::STANDARD)), QString::number(true)}
+                    ActionStat::WRITE, {"", "T" + Format::cast_target_str(Format::Target::RAW),
+                                        "", "="}
                 }
             }
         },
@@ -1683,32 +1671,10 @@ bool FSD_ByLine_TcFileModifierData::Config::initialize(){
     switch(dataModel.initialize()){
     case NewDataModel::InitializeStatus::INITIALIZE_SUCCESS:
     {        
-        dataModel.write("/*@!Encoding:1250*/\n"
-"/*-------------------------------------------------------------------------------------------\n"
-"\n"
-"Project:     S71    \n"
-"Written by: \n"
-"\n"
-"Additional information:\n"
-"This file contains tests of " + dataModel.dir().dirName() + " for S71.\n"
-"\n"
-"---------------------------------------------------------------------------------------------\n"
-"Rev | Date        |Author           |Description"
-"--------------------------------------------------------------------------------------------- \n"
-"001 | 30/11/2020  |              |File has been created.\n"
-"\n"
-"-------------------------------------------------------------------------------------------*/\n"
-"\n"
-"includes{\n"
-"//    #include\"../../Libraries/Procedures/NewLib/S71_C1A_Common.cin\"\n"
-"}\n"
-"\n"
-"variables{\n"
-" \n"
-"}\n");
+
     }
-    case NewDataModel::InitializeStatus::ALREADY_INITIALIZED:
         break;
+    case NewDataModel::InitializeStatus::ALREADY_INITIALIZED:
     case NewDataModel::InitializeStatus::INITIALIZE_FAIL:
         return ERROR_CALL("Internal Error: Initialization Failed");
     }
@@ -1722,7 +1688,8 @@ bool FSD_ByLine_TcFileModifierData::Config::deinitialize(){
         interpreterData->tclToCaplInterpreter_.printErrorReport(dataModel.reportFile(), dataModel.currentTCLFileName());
         dataModel.setTestCaseErrors(interpreterData->tclToCaplInterpreter_.getErrorsNumber());
         dataModel.predefinitions().append(interpreterData->tclToCaplInterpreter_.predefinitions());
-        interpreterData->writeTCInfo(config.dataModel);
+        //interpreterData->writeTCInfo(config.dataModel);
+
     }
     delete data;
     data = nullptr;
@@ -1887,7 +1854,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
     QString str;
     if(!interpreterData->createAndAssignString(str, interpreterData->arguments))
         return config.ERROR_CALL(PRE_ERROR_MSG);
-
+    config.dataModel.write(str);
     return true;
 }
 
@@ -2057,6 +2024,98 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
             qDebug() << "CRITICAL_ERROR" + interpreterData->tclToCaplInterpreter_.error();
             return config.ERROR_CALL(PRE_ERROR_MSG + " - TCL Interpreter Critical Error");
         }
+    return true;
+}
+
+template<>template<>template<>
+bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_CHANGE_REQUIREMENT>(){
+    const QString PRE_ERROR_MSG = "File: "  + config.dataModel.currentTCLFileName() +  "Internal Error: Action Change Requiremnt";
+
+    // Line with requirement splitted by rule
+    // Preconditions:
+    // - 2 parts of string
+    if(interpreterData->lastActionResponse.size() != 2){
+        qDebug() << PRE_ERROR_MSG + " - Wrong numb of requirement line parts//" + interpreterData->lineData;
+        return config.ERROR_CALL(PRE_ERROR_MSG + " - Wrong numb of requirement line parts// "+ interpreterData->lineData);
+    }
+
+    // Split second part (index: 1) with "_" , SkipEmptyParts
+    QStringList requirementParts = interpreterData->lastActionResponse.at(1).split("_", Qt::SkipEmptyParts);
+
+    // Precondtions:
+    // - 4 parts:
+    if(requirementParts.size() != 4){
+        qDebug() << PRE_ERROR_MSG + " - Wrong numb of requirement parts // " + interpreterData->lineData;
+        return config.ERROR_CALL(PRE_ERROR_MSG + " - Wrong numb of requirement parts // " + interpreterData->lineData);
+    }
+
+    QString newRequirement;
+    int index = -1;
+    // If Requirement not found, throw to debug: "Unknown Requirement Version: " + fullLine
+    // If (index (0) == "SysRS") , find requirement in RS
+    if(requirementParts.at(0) == "SysRS"){
+        if((index = interpreterData->sysRS_oldReq.indexOf(requirementParts.at(2))) != -1){
+            newRequirement = interpreterData->sysRS_newReq.at(index);
+        }else{
+            qDebug() << PRE_ERROR_MSG + " - Unknown Requirement Version: " + interpreterData->lineData;
+            return config.ERROR_CALL(PRE_ERROR_MSG + " - Unknown Requirement Version: " + interpreterData->lineData);
+        }
+    }else{
+    // Otherwise if (index (0) == "SysAD") , find Requiremnt in AD
+        if(requirementParts.at(0) == "SysAD"){
+            if((index = interpreterData->sysAD_oldReq.indexOf(requirementParts.at(2))) != -1){
+                newRequirement = interpreterData->sysAD_newReq.at(index);
+            }else{
+                qDebug() << PRE_ERROR_MSG + " - Unknown Requirement Version: " + interpreterData->lineData;
+                return config.ERROR_CALL(PRE_ERROR_MSG + " - Unknown Requirement Version: " + interpreterData->lineData);
+            }
+        }else{
+            // Otherwise throw to debug "Unknown RequirementName: " + fullLine
+            qDebug() << PRE_ERROR_MSG + " - Unknown RequirementName: " + interpreterData->lineData;
+            return config.ERROR_CALL(PRE_ERROR_MSG + " - Unknown RequirementName: " + interpreterData->lineData);
+        }
+    }
+
+
+    // If All is OK, write "=0\trequirementName\n"
+    interpreterData->arguments = {"", "=0", "\t\t" + newRequirement + "\n"};
+
+    if(not this->processingFunction<Stat::ACTION_WRITE>())
+        return false;
+
+    return true;
+}
+
+template<>template<>template<>
+bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INCR_REQUIREMENT_VERSION>(){
+    const QString PRE_ERROR_MSG = "File: " + config.dataModel.currentTCLFileName() +  " Internal Error: Action Test Version ";
+
+    // Line with requirement splitted by rule
+    // Preconditions:
+    // - at least 3 parts of string
+    if(interpreterData->lastActionResponse.size() != 3 and interpreterData->lastActionResponse.size() != 4){
+        qDebug() << PRE_ERROR_MSG + " - Wrong numb of TC version parts // " + interpreterData->lineData;
+        return config.ERROR_CALL(PRE_ERROR_MSG + " - Wrong numb of TC version parts // " + interpreterData->lineData);
+    }
+    // Index at 2 try cast to int
+    int version = 0;
+    bool ok = true;
+    version = interpreterData->lastActionResponse.at(2).toInt(&ok);
+
+    if(not ok){
+        qDebug() << PRE_ERROR_MSG + " - TC Version Cast error // " + interpreterData->lineData;
+        return config.ERROR_CALL(PRE_ERROR_MSG + " - TC Version Cast error // " + interpreterData->lineData);
+    }
+
+    // Increment
+    version++;
+
+    // Write as "=0\t=1\t<newVersion>\t%\n"
+    interpreterData->arguments = {"", "=0", "\t\t" + QString::number(version) + "\t%\n"};
+
+    if(not this->processingFunction<Stat::ACTION_WRITE>())
+        return false;
+
     return true;
 }
 
@@ -2302,7 +2361,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                             return false;
                         switch (target) {
                         case Target::RAW:
-                            targetStr = &lineData;
+                            targetStr = &originalLineData;
                         case Target::SPLITTED_RAW:
                             break;
                         /*case Target::SSTR:
@@ -2420,46 +2479,46 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 }
 */
 
-void FSD_ByLine_TcFileModifierData::Data::writeTCInfo(FSD_ByLine_TcFileModifierData::DataModel& dataModel){
-    if(not tclToCaplInterpreter_.isPredefinitionMode()){
-        QString tcInfo;
-        tcInfo += "testcase " + tcData.name +"(){\n"
-      "// " + tcData.name + "\n"
-      "//============================== TEST CASE HEADER ==============================//\n"
-      "/*\n"
-      "Set criteria: (short circuit from any speaker output to Vbatt) OR (short circuit from any speaker output to gnd) OR (overload detected) while (amplifier is on)\n"
-      "Reset criteria: (No short circuit from any speaker output nor overload detected) while (amplifier is on)\n"
-      "*/\n"
-      "// Internal variables:\n";
+//void FSD_ByLine_TcFileModifierData::Data::writeTCInfo(FSD_ByLine_TcFileModifierData::DataModel& dataModel){
+//    if(not tclToCaplInterpreter_.isPredefinitionMode()){
+//        QString tcInfo;
+//        tcInfo += "testcase " + tcData.name +"(){\n"
+//      "// " + tcData.name + "\n"
+//      "//============================== TEST CASE HEADER ==============================//\n"
+//      "/*\n"
+//      "Set criteria: (short circuit from any speaker output to Vbatt) OR (short circuit from any speaker output to gnd) OR (overload detected) while (amplifier is on)\n"
+//      "Reset criteria: (No short circuit from any speaker output nor overload detected) while (amplifier is on)\n"
+//      "*//*\n"
+//      "// Internal variables:\n";
 
-        // _BACK_ variables.removeDuplicates();
-        // _BACK_ for(QStringList::Iterator var = variables.begin(); var < variables.end(); var++)
-        // _BACK_     tcInfo += "long " + *var + "; // _VAR_ Check\n";
+//        // _BACK_ variables.removeDuplicates();
+//        // _BACK_ for(QStringList::Iterator var = variables.begin(); var < variables.end(); var++)
+//        // _BACK_     tcInfo += "long " + *var + "; // _VAR_ Check\n";
 
-        tcInfo += tclToCaplInterpreter_.printPredefinitions() + "\n";
+//        tcInfo += tclToCaplInterpreter_.printPredefinitions() + "\n";
 
-        tcInfo += "\n"
-      "// Test Case description and attributes:\n"
-    "//  AddTcInformation(\n"
-    "//  /*ident     */  \"" + tcData.name +"\",\n"
-    "//  /*title     */  \"" + ((tcData.title.isEmpty())? tcData.description : tcData.title)  + "\",\n"
-    "//  /*descr     */  \"" + tcData.description + "\"\n"
-    "//  );\n"
-    "//  AddTcInAttributes(\n"
-    "//  /*domain    */  \"" + tcData.domain + "\",\n"
-    "//  /*reqs      */  \"" + tcData.requirements + "\",\n"
-    "//  /*doc       */  \"" + tcData.documents + "\",\n"
-    "//  /*reviewed  no/yes */  \"no\",\n"
-    "//  /*automated no/yes */  \"" + ((tcData.type == "AUTO")? "yes" : "no") + "\",\n"
-    "//  /*priority  1/2/3  */  \"1\",\n"
-    "//  /*intg      no/yes */  \"" + ((tcData.integration == "NO")? "no" : "yes") + "\",\n"
-    "//  /*variant   */  \"" + fileDir.dirName() + "\",\n"
-    "//  /*version   */  \"" + tcData.version + "\",\n"
-    "//  /*author    */  \"" + tcData.author + "\"\n"
-    "//  );\n\n ";
-        dataModel.write(tcInfo + tclToCaplInterpreter_.readCaplCommand() + "\n}\n\n");
-    }
-}
+//        tcInfo += "\n"
+//      "// Test Case description and attributes:\n"
+//    "//  AddTcInformation(\n"
+//    "//  /*ident     */  \"" + tcData.name +"\",\n"
+//    "//  /*title     */  \"" + ((tcData.title.isEmpty())? tcData.description : tcData.title)  + "\",\n"
+//    "//  /*descr     */  \"" + tcData.description + "\"\n"
+//    "//  );\n"
+//    "//  AddTcInAttributes(\n"
+//    "//  /*domain    */  \"" + tcData.domain + "\",\n"
+//    "//  /*reqs      */  \"" + tcData.requirements + "\",\n"
+//    "//  /*doc       */  \"" + tcData.documents + "\",\n"
+//    "//  /*reviewed  no/yes */  \"no\",\n"
+//    "//  /*automated no/yes */  \"" + ((tcData.type == "AUTO")? "yes" : "no") + "\",\n"
+//    "//  /*priority  1/2/3  */  \"1\",\n"
+//    "//  /*intg      no/yes */  \"" + ((tcData.integration == "NO")? "no" : "yes") + "\",\n"
+//    "//  /*variant   */  \"" + fileDir.dirName() + "\",\n"
+//    "//  /*version   */  \"" + tcData.version + "\",\n"
+//    "//  /*author    */  \"" + tcData.author + "\"\n"
+//    "//  );\n\n ";
+//        dataModel.write(tcInfo + tclToCaplInterpreter_.readCaplCommand() + "\n}\n\n");
+//    }
+//}
 
 
 template<>
@@ -2480,6 +2539,8 @@ QVector<ProcessingFunctions_FRI<FSD_ByLine_TcFileModifierData::Config>> FSD_ByLi
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_COMPARE>,
     //&FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_FORMAT>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INTERPRET>,
+    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_CHANGE_REQUIREMENT>,
+    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INCR_REQUIREMENT_VERSION>,
     /*&FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_COMPARE_REGEX>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_FORMAT>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_CONTAINS>,
@@ -2498,7 +2559,8 @@ bool FSD_ByLine_TcFileModifierData::Config::FSFunction<FSD_ByLine::FileSpecificI
     if(dataCmd.command != NS_FRI_COM_Manager::Commands::DATA || !data)
         return ERROR_CALL(PRE_ERROR_MSG + " - Wrong COM Command");
     interpreterData->curLine++;
-    interpreterData->lineData = *static_cast<QString*>(dataCmd.channelData);//->split(" ", Qt::SplitBehaviorFlags::SkipEmptyParts);
+    interpreterData->originalLineData = *static_cast<QString*>(dataCmd.channelData);//->split(" ", Qt::SplitBehaviorFlags::SkipEmptyParts);
+    interpreterData->lineData = interpreterData->originalLineData.trimmed();
     stats.append(static_cast<int>(Stat::REPLACE_BY_MAPPING) + (int)Parent_FSD::FileSpecificInterpreterStat::SIZE);
 
     return true;

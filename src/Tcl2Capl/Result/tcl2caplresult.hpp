@@ -21,6 +21,8 @@ public:
     using Error = QString;
     using ScriptFile = QFile;
 
+    static QStringList duplicatesFiles;
+
     class Tcl2CaplReadData : public FSD_DataModelBase<Tcl2CaplReadData>{
         using FormatCount = QMap<QString, uint>;
         using TestCaseErrors = uint;
