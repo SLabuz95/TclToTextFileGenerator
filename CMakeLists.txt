@@ -34,7 +34,7 @@ target_include_directories(TclCaplParserCMake
     PRIVATE
 
     )
-include_directories(src ${includeDir})
+include_directories(src ${includeDirs})
 
 target_link_libraries(TclCaplParserCMake
     PRIVATE
