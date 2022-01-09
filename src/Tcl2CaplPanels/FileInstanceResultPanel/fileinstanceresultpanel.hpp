@@ -7,6 +7,9 @@
 //#include"Tcl2Capl/Tcl2Capl.hpp"
 #include"Tcl2Capl/controller.hpp"
 #include<QProgressBar>
+#include<QSplitter>
+#include<Tcl2Capl/caplFunctionDefiniitions.hpp>
+#include"analysisPanel.hpp"
 
 class Tcl2CaplFileParserInstance;
 class FileInstanceResultPanel : public QWidget{
@@ -28,6 +31,7 @@ class FileInstanceResultPanel : public QWidget{
     } generatorControl;
 
     using Super = QWidget;
+    using MainSplitter = QSplitter;
     using MainLayout = QVBoxLayout;
     using ErrorsList = QTreeWidget;
     using ProgressBars = QVarLengthArray<QProgressBar>;
@@ -57,8 +61,11 @@ protected:
     Tcl2CaplController tcl2Capl;
 
     MainLayout mainLayout;
+    MainSplitter mainSplitter;
     ErrorsList errorsList;
+    AnalysisPanel analysisPanel;
     ProgressBars progressBars;
+    CAPLFunctionDefinitions caplFunctionDefinitions;
     CriticalError criticalError_ = false;
     //QProgressBar* progressBars_data = nullptr;
     //int progressBars_size = 0;

@@ -421,7 +421,7 @@ bool Tcl2CaplController::generateCapls_impl(){
     }
     caplFunctionDefinitions.writeCaplFunctionDefinitions(caplDefinitionsFile);
     //WARNING: Temporary exploit (ErrorMsg == "END") to inform about end of processing - remove after taking care of Result Panel
-    QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(QString("END"), 0));
+    QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(caplFunctionDefinitions));
 
     //qDebug() << formatCount;
     return errorMsg.isEmpty();

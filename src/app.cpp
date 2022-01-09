@@ -14,7 +14,7 @@ App::App(int argc, char** argv)
 {
     setApplicationName("Tcl2Capl Parser");
 
-    (new ConfigEditor(*this))->show();
+    //(new ConfigEditor(*this))->show();
 
 }
 

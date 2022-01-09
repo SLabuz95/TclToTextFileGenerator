@@ -2123,8 +2123,9 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
         case Stat::Variable:
             return QString("$") + caplCommand();
         case Stat::EndOfList:
-            return savedStat().listToTclListString();
+            return QString("{") + savedStat().listToTclListString() + "}";
         case Stat::SpeechMark:
+            return caplCommand();
         case Stat::StringInQuotes:
             return QString("\"") + caplCommand() + "\"";
         case Stat::FunctionCall:
@@ -5786,6 +5787,9 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
                 }
             }
         }
+        if(not ruleCondtionsPassed){
+            tclInterpreter.caplFunctionDefinitions.addDefinitionNotSatisfiedRules(procedureCall);
+        }
     }
     statCaplCommand.setCAPLCommand(command);
     finalizeOn = false;
@@ -6771,7 +6775,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
 <TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition::Action::Executable::AddFunctionDefinition>
 (ExecutableActionsParameters parameters)
 {
-    tclInterpreter.caplFunctionDefinitions.addDefinition(lastProcedureCall());
+    tclInterpreter.caplFunctionDefinitions.addDefinitionNoRules(lastProcedureCall());
 }
 
 template <>

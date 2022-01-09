@@ -3,17 +3,208 @@
 using ProcedureDefinitions = FSD_XML_TclCaplParserConfigInterpreter::DataModel::UserProceduresConfig;
 using ProcedureDefinition = FSD_XML_TclCaplParserConfigInterpreter::DataModel::UserProceduresConfig::value_type;
 //using ProcedureInterpreter = FSD_XML_TclCaplParserConfigInterpreter::DataModel::TclProcedureInterpreter;
+using XMLToken = FSD_XML_TclCaplParserConfigInterpreter::Data::XMLToken;
 
 template <>
 QString FSD_XML_TclCaplParserConfigInterpreter::Config::fileFilter(){
     return QString("*.xml");
 }
 
+const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data::paramToken =
+{
+    .name = "param",
+    .requiredTextContent = true
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data::formatParamToken =
+{
+    .name = "formatParam",
+    .requiredAttributes =
+    {
+        "type"
+    }
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data::conditionalActionToken =
+{
+    .name = "conditionalAction",
+    .optionalTokens =
+     {
+         &paramToken,
+         &formatParamToken
+     },
+     .requiredAttributes =
+    {
+        "type"
+    }
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: executableActionToken =
+{
+    .name = "executableAction",
+     .optionalTokens =
+     {
+         &paramToken,
+         &formatParamToken
+     },
+    .requiredAttributes =
+    {
+        "type"
+    }
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: ruleToken =
+{
+    .name = "rule",
+     .optionalTokens =
+     {
+         &conditionalActionToken,
+         &executableActionToken
+     },
+    .optionalAttributes =
+    {
+        "controlFlag"
+    },
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: dynamicRulesToken =
+{
+    .name = "dynamicRules",
+     .optionalTokens =
+     {
+         &ruleToken
+     },
+    .expectedNoDuplicates = true,
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: rulesOnMoveToken =
+{
+    .name = "rulesOnMove",
+     .optionalTokens =
+     {
+         &ruleToken
+     },
+    .expectedNoDuplicates = true,
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: rulesForArgumentToken =
+{
+    .name = "rulesForArgument",
+     .optionalTokens =
+     {
+         &dynamicRulesToken,
+         &rulesOnMoveToken
+     },
+     .requiredAttributes =
+     {
+         "index"
+     },
+    .expectedNoDuplicates = true,
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: rulesForUnspecifiedArgumentToken =
+{
+    .name = "rulesForUnspecifiedArgument",
+     .optionalTokens =
+     {
+         &dynamicRulesToken,
+         &rulesOnMoveToken
+     },
+    .expectedNoDuplicates = true,
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: rulesOnEndOfCallToken =
+{
+    .name = "rulesOnEndOfCall",
+    .optionalTokens =
+    {
+        &ruleToken
+    }
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: procedureToken =
+{
+    .name = "procedure",
+     .optionalTokens =
+     {
+         &rulesForArgumentToken,
+         &rulesForUnspecifiedArgumentToken,
+         &rulesOnEndOfCallToken
+     },
+    .requiredAttributes =
+    {
+        "name"
+    },
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: defaultProcedureToken =
+{
+    .name = "defaultProcedure",
+     .optionalTokens =
+     {
+         &rulesForArgumentToken,
+         &rulesForUnspecifiedArgumentToken,
+         &rulesOnEndOfCallToken
+     },
+    .expectedNoDuplicates = true,
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: writeOnlyProcedureToken =
+{
+    .name = "procedure",
+    .requiredTextContent = true
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: writeOnlyProceduresToken =
+{
+    .name = "writeOnlyProcedures",
+     .optionalTokens =
+     {
+         &writeOnlyProcedureToken
+     },
+    .expectedNoDuplicates = true,
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: settingsToken =
+{
+    .name = "settings",
+     .optionalTokens =
+     {
+         &writeOnlyProceduresToken
+     },
+    .expectedNoDuplicates = true,
+};
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: userConfigToken =
+{
+    .name = "userConfig",
+     .optionalTokens =
+     {
+         &settingsToken,
+         &procedureToken,
+         &defaultProcedureToken
+     },
+    .expectedNoDuplicates = true,
+};
+
+
+
+ const XMLToken FSD_XML_TclCaplParserConfigInterpreter::Data:: xmlDefinition = {
+    .requiredTokens =
+    {
+        &userConfigToken
+    }
+};
+
 template<>
 bool FSD_XML_TclCaplParserConfigInterpreter::Config::initialize(){
     interpreterData = new FSD_XML_TclCaplParserConfigInterpreter::Data;
     data = new FileReaderInterpreter_Configuration_Priv<FSD_XML>::Data;
-    interpreterData->dmStats.append({&dataModel,Stat::UserConfig});
+    QString errorMsg;
+    /*XMLObject globalXMLObject = XMLObject::createXmlObject(errorMsg,interpreterData->xmlDefinition);
+    if(not errorMsg.isEmpty())
+        return ERROR_CALL(errorMsg);
+    interpreterData->xmlObjects.push(globalXMLObject);*/
     return true;
 }
 
