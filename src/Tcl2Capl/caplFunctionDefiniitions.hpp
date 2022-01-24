@@ -3,17 +3,30 @@
 #include"tclToCAPL.hpp"
 
 class CAPLFunctionDefinitions{
-    using DefinitionInfo = QMap<TCLInterpreter::TCLProceduresInterpreter::ProcedureCall::Parameters::size_type, QSet<QString>>; // <Numb of Parameters, Examples/ Occurencies>
+public:
+    using Parameters = QList<TCLInterpreter::Stat>;
+    using Example = QString;
+    using Examples = QList<Example>;
+    using ProcedureInfos = QMap<Parameters, Examples>;
+    using DefinitionInfo = QMap<TCLInterpreter::TCLProceduresInterpreter::ProcedureCall::Parameters::size_type, ProcedureInfos>; // <Numb of Parameters, Examples/ Occurencies>
     using Definitions = QMap<QString, DefinitionInfo>;    // <Name, Info>
 
 protected:
-    Definitions definitions;
+    Definitions definitionsOnNoRules;
+    Definitions definitionsOnNotSatisfiedRules;
 
 public:
-    void addDefinition(TCLInterpreter::TCLProceduresInterpreter::ProcedureCall procedureCall);
+
+    void addDefinitionNoRules(TCLInterpreter::TCLProceduresInterpreter::ProcedureCall& procedureCall);
+    void addDefinitionNotSatisfiedRules(TCLInterpreter::TCLProceduresInterpreter::ProcedureCall& procedureCall);
 
     void writeCaplFunctionDefinitions(QFile &file);
+
+     Definitions& definitionsOnNoRulesView(){return definitionsOnNoRules;}
+     Definitions& definitionsOnNotSatisfiedRulesView(){return definitionsOnNotSatisfiedRules;}
+
 };
-using CAPLFunctionDefinitionsRef = CAPLFunctionDefinitions&;
+
+
 
 #endif // CAPLFUNCTIONDEFINIITIONS_HPP

@@ -12,11 +12,13 @@ FileInstanceResultPanel::FileInstanceResultPanel
  QString& outputPath,
  ProgressBarDatas progressBarDatas)
     : instance(instance),
+      mainSplitter(Qt::Vertical),
       tcl2Capl(definitions, inputPath, outputPath),
       progressBars(
           // Arg1: Prepare data list, then pass list size to progressBars constructor
           /* arg1 */ ( prepareResultData(progressBarDatas), progressBarDatas.size())
-          )
+          ),
+      analysisPanel(*this, caplFunctionDefinitions)
 {
     // - configure progressBars
     configureProgressBars(progressBarDatas);
@@ -24,7 +26,11 @@ FileInstanceResultPanel::FileInstanceResultPanel
     // - errorsList
     errorsList.setHeaderLabels(QStringList({"File", "Errors", "Progress"}));
 
-    mainLayout.addWidget(&errorsList);
+
+    mainSplitter.addWidget(&errorsList);
+    mainSplitter.addWidget(&analysisPanel);
+
+    mainLayout.addWidget(&mainSplitter);
 
     // - mainLayout
     setLayout(&mainLayout);
@@ -37,16 +43,23 @@ bool FileInstanceResultPanel::eventFilter(QObject *obj, QEvent *ev){
             and generatorControl.inProgress){
         Tcl2CaplProgressEvent* progressEv = Tcl2CaplProgressEvent::cast(ev);
         if(progressEv){
-            if(progressEv->isCriticalError()){
-                endGeneratorControl();
-                QMessageBox::critical(nullptr, "Generate Capl Error", progressEv->criticalError());
-                //criticalError_ = true;
-                tcl2Capl.requestInterruption();
-                delete this;
-                return false;
-            }else{                
-                nextGeneratorControl(progressEv->errorMsg(), progressEv->getErrorsNumber());
+            if(progressEv->isReady()){
+                caplFunctionDefinitions = progressEv->caplFunctionDefinitions();
+                analysisPanel.reloadGui();
+            }else{
+                if(progressEv->isCriticalError()){
+                    endGeneratorControl();
+                    QMessageBox::critical(nullptr, "Generate Capl Error", progressEv->criticalError());
+                    //criticalError_ = true;
+                    tcl2Capl.requestInterruption();
+                    delete this;
+                    return false;
+                }else{
+                    nextGeneratorControl(progressEv->errorMsg(), progressEv->getErrorsNumber());
+                }
             }
+
+
         }
     }
 

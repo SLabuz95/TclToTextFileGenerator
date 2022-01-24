@@ -13,9 +13,10 @@ using CAPLFunctionDefinitionsRef = CAPLFunctionDefinitions&;
 class UserInputConfig;
 
 class TCLInterpreter : private TCLInterpreterPriv{
+public:
+    using TCLInterpreterPriv::Stat;
 private:
     // Concept ----------------------------------------------------------------------
-    using TCLInterpreterPriv::Stat;
     using Stats = QVector<Stat>;
     // ----
     using TCLInterpreterPriv::SavedStat;
@@ -452,13 +453,20 @@ private:
                 inline ProcedureCall::Parameters::reference lastParameter(){return _parameters.last();}
                 //inline bool canBeFinalized(SquareBracketLevel level){return level == _squareBracketLevel;}
                 inline Parameters& parameters(){return _parameters;}
-                inline QString generateCAPLFunctionDefinitionExample(){return QString("// ") + name() + "(" + generateCAPLFunctionDefinitionExampleParameters() + ")";}
+                //inline QString generateCAPLFunctionDefinitionExample(){return QString("// ") + name() + "(" + generateCAPLFunctionDefinitionExampleParameters() + ")";}
+                inline QString generateCAPLFunctionDefinitionExample(){return QString("") + name() + " " + generateCAPLFunctionDefinitionExampleParameters() + "";}
                 inline QString generateCAPLFunctionDefinitionExampleParameters(){
                     QString str;
                     for(Parameters::Iterator parameter = parameters().begin(); parameter < _parameters.end(); parameter++)
-                        str.append(parameter->toString(ProcedureDefinition::Format::Target::CaplFormat) + ", ");
-                    str.chop(QStringLiteral(", ").length());
+                        str.append(parameter->toString(ProcedureDefinition::Format::Target::TclFormat) + " ");
+                    str.chop(QStringLiteral(" ").length());
                     return str;
+                }
+                inline QList<Stat> parametersStats(){
+                    QList<Stat> stats(parameters().size());
+                    for(Parameters::Iterator parameter = parameters().begin(); parameter < _parameters.end(); parameter++)
+                        stats[parameter - parameters().begin()] = parameter->stat();
+                    return stats;//QList<Stat>(stats.begin(), stats.end());
                 }
                 inline Parameters& rawParameters(){return _rawParameters;}
                 inline bool isUserInteractionRequired()const{return /*_userInteraction == UserInteraction::Required;*/ _procedureDefinition->userInteraction == UserInteractionStatus::Required;}
