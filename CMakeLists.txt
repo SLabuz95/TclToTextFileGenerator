@@ -30,10 +30,14 @@ add_executable(TclCaplParserCMake
     ${headers}
     )
 
+
+
 target_include_directories(TclCaplParserCMake
     PRIVATE
-
+        src
     )
+
+
 include_directories(src ${includeDirs})
 
 target_link_libraries(TclCaplParserCMake
@@ -42,6 +46,10 @@ target_link_libraries(TclCaplParserCMake
     Qt6::Core
     )
 
+target_precompile_headers(TclCaplParserCMake
+    PRIVATE
+    ${headers}
+    )
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set_property(TARGET TclCaplParserCMake PROPERTY WIN32_EXECUTABLE true)
 endif()

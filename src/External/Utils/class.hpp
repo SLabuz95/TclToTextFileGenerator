@@ -1,5 +1,5 @@
-#ifndef CLASS_HPP
-#define CLASS_HPP
+#ifndef CLASS_PRIV_HPP
+#define CLASS_PRIV_HPP
 
 #define VARIABLE_PROTECTED(type, name) protected: type name##_;\
     public: inline type& name(){return name##_;}
@@ -18,4 +18,4 @@
 
 #define WIDGET_ADD_EVENT_FILTER bool eventFilter(QObject* obj, QEvent* ev)override;
 
-#endif // CLASS_HPP
+#endif // CLASS_PRIV_HPP
