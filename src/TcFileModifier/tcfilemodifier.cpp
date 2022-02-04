@@ -2050,12 +2050,14 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
     }
 
     QString newRequirement;
+    QString newVersion;
     int index = -1;
     // If Requirement not found, throw to debug: "Unknown Requirement Version: " + fullLine
     // If (index (0) == "SysRS") , find requirement in RS
     if(requirementParts.at(0) == "SysRS"){
         if((index = interpreterData->sysRS_oldReq.indexOf(requirementParts.at(2))) != -1){
             newRequirement = interpreterData->sysRS_newReq.at(index);
+            newVersion = interpreterData->sysRS_newVer.at(index);
         }else{
             qDebug() << PRE_ERROR_MSG + " - Unknown Requirement Version: " + interpreterData->lineData;
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Unknown Requirement Version: " + interpreterData->lineData);
@@ -2065,6 +2067,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
         if(requirementParts.at(0) == "SysAD"){
             if((index = interpreterData->sysAD_oldReq.indexOf(requirementParts.at(2))) != -1){
                 newRequirement = interpreterData->sysAD_newReq.at(index);
+                newVersion = interpreterData->sysAD_newVer.at(index);
             }else{
                 qDebug() << PRE_ERROR_MSG + " - Unknown Requirement Version: " + interpreterData->lineData;
                 return config.ERROR_CALL(PRE_ERROR_MSG + " - Unknown Requirement Version: " + interpreterData->lineData);
@@ -2078,7 +2081,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 
 
     // If All is OK, write "=0\trequirementName\n"
-    interpreterData->arguments = {"", "=0", "\t\t" + newRequirement + "\n"};
+    interpreterData->arguments = {"", "=0", "\t\t" + newRequirement + "_v" + newVersion +  "\n"};
 
     if(not this->processingFunction<Stat::ACTION_WRITE>())
         return false;
@@ -2089,7 +2092,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INCR_REQUIREMENT_VERSION>(){
     const QString PRE_ERROR_MSG = "File: " + config.dataModel.currentTCLFileName() +  " Internal Error: Action Test Version ";
-
+    QString strAt2;
     // Line with requirement splitted by rule
     // Preconditions:
     // - at least 3 parts of string
@@ -2097,10 +2100,14 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
         qDebug() << PRE_ERROR_MSG + " - Wrong numb of TC version parts // " + interpreterData->lineData;
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Wrong numb of TC version parts // " + interpreterData->lineData);
     }
+    //  Index at 2 remove % sign
+    strAt2 = interpreterData->lastActionResponse.at(2);
+    strAt2.remove("%");
+
     // Index at 2 try cast to int
     int version = 0;
     bool ok = true;
-    version = interpreterData->lastActionResponse.at(2).toInt(&ok);
+    version = strAt2.toInt(&ok);
 
     if(not ok){
         qDebug() << PRE_ERROR_MSG + " - TC Version Cast error // " + interpreterData->lineData;
