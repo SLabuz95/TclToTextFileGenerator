@@ -4597,8 +4597,9 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
         }
     }
         break;
+    case Stat::SpeechMark:
     case Stat::List:
-        lastSavedStat().appendCAPLCommand(" ");
+        lastSavedStat().appendCAPLCommand("\\n");
         break;
     case Stat::MainCodeBlock:
     case Stat::CodeBlock:

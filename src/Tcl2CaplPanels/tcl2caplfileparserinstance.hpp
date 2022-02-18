@@ -103,11 +103,14 @@ public:
     template<Request_FileInfoRef>
     void execRequest_FileInfoRef(QFileInfo&);
 
+    inline QString tabName(){return static_cast<QDockWidget*>(parentWidget())->windowTitle();}
+
 protected:
     bool eventFilter(QObject*, QEvent*);
     Error readNewInputConfig(QFileInfo&);
     Error readNewInputConfig_dialog();
     Error readProceduresConfig(QFileInfo&);
+
 };
 
 #endif // TCL2CAPLFILEPARSERINSTANCE_HPP

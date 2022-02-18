@@ -20,6 +20,9 @@ FileInstanceResultPanel::FileInstanceResultPanel
           ),
       analysisPanel(*this, caplFunctionDefinitions)
 {
+    // Duplicate Windows title
+    setWindowTitle(instance.tabName());
+
     // - configure progressBars
     configureProgressBars(progressBarDatas);
 
