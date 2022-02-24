@@ -2337,7 +2337,6 @@ template<>
 Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::UnknownString>: ";
     SavedStat unknownStringStat;
-    bool whitespace = false;
     // Preconditions
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
@@ -2349,24 +2348,20 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats after Initialization");
 
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
-
-
     // Processing
     // #1 ------------------------------------------------------------------
     switch(lastSavedStat().stat()){
     /*case Stat::Variable:*/
     case Stat::EndOfList:
     {
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace after List (Close-brackets Error)");
     }
     if(false){
         case Stat::String:
         case Stat::Const:
         {
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace for String or Const");
         }
     }
@@ -2374,11 +2369,12 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     if(false){
         case Stat::Variable:
         {
-            if(!whitespace){
-                if(moveArgumentToPendingSnprintf() == Error::Error or
+            if(not isWhitespaceOccured()){
+                /*if(moveArgumentToPendingSnprintf() == Error::Error or
                         saveStatWithParsingControl({Stat::PendingString, unknownStringStat.caplCommand()}) == Error::Error)
                         return throwError(ERROR_PREFIX + error());
-                break;
+                break;*/
+                return throwError(ERROR_PREFIX + "Impossible Case for Variable without whitespace");
             }
 
         }
@@ -2387,7 +2383,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     if(false){
         case Stat::StringInQuotes:
         {
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace for String with Quotes (Close-Quotes error)");
         }
     }
@@ -2409,7 +2405,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     {
         if(not (lastSavedStat().isFunctionReady()))
             return throwError(ERROR_PREFIX + "Incomplete Pending Snprintf ???");
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError("No Whitespace for Complete PendingSnprintf");
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
@@ -2424,13 +2420,14 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         break;
     case Stat::Snprintf:
     {
-        if(not (lastSavedStat().isFunctionReady())){
-            if(whitespace)
+        if(not lastSavedStat().isFunctionReady()){
+            if(isWhitespaceOccured())
                 return throwError("Whitespace for Snprintf (SpeechMarks)");
-            if(Error::Error == saveStatWithParsingControl({Stat::PendingString, unknownStringStat.caplCommand()}))
-                return throwError(ERROR_PREFIX + error());
+            /*if(Error::Error == saveStatWithParsingControl({Stat::PendingString, unknownStringStat.caplCommand()}))
+                return throwError(ERROR_PREFIX + error());*/
+            return throwError(ERROR_PREFIX + "Impossible Case");
         }else{
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Chars after close-quote (Close-quotes Error)");
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
@@ -2446,8 +2443,8 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         break;
     case Stat::FunctionCall:
     {
-        if(!lastSavedStat().isFunctionReady()){    // Pending Function Call -> Check variable type in unknown string
-            if(whitespace){
+        if(not lastSavedStat().isFunctionReady()){    // Pending Function Call -> Check variable type in unknown string
+            if(isWhitespaceOccured()){
                 if(isStringConstNumber(unknownStringStat.caplCommand())){
                     if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownStringStat.caplCommand()}))
                         return throwError(ERROR_PREFIX + error());
@@ -2459,7 +2456,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
                 return throwError(ERROR_PREFIX + "No whitespace after incomplete function call");
             }
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
                 if(isStringConstNumber(unknownStringStat.caplCommand())){
@@ -2502,7 +2499,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
 
     case Stat::PendingString:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No Prelast Stat");
             if(prelastSavedStat().stat() == Stat::LeftSquareBracket)
@@ -2526,7 +2523,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     {
         // At least 2 stats (size > 1) are required (Prevent QVector Error)
         // Prelast Stat must be VariableAccess
-        if(whitespace){
+        if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace after GlobalAccess");
         }
         if(isPrelastSavedStat()){
@@ -2544,7 +2541,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     // Sprawdz lastSavedStat().caplCommand().isEmpty() poprawnosc przejsc dla lastSavedStat().isFunctionReady() !!!!!!!!!!!!!!!!!
     case Stat::VariableAccess:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace after VariableAccess");
         }
 
@@ -2578,7 +2575,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
 
     case Stat::SpeechMark:  // Speech mark Processing
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace Stat after Speech Mark (Whitespace shoudnt be saved for speech marks processing)");
         }
         lastSavedStat().appendCAPLCommand(unknownStringStat.caplCommand());
@@ -2589,7 +2586,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     {
-        if(!whitespace){
+        if(!isWhitespaceOccured()){
             return throwError("No Whitespace after Complete CodeBlock (Close Bracket Error)");
         }
         if(moveArgumentToFunctionCall() == Error::Error)
@@ -2616,12 +2613,8 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
 template<>
 Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::LeftSquareBracket>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
     /*case Stat::Variable:*/
@@ -2633,7 +2626,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
     case Stat::String:
     case Stat::Const:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
@@ -2647,7 +2640,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
 
     case Stat::Variable:
     {
-        if(!whitespace){
+        if(!isWhitespaceOccured()){
             if(moveArgumentToPendingSnprintf() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
             if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
@@ -2669,10 +2662,10 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
     {
         if(!lastSavedStat().isFunctionReady()){
             // Find Other function call
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace for Function Call name");
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }else{
@@ -2695,7 +2688,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
         break;
     case Stat::EndOfList:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
@@ -2707,7 +2700,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
         break;
     case Stat::StringInQuotes:
     {
-        if(!whitespace){
+        if(!isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "No whitespace after StringInQuotes (Close-quotes Error)");
         }
         if(moveArgumentToFunctionCall() == Error::Error)
@@ -2720,11 +2713,11 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
     case Stat::Snprintf:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 return throwError("Whitespace for Snprintf");
             }
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }else{
@@ -2740,7 +2733,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
         if(!lastSavedStat().isFunctionReady()){
             return throwError(ERROR_PREFIX + "Incomplete PendingSnprintf");
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }else{
@@ -2753,7 +2746,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
         break;
     case Stat::PendingString:
     {
-        if(whitespace)
+        if(isWhitespaceOccured())
         {            
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
@@ -2787,7 +2780,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
 
     case Stat::SpeechMark:
     {   // Procedure call in String
-        if(whitespace)
+        if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for Speech Mark Processing");
 
         // Change SpeechMark to Snprintf ->
@@ -2803,7 +2796,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     {
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError("No whitespace after Complete CodeBlock (Close-bracket Error)");
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
@@ -2824,21 +2817,16 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::RightSquareBracket>: ";
     bool ignoreMoveArgumentProcedure = false;
 
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
-
     switch(lastSavedStat().stat()){
-
     case Stat::PendingSnprintf:
         {
             if(!lastSavedStat().isFunctionReady()){
                 return throwError(ERROR_PREFIX + "Incomplete PendingSnprintf");
             }else{
-                if(!whitespace)
+                if(!isWhitespaceOccured())
                     return throwError(ERROR_PREFIX + "No whitespace for Complete PendingSnprintf");
             }
         }
@@ -2909,7 +2897,7 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
             if( finalizeProcedureCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
-            if(!whitespace){
+            if(!isWhitespaceOccured()){
                 if(!isPrelastSavedStat())
                     return throwError(ERROR_PREFIX + "No prelast stat for Function Call processing");
                 if(prelastSavedStat().stat() == Stat::PendingSnprintf){
@@ -2933,7 +2921,7 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
         break;
     case Stat::Variable:
     {
-        if(!whitespace){
+        if(!isWhitespaceOccured()){
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No prelast stat for Variable processing");
             if(prelastSavedStat().stat() == Stat::PendingSnprintf){
@@ -2972,18 +2960,14 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
 template<>
 Error Interpreter::interpret<Interpreter::Stat::List>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::List>: ";    
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
     case Stat::Operator:    
     case Stat::StringInQuotes:
     {
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Quoted String (Close-quote Error)");
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
@@ -2996,7 +2980,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
                     return throwError(ERROR_PREFIX + error());
                 break;
             }else{
-                if(!whitespace)
+                if(!isWhitespaceOccured())
                     return throwError(ERROR_PREFIX + "No whitespace for Complete Snprintf (Close-quote Error)");
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
@@ -3007,7 +2991,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         case Stat::EndOfCodeBlock:
         case Stat::EndOfExpression:
         {
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace for End of Code Block");
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
@@ -3016,7 +3000,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
     if(false){
         case Stat::EndOfList:
         {
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }else{
@@ -3028,7 +3012,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         case Stat::String:
         case Stat::Const:
         {
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }else{
@@ -3041,13 +3025,13 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
     case Stat::FunctionCall:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(!whitespace){
+            if(!isWhitespaceOccured()){
                 return throwError(ERROR_PREFIX + "No whitespace for function call");
             }
             if(Error::Error == saveStatWithParsingControl({Stat::List}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
                 if(Error::Error == saveStatWithParsingControl({Stat::List}))
@@ -3064,7 +3048,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
 
     case Stat::Variable:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
             if(Error::Error == saveStatWithParsingControl({Stat::List}))
@@ -3079,7 +3063,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         break;
     case Stat::List:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace for List stat");
         }
         lastSavedStat().newListInfo();
@@ -3088,7 +3072,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
 
     case Stat::PendingString:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::List}))
                 return throwError(ERROR_PREFIX + error());
@@ -3099,7 +3083,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         break;
     case Stat::SpeechMark:
     {
-        if(whitespace)
+        if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for speech mark or pending string processing");
         lastSavedStat().appendCAPLCommand( "{");
     }
@@ -3110,7 +3094,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
        if(!lastSavedStat().isFunctionReady()){
            return throwError(ERROR_PREFIX + "Incomplete PendingSnprintf stat");
        }else{
-           if(!whitespace)
+           if(!isWhitespaceOccured())
                return throwError(ERROR_PREFIX + "No Whitespace for complete PendingSprintf stat");
            if(moveArgumentToFunctionCall() == Error::Error or
                    Error::Error == saveStatWithParsingControl({Stat::List, ""}))
@@ -3122,7 +3106,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         break;
     case Stat::VariableAccess:
     {
-        if(whitespace)
+        if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for VariableAccess stat");
         if(Error::Error == saveStatWithParsingControl({Stat::List, ""}))
             return throwError(ERROR_PREFIX + error());
@@ -3137,12 +3121,8 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
 template<>
 Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::EndOfList>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
     case Stat::EndOfCodeBlock:
@@ -3174,7 +3154,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                 return throwError(ERROR_PREFIX + "Unknown stat for Function Call");;
             }
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
                 if(!isPrelastSavedStat())
@@ -3425,7 +3405,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
     case Stat::Snprintf:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for Snprintf stat");
             if(Error::Error == saveStatWithParsingControl({Stat::PendingString, "}"}))
                 return throwError(ERROR_PREFIX + error());
@@ -3569,19 +3549,15 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
 template<>
 Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::SpeechMark>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
     /*case Stat::Variable:*/
     case Stat::String:
     case Stat::Const:
     {
-        if(!whitespace){
+        if(!isWhitespaceOccured()){
             lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + "\""};    // _PH_
             break;
         }
@@ -3596,7 +3572,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         break;
     case Stat::Variable:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
                 return throwError(ERROR_PREFIX + error());
@@ -3611,12 +3587,12 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
     case Stat::FunctionCall:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace after function Call");
             if(Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
                 return throwError( ERROR_PREFIX + error());
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
                     return throwError(ERROR_PREFIX + error());
@@ -3630,7 +3606,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         break;
     case Stat::EndOfList:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
                 return throwError(ERROR_PREFIX + error());
@@ -3643,7 +3619,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     {
-        if(!whitespace){
+        if(!isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "No Whitespace for Complete CodeBlock");
         }
         if(moveArgumentToFunctionCall() == Error::Error or
@@ -3654,7 +3630,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
 
     case Stat::SpeechMark:
     {
-        if(whitespace)
+        if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "WhiteSpace for String Processing");
 
         lastSavedStat().setStat(Stat::StringInQuotes);    // _PH_
@@ -3662,7 +3638,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         break;
     case Stat::StringInQuotes:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
                 return throwError(ERROR_PREFIX + error());
@@ -3674,12 +3650,12 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
     case Stat::Snprintf:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "WhiteSpace for String Processing");
             if(finalizeSnprintfCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
                     return throwError(ERROR_PREFIX + error());
@@ -3691,7 +3667,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         break;
     case Stat::PendingString:
     {
-       if(whitespace){
+       if(isWhitespaceOccured()){
            if(moveArgumentToFunctionCall() == Error::Error or
                    Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
                return throwError(ERROR_PREFIX + error());
@@ -3713,7 +3689,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         if(!lastSavedStat().isFunctionReady()){
             return throwError(ERROR_PREFIX + "Incomplete PendingSnPrintf");
         }else{
-            if(!whitespace){
+            if(!isWhitespaceOccured()){
                 return throwError(ERROR_PREFIX + "No whitespace for PendingSnprintf");
             }
             if(moveArgumentToFunctionCall() == Error::Error or
@@ -3865,17 +3841,13 @@ template<>
 Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
 
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::VariableAccess>: ";
-    bool whitespace = false;
-    if(isSavedStatsEmpty())
+     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
     case Stat::List:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "List with whitespace (Check Whitespace Stat interpret function)");
         }
         lastSavedStat().appendCAPLCommand("$");
@@ -3891,7 +3863,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
                 return throwError(ERROR_PREFIX + error());
             break;
         }
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
@@ -3909,7 +3881,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
         if(!lastSavedStat().isFunctionReady()){
             return throwError(ERROR_PREFIX + "PendingSnprintf ?");
         }else{
-            if(!whitespace){
+            if(!isWhitespaceOccured()){
                 return throwError(ERROR_PREFIX + "Complete PendingSnprintf without whitespace");
             }
             if(moveArgumentToFunctionCall() == Error::Error or
@@ -3920,7 +3892,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
         break;
     case Stat::StringInQuotes:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
                 return throwError(ERROR_PREFIX + error());
@@ -3932,7 +3904,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     {
-        if(!whitespace){
+        if(!isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "No whitespace after Complete CodeBlock");
         }
         if(moveArgumentToFunctionCall() == Error::Error or
@@ -3942,7 +3914,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
         break;
     case Stat::EndOfList:
     {
-        if(!whitespace){
+        if(!isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "No whitespace after Complete List (Close-bracket Error)");
         }
         if(moveArgumentToFunctionCall() == Error::Error or
@@ -3953,7 +3925,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
     case Stat::SpeechMark:
     {
         // VariableAccess in String
-        if(whitespace)
+        if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for Speech Mark Processing");
 
         // Change SpeechMark to Snprintf ->
@@ -3964,13 +3936,13 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
         break;
     case Stat::FunctionCall:
         if(!lastSavedStat().isFunctionReady()){
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace for Function Call or string or const");
         }else{
             case Stat::String:
             case Stat::Const:
 
-                if(whitespace){
+                if(isWhitespaceOccured()){
                     if(moveArgumentToFunctionCall() == Error::Error)
                         return throwError(ERROR_PREFIX + error());
                 }else{
@@ -3985,7 +3957,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
 
     case Stat::Variable:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
@@ -4006,7 +3978,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
         break;
     case Stat::Snprintf:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace for Snprintf -> Should be PendingString");
         }
         if(Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
@@ -4024,12 +3996,8 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
 template<>
 Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::GlobalAccess>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
     case Stat::Operator:
@@ -4041,7 +4009,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
         break;
     case Stat::Variable:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
@@ -4055,10 +4023,10 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
     case Stat::FunctionCall:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace after Function Call");
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }else{
@@ -4074,7 +4042,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     {
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No whitespace for EndofList or EndOfCodeBlock (Close-bracket Error)");
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::PendingString, "::"}))
@@ -4089,7 +4057,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
             lastSavedStat().appendCAPLCommand("::");
             break;
         }
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, "::"}))
                 return throwError(ERROR_PREFIX + error());
@@ -4102,7 +4070,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
     {
         if(!lastSavedStat().isFunctionReady())
             return throwError(ERROR_PREFIX + "Incomplete PendingSnprintf");
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Complete PendingSnprintf without whitespace");
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::PendingString, "::"}))
@@ -4111,7 +4079,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
         break;
     case Stat::StringInQuotes:
     {
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No whitespace for Quoted String (Close-quote Error)");
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::PendingString, "::"}))
@@ -4120,7 +4088,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
     case Stat::Const:
     case Stat::String:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, "::"}))
                 return throwError(ERROR_PREFIX + error());
@@ -4132,7 +4100,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
     if(false){
     case Stat::Snprintf:
         if(!lastSavedStat().isFunctionReady()){
-            if(!whitespace){
+            if(!isWhitespaceOccured()){
                 if(Error::Error == saveStatWithParsingControl({Stat::PendingString, "::"}))
                     return throwError(ERROR_PREFIX + error());
             }
@@ -4146,7 +4114,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
     case Stat::SpeechMark:
     case Stat::List:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "List or String or Snprintf with whitespace (Check Whitespace Stat interpret function)");
         }
         lastSavedStat().appendCAPLCommand("::");
@@ -4154,7 +4122,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
         break;
     case Stat::VariableAccess:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             //savedStats.last() = {Stat::String, "$"};
             return throwError(ERROR_PREFIX + "Whitespace after VariableAccess stat (Possible but not implemented)");
         }
@@ -4180,12 +4148,8 @@ template<>
 Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
 
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Semicolon>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
 
@@ -4248,7 +4212,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
         case Stat::EndOfList:
         case Stat::EndOfCodeBlock:
         {
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace for End of List or End of Code Block (Close-bracket Error)");
         }
     }*/
@@ -4257,7 +4221,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
         {
             if(!lastSavedStat().isFunctionReady()) // Incomplete
                 return throwError(ERROR_PREFIX + "Incomplete Pedning Snprintf ?");
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for Complete PendingSnprintf");
         }
     }
@@ -4293,7 +4257,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     case Stat::SpeechMark:
     case Stat::List:
     {
-        if(whitespace)
+        if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "List or String with whitespace (Check Whitespace Stat interpret function)");
         lastSavedStat().appendCAPLCommand(";");
     }
@@ -4319,16 +4283,13 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
 template<>
 Error Interpreter::interpret<Interpreter::Stat::Comment>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Comment>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
     switch(lastSavedStat().stat()){
     case Stat::String:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, "#"}))
                 return throwError(ERROR_PREFIX + error());
@@ -4339,7 +4300,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         break;
     case Stat::Variable:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
@@ -4355,14 +4316,14 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
     case Stat::FunctionCall:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(Error::Error == saveStatWithParsingControl({Stat::PendingString, "#"}))
                     return throwError(ERROR_PREFIX + error());
             }else{
                 return throwError(ERROR_PREFIX + "No Whitespace for Incomplete Function call");
             }
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }else{
@@ -4378,7 +4339,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
     case Stat::EndOfExpression:
     case Stat::EndOfList:
     {
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No whitespace for EndOfList or EndOfCodeBlock (Close-bracket Error)");
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::PendingString, "#"}))
@@ -4414,7 +4375,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
     case Stat::List:
     case Stat::SpeechMark:
     {
-        if(whitespace)
+        if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for List (Should be controlled in Whitespace interpret function)");
         lastSavedStat().appendCAPLCommand("#");
     }
@@ -4422,11 +4383,11 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
     case Stat::Snprintf:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for List (Should be controlled in Whitespace interpret function)");
             lastSavedStat().appendCAPLCommand("#");
         }else{
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace for Snprintf (Close-quote Error)");
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, "#"}))
@@ -4439,7 +4400,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         if(!lastSavedStat().isFunctionReady()){
             return throwError(ERROR_PREFIX + "Incomplete PendingSnPrintf");
         }else{
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace for Complete PendingSnprintf ");
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, "#"}))
@@ -4462,7 +4423,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         }
             break;
         default:
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, "#"}))
                     return throwError(ERROR_PREFIX + error());
@@ -4475,7 +4436,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         break;
     case Stat::StringInQuotes:
     {
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Snprintf (Close-quote Error)");
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::PendingString, "#"}))
@@ -4500,12 +4461,8 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
 template<>
 Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::EndOfString>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
     case Stat::Snprintf:
@@ -4636,12 +4593,8 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
 template<>
 TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Operator>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
     case Stat::String:
@@ -4653,7 +4606,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                     Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
                     return throwError(ERROR_PREFIX + error());
@@ -4683,7 +4636,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                 lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + textInterpreter.readLastKeyword()};  // _PH_
                 break;
             }
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
                     return throwError(ERROR_PREFIX + error());
@@ -4731,14 +4684,14 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                 break;
             case Stat::Snprintf:
             {
-                if(whitespace)
+                if(isWhitespaceOccured())
                     return throwError(ERROR_PREFIX + "Whitespace for PendingString in Snprintf");
                 lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
             }
                 break;
             default:
             {
-                if(whitespace){
+                if(isWhitespaceOccured()){
                     if(moveArgumentToFunctionCall() == Error::Error or
                             Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
                         return throwError(ERROR_PREFIX + error());
@@ -4754,12 +4707,12 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
     case Stat::Snprintf:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for Snprintf");
             if(Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace for Complete Snprintf (Close-quote Error)");
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
@@ -4780,7 +4733,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                 if(Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
                     return throwError(ERROR_PREFIX + error());
             }else{
-                if(whitespace){
+                if(isWhitespaceOccured()){
                     if(Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
                         return throwError( ERROR_PREFIX + error());
                 }else{
@@ -4808,7 +4761,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                         return throwError(ERROR_PREFIX + error());
                     break;
                 }
-                if(whitespace){
+                if(isWhitespaceOccured()){
                     if(moveArgumentToFunctionCall() == Error::Error or
                             Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
                         return throwError(ERROR_PREFIX + error());
@@ -4824,7 +4777,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
     case Stat::SpeechMark:
     case Stat::List:
     {
-        if(whitespace)
+        if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for String Processing");
 
         lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
@@ -4839,7 +4792,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                     Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-           if(!whitespace)
+           if(!isWhitespaceOccured())
                return throwError(ERROR_PREFIX + "No whitespace for Complete Pending Snprintf");
            if(moveArgumentToFunctionCall() == Error::Error or
                    Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
@@ -4854,7 +4807,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                     Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-           if(!whitespace)
+           if(!isWhitespaceOccured())
                return throwError(ERROR_PREFIX + "No whitespace for Quoted String (Close-quote Error)");
            if(moveArgumentToFunctionCall() == Error::Error or
                    Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
@@ -4878,17 +4831,14 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
 template<>
 TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::CodeBlock>: ";
-    bool whitespace = false;
-    if(isSavedStatsEmpty())
+     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
     switch(lastSavedStat().stat()){
     case Stat::String:
     case Stat::Const:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
                 return throwError(ERROR_PREFIX + error());
@@ -4900,12 +4850,12 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
     case Stat::FunctionCall:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace after incomplete Function call");
             if(Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
                 return throwError( ERROR_PREFIX + error());
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
                     return throwError(ERROR_PREFIX + error());
@@ -4919,7 +4869,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
         break;
     case Stat::Variable:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
                 return throwError(ERROR_PREFIX + error());
@@ -4937,7 +4887,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
     case Stat::EndOfList:
     case Stat::EndOfCodeBlock:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
@@ -4948,12 +4898,12 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
     case Stat::Snprintf:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for Snprintf");
             if(Error::Error == saveStatWithParsingControl({Stat::PendingString, "{"}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace for Complete Snprintf (Close-quote Error)");
         }
     }
@@ -4970,21 +4920,21 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
             break;
         case Stat::Snprintf:
         {
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for Snprintf");
             lastSavedStat().appendCAPLCommand( "{");
         }
             break;
         case Stat::PendingSnprintf:
         {
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for PendingString in PendingSnprintf");
             lastSavedStat().appendCAPLCommand( "{");
         }
             break;
         default:
         {
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, "{"}))
                     return throwError(ERROR_PREFIX + error());
@@ -4999,7 +4949,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
     {
         if(!lastSavedStat().isFunctionReady())
             return throwError(ERROR_PREFIX + "Incomplete Pending Snprintf");
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Complete PendingSnprintf");
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
@@ -5008,7 +4958,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
         break;
     case Stat::StringInQuotes:
     {
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Quoted String (Close-quote Error)");
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
@@ -5026,17 +4976,14 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
 template<>
 TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Expression>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
     switch(lastSavedStat().stat()){
     case Stat::String:
     case Stat::Const:
     {
-        if(!whitespace){
+        if(!isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::Expression}))
                 return throwError(ERROR_PREFIX + error());
@@ -5049,12 +4996,12 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
     case Stat::FunctionCall:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace after incomplete Function call");
             if(Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
                 return throwError( ERROR_PREFIX + error());
         }else{
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
                     return throwError(ERROR_PREFIX + error());
@@ -5068,7 +5015,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
         break;
     case Stat::Variable:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
                 return throwError(ERROR_PREFIX + error());
@@ -5086,7 +5033,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
     case Stat::EndOfList:
     case Stat::EndOfCodeBlock:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }else{
@@ -5097,12 +5044,12 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
     case Stat::Snprintf:
     {
         if(!lastSavedStat().isFunctionReady()){
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for Snprintf");
             if(Error::Error == saveStatWithParsingControl({Stat::PendingString, "{"}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace for Complete Snprintf (Close-quote Error)");
         }
     }
@@ -5119,21 +5066,21 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
             break;
         case Stat::Snprintf:
         {
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for Snprintf");
             lastSavedStat().appendCAPLCommand( "{");
         }
             break;
         case Stat::PendingSnprintf:
         {
-            if(whitespace)
+            if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for PendingString in PendingSnprintf");
             lastSavedStat().appendCAPLCommand( "{");
         }
             break;
         default:
         {
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, "{"}))
                     return throwError(ERROR_PREFIX + error());
@@ -5148,7 +5095,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
     {
         if(!lastSavedStat().isFunctionReady())
             return throwError(ERROR_PREFIX + "Incomplete Pending Snprintf");
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Complete PendingSnprintf");
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
@@ -5157,7 +5104,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
         break;
     case Stat::StringInQuotes:
     {
-        if(!whitespace)
+        if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Quoted String (Close-quote Error)");
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
@@ -5175,12 +5122,8 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
 template<>
 TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::EndOfCodeBlock>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::EndOfCodeBlock>: ";
-    bool whitespace = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     switch(lastSavedStat().stat()){
     case Stat::PendingString:
@@ -5216,7 +5159,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::EndOfCodeBloc
         break;
     case Stat::Variable:
     {
-        if(whitespace){
+        if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
                     finalizeProcedureCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
@@ -5294,17 +5237,13 @@ template<>
 TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::SpecialSign>: ";
     QString specialSignStr;
-    bool whitespace = false;
-    bool whitespaceAfterSpecialSign = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-
-    if((whitespace = checkWhitespace()) and isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Whitespace");
 
     // Check and prepare specialSignStr
     if(textInterpreter.isCurrentChar()) // Accesible -> Analysis
     {
+        bool whitespaceAfterSpecialSign = false;
         switch (textInterpreter.currentCharForSpecialSign()->toLatin1()) {
         case ' ':
         case '\t':
@@ -5334,7 +5273,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
         case Stat::String:
         case Stat::Const:
         {
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
                     return throwError(ERROR_PREFIX + error());
@@ -5352,7 +5291,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
             break;
         case Stat::Variable:
         {
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }else{
@@ -5366,10 +5305,10 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
         case Stat::FunctionCall:
         {
             if(!lastSavedStat().isFunctionReady()){
-                if(!whitespace)
+                if(!isWhitespaceOccured())
                     return throwError(ERROR_PREFIX + "No Whitespace for Incomplete Function Call");
             }else{
-                if(whitespace){
+                if(isWhitespaceOccured()){
                     if(moveArgumentToFunctionCall() == Error::Error)
                         return throwError(ERROR_PREFIX + error());
                 }else{
@@ -5391,7 +5330,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
         case Stat::EndOfExpression:
         case Stat::EndOfList:
         {
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace for EndOfExpression or EndOfList or EndOfCodeBlock (Close-bracket Error)");
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
@@ -5404,7 +5343,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
                 if(Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
                     return throwError(ERROR_PREFIX + error());
             }else{
-                if(!whitespace)
+                if(!isWhitespaceOccured())
                     return throwError(ERROR_PREFIX + "No Whitespace after Snprintf (Close-quote Error)");
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
@@ -5414,7 +5353,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
             break;
         case Stat::PendingString:
         {
-            if(whitespace){
+            if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
                     return throwError(ERROR_PREFIX + error());
@@ -5428,7 +5367,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
             if(!lastSavedStat().isFunctionReady()){
                 return throwError(ERROR_PREFIX + "Incomplete PendingSnprintf");
             }else{
-                if(!whitespace)
+                if(!isWhitespaceOccured())
                     return throwError(ERROR_PREFIX + "No whitespace for Complete PendingSnprintf");
                 if(moveArgumentToFunctionCall() == Error::Error or
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
@@ -5438,7 +5377,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
             break;
         case Stat::StringInQuotes:
         {
-            if(!whitespace)
+            if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace for QuotedString (Close-quote Error)");
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
@@ -6080,6 +6019,7 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
     pendingProccessingStats = {};
     while(!proccessingStats.isEmpty()){
         Stat savedProccessingStat = proccessingStats.last();
+
         if(callInterpretFunction() == Error::Error){
             if(processError() == Error::Error)
                 return Error::Error;

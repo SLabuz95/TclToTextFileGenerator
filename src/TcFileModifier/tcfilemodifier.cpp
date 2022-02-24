@@ -2052,7 +2052,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INTERPRET>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Interpret";
-    if(!interpreterData->lineData.isEmpty())
+    if(not interpreterData->lineData.isEmpty())
         if(interpreterData->tclToCaplInterpreter_.toCAPL(interpreterData->lineData) == TCLInterpreter::Error::Error){
             qDebug() << "CRITICAL_ERROR" + interpreterData->tclToCaplInterpreter_.error();
             return config.ERROR_CALL(PRE_ERROR_MSG + " - TCL Interpreter Critical Error");

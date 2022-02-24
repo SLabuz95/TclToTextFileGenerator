@@ -868,7 +868,8 @@ private:
 
         static InterpretFunctions interpretFunctions;
         IgnoreMessages ignoreMessages;
-        RemoveProcedureCallFunction removeProcedureCallFunction = &TCLInterpreter::removeProcedureCall_standard;
+        RemoveProcedureCallFunction removeProcedureCallFunction = &TCLInterpreter::removeProcedureCall_standard;        
+        bool _whitespace = false;
 
     // End of Objects ||||||||||||||||||||||||||||||||||||||||||||
     // Functions --------------------------------------------------
@@ -876,24 +877,39 @@ private:
         template<Stat stat>
         Error interpret();
 
-        inline Error callInterpretFunction(){
+        inline Error callInterpretFunction(SavedStat savedStat = {Stat::Size}){
+            if(checkWhitespace() == Error::NoError){
+                if(isSavedStatsEmpty())
+                    return throwError("Empty Stats after Whitespace");
+
+            }else{
+                return Error::Error;
+            }
+            if(savedStat.stat() != Stat::Size){
+                saveStat(savedStat);
+                proccessingStats.append(savedStat.stat());
+            }
             return (this->*(interpretFunctions[static_cast<std::underlying_type_t<Stat>>(proccessingStats.takeLast())]))();
         }
 
         inline Error processUnknownString(){
             if(textInterpreter.isUnknownString()){
-                saveStat({Stat::UnknownString, textInterpreter.readUnknownString()});
-                proccessingStats.append(Stat::UnknownString);
-                return callInterpretFunction();
+                SavedStat stateAfterWhitespace = {Stat::UnknownString, textInterpreter.readUnknownString()};
+                return callInterpretFunction(stateAfterWhitespace);
             }
             return Error::NoError;
         }
 
         inline void addPendingProcessingStat(Stats stats){pendingProccessingStats.append(stats);}
         inline void addPendingProcessingStat(Stat stat){pendingProccessingStats.append(stat);}
-        inline bool checkWhitespace(){return (lastSavedStat().stat() == Stat::Whitespace) and (removeLastStat(), true);}
+        inline Error checkWhitespace(){
+            return ((_whitespace = (lastSavedStat().stat() == Stat::Whitespace)))?
+                        removeLastStat() :
+                        Error::NoError;
+        }
+        inline bool isWhitespaceOccured()const{return _whitespace;}
         //Error interpretFunctionCall(qsizetype functionCallPos);
-        inline bool isError(){return !_error.isEmpty();}
+        inline bool isError(){return not _error.isEmpty();}
 
         Error moveArgumentToFunctionCall();
         Error moveArgumentToSnprintf_priv(const Stat);
