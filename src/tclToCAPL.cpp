@@ -2336,17 +2336,13 @@ void TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToU
 template<>
 Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::UnknownString>: ";
-    SavedStat unknownStringStat;
+    //SavedStat unknownStringStat;
     // Preconditions
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
-    if(lastSavedStat().stat() != Stat::UnknownString)
-        return throwError(ERROR_PREFIX + "Lack of Saved Unknown String stat for Unknown String processing stat");
 
     // Initialize
-    unknownStringStat = takeLastSavedStat();    // UnknownString
-    if(isSavedStatsEmpty())
-        return throwError(ERROR_PREFIX + "Empty Stats after Initialization");
+    QString unknownString = textInterpreter.readUnknownString();
 
     // Processing
     // #1 ------------------------------------------------------------------
@@ -2391,11 +2387,11 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     {
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
-        if(isStringConstNumber(unknownStringStat.caplCommand())){
-            if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownStringStat.caplCommand()}))
+        if(isStringConstNumber(unknownString)){
+            if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownString}))
                     return throwError(ERROR_PREFIX + error());
         }else{  // String
-            if(Error::Error == saveStatWithParsingControl({Stat::String, unknownStringStat.caplCommand()}))
+            if(Error::Error == saveStatWithParsingControl({Stat::String, unknownString}))
                     return throwError(ERROR_PREFIX + error());
         }
 
@@ -2409,11 +2405,11 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
             return throwError("No Whitespace for Complete PendingSnprintf");
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
-        if(isStringConstNumber(unknownStringStat.caplCommand())){
-            if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownStringStat.caplCommand()}))
+        if(isStringConstNumber(unknownString)){
+            if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownString}))
                     return throwError(ERROR_PREFIX + error());
         }else{  // String
-            if(Error::Error == saveStatWithParsingControl({Stat::String, unknownStringStat.caplCommand()}))
+            if(Error::Error == saveStatWithParsingControl({Stat::String, unknownString}))
                     return throwError(ERROR_PREFIX + error());
         }
     }
@@ -2431,11 +2427,11 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
                 return throwError(ERROR_PREFIX + "Chars after close-quote (Close-quotes Error)");
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
-            if(isStringConstNumber(unknownStringStat.caplCommand())){
-                if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownStringStat.caplCommand()}))
+            if(isStringConstNumber(unknownString)){
+                if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownString}))
                         return throwError(ERROR_PREFIX + error());
             }else{  // String
-                if(Error::Error == saveStatWithParsingControl({Stat::String, unknownStringStat.caplCommand()}))
+                if(Error::Error == saveStatWithParsingControl({Stat::String, unknownString}))
                         return throwError(ERROR_PREFIX + error());
             }
         }
@@ -2445,11 +2441,11 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     {
         if(not lastSavedStat().isFunctionReady()){    // Pending Function Call -> Check variable type in unknown string
             if(isWhitespaceOccured()){
-                if(isStringConstNumber(unknownStringStat.caplCommand())){
-                    if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownStringStat.caplCommand()}))
+                if(isStringConstNumber(unknownString)){
+                    if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownString}))
                         return throwError(ERROR_PREFIX + error());
                 }else{  // String
-                    if(Error::Error == saveStatWithParsingControl({Stat::String, unknownStringStat.caplCommand()}))
+                    if(Error::Error == saveStatWithParsingControl({Stat::String, unknownString}))
                         return throwError(ERROR_PREFIX + error());
                 }
             }else{
@@ -2459,17 +2455,17 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
             if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
-                if(isStringConstNumber(unknownStringStat.caplCommand())){
-                    if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownStringStat.caplCommand()}))
+                if(isStringConstNumber(unknownString)){
+                    if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownString}))
                         return throwError(ERROR_PREFIX + error());
                 }else{  // String
-                    if(Error::Error == saveStatWithParsingControl({Stat::String, unknownStringStat.caplCommand()}))
+                    if(Error::Error == saveStatWithParsingControl({Stat::String, unknownString}))
                         return throwError(ERROR_PREFIX + error());
                 }
             }else{                
                 if(moveArgumentToPendingSnprintf() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
-                if(Error::Error == saveStatWithParsingControl({Stat::PendingString, unknownStringStat.caplCommand()}))
+                if(Error::Error == saveStatWithParsingControl({Stat::PendingString, unknownString}))
                     return throwError(ERROR_PREFIX + error());
             }
         }
@@ -2480,19 +2476,19 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     case Stat::CodeBlock:
     case Stat::Expression:
     {
-        if(isStringConstNumber(unknownStringStat.caplCommand()))
+        if(isStringConstNumber(unknownString))
             return throwError(ERROR_PREFIX + "Number used as procedure name");
-        if(newProcedureCall(unknownStringStat.caplCommand()) == Error::Error or
+        if(newProcedureCall(unknownString) == Error::Error or
             saveStatWithParsingControl({Stat::FunctionCall}) == Error::Error )
                        return throwError(ERROR_PREFIX + error());
     }
         break;
     case Stat::LeftSquareBracket:
     {
-        if(isStringConstNumber(unknownStringStat.caplCommand()))
+        if(isStringConstNumber(unknownString))
             return throwError(ERROR_PREFIX + "Number used as procedure name");
         lastSavedStat() = {Stat::FunctionCall}; // _PH_
-        if(newProcedureCall(unknownStringStat.caplCommand()) == Error::Error)
+        if(newProcedureCall(unknownString) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2507,15 +2503,15 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
 
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
-            if(isStringConstNumber(unknownStringStat.caplCommand())){
-                if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownStringStat.caplCommand()}))
+            if(isStringConstNumber(unknownString)){
+                if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownString}))
                     return throwError(ERROR_PREFIX + error());
             }else{  // String
-                if(Error::Error == saveStatWithParsingControl({Stat::String, unknownStringStat.caplCommand()}))
+                if(Error::Error == saveStatWithParsingControl({Stat::String, unknownString}))
                     return throwError(ERROR_PREFIX + error());
             }
         }else{            
-            lastSavedStat().setCAPLCommand( lastSavedStat().caplCommand() + unknownStringStat.caplCommand());
+            lastSavedStat().setCAPLCommand( lastSavedStat().caplCommand() + unknownString);
         }
     }
         break;
@@ -2546,12 +2542,12 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         }
 
         if(lastSavedStat().caplCommand().isEmpty()){
-            if(isStringConstNumber(unknownStringStat.caplCommand())){
+            if(isStringConstNumber(unknownString)){
                 // Const in Variable Access ???
                 return throwError(ERROR_PREFIX + "Const for VariableAccess");
             }else{  // String
                 lastSavedStat() = {Stat::Variable};    // _PH_
-                QString str = unknownStringStat.caplCommand();
+                QString str = unknownString;
                 lastSavedStat().setCAPLCommand(str.replace(":", ""));
                 // Check if stat before variable is Snprintf
                 if(!isPrelastSavedStat())
@@ -2569,7 +2565,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
 
     case Stat::List:
     {
-        lastSavedStat().appendCAPLCommand(unknownStringStat.caplCommand());
+        lastSavedStat().appendCAPLCommand(unknownString);
     }
         break;
 
@@ -2578,7 +2574,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace Stat after Speech Mark (Whitespace shoudnt be saved for speech marks processing)");
         }
-        lastSavedStat().appendCAPLCommand(unknownStringStat.caplCommand());
+        lastSavedStat().appendCAPLCommand(unknownString);
     }
         break;
 
@@ -2591,11 +2587,11 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         }
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
-        if(isStringConstNumber(unknownStringStat.caplCommand())){
-            if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownStringStat.caplCommand()}))
+        if(isStringConstNumber(unknownString)){
+            if(Error::Error == saveStatWithParsingControl({Stat::Const, unknownString}))
                 return throwError(ERROR_PREFIX + error());
         }else{  // String
-            if(Error::Error == saveStatWithParsingControl({Stat::String, unknownStringStat.caplCommand()}))
+            if(Error::Error == saveStatWithParsingControl({Stat::String, unknownString}))
                 return throwError(ERROR_PREFIX + error());
         }
     }
@@ -2603,7 +2599,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     case Stat::Ignore:
         break;
     default:
-        return throwError(ERROR_PREFIX + "Unknown String Content: " + unknownStringStat.caplCommand() +
+        return throwError(ERROR_PREFIX + "Unknown String Content: " + unknownString +
                           " Unknown Stat");
     }
     // #1# ------------------------------------------------------------------------------------

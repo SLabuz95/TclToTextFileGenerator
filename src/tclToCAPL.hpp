@@ -877,7 +877,7 @@ private:
         template<Stat stat>
         Error interpret();
 
-        inline Error callInterpretFunction(SavedStat savedStat = {Stat::Size}){
+        inline Error callInterpretFunction(Stat stat = Stat::Size){
             if(checkWhitespace() == Error::NoError){
                 if(isSavedStatsEmpty())
                     return throwError("Empty Stats after Whitespace");
@@ -885,19 +885,14 @@ private:
             }else{
                 return Error::Error;
             }
-            if(savedStat.stat() != Stat::Size){
-                saveStat(savedStat);
-                proccessingStats.append(savedStat.stat());
+            if(stat != Stat::Size){
+                proccessingStats.append(stat);
             }
             return (this->*(interpretFunctions[static_cast<std::underlying_type_t<Stat>>(proccessingStats.takeLast())]))();
         }
 
         inline Error processUnknownString(){
-            if(textInterpreter.isUnknownString()){
-                SavedStat stateAfterWhitespace = {Stat::UnknownString, textInterpreter.readUnknownString()};
-                return callInterpretFunction(stateAfterWhitespace);
-            }
-            return Error::NoError;
+           return (textInterpreter.isUnknownString())? callInterpretFunction(Stat::UnknownString) : Error::NoError;
         }
 
         inline void addPendingProcessingStat(Stats stats){pendingProccessingStats.append(stats);}
