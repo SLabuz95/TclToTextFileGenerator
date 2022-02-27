@@ -22,8 +22,8 @@ private:
     using TCLInterpreterPriv::SavedStat;
     // ---- // Class IO
     using TCLInterpreterPriv::TclCommand;
-    using TCLInterpreterPriv::CAPLCommand;
-    using TCLInterpreterPriv::CAPLCommands;
+    using TCLInterpreterPriv::Command;
+    using TCLInterpreterPriv::Commands;
     // ----
     using InterpretFunction = Error (TCLInterpreter::*)();
     // ----
@@ -356,8 +356,8 @@ private:
             public:
             // Concept -----------------------------------------------------
             using Name = ProcedureDefinition::ProcedureName;
-            using PreExpression = CAPLCommand;
-            using PreExpressions = QVector<CAPLCommand>;
+            using PreExpression = Command;
+            using PreExpressions = QVector<Command>;
             using SquareBracketLevel = uint;
             class Parameter;
             using Parameters = QVector<Parameter>;
@@ -377,14 +377,14 @@ private:
                     rawParameterStats = {Parameter(Stat::String, procedureCall.name())};
                     rawParameterStats += procedureCall.rawParameters();
                 }
-                Parameter(const Stat stat, CAPLCommand caplCommand) : _savedStat{stat, caplCommand}{}
+                Parameter(const Stat stat, Command command) : _savedStat{stat, command}{}
                 //Parameter(SavedStat savedStat) : _savedStat(savedStat){}
 
                 inline Stat stat()const{return _savedStat.stat();}
-                inline QString caplCommand()const{return _savedStat.caplCommand();}
+                inline QString command()const{return _savedStat.command();}
                 //inline void setUserIteractionRequired(){_userInteraction = UserInteraction::Required;}
                 inline void setStat(Stat stat){_savedStat.setStat(stat);}
-                inline void setCaplCommand(CAPLCommand caplCommand){_savedStat.setCAPLCommand(caplCommand);}
+                inline void setCommand(Command command){_savedStat.setCAPLCommand(command);}
                 //inline UserInteraction userIteraction(){return _userInteraction;}
                 inline SavedStat& savedStat(){return _savedStat;}
                 inline const Parameters& rawParameters()const{return rawParameterStats;}
@@ -557,7 +557,7 @@ private:
         static ProcedureDefinitions defaultProcedureDefinitions;
         ProcedureDefinition& unknownProcedureDefinition;
         static ProcedureDefinition defaultUnknownProcedureDefinition;
-        CAPLCommand command;
+        Command command;
         ProcedureCalls procedureCalls;
         ProcedureCall::Parameters rawParameterStats;
         //UserInteraction& userInteraction;
@@ -568,7 +568,7 @@ private:
         FinalizeProcedureCallFunction finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCase);
         ProcedureCalls::size_type writeOnlyProcedureActiveIndex = -1;
 
-        //CAPLCommand caplCommand;
+        //Command command;
 
         static ConditionInterpretFunctions conditionalInterpreterFunctions;
         static ExecutableInterpretFunctions executableInterpretFunctions;
@@ -974,8 +974,8 @@ private:
         inline bool anyErrors(){return ignoreMessages.size();}
         void printErrorReport(QFile& reportFile, QString inputFileName);
         void printErrorReport(QString& inputFileName);
-        CAPLCommand& readCaplCommand(){return TCLInterpreterPriv::readCaplCommand();}
-        inline CAPLCommand printPredefinitions(){return predefinitionsControl().getPredefinitionsStr();}
+        Command& readCaplCommand(){return TCLInterpreterPriv::readCaplCommand();}
+        inline Command printPredefinitions(){return predefinitionsControl().getPredefinitionsStr();}
 
         static inline std::underlying_type_t<Stat> cast_stat(const Stat t){return static_cast<std::underlying_type_t<Stat>>(t);}
         static inline QString cast_stat_str(const Stat t){return QString::number(cast_stat(t));}

@@ -9,8 +9,8 @@
 class TCLInterpreterPriv{
 public:
     using TclCommand = QString;
-    using CAPLCommand = QString;
-    using CAPLCommands = QStringList;
+    using Command = QString;
+    using Commands = QStringList;
     enum class Error : bool{Error, NoError};
     using Preexpressions = QStringList;
 
@@ -80,9 +80,9 @@ public:
 
         }
 
-        void appendCAPLCommand(CAPLCommand caplCommand);
-        void newList(CAPLCommand caplcommand);
-        EndListResult endList(CAPLCommand caplcommand);
+        void appendCommand(Command command);
+        void newList(Command command);
+        EndListResult endList(Command command);
         ListInfos::Iterator lastListInfo = nullptr;
         ListInfos& getListInfos(){return listInfos;}
 
@@ -108,15 +108,15 @@ public:
     class SavedStat : public SavedStatPriv{
 
     protected:
-        CAPLCommand _caplCommand;
+        Command _command;
         bool functionReady = false;
         ListStatInfo* info = nullptr;
 
-        void appendCAPLCommmand_listProcessing(CAPLCommand caplCommand);
+        void appendCommmand_listProcessing(Command command);
     public:
         SavedStat() : SavedStatPriv(){}
         SavedStat(Stat stat) : SavedStatPriv(stat){}
-        SavedStat(Stat stat, CAPLCommand caplCommand) : SavedStatPriv(stat), _caplCommand(caplCommand){}
+        SavedStat(Stat stat, Command command) : SavedStatPriv(stat), _command(command){}
 
         ~SavedStat(){
 
@@ -129,44 +129,44 @@ public:
             }
         }
 
-        void setCAPLCommand(CAPLCommand caplCommand){
-            _caplCommand = caplCommand;
+        void setCommand(Command command){
+            _command = command;
         }
-        void appendCAPLCommand(CAPLCommand caplCommand){
-            _caplCommand.append(caplCommand);
+        void appendCommand(Command command){
+            _command.append(command);
         }
 
         void hideInfoBeforeCopyConstructor(){info = nullptr;}
         inline ListStatInfo* advancedList()const{return info;}
 
-        const CAPLCommand& caplCommand()const{return _caplCommand;}
+        const Command& command()const{return _command;}
 
         void newListInfo(){
             if(!info)
                 info = new ListStatInfo();
-            /*if(not (caplCommand().isEmpty())){
-                if((caplCommand().endsWith(" ") or caplCommand().endsWith("\t"))){
-                    info->newList(_caplCommand);
-                    _caplCommand.clear();
+            /*if(not (command().isEmpty())){
+                if((command().endsWith(" ") or command().endsWith("\t"))){
+                    info->newList(_command);
+                    _command.clear();
                 }else{
-                    _caplCommand += "{";
+                    _command += "{";
                 }
             }else{*/
-                info->newList(_caplCommand);
-                _caplCommand.clear();
+                info->newList(_command);
+                _command.clear();
             //}
         }
 
         inline ListStatInfo::EndListResult endList(){
             ListStatInfo::EndListResult result = ListStatInfo::EndListResult::EndOfList;
             if(info){
-                switch((result = info->endList(caplCommand()))){
+                switch((result = info->endList(command()))){
                 case ListStatInfo::EndListResult::EndOfList:
-                    //_caplCommand = info->toCaplString(", ");
-                    _caplCommand.clear();
+                    //_command = info->toCaplString(", ");
+                    _command.clear();
                     break;
                 default:
-                    _caplCommand.clear();
+                    _command.clear();
                     break;
                 }
 
@@ -175,8 +175,8 @@ public:
         }
 
         QString listToCaplString();
-        QString listToRawString(){return QString("{") + ((info)? info->toString("") : _caplCommand) + "}";}
-        QString listToTclListString(){return ((info)? info->toString("") : _caplCommand);}
+        QString listToRawString(){return QString("{") + ((info)? info->toString("") : _command) + "}";}
+        QString listToTclListString(){return ((info)? info->toString("") : _command);}
         inline bool isAdvancedList(){return info;}
         inline void setFunctionReady(){functionReady = true;}
         inline bool isFunctionReady(){return functionReady;}
@@ -354,7 +354,7 @@ private:
     Preexpressions _preexpressions;
     SnprintfController _snprintfController;
     PredefinitionsControl _predefinitionsControl;
-    CAPLCommand caplCommand;
+    Command command;
     SavedStats _savedStats{{Stat::MainCodeBlock}};
 
 protected:
@@ -365,13 +365,13 @@ protected:
     inline bool isStringIntNumber(QString str)const{return str.lastIndexOf(QRegularExpression(RegExpCore::regExpForInt)) == 0;}
     inline bool isStringUIntNumber(QString str)const{return str.lastIndexOf(QRegularExpression(RegExpCore::regExpForUint)) == 0;}
 
-    using AddExpressionToCodeBlockFunction = void (TCLInterpreterPriv::*)(CAPLCommands, QString);
+    using AddExpressionToCodeBlockFunction = void (TCLInterpreterPriv::*)(Commands, QString);
 public:
     AddExpressionToCodeBlockFunction addExpressionToCodeBlockFunction = &TCLInterpreterPriv::addExpressionToCodeBlock_standard;
     inline void addPreexpressionsToMainCodeBlock(){
         if(not preexpressions().isEmpty()){ // Not Empty
             addExpressionToMainCodeBlock(preexpressions(), "\n");
-            //lastSavedStat().appendCAPLCommand("\n");
+            //lastSavedStat().appendCommand("\n");
             preexpressions().clear();
         }
     }
@@ -379,37 +379,37 @@ public:
 
     inline void addPreexpressionsToCodeBlock(){
         if(not preexpressions().isEmpty()){ // Not Empty
-            //lastSavedStat().appendCAPLCommand("\n");
+            //lastSavedStat().appendCommand("\n");
             addExpressionToCodeBlock(preexpressions(), "\n");
             preexpressions().clear();
         }
     }
 
-    /*inline void addExpressionToMainCodeBlock(CAPLCommand command){command.isEmpty() or
-                                                                If not empty (caplCommand.append(((!caplCommand.isEmpty())? QString(";\n") : QString()) + command ), true);
+    /*inline void addExpressionToMainCodeBlock(Command command){command.isEmpty() or
+                                                                If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) + command ), true);
                                                                }*/
-    inline void addExpressionToMainCodeBlock(CAPLCommands commands, QString postfix = QString()){
+    inline void addExpressionToMainCodeBlock(Commands commands, QString postfix = QString()){
         if(commands.size() > 0){
-            caplCommand.append(commands.join("\n") + postfix);
+            command.append(commands.join("\n") + postfix);
         }
     }
-    /*inline void addExpressionToCodeBlock(CAPLCommand command){command.isEmpty() or
-                                                                If not empty  ( lastSavedStat().setCAPLCommand( lastSavedStat().caplCommand() +  command + "\n"), true);
+    /*inline void addExpressionToCodeBlock(Command command){command.isEmpty() or
+                                                                If not empty  ( lastSavedStat().setCommand( lastSavedStat().command() +  command + "\n"), true);
                                                                }*/
-    inline void addExpressionToCodeBlock(CAPLCommands commands, QString postfix = QString()){
+    inline void addExpressionToCodeBlock(Commands commands, QString postfix = QString()){
         (this->*addExpressionToCodeBlockFunction)(commands, postfix);
     }
 
-    inline void addExpressionToCodeBlock_standard(CAPLCommands commands, QString postfix){
+    inline void addExpressionToCodeBlock_standard(Commands commands, QString postfix){
         if(commands.size() > 0)
-            lastSavedStat().appendCAPLCommand(commands.join("\n") + postfix);
+            lastSavedStat().appendCommand(commands.join("\n") + postfix);
     }
 
-    inline void addExpressionToCodeBlock_writeOnlyProcedure(CAPLCommands commands, QString postfix){
+    inline void addExpressionToCodeBlock_writeOnlyProcedure(Commands commands, QString postfix){
         addExpressionToMainCodeBlock(commands, postfix);
     }
 
-    inline CAPLCommand& readCaplCommand(){return caplCommand;}
+    inline Command& readCommand(){return command;}
     inline void saveStat(SavedStat newStat){_savedStats.append(newStat);}
     Error removeLastStat(){return (_savedStats.isEmpty())? throwError("removeLastStat: No elements to remove")
                                                                    : (_savedStats.removeLast(), Error::NoError);
@@ -428,7 +428,7 @@ public:
     inline void prepareCodeBlockContent(){
         QString predefinitions = predefinitionsControl().getPredefinitionsGroupStr();
         if(not predefinitions.isEmpty())
-            lastSavedStat().setCAPLCommand(predefinitions + lastSavedStat().caplCommand());
+            lastSavedStat().setCommand(predefinitions + lastSavedStat().command());
     }
 
 

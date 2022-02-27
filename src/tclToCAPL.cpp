@@ -1119,7 +1119,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                 }
             },
             {   // Rules on moveArgument
-                {   // Rule 1: if lastSavedStat caplcommand == (elseif) -> Error
+                {   // Rule 1: if lastSavedStat command == (elseif) -> Error
                     {
                         TclProcedureInterpreter::newCompareRule(
                         {"elseifelseif"},
@@ -1141,7 +1141,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         }
                     }
                 },
-                {   // Rule 2: if lastSavedStat caplcommand == (elseif) -> P
+                {   // Rule 2: if lastSavedStat command == (elseif) -> P
                     {
                         TclProcedureInterpreter::newCompareRule(
                         {"elseif"},
@@ -1180,7 +1180,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         }
                     }
                 },
-                {   // Rule 3: If lastSavedStat caplCommand == else -> {\n =-1 \n}
+                {   // Rule 3: If lastSavedStat command == else -> {\n =-1 \n}
                     {
                         TclProcedureInterpreter::newCompareRule(
                         {"else"},
@@ -1204,7 +1204,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         }
                     }
                 },
-                {   // Rule 4: If PreLastSavedStat caplCommand == else -> {\n =-1 \n}
+                {   // Rule 4: If PreLastSavedStat command == else -> {\n =-1 \n}
                     {
                         TclProcedureInterpreter::newCompareRule(
                         {"elseif"},
@@ -1843,16 +1843,16 @@ ProcedureDefinition(
 );
 
 
-void TCLInterpreterPriv::ListStatInfo::newList(CAPLCommand caplCommand){
+void TCLInterpreterPriv::ListStatInfo::newList(Command command){
     if(lastListInfo){
-        if(!caplCommand.isEmpty())
-            lastListInfo->listInfos.append(ListInfo{{}, caplCommand});
+        if(!command.isEmpty())
+            lastListInfo->listInfos.append(ListInfo{{}, command});
 
         lastListInfo->listInfos.append(ListInfo{});
         lastListInfo = lastListInfo->listInfos.end() - 1;
     }else{
-        if(!caplCommand.isEmpty())
-            listInfos.append(ListInfo{{}, caplCommand});
+        if(!command.isEmpty())
+            listInfos.append(ListInfo{{}, command});
 
         listInfos.append(ListInfo{});
         lastListInfo = listInfos.end() - 1;
@@ -1861,10 +1861,10 @@ void TCLInterpreterPriv::ListStatInfo::newList(CAPLCommand caplCommand){
 }
 
 TCLInterpreterPriv::ListStatInfo::EndListResult
-TCLInterpreterPriv::ListStatInfo::endList(CAPLCommand caplCommand){
+TCLInterpreterPriv::ListStatInfo::endList(Command command){
     if(lastListInfo){
-        if(!caplCommand.isEmpty())
-            lastListInfo->listInfos.append(ListInfo{{}, caplCommand});
+        if(!command.isEmpty())
+            lastListInfo->listInfos.append(ListInfo{{}, command});
 
         ListInfos::Iterator prelastListInfo = listInfos.end() - 1;
         if(prelastListInfo == lastListInfo){
@@ -1875,8 +1875,8 @@ TCLInterpreterPriv::ListStatInfo::endList(CAPLCommand caplCommand){
             lastListInfo = prelastListInfo;
         }
     }else{
-        if(!caplCommand.isEmpty())
-            listInfos.append(ListInfo{{}, caplCommand});
+        if(!command.isEmpty())
+            listInfos.append(ListInfo{{}, command});
 
         return EndListResult::EndOfList;
     }
@@ -1938,7 +1938,7 @@ void Interpreter::addEmptyLine(){
             addExpressionToCodeBlock({" "});
             break;
         case Stat::List:
-            lastSavedStat().appendCAPLCommand("\n");
+            lastSavedStat().appendCommand("\n");
             break;
         default:
         {
@@ -2059,7 +2059,7 @@ QString TCLInterpreterPriv::SavedStat::listToCaplString(){
     if(info){
         str += info->toCaplListString();
     }else{
-        QStringList elements = _caplCommand.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+        QStringList elements = _command.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
         for(QStringList::Iterator element = elements.begin(); element < elements.end(); element++)
             *element = QString("\"") + *element + "\"";
         str += elements.join(", ");
@@ -2073,7 +2073,7 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
 
     switch(target){
     case Target::Command:
-        return caplCommand();
+        return command();
     case Target::SnprintfFormat:
     {
         // Temporary
@@ -2084,13 +2084,13 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
         case Stat::SpeechMark:
         case Stat::PendingString:
         case Stat::StringInQuotes:
-            return QString("\"") + caplCommand() + "\"";
+            return QString("\"") + command() + "\"";
         case Stat::EndOfCodeBlock:
-            return QString("{\n") + caplCommand() + "\n}\n";
+            return QString("{\n") + command() + "\n}\n";
         case Stat::EndOfList:
             return savedStat().listToCaplString();
         default:
-            return caplCommand();
+            return command();
         }*/
     }
     case Target::ProcedureParametersStat:
@@ -2105,13 +2105,13 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
         case Stat::SpeechMark:
         case Stat::PendingString:
         case Stat::StringInQuotes:
-            return QString("\"") + caplCommand() + "\"";
+            return QString("\"") + command() + "\"";
         case Stat::EndOfCodeBlock:
-            return QString("{") + caplCommand() + "}";
+            return QString("{") + command() + "}";
         case Stat::EndOfList:
             return savedStat().listToCaplString();
         default:
-            return caplCommand();
+            return command();
         }
     }
         break;
@@ -2121,13 +2121,13 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
         QString str;
         switch (stat()) {
         case Stat::Variable:
-            return QString("$") + caplCommand();
+            return QString("$") + command();
         case Stat::EndOfList:
             return QString("{") + savedStat().listToTclListString() + "}";
         case Stat::SpeechMark:
-            return caplCommand();
+            return command();
         case Stat::StringInQuotes:
-            return QString("\"") + caplCommand() + "\"";
+            return QString("\"") + command() + "\"";
         case Stat::FunctionCall:
         {
             str = QString("[");
@@ -2164,7 +2164,7 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
         }
             break;
         default:
-            return caplCommand();
+            return command();
         }
     }
         break;
@@ -2367,7 +2367,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         {
             if(not isWhitespaceOccured()){
                 /*if(moveArgumentToPendingSnprintf() == Error::Error or
-                        saveStatWithParsingControl({Stat::PendingString, unknownStringStat.caplCommand()}) == Error::Error)
+                        saveStatWithParsingControl({Stat::PendingString, unknownStringStat.command()}) == Error::Error)
                         return throwError(ERROR_PREFIX + error());
                 break;*/
                 return throwError(ERROR_PREFIX + "Impossible Case for Variable without whitespace");
@@ -2419,7 +2419,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         if(not lastSavedStat().isFunctionReady()){
             if(isWhitespaceOccured())
                 return throwError("Whitespace for Snprintf (SpeechMarks)");
-            /*if(Error::Error == saveStatWithParsingControl({Stat::PendingString, unknownStringStat.caplCommand()}))
+            /*if(Error::Error == saveStatWithParsingControl({Stat::PendingString, unknownStringStat.command()}))
                 return throwError(ERROR_PREFIX + error());*/
             return throwError(ERROR_PREFIX + "Impossible Case");
         }else{
@@ -2511,7 +2511,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
                     return throwError(ERROR_PREFIX + error());
             }
         }else{            
-            lastSavedStat().setCAPLCommand( lastSavedStat().caplCommand() + unknownString);
+            lastSavedStat().setCommand( lastSavedStat().command() + unknownString);
         }
     }
         break;
@@ -2534,21 +2534,21 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
            return throwError(ERROR_PREFIX + "Too little stats for GlobalAccess Stats");
         }
     }
-    // Sprawdz lastSavedStat().caplCommand().isEmpty() poprawnosc przejsc dla lastSavedStat().isFunctionReady() !!!!!!!!!!!!!!!!!
+    // Sprawdz lastSavedStat().command().isEmpty() poprawnosc przejsc dla lastSavedStat().isFunctionReady() !!!!!!!!!!!!!!!!!
     case Stat::VariableAccess:
     {
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace after VariableAccess");
         }
 
-        if(lastSavedStat().caplCommand().isEmpty()){
+        if(lastSavedStat().command().isEmpty()){
             if(isStringConstNumber(unknownString)){
                 // Const in Variable Access ???
                 return throwError(ERROR_PREFIX + "Const for VariableAccess");
             }else{  // String
                 lastSavedStat() = {Stat::Variable};    // _PH_
                 QString str = unknownString;
-                lastSavedStat().setCAPLCommand(str.replace(":", ""));
+                lastSavedStat().setCommand(str.replace(":", ""));
                 // Check if stat before variable is Snprintf
                 if(!isPrelastSavedStat())
                     return throwError(ERROR_PREFIX + "No prelast stat for VariableAccess processing");
@@ -2565,7 +2565,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
 
     case Stat::List:
     {
-        lastSavedStat().appendCAPLCommand(unknownString);
+        lastSavedStat().appendCommand(unknownString);
     }
         break;
 
@@ -2574,7 +2574,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace Stat after Speech Mark (Whitespace shoudnt be saved for speech marks processing)");
         }
-        lastSavedStat().appendCAPLCommand(unknownString);
+        lastSavedStat().appendCommand(unknownString);
     }
         break;
 
@@ -2678,7 +2678,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
     case Stat::List:
     {
         // For the list, interpret as a sign
-        lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
+        lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
 
     }
         break;
@@ -2845,7 +2845,7 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
             switch(prelastSavedStat().stat()){
             case Stat::Snprintf:
             {
-                lastSavedStat().appendCAPLCommand( "]");
+                lastSavedStat().appendCommand( "]");
                 return Error::NoError;
             }
                 break;
@@ -2858,10 +2858,10 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
                 break;
             case Stat::LeftSquareBracket:
             {
-                if(isStringConstNumber(lastSavedStat().caplCommand()))
+                if(isStringConstNumber(lastSavedStat().command()))
                     return throwError(ERROR_PREFIX + "Number used as procedure name");
                 prelastSavedStat() = {Stat::FunctionCall}; // _PH_
-                if(newProcedureCall(lastSavedStat().caplCommand()) == Error::Error)
+                if(newProcedureCall(lastSavedStat().command()) == Error::Error)
                     return throwError(ERROR_PREFIX + error());
                 if(removeLastSavedStatWithParsingControl() == Error::Error)
                     return throwError(ERROR_PREFIX + "");
@@ -2941,7 +2941,7 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
     case Stat::SpeechMark:
     case Stat::List:
     {
-        lastSavedStat().appendCAPLCommand( "]");
+        lastSavedStat().appendCommand( "]");
     }
         break;
     case Stat::Ignore:
@@ -3012,7 +3012,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }else{
-                lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + "{"};   // _PH_
+                lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + "{"};   // _PH_
                 break;
             }
         }
@@ -3073,7 +3073,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
                     Error::Error == saveStatWithParsingControl({Stat::List}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            lastSavedStat().appendCAPLCommand( "{");
+            lastSavedStat().appendCommand( "{");
         }
     }
         break;
@@ -3081,7 +3081,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
     {
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for speech mark or pending string processing");
-        lastSavedStat().appendCAPLCommand( "{");
+        lastSavedStat().appendCommand( "{");
     }
         break;
 
@@ -3342,13 +3342,13 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
             switch(prelastSavedStat().stat()){
             case Stat::VariableAccess:
             {
-                if(isStringConstNumber(lastSavedStat().caplCommand())){
+                if(isStringConstNumber(lastSavedStat().command())){
                     // Const in Variable Access ???
                     return throwError(ERROR_PREFIX + "Const for VariableAccess");
                 }else{  // String
-                    if(lastSavedStat().caplCommand().isEmpty())
+                    if(lastSavedStat().command().isEmpty())
                         return throwError(ERROR_PREFIX + "Empty variable name");
-                    QString str = lastSavedStat().caplCommand();
+                    QString str = lastSavedStat().command();
                     prelastSavedStat() = {Stat::Variable, str.replace(":", "")};    // _PH_
 
                     if(removeLastSavedStatWithParsingControl() == Error::Error)
@@ -3439,7 +3439,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
             return throwError(ERROR_PREFIX + "No prelast stat for pending string");
         switch(prelastSavedStat().stat()){
         case Stat::Snprintf:
-            lastSavedStat().appendCAPLCommand("}");
+            lastSavedStat().appendCommand("}");
             break;
         case Stat::PendingSnprintf:
         {
@@ -3521,7 +3521,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
         break;
     case Stat::SpeechMark:
     {
-        lastSavedStat().appendCAPLCommand("}");
+        lastSavedStat().appendCommand("}");
     }
         break;
     case Stat::Ignore:
@@ -3554,7 +3554,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
     case Stat::Const:
     {
         if(!isWhitespaceOccured()){
-            lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + "\""};    // _PH_
+            lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + "\""};    // _PH_
             break;
         }
     }
@@ -3675,7 +3675,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
                        finalizeSnprintfCall() == Error::Error)
                    return throwError(ERROR_PREFIX + error());
            }else{
-               lastSavedStat().appendCAPLCommand("\"");
+               lastSavedStat().appendCommand("\"");
            }
        }
     }
@@ -3696,7 +3696,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         break;
     case Stat::List:
     {
-        lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
+        lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
     }
         break;
     case Stat::Ignore:
@@ -3722,10 +3722,10 @@ Error Interpreter::interpret<Interpreter::Stat::Whitespace>(){
         switch(prelastSavedStat().stat()){
         case Stat::LeftSquareBracket:
         {
-            if(isStringConstNumber(lastSavedStat().caplCommand()))
+            if(isStringConstNumber(lastSavedStat().command()))
                 return throwError(ERROR_PREFIX + "Number used as procedure name");
             prelastSavedStat() = {Stat::FunctionCall}; // _PH_
-            if(newProcedureCall(lastSavedStat().caplCommand()) == Error::Error)
+            if(newProcedureCall(lastSavedStat().command()) == Error::Error)
                 return throwError(ERROR_PREFIX + error());
             if(removeLastSavedStatWithParsingControl() == Error::Error)
                 return throwError(ERROR_PREFIX + "");
@@ -3735,7 +3735,7 @@ Error Interpreter::interpret<Interpreter::Stat::Whitespace>(){
         }
             break;
         case Stat::Snprintf:
-            lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
+            lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
             break;
         case Stat::PendingSnprintf:
         {
@@ -3778,9 +3778,9 @@ Error Interpreter::interpret<Interpreter::Stat::Whitespace>(){
     case Stat::List:
     {
         if(pendingProccessingStats.isEmpty())
-            lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
+            lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
         else
-            lastSavedStat().appendCAPLCommand(" ");
+            lastSavedStat().appendCommand(" ");
 
     }
         Q_FALLTHROUGH();
@@ -3846,7 +3846,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "List with whitespace (Check Whitespace Stat interpret function)");
         }
-        lastSavedStat().appendCAPLCommand("$");
+        lastSavedStat().appendCommand("$");
     }
         break;
     case Stat::PendingString:
@@ -4050,7 +4050,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
         if(!isPrelastSavedStat())
             return throwError(ERROR_PREFIX + "No prelast stat for Pending String");
         if(prelastSavedStat().stat() == Stat::Snprintf){
-            lastSavedStat().appendCAPLCommand("::");
+            lastSavedStat().appendCommand("::");
             break;
         }
         if(isWhitespaceOccured()){
@@ -4058,7 +4058,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, "::"}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            lastSavedStat().appendCAPLCommand("::");
+            lastSavedStat().appendCommand("::");
         }
     }
         break;
@@ -4113,7 +4113,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "List or String or Snprintf with whitespace (Check Whitespace Stat interpret function)");
         }
-        lastSavedStat().appendCAPLCommand("::");
+        lastSavedStat().appendCommand("::");
     }
         break;
     case Stat::VariableAccess:
@@ -4185,7 +4185,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
                 return throwError(ERROR_PREFIX + "No prelast stat for Pending String");
             switch (prelastSavedStat().stat()) {
             case Stat::Snprintf:
-                lastSavedStat().appendCAPLCommand(";");
+                lastSavedStat().appendCommand(";");
                 return Error::NoError;
             case Stat::PendingSnprintf:
                 if(moveArgumentToPendingSnprintf() == Error::Error or
@@ -4255,7 +4255,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     {
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "List or String with whitespace (Check Whitespace Stat interpret function)");
-        lastSavedStat().appendCAPLCommand(";");
+        lastSavedStat().appendCommand(";");
     }
         break;
     case Stat::MainCodeBlock:
@@ -4290,7 +4290,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, "#"}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + "#"};    // _PH_
+            lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + "#"};    // _PH_
         }
     }
         break;
@@ -4373,7 +4373,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
     {
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for List (Should be controlled in Whitespace interpret function)");
-        lastSavedStat().appendCAPLCommand("#");
+        lastSavedStat().appendCommand("#");
     }
         break;
     case Stat::Snprintf:
@@ -4381,7 +4381,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         if(!lastSavedStat().isFunctionReady()){
             if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for List (Should be controlled in Whitespace interpret function)");
-            lastSavedStat().appendCAPLCommand("#");
+            lastSavedStat().appendCommand("#");
         }else{
             if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace for Snprintf (Close-quote Error)");
@@ -4411,7 +4411,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         switch (prelastSavedStat().stat()) {
         case Stat::Snprintf:
         case Stat::PendingSnprintf:
-            lastSavedStat().appendCAPLCommand("#");
+            lastSavedStat().appendCommand("#");
             break;
         case Stat::LeftSquareBracket:
         {
@@ -4424,7 +4424,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, "#"}))
                     return throwError(ERROR_PREFIX + error());
             }else{
-                lastSavedStat().appendCAPLCommand("#");
+                lastSavedStat().appendCommand("#");
             }
             break;
         }
@@ -4552,7 +4552,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
         break;
     case Stat::SpeechMark:
     case Stat::List:
-        lastSavedStat().appendCAPLCommand("\\n");
+        lastSavedStat().appendCommand("\\n");
         break;
     case Stat::MainCodeBlock:
     case Stat::CodeBlock:
@@ -4607,7 +4607,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
                     return throwError(ERROR_PREFIX + error());
             }else{
-                lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + textInterpreter.readLastKeyword()};  // _PH_
+                lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + textInterpreter.readLastKeyword()};  // _PH_
             }
         }
     }
@@ -4629,7 +4629,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No prelast stat for Variable");
             if(prelastSavedStat().stat() == Stat::PendingSnprintf){
-                lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + textInterpreter.readLastKeyword()};  // _PH_
+                lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + textInterpreter.readLastKeyword()};  // _PH_
                 break;
             }
             if(isWhitespaceOccured()){
@@ -4637,7 +4637,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
                     return throwError(ERROR_PREFIX + error());
             }else{
-                lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + textInterpreter.readLastKeyword()};  // _PH_
+                lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + textInterpreter.readLastKeyword()};  // _PH_
             }
         }
     }
@@ -4675,14 +4675,14 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                 break;
             case Stat::PendingSnprintf:
             {
-                lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
+                lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
             }
                 break;
             case Stat::Snprintf:
             {
                 if(isWhitespaceOccured())
                     return throwError(ERROR_PREFIX + "Whitespace for PendingString in Snprintf");
-                lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
+                lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
             }
                 break;
             default:
@@ -4692,7 +4692,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                             Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
                         return throwError(ERROR_PREFIX + error());
                 }else{
-                    lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
+                    lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
                 }
             }
             }
@@ -4776,7 +4776,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for String Processing");
 
-        lastSavedStat().appendCAPLCommand( textInterpreter.readLastKeyword());
+        lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
     }
         break;
     case Stat::PendingSnprintf:
@@ -4839,7 +4839,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
                     Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + "{"};    // _PH_
+            lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + "{"};    // _PH_
         }
     }
         break;
@@ -4878,7 +4878,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
         break;
     case Stat::List:
     case Stat::SpeechMark:
-        lastSavedStat().appendCAPLCommand( "{");
+        lastSavedStat().appendCommand( "{");
         break;
     case Stat::EndOfList:
     case Stat::EndOfCodeBlock:
@@ -4918,14 +4918,14 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
         {
             if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for Snprintf");
-            lastSavedStat().appendCAPLCommand( "{");
+            lastSavedStat().appendCommand( "{");
         }
             break;
         case Stat::PendingSnprintf:
         {
             if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for PendingString in PendingSnprintf");
-            lastSavedStat().appendCAPLCommand( "{");
+            lastSavedStat().appendCommand( "{");
         }
             break;
         default:
@@ -4935,7 +4935,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, "{"}))
                     return throwError(ERROR_PREFIX + error());
             }else{
-                lastSavedStat().appendCAPLCommand( "{");
+                lastSavedStat().appendCommand( "{");
             }
         }
         }
@@ -4984,7 +4984,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
                     Error::Error == saveStatWithParsingControl({Stat::Expression}))
                 return throwError(ERROR_PREFIX + error());
         }else{
-            //lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + "{"};    // _PH_
+            //lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + "{"};    // _PH_
             return throwError(ERROR_PREFIX + "No Whitespace after String or Const");
         }
     }
@@ -5024,7 +5024,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
         break;
     case Stat::List:
     case Stat::SpeechMark:
-        lastSavedStat().appendCAPLCommand( "{");
+        lastSavedStat().appendCommand( "{");
         break;
     case Stat::EndOfList:
     case Stat::EndOfCodeBlock:
@@ -5064,14 +5064,14 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
         {
             if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for Snprintf");
-            lastSavedStat().appendCAPLCommand( "{");
+            lastSavedStat().appendCommand( "{");
         }
             break;
         case Stat::PendingSnprintf:
         {
             if(isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "Whitespace for PendingString in PendingSnprintf");
-            lastSavedStat().appendCAPLCommand( "{");
+            lastSavedStat().appendCommand( "{");
         }
             break;
         default:
@@ -5081,7 +5081,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, "{"}))
                     return throwError(ERROR_PREFIX + error());
             }else{
-                lastSavedStat().appendCAPLCommand( "{");
+                lastSavedStat().appendCommand( "{");
             }
         }
         }
@@ -5274,7 +5274,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
                     return throwError(ERROR_PREFIX + error());
             }else{
-                lastSavedStat() = {Stat::PendingString, lastSavedStat().caplCommand() + specialSignStr};  // _PH_
+                lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + specialSignStr};  // _PH_
             }
         }
             break;
@@ -5319,7 +5319,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
         case Stat::List:
         case Stat::SpeechMark:
         {
-            lastSavedStat().appendCAPLCommand(specialSignStr);
+            lastSavedStat().appendCommand(specialSignStr);
         }
             break;
         case Stat::EndOfCodeBlock:
@@ -5354,7 +5354,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
                         Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
                     return throwError(ERROR_PREFIX + error());
             }else{
-                lastSavedStat().appendCAPLCommand(specialSignStr);
+                lastSavedStat().appendCommand(specialSignStr);
             }
         }
             break;
@@ -5650,7 +5650,7 @@ Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
                 nextArgument() == Error::Error or
                 onArgumentProcedureCheck() == Error::Error)
             return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
-        if(!parameter.caplCommand().isEmpty() and
+        if(!parameter.command().isEmpty() and
                 (procedureCalls.last().nextArgument(parameter),
                 onArgumentProcedureCheck() == Error::Error))
             return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
@@ -5782,7 +5782,7 @@ Error TCLInterpreter::finalizeProcedureCall(){
                 /*Preexpressions to Command */
                 ( addPreexpressionsToCodeBlock(),
                   snprintfController().clear(),
-                  addExpressionToCodeBlock({tempStat.caplCommand() + tclProceduresInterpreter.lastProcedureCall().tryToAddEndOfExpressionSign()}),
+                  addExpressionToCodeBlock({tempStat.command() + tclProceduresInterpreter.lastProcedureCall().tryToAddEndOfExpressionSign()}),
                  false) or
                 // Continue conditional expression
                 removeProcedureCall() == Error::Error)
@@ -5797,7 +5797,7 @@ Error TCLInterpreter::finalizeProcedureCall(){
                 /*Preexpressions to Command */
                 ( /*addPreexpressionsToCodeBlock(),
                   snprintfController().clear(),*/
-                  addExpressionToCodeBlock({tempStat.caplCommand()}) ,
+                  addExpressionToCodeBlock({tempStat.command()}) ,
                  false) or
                 // Continue conditional expression
                 removeProcedureCall() == Error::Error)
@@ -5812,7 +5812,7 @@ Error TCLInterpreter::finalizeProcedureCall(){
                 /*Preexpressions to Command */
                 (   addPreexpressionsToMainCodeBlock(),
                     snprintfController().clear(),
-                    addExpressionToMainCodeBlock({tempStat.caplCommand() + tclProceduresInterpreter.lastProcedureCall().tryToAddEndOfExpressionSign()}) ,
+                    addExpressionToMainCodeBlock({tempStat.command() + tclProceduresInterpreter.lastProcedureCall().tryToAddEndOfExpressionSign()}) ,
                  false) or
                 // Continue conditional expression
                 ( tclProceduresInterpreter.lastProcedureCall().clearMemory(),
@@ -5855,7 +5855,7 @@ Error TCLInterpreter::finalizeSnprintfCall(){
                 tclProceduresInterpreter.finalizeProcedureCall(tempStat) == Error::Error or
                 // Preexpressions to Command
                 (   addPreexpressionsToMainCodeBlock(),
-                    addExpressionToMainCodeBlock( tempStat.caplCommand()) ,
+                    addExpressionToMainCodeBlock( tempStat.command()) ,
                  false) or
                 // Continue conditional expression
                 removeProcedureCall() == Error::Error)
@@ -5869,7 +5869,7 @@ Error TCLInterpreter::finalizeSnprintfCall(){
                 tclProceduresInterpreter.finalizeProcedureCall(tempStat) == Error::Error or
                 //Preexpressions to Command
                 (   addPreexpressionsToCodeBlock(),
-                    addExpressionToCodeBlock(tempStat.caplCommand()) ,
+                    addExpressionToCodeBlock(tempStat.command()) ,
                  false) or
                 // Continue conditional expression
                 removeProcedureCall() == Error::Error)
@@ -6133,10 +6133,10 @@ QString TclProcedureInterpreter::toString(SavedStat &stat, ProcedureDefinition::
     {
         switch(stat.stat()){
         case Stat::String:
-            str = QString("\"") + stat.caplCommand() + QString("\"");
+            str = QString("\"") + stat.command() + QString("\"");
             break;
         case Stat::Const:
-            str = stat.caplCommand();
+            str = stat.command();
         default:
             break;
         }
@@ -6146,7 +6146,7 @@ QString TclProcedureInterpreter::toString(SavedStat &stat, ProcedureDefinition::
     {
         switch(stat.stat()){
         case Stat::String:
-            str = QString("\"") + stat.caplCommand() + QString("\"");
+            str = QString("\"") + stat.command() + QString("\"");
             break;
         default:
             break;
@@ -6231,7 +6231,7 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                                 dest += targetStr->at(index);
                                 break;*/
                             case Target::Command:
-                                dest += lastProcedureCall().parameters()[index].caplCommand();
+                                dest += lastProcedureCall().parameters()[index].command();
                                 break;
                             case Target::ProcedureParametersStat:
                                 dest += QString::number(
@@ -6781,7 +6781,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
     switch(procedureCalls.last().parameters().first().stat()){
     case Stat::String:
     case Stat::PendingString:
-        argumentsForParam1 = {procedureCalls.last().parameters().first().caplCommand()};
+        argumentsForParam1 = {procedureCalls.last().parameters().first().command()};
         break;
     case Stat::EndOfList:
     {
@@ -6790,7 +6790,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
             throwError(ERROR_PREFIX + "Not implemented Advanced List control for Argument 1");
             return;
         }
-        argumentsForParam1 = procedureCalls.last().parameters().first().savedStat().caplCommand().split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+        argumentsForParam1 = procedureCalls.last().parameters().first().savedStat().command().split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
 
     }
         break;
@@ -6812,7 +6812,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
     switch(procedureCalls.last().parameters().at(1).stat()){
     case Stat::Variable:
     {
-        argumentsForParam2 += procedureCalls.last().parameters()[1].savedStat().caplCommand();
+        argumentsForParam2 += procedureCalls.last().parameters()[1].savedStat().command();
         loopIteratorEndValue = QString("elcount(") + argumentsForParam2.last() + ")";
     }
         break;
@@ -6826,7 +6826,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
     case Stat::StringInQuotes:
     {
         variableType = VariableType::Long;
-        argumentsForParam2 = procedureCalls.last().parameters()[1].savedStat().caplCommand().split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+        argumentsForParam2 = procedureCalls.last().parameters()[1].savedStat().command().split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
         for(QStringList::Iterator arg2 = argumentsForParam2.begin();
             arg2 < argumentsForParam2.end() and variableType == VariableType::Long; arg2++){
             if(arg2->endsWith(",")){
@@ -6864,7 +6864,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
            }
         }else{
             variableType = VariableType::Long;
-            argumentsForParam2 = procedureCalls.last().parameters()[1].savedStat().caplCommand().split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+            argumentsForParam2 = procedureCalls.last().parameters()[1].savedStat().command().split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
             for(QStringList::Iterator arg2 = argumentsForParam2.begin();
                 arg2 < argumentsForParam2.end() and variableType == VariableType::Long; arg2++){
                 if(arg2->endsWith(",")){
@@ -7041,17 +7041,17 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                     switch(lastParameterRef->stat()){
                        case Stat::Const:    // If const that means const is float, check if its uinteger
                        {
-                            /*if(tclInterpreter.isStringUIntNumber(lastParameterRef->caplCommand())){ // If Uint
+                            /*if(tclInterpreter.isStringUIntNumber(lastParameterRef->command())){ // If Uint
                                 //type = UINT_TYPE;
                             }else{  // No Uint, Probably Integer*/
-                                if(tclInterpreter.isStringIntNumber(lastParameterRef->caplCommand())){  // Integer
+                                if(tclInterpreter.isStringIntNumber(lastParameterRef->command())){  // Integer
                                     type = INT_TYPE;
                                 }else{ // No Integer, for sure its Float
                                     type = FLOAT_TYPE;
                                 }
                             //}
                             // Stop Loop Clear ParameterRefs
-                            value = lastParameterRef->caplCommand();
+                            value = lastParameterRef->command();
                             parameterRefs.clear();
                        }
                         break;
@@ -7059,17 +7059,17 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                     case Stat::Variable:
                     {
                         Variable variable;
-                        if(tclInterpreter.predefinitionsControl().findVariable(variable, lastParameterRef->caplCommand()) or tclInterpreter.predefinitionsControl().findVariableGlobally(tclInterpreter.userConfig.predefinitions(), variable, lastParameterRef->caplCommand())){
+                        if(tclInterpreter.predefinitionsControl().findVariable(variable, lastParameterRef->command()) or tclInterpreter.predefinitionsControl().findVariableGlobally(tclInterpreter.userConfig.predefinitions(), variable, lastParameterRef->command())){
                             if(tclInterpreter.userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly or not variable.type.isEmpty()){
                                 type = variable.type;
-                                value = lastParameterRef->caplCommand();
+                                value = lastParameterRef->command();
                                 arrayRanks = variable.arrayRanks;
                             }
                         }else{
                             if(tclInterpreter.userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly){
                                 type = CHAR_TYPE;
                                 arrayRanks = {128};
-                                value = lastParameterRef->caplCommand();
+                                value = lastParameterRef->command();
                             }
                         }
                         parameterRefs.clear();
@@ -7080,7 +7080,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
-                        value = lastParameterRef->caplCommand();
+                        value = lastParameterRef->command();
                         parameterRefs.clear();
                     }
                         break;
@@ -7089,7 +7089,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
-                        value = lastParameterRef->caplCommand();
+                        value = lastParameterRef->command();
                         parameterRefs.clear();
                     }
                         break;
@@ -7098,7 +7098,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
-                        value = lastParameterRef->caplCommand();
+                        value = lastParameterRef->command();
                         parameterRefs.clear();
                     }
                         break;
@@ -7106,11 +7106,11 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                     case Stat::StringInQuotes:
                     case Stat::PendingString: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
                     {
-                        if(tclInterpreter.isStringConstNumber(lastParameterRef->caplCommand())){ // For any new string, check if its number
-                            /*if(tclInterpreter.isStringUIntNumber(lastParameterRef->caplCommand())){ // If Uint
+                        if(tclInterpreter.isStringConstNumber(lastParameterRef->command())){ // For any new string, check if its number
+                            /*if(tclInterpreter.isStringUIntNumber(lastParameterRef->command())){ // If Uint
                                 //type = UINT_TYPE;
                             }else{  // No Uint, Probably Integer*/
-                                if(tclInterpreter.isStringIntNumber(lastParameterRef->caplCommand())){  // Integer
+                                if(tclInterpreter.isStringIntNumber(lastParameterRef->command())){  // Integer
                                     type = INT_TYPE;
                                 }else{ // No Integer, for sure its Float
                                     type = FLOAT_TYPE;
@@ -7122,7 +7122,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                             arrayRanks = {128};
                         }
                         // Stop Loop Clear ParameterRefs
-                        value = lastParameterRef->caplCommand();
+                        value = lastParameterRef->command();
                         parameterRefs.clear();
                     }
                         break;
@@ -7132,7 +7132,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
-                        value = lastParameterRef->caplCommand();
+                        value = lastParameterRef->command();
                         parameterRefs.clear();
                     }
                         break;
@@ -7153,7 +7153,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                            {
                                 // For Expressions
                                 if(type.front() != FLOAT_TYPE.front()){ // Type other than FLOAT_TYPE
-                                    if(tclInterpreter.isStringIntNumber(rawParameter->caplCommand())){ // Int
+                                    if(tclInterpreter.isStringIntNumber(rawParameter->command())){ // Int
                                         type = INT_TYPE;
                                     }else{  // Parameter is Float
                                         type = FLOAT_TYPE;
@@ -7182,7 +7182,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                         {
                             type = CHAR_TYPE;
                             arrayRanks = {128};
-                            value = lastParameterRef->caplCommand();
+                            value = lastParameterRef->command();
                             parameterRefs.clear();
                         }
                             break;
@@ -7224,7 +7224,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
         throwError(ERROR_PREFIX + "Numb of arguments of procedure call is 0.");
         return;
     }
-    tclInterpreter.predefinitionsControl().newVariable(type, procedureCalls.last().parameters().first().caplCommand());
+    tclInterpreter.predefinitionsControl().newVariable(type, procedureCalls.last().parameters().first().command());
 
 }
 
