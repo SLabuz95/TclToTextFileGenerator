@@ -2239,8 +2239,6 @@ Error Interpreter::moveArgumentToFunctionCall(){
     default:
         return throwError(ERROR_DESCRIPTION + "No Function Call" );
     }
-    if(prelastSavedStat().isFunctionReady())
-        return throwError(ERROR_DESCRIPTION + "Ready Function Call" );
 
     return (tclProceduresInterpreter.nextArgument() == Error::Error or
                 tclProceduresInterpreter.onArgumentProcedureCheck() == Error::Error)
@@ -2947,7 +2945,6 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
     statCommand.setCommand(command);
     finalizeOn = false;
 
-    tclInterpreter.lastSavedStat().setFunctionReady();
     return Error::NoError;
 }
 
@@ -2955,7 +2952,6 @@ template<>
 Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(SavedStat &){
     finalizeOn = false;
 
-    tclInterpreter.lastSavedStat().setFunctionReady();
     return Error::NoError;
 
 }
@@ -2974,8 +2970,6 @@ Error TCLInterpreter::finalizeProcedureCall(){
         return throwError(ERROR_DESCRIPTION + " No stats");
     if(lastSavedStat().stat() != Stat::CommandSubbing)
         return throwError(ERROR_DESCRIPTION + "Wrong stat to finalize procedure.");
-    if(lastSavedStat().isFunctionReady())
-        return throwError(ERROR_DESCRIPTION + "Function call is already complete.");
     switch(prelastSavedStat().stat()){
     case Stat::Snprintf:
     case Stat::PendingSnprintf:
@@ -2984,7 +2978,6 @@ Error TCLInterpreter::finalizeProcedureCall(){
         if(tclProceduresInterpreter.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
                 removeProcedureCall() == Error::Error*/)
             return throwError(ERROR_DESCRIPTION + error());
-        lastSavedStat().setFunctionReady();
         if(prelastSavedStat().stat() == Stat::Snprintf){
             if(moveArgumentToSnprintf() == Error::Error)
                 return throwError(ERROR_DESCRIPTION + error());
@@ -3049,8 +3042,6 @@ Error TCLInterpreter::finalizeSnprintfCall(){
         return throwError(ERROR_DESCRIPTION + " No stats");
     if(not( lastSavedStat().stat() == Stat::Snprintf or lastSavedStat().stat() == Stat::PendingSnprintf))
         return throwError(ERROR_DESCRIPTION + "Wrong stat to finalize procedure.");
-    if(lastSavedStat().isFunctionReady())
-        return throwError(ERROR_DESCRIPTION + "Function call is already complete.");
     switch(prelastSavedStat().stat()){
     case Stat::Snprintf:
     case Stat::PendingSnprintf:

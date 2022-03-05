@@ -116,7 +116,6 @@ public:
     protected:
         ListStatInfo* info = nullptr;
         Command _command;
-        bool functionReady = false;
 
         void appendCommmand_listProcessing(Command command);
     public:
@@ -184,8 +183,6 @@ public:
         QString listToRawString(){return QString("{") + ((info)? info->toString("") : _command) + "}";}
         QString listToTclListString(){return ((info)? info->toString("") : _command);}
         inline bool isAdvancedList(){return info;}
-        inline void setFunctionReady(){functionReady = true;}
-        inline bool isFunctionReady(){return functionReady;}
 
     };
 
