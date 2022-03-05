@@ -14,36 +14,42 @@ public:
     enum class Error : bool{Error, NoError};
     using Preexpressions = QStringList;
 
+    // Stat flags:
+    // - Parent - parent can be saved in SavedStats stack
+    // - Child - child can be saved in another SavedStat
+    // - Processing - owns method for interpretation of event for that stat
+    // - Prodromic - expects the occurance of specific next event, can be saved in SavedStats stack
+
     enum class Stat : uint{
         None,
-        String,             // SAVEABLE
-        Const,              // SAVEABLE
-        Operator,           // SAVEABLE
-        Variable,           // SAVEABLE
-        UnknownString,
-        FunctionCall,       // SAVEABLE
-        LeftSquareBracket,   // [, SAVABLE
-        RightSquareBracket,  // ],
-        List,   // {    /// Everythink is a string // SAVEABLE
-        EndOfList,  // }    // SAVEABLE (For complete list)
-        SpeechMark, // "    // SAVEABLE
-        MainCodeBlock,  // SAVEABLE
-        Whitespace, // " " , "\t"   // SAVEABLE (Special Cases)
-        VariableAccess, // $ // SAVEABLE
-        GlobalAccess,   // :: // SAVEABLE
-        Semicolon, // ;
-        Comment,    // # Save to Pending Stats (if tclCommand ends with \)   // check   add EndOfString Stat to processing stats
-        EndOfString,    // Deinitialize saved stats
-        CodeBlock,  // SAVEABLE
-        EndOfCodeBlock,  // SAVEABLE
-        Snprintf,   // SAVEABLE For case of procedure call for speech mark processing -> procedure call [string concat ...]
-        SpecialSign,
-        PendingString,  // SAVEABLE
-        PendingSnprintf,    // SAVEABLE
-        StringInQuotes, // SAVEABLE
-        Ignore, // SAVEABLE
-        Expression, //SAVEABLE
-        EndOfExpression, // SAVEABLE
+        Word,             // {Child, Proccessing} //Old Name: String // For definition, Check Tcl concept in Github References
+        //Const,              // SAVEABLE   // Check const or string is only in special cases - const and string distinction do not change interpreter behaviour
+        //Operator,           // SAVEABLE // In Development
+        VariableSubbing,           // {Child}
+        //UnknownString, Word state substitute that state
+        CommandSubbing,       // {Parent, Child} //  Old name - FunctionCall
+        CommandSubbingStart,   // {Processing, Prodromic} [, SAVABLE
+        CommandSubbingEnd,  // {Processing} ],
+        Braces,   // {    /// {Parent, Child, Processing} Everything is a string // SAVEABLE
+        BracesEnd,  // } {Processing}   // SAVEABLE (For complete list)
+        DoubleQuotes, // "  {Parent, Child, Processing}  // SAVEABLE
+        MainScript,  // {Parent} SAVEABLE // Previous name: MainCodeBlock
+        Whitespace, // " " , "\t" {Parent, Processing}   // SAVEABLE (Special Cases)
+        VariableSubbingStart, // $ {Processing, Prodromic} // SAVEABLE
+        Namespace,   // :: {Processing} // SAVEABLE
+        Semicolon, // ; {Processing}
+        Comment,    // # {Processing} Save to Pending Stats (if tclCommand ends with \)   // check   add EndOfString Stat to processing stats
+        EndOfString,    // {Processing} Deinitialize saved stats
+        Script,  // {Parent, Child, Processing} SAVEABLE // Old Name: CodeBLock
+        //EndOfCodeBlock,  // SAVEABLE
+        //Snprintf,   //  SAVEABLE For case of procedure call for speech mark processing -> procedure call [string concat ...]
+        BackslashSubbing, // {Processing, Prodromic} // Old Name: SpecialSign
+        //PendingString,  // SAVEABLE
+        //PendingSnprintf,    // SAVEABLE
+        //StringInQuotes, // SAVEABLE
+        Ignore, // {Parent, Prodromic} SAVEABLE
+        Expression, // {Parent, Child} SAVEABLE
+        //EndOfExpression, // SAVEABLE
         Size
     };
 
@@ -355,7 +361,7 @@ private:
     SnprintfController _snprintfController;
     PredefinitionsControl _predefinitionsControl;
     Command command;
-    SavedStats _savedStats{{Stat::MainCodeBlock}};
+    SavedStats _savedStats{{Stat::MainScript}};
 
 protected:
     static QString _error;

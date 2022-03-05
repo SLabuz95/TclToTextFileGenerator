@@ -688,7 +688,6 @@ private:
         using Char = QChar;
         using Chars = QVector<Char>;
         using CharPosition = QString::const_iterator;
-        using TCLStat = TCLInterpreter::Stat;
 
         struct Keyword;
         using Keywords =  QVector<Keyword>;
@@ -714,7 +713,7 @@ private:
               Permitted
             };
             const QString keyword;
-            using Stats = QVector<TCLStat>;
+            using Stats = QVector<Stat>;
             const Stats stats;
             const UnknownStringRule unknownStringRule = UnknownStringRule::Permitted;
         };
@@ -746,7 +745,7 @@ private:
         // End of Concept Definition ||||||||||||||||||||||||||||||||||
         // Objects ----------------------------------------------------
         Keywords::ConstIterator lastKeyword;
-        const Keyword endOfStringKeyword = {"\n", {TCLStat::EndOfString}, Keyword::UnknownStringRule::Permitted};
+        const Keyword endOfStringKeyword = {"\n", {Stat::EndOfString}, Keyword::UnknownStringRule::Permitted};
 
         String savedStr; // Appended at end of String
         Chars ignoreReadUntilCondtions;

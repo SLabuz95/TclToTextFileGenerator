@@ -43,44 +43,44 @@ TclProcedureInterpreter::TCLProceduresInterpreter(TCLInterpreter& tclInterpreter
 
 KeywordsMap TextInterpreter::keywordsMap ={
     {
-        {"#", {TCLStat::Comment}},
-        {"{", {TCLStat::List}, Keyword::UnknownStringRule::Forbidden},
-        {"}", {TCLStat::EndOfList}},
-        {"[", {TCLStat::LeftSquareBracket}},
-        {"]", {TCLStat::RightSquareBracket}},
-        {"(", {TCLStat::Operator}},
-        {")", {TCLStat::Operator}},
-        {"+", {TCLStat::Operator}},
-        {"-", {TCLStat::Operator}},
-        {"*", {TCLStat::Operator}},
-        {"/", {TCLStat::Operator}},
-        {"%", {TCLStat::Operator}},
-        {">", {TCLStat::Operator}},
-        {"<", {TCLStat::Operator}},
-        {"!", {TCLStat::Operator}},
-        {"&", {TCLStat::Operator}},
-        {"|", {TCLStat::Operator}},
-        {"^", {TCLStat::Operator}},
-        {"?", {TCLStat::Operator}},
-        {":", {TCLStat::Operator}},
-        {" ", {TCLStat::Whitespace}},
-        {"\t", {TCLStat::Whitespace}},
-        {"$", {TCLStat::VariableAccess}},
-        {"\"", {TCLStat::SpeechMark}},
-        {";", {TCLStat::Semicolon}},
-        {"\\", {TCLStat::SpecialSign}}
+        {"#", {Stat::Comment}},
+        {"{", {Stat::Braces}, Keyword::UnknownStringRule::Forbidden},
+        {"}", {Stat::BracesEnd}},
+        {"[", {Stat::CommandSubbingStart}},
+        {"]", {Stat::CommandSubbingEnd}},
+        {"(", {Stat::Word}},
+        {")", {Stat::Word}},
+        {"+", {Stat::Word}},
+        {"-", {Stat::Word}},
+        {"*", {Stat::Word}},
+        {"/", {Stat::Word}},
+        {"%", {Stat::Word}},
+        {">", {Stat::Word}},
+        {"<", {Stat::Word}},
+        {"!", {Stat::Word}},
+        {"&", {Stat::Word}},
+        {"|", {Stat::Word}},
+        {"^", {Stat::Word}},
+        {"?", {Stat::Word}},
+        {":", {Stat::Word}},
+        {" ", {Stat::Whitespace}},
+        {"\t", {Stat::Whitespace}},
+        {"$", {Stat::VariableSubbingStart}},
+        {"\"", {Stat::DoubleQuotes}},
+        {";", {Stat::Semicolon}},
+        {"\\", {Stat::BackslashSubbing}}
 
     },
     {
-        {"::", {TCLStat::GlobalAccess}},
-        {"==", {TCLStat::Operator}},
-        {"!=", {TCLStat::Operator}},
-        {">=", {TCLStat::Operator}},
-        {"<=", {TCLStat::Operator}},
-        {"&&", {TCLStat::Operator}},
-        {"||", {TCLStat::Operator}},
-        {"<<", {TCLStat::Operator}},
-        {">>", {TCLStat::Operator}},
+        {"::", {Stat::Namespace}},
+        {"==", {Stat::Word}},
+        {"!=", {Stat::Word}},
+        {">=", {Stat::Word}},
+        {"<=", {Stat::Word}},
+        {"&&", {Stat::Word}},
+        {"||", {Stat::Word}},
+        {"<<", {Stat::Word}},
+        {">>", {Stat::Word}},
     },
 };
 
@@ -170,22 +170,21 @@ StartUpErrorBase::Message StartUpError<TextInterpreter>::__startupErrorChecking(
 //constexpr
 bool TCLInterpreter::checkInterpretFunctions(){
     constexpr Stat implementedStats[] = {
-        Stat::Operator,
-        Stat::UnknownString,
-        Stat::LeftSquareBracket,
-        Stat::RightSquareBracket,
-        Stat::List,
-        Stat::EndOfList,
-        Stat::SpeechMark,
+        Stat::Word,
+        Stat::CommandSubbingStart,
+        Stat::CommandSubbingEnd,
+        Stat::Braces,
+        Stat::BracesEnd,
+        Stat::DoubleQuotes,
         Stat::Whitespace,
-        Stat::VariableAccess,
-        Stat::GlobalAccess,
+        Stat::VariableSubbingStart,
+        Stat::Namespace,
         Stat::Semicolon,
         Stat::Comment,
         Stat::EndOfString,
-        //Stat::CodeBlock,
+        //Stat::Script,
         //Stat::EndOfCodeBlock,
-        Stat::SpecialSign,
+        Stat::BackslashSubbing,
         //Stat::Expression
     };
     static_assert (std::extent_v<decltype (implementedStats)> != 0, "No Implemented Stats");
@@ -503,7 +502,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {
                             ProcedureDefinition::Action::Conditional::IsLastSavedStat,
                             {
-                               QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfList))
+                               QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesEnd))
                            },
                         }
                     },
@@ -922,15 +921,17 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {
                             {
                              ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::List)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfList)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::FunctionCall)),
+                             {
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesEnd)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::SpecialSign)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Operator)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::FunctionCall)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingSnprintf)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingString))}
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BackslashSubbing)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Word)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing)),
+                                //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingSnprintf)),
+                                //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingString))
+                                }
                             },
                         }
                     },
@@ -995,13 +996,13 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {   // Conditions:  If SavedStat stat == List
                             {   // Condition 1:  If SavedStat stat == List
                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::List))}
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces))}
                             },
                         },
                         {
                            {    // Action 1: Change stat to CodeBlock
                                  ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock))}
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                            }
                         }
                     },
@@ -1009,13 +1010,13 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {   // Conditions:  If SavedStat stat == List
                             {   // Condition 1:  If SavedStat stat == List
                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
+                                {//QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Comment)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Ignore)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfString)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::SpecialSign)),}
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BackslashSubbing)),}
                             },
                         },
                         {
@@ -1069,7 +1070,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                     {
                         {
                           ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::List))}
+                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces))}
                         },
                         {
                             TclProcedureInterpreter::newCompareRule(
@@ -1087,7 +1088,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                     {
                        {    // Action 1: Change stat to CodeBlock
                              ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock))}
+                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                        }
                     }
                 },
@@ -1095,7 +1096,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                     {
                         {
                           ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::List))}
+                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces))}
                         },
                         {
                             TclProcedureInterpreter::newCompareRule(
@@ -1113,7 +1114,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                     {
                        {    // Action 1: Change stat to CodeBlock
                              ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock))}
+                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                        }
                     }
                 }
@@ -1262,7 +1263,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {   // Conditions:  If SavedStat stat == List
                             {   // Condition 1:  If SavedStat stat == List
                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::List))}
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces))}
                             },
                         },
                         {
@@ -1276,13 +1277,13 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {   // Conditions: Ignore
                             {   // Condition 1:  Ignore
                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
-                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
+                                {//QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
+                                 //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Comment)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Ignore)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::FunctionCall)),}
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing)),}
                             },
                         },
                         {
@@ -1335,18 +1336,19 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {
                             {
                              ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::List)),
-                              QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfList)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::FunctionCall)),
+                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces)),
+                              //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesEnd)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::SpecialSign)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Operator)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::FunctionCall)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingSnprintf)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingString)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BackslashSubbing)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Word)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing)),
+                                //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingSnprintf)),
+                               // QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingString)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfString)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),}
+                               // QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
+                                }
                             },
                         }
                     },
@@ -1401,7 +1403,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {   // Conditions:  If SavedStat stat == List
                             {   // Condition 1:  If SavedStat stat == List
                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::List))}
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces))}
                             },
                         },
                         {
@@ -1415,15 +1417,15 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {   // Conditions:  Ignore
                             {   // Condition 1:  Ignore
                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfList)),
-                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesEnd)),
+                                 //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Comment)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Ignore)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
+                                //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfString)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::SpecialSign))}
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BackslashSubbing))}
                             },
                         },
                         {
@@ -1476,13 +1478,13 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {   // Conditions:  If SavedStat stat == List
                             {   // Condition 1:  If SavedStat stat == List
                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::List))}
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces))}
                             },
                         },
                         {
                            {    // Action 1: Change stat to CodeBlock
                                  ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock))}
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                            }
                         }
                     },
@@ -1490,10 +1492,11 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         {   // Conditions:  Ignore
                             {   // Condition 1:  Ignore
                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
-                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
+                                {
+                                    //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
+                                // QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock)),
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Comment)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Ignore))}
                             },
@@ -1603,7 +1606,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                                 {
                                     Interpreter::cast_stat_str(Stat::String),
                                     Interpreter::cast_stat_str(Stat::PendingString),
-                                    Interpreter::cast_stat_str(Stat::EndOfList),
+                                    Interpreter::cast_stat_str(Stat::BracesEnd),
 
                                 },
                                 // Format to get string to compare
@@ -1645,12 +1648,12 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                                 // Strings to Compare
                                 {
                                     Interpreter::cast_stat_str(Stat::StringInQuotes),
-                                    Interpreter::cast_stat_str(Stat::EndOfList),
-                                    Interpreter::cast_stat_str(Stat::SpeechMark),
+                                    Interpreter::cast_stat_str(Stat::BracesEnd),
+                                    Interpreter::cast_stat_str(Stat::DoubleQuotes),
                                     Interpreter::cast_stat_str(Stat::PendingSnprintf),
                                     Interpreter::cast_stat_str(Stat::Variable),
                                     Interpreter::cast_stat_str(Stat::Snprintf),                                    
-                                    Interpreter::cast_stat_str(Stat::FunctionCall),
+                                    Interpreter::cast_stat_str(Stat::CommandSubbing),
                                 },
                                 // Format to get string to compare
                                 {
@@ -1686,13 +1689,13 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                          {   // Conditions:  If SavedStat stat == List
                              {   // Condition 1:  If SavedStat stat == List
                                  ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::List))}
+                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces))}
                              },
                          },
                          {
                             {    // Action 1: Change stat to CodeBlock
                                   ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
-                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock))}
+                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                             }
                          }
                      },
@@ -1703,7 +1706,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                                  {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
                                   QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
-                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CodeBlock)),
+                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script)),
                                  QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Comment)),
                                  QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Ignore))}
                              },
@@ -1931,13 +1934,13 @@ void Interpreter::addEmptyLine(){
             return;
         }
         switch(lastSavedStat().stat()){
-        case Stat::MainCodeBlock:
+        case Stat::MainScript:
             addExpressionToMainCodeBlock({" "});
             break;
-        case Stat::CodeBlock:
+        case Stat::Script:
             addExpressionToCodeBlock({" "});
             break;
-        case Stat::List:
+        case Stat::Braces:
             lastSavedStat().appendCommand("\n");
             break;
         default:
@@ -2081,13 +2084,13 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
         /*
         switch(stat()){
         case Stat::String:
-        case Stat::SpeechMark:
+        case Stat::DoubleQuotes:
         case Stat::PendingString:
         case Stat::StringInQuotes:
             return QString("\"") + command() + "\"";
         case Stat::EndOfCodeBlock:
             return QString("{\n") + command() + "\n}\n";
-        case Stat::EndOfList:
+        case Stat::BracesEnd:
             return savedStat().listToCaplString();
         default:
             return command();
@@ -2102,13 +2105,13 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
     {
         switch(stat()){
         case Stat::String:
-        case Stat::SpeechMark:
+        case Stat::DoubleQuotes:
         case Stat::PendingString:
         case Stat::StringInQuotes:
             return QString("\"") + command() + "\"";
         case Stat::EndOfCodeBlock:
             return QString("{") + command() + "}";
-        case Stat::EndOfList:
+        case Stat::BracesEnd:
             return savedStat().listToCaplString();
         default:
             return command();
@@ -2122,13 +2125,13 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
         switch (stat()) {
         case Stat::Variable:
             return QString("$") + command();
-        case Stat::EndOfList:
+        case Stat::BracesEnd:
             return QString("{") + savedStat().listToTclListString() + "}";
-        case Stat::SpeechMark:
+        case Stat::DoubleQuotes:
             return command();
         case Stat::StringInQuotes:
             return QString("\"") + command() + "\"";
-        case Stat::FunctionCall:
+        case Stat::CommandSubbing:
         {
             str = QString("[");
             for(Parameter parameter = rawParameterStats.begin(); parameter < rawParameterStats.end();  parameter++)
@@ -2183,10 +2186,10 @@ Error Interpreter::newProcedureCall(TclProcedureInterpreter::ProcedureCall::Name
         qDebug() << "proc";
 
     switch(lastSavedStat().stat()){
-    case Stat::LeftSquareBracket:
+    case Stat::CommandSubbingStart:
         // Do not add predefinitions group
         break;
-    case Stat::CodeBlock:
+    case Stat::Script:
         predefinitionsControl().newGroup(savedStatsSize());
         break;
     default:
@@ -2231,7 +2234,7 @@ Error Interpreter::moveArgumentToFunctionCall(){
     case Stat::PendingSnprintf:
         return throwError(ERROR_DESCRIPTION + "No Function Call (Snprintf or PendingSnprintf Found) " );
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
         break;
     default:
         return throwError(ERROR_DESCRIPTION + "No Function Call" );
@@ -2334,8 +2337,8 @@ void TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToU
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::UnknownString>: ";
+Error Interpreter::interpret<Interpreter::Stat::Word>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::Word>: ";
     //SavedStat unknownStringStat;
     // Preconditions
     if(isSavedStatsEmpty())
@@ -2348,7 +2351,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     // #1 ------------------------------------------------------------------
     switch(lastSavedStat().stat()){
     /*case Stat::Variable:*/
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     {
         if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace after List (Close-brackets Error)");
@@ -2383,7 +2386,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
                 return throwError(ERROR_PREFIX + "No Whitespace for String with Quotes (Close-Quotes error)");
         }
     }
-    case Stat::Operator:
+    case Stat::Word:
     {
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
@@ -2437,7 +2440,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         }
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(not lastSavedStat().isFunctionReady()){    // Pending Function Call -> Check variable type in unknown string
             if(isWhitespaceOccured()){
@@ -2472,22 +2475,22 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     }
         break;
 
-    case Stat::MainCodeBlock:   // Procedure Processing is Starting
-    case Stat::CodeBlock:
+    case Stat::MainScript:   // Procedure Processing is Starting
+    case Stat::Script:
     case Stat::Expression:
     {
         if(isStringConstNumber(unknownString))
             return throwError(ERROR_PREFIX + "Number used as procedure name");
         if(newProcedureCall(unknownString) == Error::Error or
-            saveStatWithParsingControl({Stat::FunctionCall}) == Error::Error )
+            saveStatWithParsingControl({Stat::CommandSubbing}) == Error::Error )
                        return throwError(ERROR_PREFIX + error());
     }
         break;
-    case Stat::LeftSquareBracket:
+    case Stat::CommandSubbingStart:
     {
         if(isStringConstNumber(unknownString))
             return throwError(ERROR_PREFIX + "Number used as procedure name");
-        lastSavedStat() = {Stat::FunctionCall}; // _PH_
+        lastSavedStat() = {Stat::CommandSubbing}; // _PH_
         if(newProcedureCall(unknownString) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
@@ -2498,7 +2501,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         if(isWhitespaceOccured()){
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No Prelast Stat");
-            if(prelastSavedStat().stat() == Stat::LeftSquareBracket)
+            if(prelastSavedStat().stat() == Stat::CommandSubbingStart)
                 return throwError(ERROR_PREFIX + "LeftSquareBracket before PendingString (Procedure Call Name)");
 
             if(moveArgumentToFunctionCall() == Error::Error)
@@ -2515,7 +2518,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         }
     }
         break;
-    case Stat::GlobalAccess:
+    case Stat::Namespace:
     {
         // At least 2 stats (size > 1) are required (Prevent QVector Error)
         // Prelast Stat must be VariableAccess
@@ -2523,10 +2526,10 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
             return throwError(ERROR_PREFIX + "Whitespace after GlobalAccess");
         }
         if(isPrelastSavedStat()){
-            if(prelastSavedStat().stat() != Stat::VariableAccess){
+            if(prelastSavedStat().stat() != Stat::VariableSubbingStart){
                 return throwError(ERROR_PREFIX + "GlobalAccess Stat (::) without Variable Access Stat ($)");
             }else{
-                // Safe Just Remove Global Access -> Pass To Stat::VariableAccess
+                // Safe Just Remove Global Access -> Pass To Stat::VariableSubbingStart
                 if(removeLastSavedStatWithParsingControl() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
             }
@@ -2535,7 +2538,7 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
         }
     }
     // Sprawdz lastSavedStat().command().isEmpty() poprawnosc przejsc dla lastSavedStat().isFunctionReady() !!!!!!!!!!!!!!!!!
-    case Stat::VariableAccess:
+    case Stat::VariableSubbingStart:
     {
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace after VariableAccess");
@@ -2563,13 +2566,13 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
     }
         break;
 
-    case Stat::List:
+    case Stat::Braces:
     {
         lastSavedStat().appendCommand(unknownString);
     }
         break;
 
-    case Stat::SpeechMark:  // Speech mark Processing
+    case Stat::DoubleQuotes:  // Speech mark Processing
     {
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace Stat after Speech Mark (Whitespace shoudnt be saved for speech marks processing)");
@@ -2607,8 +2610,8 @@ Error Interpreter::interpret<Interpreter::Stat::UnknownString>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::LeftSquareBracket>: ";
+Error Interpreter::interpret<Interpreter::Stat::CommandSubbingStart>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::CommandSubbingStart>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
@@ -2629,7 +2632,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
             if(moveArgumentToPendingSnprintf() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2639,22 +2642,22 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
         if(!isWhitespaceOccured()){
             if(moveArgumentToPendingSnprintf() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
-            if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+            if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
                 return throwError(ERROR_PREFIX + error());
             break;
         }
     }
 
-    case Stat::Operator:
+    case Stat::Word:
     {
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
 
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){
             // Find Other function call
@@ -2670,19 +2673,19 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
                     return throwError(ERROR_PREFIX + error());
             }
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
 
-    case Stat::List:
+    case Stat::Braces:
     {
         // For the list, interpret as a sign
         lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
 
     }
         break;
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     {
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
@@ -2690,7 +2693,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
         }else{
             return throwError(ERROR_PREFIX + "No whitespace after Complete List (Close-brackets Error)");
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2701,7 +2704,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
         }
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2720,7 +2723,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
                 return throwError("No Whitespace after Snprintf aka SpeechMark (Close-Quote Error)");
             }
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2736,7 +2739,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
                 return throwError("No Whitespace after Snprintf aka SpeechMark (Close-Quote Error) ?");
             }
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2756,7 +2759,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
                     return throwError(ERROR_PREFIX + error());
             }
                 break;
-            case Stat::LeftSquareBracket:
+            case Stat::CommandSubbingStart:
             {
                 return throwError(ERROR_PREFIX + "LeftSquareBracket before PendingString (Procedure Call Name)");
             }
@@ -2769,12 +2772,12 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
             }
         }
 
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
 
-    case Stat::SpeechMark:
+    case Stat::DoubleQuotes:
     {   // Procedure call in String
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for Speech Mark Processing");
@@ -2784,7 +2787,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
             return throwError(ERROR_PREFIX + error());
 
         // Add Left SquareBracket as usual
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2796,7 +2799,7 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
             return throwError("No whitespace after Complete CodeBlock (Close-bracket Error)");
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
-        if(Error::Error == saveStatWithParsingControl({Stat::LeftSquareBracket}))
+        if(Error::Error == saveStatWithParsingControl({Stat::CommandSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2809,8 +2812,8 @@ Error Interpreter::interpret<Interpreter::Stat::LeftSquareBracket>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::RightSquareBracket>: ";
+Error Interpreter::interpret<Interpreter::Stat::CommandSubbingEnd>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::CommandSubbingEnd>: ";
     bool ignoreMoveArgumentProcedure = false;
 
     if(isSavedStatsEmpty())
@@ -2856,11 +2859,11 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
                     return throwError(ERROR_PREFIX + error());
             }
                 break;
-            case Stat::LeftSquareBracket:
+            case Stat::CommandSubbingStart:
             {
                 if(isStringConstNumber(lastSavedStat().command()))
                     return throwError(ERROR_PREFIX + "Number used as procedure name");
-                prelastSavedStat() = {Stat::FunctionCall}; // _PH_
+                prelastSavedStat() = {Stat::CommandSubbing}; // _PH_
                 if(newProcedureCall(lastSavedStat().command()) == Error::Error)
                     return throwError(ERROR_PREFIX + error());
                 if(removeLastSavedStatWithParsingControl() == Error::Error)
@@ -2878,16 +2881,16 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
         case Stat::StringInQuotes:
         case Stat::EndOfCodeBlock:
         case Stat::EndOfExpression:
-        case Stat::EndOfList:
+        case Stat::BracesEnd:
         case Stat::Const:
         case Stat::String:
-        case Stat::Operator:
+        case Stat::Word:
         {
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }
     }
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){    // Pending Function Call -> Check variable type in unknown string
             if( finalizeProcedureCall() == Error::Error)
@@ -2938,8 +2941,8 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
         }
     }
         break;
-    case Stat::SpeechMark:
-    case Stat::List:
+    case Stat::DoubleQuotes:
+    case Stat::Braces:
     {
         lastSavedStat().appendCommand( "]");
     }
@@ -2954,13 +2957,13 @@ Error Interpreter::interpret<Interpreter::Stat::RightSquareBracket>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::List>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::List>: ";    
+Error Interpreter::interpret<Interpreter::Stat::Braces>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::Braces>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-    case Stat::Operator:    
+    case Stat::Word:
     case Stat::StringInQuotes:
     {
         if(!isWhitespaceOccured())
@@ -2994,7 +2997,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         }
     }
     if(false){
-        case Stat::EndOfList:
+        case Stat::BracesEnd:
         {
             if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
@@ -3018,19 +3021,19 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         }
     }
         Q_FALLTHROUGH();
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){
             if(!isWhitespaceOccured()){
                 return throwError(ERROR_PREFIX + "No whitespace for function call");
             }
-            if(Error::Error == saveStatWithParsingControl({Stat::List}))
+            if(Error::Error == saveStatWithParsingControl({Stat::Braces}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
-                if(Error::Error == saveStatWithParsingControl({Stat::List}))
+                if(Error::Error == saveStatWithParsingControl({Stat::Braces}))
                     return throwError(ERROR_PREFIX + error());
             }else{
                 if(moveArgumentToPendingSnprintf() == Error::Error)
@@ -3047,7 +3050,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
-            if(Error::Error == saveStatWithParsingControl({Stat::List}))
+            if(Error::Error == saveStatWithParsingControl({Stat::Braces}))
                 return throwError( ERROR_PREFIX + error());
         }else{
             if(moveArgumentToPendingSnprintf() == Error::Error)
@@ -3057,7 +3060,7 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
         }
     }
         break;
-    case Stat::List:
+    case Stat::Braces:
     {
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace for List stat");
@@ -3070,14 +3073,14 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
     {
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::List}))
+                    Error::Error == saveStatWithParsingControl({Stat::Braces}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             lastSavedStat().appendCommand( "{");
         }
     }
         break;
-    case Stat::SpeechMark:
+    case Stat::DoubleQuotes:
     {
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for speech mark or pending string processing");
@@ -3093,18 +3096,18 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
            if(!isWhitespaceOccured())
                return throwError(ERROR_PREFIX + "No Whitespace for complete PendingSprintf stat");
            if(moveArgumentToFunctionCall() == Error::Error or
-                   Error::Error == saveStatWithParsingControl({Stat::List, ""}))
+                   Error::Error == saveStatWithParsingControl({Stat::Braces, ""}))
                return throwError(ERROR_PREFIX + error());
        }
     }
         break;
     case Stat::Ignore:
         break;
-    case Stat::VariableAccess:
+    case Stat::VariableSubbingStart:
     {
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for VariableAccess stat");
-        if(Error::Error == saveStatWithParsingControl({Stat::List, ""}))
+        if(Error::Error == saveStatWithParsingControl({Stat::Braces, ""}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -3115,8 +3118,8 @@ Error Interpreter::interpret<Interpreter::Stat::List>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::EndOfList>: ";
+Error Interpreter::interpret<Interpreter::Stat::BracesEnd>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::BracesEnd>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
@@ -3126,7 +3129,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
         if(moveArgumentToFunctionCall() == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(not lastSavedStat().isFunctionReady()){
             if(!isPrelastSavedStat())
@@ -3139,7 +3142,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                 lastSavedStat().setStat( Stat::EndOfExpression);
             }
                 break;
-            case Stat::CodeBlock:
+            case Stat::Script:
             {
                 if(finalizeProcedureCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
@@ -3161,7 +3164,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                         return throwError(ERROR_PREFIX + error());
                     lastSavedStat().setStat( Stat::EndOfExpression);
                     break;
-                case Stat::CodeBlock:
+                case Stat::Script:
                     if(finalizeProcedureCall() == Error::Error)
                         return throwError(ERROR_PREFIX + error());
                     lastSavedStat().setStat( Stat::EndOfCodeBlock);
@@ -3181,13 +3184,13 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                     if(!isPrelastSavedStat())
                         return throwError(ERROR_PREFIX + "No prelast stat for Complete Function Call");
                     switch (prelastSavedStat().stat()) {
-                    case Stat::FunctionCall:
+                    case Stat::CommandSubbing:
                     {
                         if(moveArgumentToFunctionCall() == Error::Error or
                                 finalizeProcedureCall() == Error::Error)
                             return throwError(ERROR_PREFIX + error());
                         switch(lastSavedStat().stat()){
-                        case Stat::CodeBlock:
+                        case Stat::Script:
                             lastSavedStat().setStat( Stat::EndOfCodeBlock);
                             break;
                         case Stat::Expression:
@@ -3203,7 +3206,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                     }
                 }
                     break;
-                case Stat::FunctionCall:
+                case Stat::CommandSubbing:
                 {
                     if(moveArgumentToFunctionCall() == Error::Error)
                         return throwError(ERROR_PREFIX + error());
@@ -3217,7 +3220,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                         lastSavedStat().setStat( Stat::EndOfExpression);
                     }
                         break;
-                    case Stat::CodeBlock:
+                    case Stat::Script:
                     {
                         if(finalizeProcedureCall() == Error::Error)
                             return throwError(ERROR_PREFIX + error());
@@ -3252,7 +3255,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
             lastSavedStat().setStat( Stat::EndOfExpression);
         }
             break;
-        case Stat::CodeBlock:
+        case Stat::Script:
         {
             if(finalizeProcedureCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
@@ -3279,12 +3282,12 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No prelast stat for Complete Function Call");
             switch (prelastSavedStat().stat()) {
-            case Stat::FunctionCall:
+            case Stat::CommandSubbing:
                 if(moveArgumentToFunctionCall() == Error::Error or
                         finalizeProcedureCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
                 switch(lastSavedStat().stat()){
-                case Stat::CodeBlock:
+                case Stat::Script:
                     lastSavedStat().setStat( Stat::EndOfCodeBlock);
                     break;
                 case Stat::Expression:
@@ -3300,7 +3303,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
             }
         }
             break;
-        case Stat::FunctionCall:
+        case Stat::CommandSubbing:
         {
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
@@ -3314,7 +3317,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                 lastSavedStat().setStat( Stat::EndOfExpression);
             }
                 break;
-            case Stat::CodeBlock:
+            case Stat::Script:
             {
                 if(finalizeProcedureCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
@@ -3333,14 +3336,14 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
         }
     }
         break;
-    case Stat::List:
+    case Stat::Braces:
     {
         if(lastSavedStat().endList() == TCLInterpreterPriv::ListStatInfo::EndListResult::EndOfList)
         {
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No prelast stat for List stat");
             switch(prelastSavedStat().stat()){
-            case Stat::VariableAccess:
+            case Stat::VariableSubbingStart:
             {
                 if(isStringConstNumber(lastSavedStat().command())){
                     // Const in Variable Access ???
@@ -3364,12 +3367,12 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
             }
                 break;
             default:
-                lastSavedStat().setStat( Stat::EndOfList); // _PH_
+                lastSavedStat().setStat( Stat::BracesEnd); // _PH_
             }
         }
     }
         break;
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     case Stat::StringInQuotes:
     {
         if(moveArgumentToFunctionCall() == Error::Error)
@@ -3378,11 +3381,11 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
             return throwError(ERROR_PREFIX + "No prelast stat for EndOfList or QuotedString");
         switch (prelastSavedStat().stat()) {
         case Stat::Expression:
-        case Stat::CodeBlock:
+        case Stat::Script:
             if(finalizeProcedureCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
             switch(lastSavedStat().stat()){
-            case Stat::CodeBlock:
+            case Stat::Script:
                 lastSavedStat().setStat( Stat::EndOfCodeBlock);
                 break;
             case Stat::Expression:
@@ -3418,7 +3421,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                 lastSavedStat().setStat( Stat::EndOfExpression);
             }
                 break;
-            case Stat::CodeBlock:
+            case Stat::Script:
             {
                 if(finalizeProcedureCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
@@ -3449,7 +3452,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No prelast stat for pending string");
             switch(prelastSavedStat().stat()){
-            case Stat::FunctionCall:
+            case Stat::CommandSubbing:
             {
                 if(moveArgumentToFunctionCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
@@ -3457,12 +3460,12 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                     return throwError(ERROR_PREFIX + "No prelast stat for PendingString");
                 switch(prelastSavedStat().stat()){
                 case Stat::Expression:
-                case Stat::CodeBlock:
+                case Stat::Script:
                 {
                     if(finalizeProcedureCall() == Error::Error)
                         return throwError(ERROR_PREFIX + error());
                     switch(lastSavedStat().stat()){
-                    case Stat::CodeBlock:
+                    case Stat::Script:
                         lastSavedStat().setStat( Stat::EndOfCodeBlock);
                         break;
                     case Stat::Expression:
@@ -3484,7 +3487,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
             }
         }
             break;
-        case Stat::FunctionCall:
+        case Stat::CommandSubbing:
         {
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
@@ -3492,12 +3495,12 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
                 return throwError(ERROR_PREFIX + "No prelast stat for PendingString");
             switch(prelastSavedStat().stat()){
             case Stat::Expression:
-            case Stat::CodeBlock:
+            case Stat::Script:
             {
                 if(finalizeProcedureCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
                 switch(lastSavedStat().stat()){
-                case Stat::CodeBlock:
+                case Stat::Script:
                     lastSavedStat().setStat( Stat::EndOfCodeBlock);
                     break;
                 case Stat::Expression:
@@ -3519,7 +3522,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
         }
     }
         break;
-    case Stat::SpeechMark:
+    case Stat::DoubleQuotes:
     {
         lastSavedStat().appendCommand("}");
     }
@@ -3531,7 +3534,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
         lastSavedStat().setStat( Stat::EndOfExpression);
     }
         break;
-    case Stat::CodeBlock:
+    case Stat::Script:
     {
         lastSavedStat().setStat( Stat::EndOfCodeBlock);
     }
@@ -3543,8 +3546,8 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfList>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::SpeechMark>: ";
+Error Interpreter::interpret<Interpreter::Stat::DoubleQuotes>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::DoubleQuotes>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
@@ -3559,10 +3562,10 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         }
     }
         Q_FALLTHROUGH();
-    case Stat::Operator:
+    case Stat::Word:
     {
         if(moveArgumentToFunctionCall() == Error::Error or
-                Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+                Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -3570,7 +3573,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
     {
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+                    Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             if(moveArgumentToPendingSnprintf() == Error::Error or
@@ -3580,17 +3583,17 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         }
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){
             if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No Whitespace after function Call");
-            if(Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+            if(Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
                 return throwError( ERROR_PREFIX + error());
         }else{
             if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
-                        Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+                        Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
                     return throwError(ERROR_PREFIX + error());
             }else{
                 if(moveArgumentToPendingSnprintf() == Error::Error or
@@ -3600,11 +3603,11 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         }
     }
         break;
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     {
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+                    Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             return throwError(ERROR_PREFIX + "No Whitespace for EndOfList (Close-quote Error)");
@@ -3619,12 +3622,12 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
             return throwError(ERROR_PREFIX + "No Whitespace for Complete CodeBlock");
         }
         if(moveArgumentToFunctionCall() == Error::Error or
-                Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+                Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
 
-    case Stat::SpeechMark:
+    case Stat::DoubleQuotes:
     {
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "WhiteSpace for String Processing");
@@ -3636,7 +3639,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
     {
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+                    Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             return throwError(ERROR_PREFIX + "No whitespace after Quoted String(Close-quotes Error)");
@@ -3653,7 +3656,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
         }else{
             if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
-                        Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+                        Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
                     return throwError(ERROR_PREFIX + error());
             }else{
                 return throwError(ERROR_PREFIX + "No whitespace after Complete Snprintf or Quoted String(Close-quotes Error)");
@@ -3665,7 +3668,7 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
     {
        if(isWhitespaceOccured()){
            if(moveArgumentToFunctionCall() == Error::Error or
-                   Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+                   Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
                return throwError(ERROR_PREFIX + error());
        }else{
            if(!isPrelastSavedStat())
@@ -3689,12 +3692,12 @@ Error Interpreter::interpret<Interpreter::Stat::SpeechMark>(){
                 return throwError(ERROR_PREFIX + "No whitespace for PendingSnprintf");
             }
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::SpeechMark}))
+                    Error::Error == saveStatWithParsingControl({Stat::DoubleQuotes}))
                 return throwError(ERROR_PREFIX + error());
         }
     }
         break;
-    case Stat::List:
+    case Stat::Braces:
     {
         lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
     }
@@ -3720,11 +3723,11 @@ Error Interpreter::interpret<Interpreter::Stat::Whitespace>(){
         if(!isPrelastSavedStat())
             return throwError(ERROR_PREFIX + "No prelast stat for Function call stat");
         switch(prelastSavedStat().stat()){
-        case Stat::LeftSquareBracket:
+        case Stat::CommandSubbingStart:
         {
             if(isStringConstNumber(lastSavedStat().command()))
                 return throwError(ERROR_PREFIX + "Number used as procedure name");
-            prelastSavedStat() = {Stat::FunctionCall}; // _PH_
+            prelastSavedStat() = {Stat::CommandSubbing}; // _PH_
             if(newProcedureCall(lastSavedStat().command()) == Error::Error)
                 return throwError(ERROR_PREFIX + error());
             if(removeLastSavedStatWithParsingControl() == Error::Error)
@@ -3771,11 +3774,11 @@ Error Interpreter::interpret<Interpreter::Stat::Whitespace>(){
         }
     }
         break;
-    case Stat::VariableAccess:
-    case Stat::GlobalAccess:
+    case Stat::VariableSubbingStart:
+    case Stat::Namespace:
         return throwError(ERROR_PREFIX + "Whitespace after VariableAccess or GlobalAccess Stat");
-    case Stat::SpeechMark:
-    case Stat::List:
+    case Stat::DoubleQuotes:
+    case Stat::Braces:
     {
         if(pendingProccessingStats.isEmpty())
             lastSavedStat().appendCommand( textInterpreter.readLastKeyword());
@@ -3786,7 +3789,7 @@ Error Interpreter::interpret<Interpreter::Stat::Whitespace>(){
         Q_FALLTHROUGH();
     case Stat::Whitespace:
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
         if(lastSavedStat().isFunctionReady()){   // Complete only
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No prelast stat for Function call stat");
@@ -3834,14 +3837,14 @@ Error Interpreter::interpret<Interpreter::Stat::Whitespace>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
+Error Interpreter::interpret<Interpreter::Stat::VariableSubbingStart>(){
 
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::VariableAccess>: ";
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::VariableSubbingStart>: ";
      if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-    case Stat::List:
+    case Stat::Braces:
     {
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "List with whitespace (Check Whitespace Stat interpret function)");
@@ -3855,7 +3858,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
             return throwError(ERROR_PREFIX + "No prelast stat for Pending String");
         if(prelastSavedStat().stat() == Stat::Snprintf){
             if(moveArgumentToSnprintf() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+                    Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
                 return throwError(ERROR_PREFIX + error());
             break;
         }
@@ -3868,7 +3871,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
             if(moveArgumentToPendingSnprintf() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+        if(Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -3881,7 +3884,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
                 return throwError(ERROR_PREFIX + "Complete PendingSnprintf without whitespace");
             }
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+                    Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
                 return throwError(ERROR_PREFIX + error());
         }
     }
@@ -3890,7 +3893,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
     {
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+                    Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             return throwError(ERROR_PREFIX + "No whitespace after Quoted String (Close-quote Error");
@@ -3904,21 +3907,21 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
             return throwError(ERROR_PREFIX + "No whitespace after Complete CodeBlock");
         }
         if(moveArgumentToFunctionCall() == Error::Error or
-            Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+            Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     {
         if(!isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "No whitespace after Complete List (Close-bracket Error)");
         }
         if(moveArgumentToFunctionCall() == Error::Error or
-                Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+                Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
-    case Stat::SpeechMark:
+    case Stat::DoubleQuotes:
     {
         // VariableAccess in String
         if(isWhitespaceOccured())
@@ -3926,11 +3929,11 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
 
         // Change SpeechMark to Snprintf ->
         if(moveArgumentToSnprintf() == Error::Error or
-                Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+                Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
         if(!lastSavedStat().isFunctionReady()){
             if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace for Function Call or string or const");
@@ -3946,7 +3949,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
                         return throwError(ERROR_PREFIX + error());
                 }
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+        if(Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
             return throwError(ERROR_PREFIX + error());
 
         break;
@@ -3960,15 +3963,15 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
             if(moveArgumentToPendingSnprintf() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+        if(Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
-    case Stat::Operator:
+    case Stat::Word:
 
     {
         if(moveArgumentToFunctionCall() == Error::Error or
-                Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+                Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -3977,7 +3980,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "Whitespace for Snprintf -> Should be PendingString");
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::VariableAccess}))
+        if(Error::Error == saveStatWithParsingControl({Stat::VariableSubbingStart}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -3990,13 +3993,13 @@ Error Interpreter::interpret<Interpreter::Stat::VariableAccess>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::GlobalAccess>: ";
+Error Interpreter::interpret<Interpreter::Stat::Namespace>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::Namespace>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-    case Stat::Operator:
+    case Stat::Word:
     {
         if(moveArgumentToFunctionCall() == Error::Error or
                 Error::Error == saveStatWithParsingControl({Stat::PendingString, "::"}))
@@ -4016,7 +4019,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
                 return throwError(ERROR_PREFIX + error());
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){
             if(!isWhitespaceOccured())
@@ -4034,7 +4037,7 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
             return throwError( ERROR_PREFIX + error());
     }
         break;
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     {
@@ -4107,8 +4110,8 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
             break;
         }
     }
-    case Stat::SpeechMark:
-    case Stat::List:
+    case Stat::DoubleQuotes:
+    case Stat::Braces:
     {
         if(isWhitespaceOccured()){
             return throwError(ERROR_PREFIX + "List or String or Snprintf with whitespace (Check Whitespace Stat interpret function)");
@@ -4116,19 +4119,19 @@ Error Interpreter::interpret<Interpreter::Stat::GlobalAccess>(){
         lastSavedStat().appendCommand("::");
     }
         break;
-    case Stat::VariableAccess:
+    case Stat::VariableSubbingStart:
     {
         if(isWhitespaceOccured()){
             //savedStats.last() = {Stat::String, "$"};
             return throwError(ERROR_PREFIX + "Whitespace after VariableAccess stat (Possible but not implemented)");
         }
-        if(Error::Error == saveStatWithParsingControl({Stat::GlobalAccess}))
+        if(Error::Error == saveStatWithParsingControl({Stat::Namespace}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
     case Stat::Ignore:
         break;
-    case Stat::LeftSquareBracket:
+    case Stat::CommandSubbingStart:
     {
         if(Error::Error == saveStatWithParsingControl({Stat::PendingString, "::"}))
             return throwError(ERROR_PREFIX + error());
@@ -4192,7 +4195,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
                         finalizeSnprintfCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
                 break;
-            case Stat::LeftSquareBracket:
+            case Stat::CommandSubbingStart:
             {
                 return throwError(ERROR_PREFIX + "LeftSquareBracket before PendigString (Procedure Call Name)");
             }
@@ -4205,7 +4208,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     }
     /* MOVE TO String Processing
     if(false){
-        case Stat::EndOfList:
+        case Stat::BracesEnd:
         case Stat::EndOfCodeBlock:
         {
             if(!isWhitespaceOccured())
@@ -4221,7 +4224,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
                 return throwError(ERROR_PREFIX + "Whitespace for Complete PendingSnprintf");
         }
     }
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     case Stat::StringInQuotes:
@@ -4232,7 +4235,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
             return throwError(ERROR_PREFIX + error());
     }
 
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(lastSavedStat().isFunctionReady()){   // Complete
             if(!isPrelastSavedStat())
@@ -4250,16 +4253,16 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
     }
         break;
 
-    case Stat::SpeechMark:
-    case Stat::List:
+    case Stat::DoubleQuotes:
+    case Stat::Braces:
     {
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "List or String with whitespace (Check Whitespace Stat interpret function)");
         lastSavedStat().appendCommand(";");
     }
         break;
-    case Stat::MainCodeBlock:
-    case Stat::CodeBlock:
+    case Stat::MainScript:
+    case Stat::Script:
         // Ignore
         break;
 
@@ -4309,7 +4312,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
             return throwError( ERROR_PREFIX + error());
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){
             if(isWhitespaceOccured()){
@@ -4333,7 +4336,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         break;
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     {
         if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No whitespace for EndOfList or EndOfCodeBlock (Close-bracket Error)");
@@ -4342,7 +4345,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
             return throwError(ERROR_PREFIX + error());
     }
         break;
-    case Stat::CodeBlock:
+    case Stat::Script:
     {
         QString tempStr = textInterpreter.restOfString();
         addExpressionToCodeBlock({"//" + tempStr + "\n"});
@@ -4355,7 +4358,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         }
     }
         break;
-    case Stat::MainCodeBlock:
+    case Stat::MainScript:
     {
         QString tempStr = textInterpreter.restOfString();
         addExpressionToMainCodeBlock({"//" + tempStr + "\n"});
@@ -4368,8 +4371,8 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         }
     }
         break;
-    case Stat::List:
-    case Stat::SpeechMark:
+    case Stat::Braces:
+    case Stat::DoubleQuotes:
     {
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for List (Should be controlled in Whitespace interpret function)");
@@ -4413,7 +4416,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
         case Stat::PendingSnprintf:
             lastSavedStat().appendCommand("#");
             break;
-        case Stat::LeftSquareBracket:
+        case Stat::CommandSubbingStart:
         {
             return throwError(ERROR_PREFIX + "LeftSquareBracket before PendingString (Procedure Call Name)");
         }
@@ -4494,7 +4497,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
                         finalizeSnprintfCall() == Error::Error)
                     return throwError(ERROR_PREFIX + error());
                 break;
-            case Stat::LeftSquareBracket:
+            case Stat::CommandSubbingStart:
             {
                 return throwError(ERROR_PREFIX + "LeftSquareBracket before PendingString (Procedure Call Name)");
             }
@@ -4514,8 +4517,8 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
     case Stat::StringInQuotes:
     case Stat::String:
     case Stat::Const:
-    case Stat::Operator:
-    case Stat::EndOfList:
+    case Stat::Word:
+    case Stat::BracesEnd:
     case Stat::EndOfCodeBlock:
     case Stat::EndOfExpression:
     {
@@ -4523,7 +4526,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
             return throwError(ERROR_PREFIX + error());
     }    
 
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(lastSavedStat().isFunctionReady()){
             if(!isPrelastSavedStat())
@@ -4541,8 +4544,8 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
         if(isSavedStatsEmpty())
             return throwError(ERROR_PREFIX + "No stats for Function Call (Finalize functionCall)");
         switch(lastSavedStat().stat()){
-        case Stat::CodeBlock:
-        case Stat::MainCodeBlock:        
+        case Stat::Script:
+        case Stat::MainScript:
             break;
         default:
             return throwError(ERROR_PREFIX + "Unknown Stat for Function Call (Finalize functionCall)");
@@ -4550,17 +4553,17 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
         }
     }
         break;
-    case Stat::SpeechMark:
-    case Stat::List:
+    case Stat::DoubleQuotes:
+    case Stat::Braces:
         lastSavedStat().appendCommand("\\n");
         break;
-    case Stat::MainCodeBlock:
-    case Stat::CodeBlock:
+    case Stat::MainScript:
+    case Stat::Script:
     {
         addEmptyLine();
     }
         break;
-    case Stat::SpecialSign:
+    case Stat::BackslashSubbing:
     {
         if(removeLastSavedStatWithParsingControl() == Error::Error)
             return throwError(ERROR_PREFIX + error());
@@ -4587,19 +4590,19 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
 }
 
 template<>
-TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::Operator>: ";
+TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Word>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::Word>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
     case Stat::String:
     case Stat::Const:
-    case Stat::Operator:
+    case Stat::Word:
     {
         if(tclProceduresInterpreter.numberOfProcedureCalls() > 0 and ((tclProceduresInterpreter.lastProcedureName() == "expr_parser" or tclProceduresInterpreter.lastProcedureName() == "expr") or tclProceduresInterpreter.lastProcedureName() == "expr")){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
+                    Error::Error == saveStatWithParsingControl({Stat::Word, textInterpreter.readLastKeyword()}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             if(isWhitespaceOccured()){
@@ -4623,7 +4626,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                     return throwError(ERROR_PREFIX + error());
             }
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
+                    Error::Error == saveStatWithParsingControl({Stat::Word, textInterpreter.readLastKeyword()}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             if(!isPrelastSavedStat())
@@ -4648,7 +4651,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No prelast stat for Variable");
             switch(prelastSavedStat().stat()){
-            case Stat::LeftSquareBracket:
+            case Stat::CommandSubbingStart:
             {
                 return throwError(ERROR_PREFIX + "LeftSquareBracket before PendingString (Procedure Call Name)");
             }
@@ -4661,14 +4664,14 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
             }
             default:
                 if(moveArgumentToFunctionCall() == Error::Error or
-                        Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
+                        Error::Error == saveStatWithParsingControl({Stat::Word, textInterpreter.readLastKeyword()}))
                     return throwError(ERROR_PREFIX + error());
             }
         }else{
             if(!isPrelastSavedStat())
                 return throwError(ERROR_PREFIX + "No prelast stat for Variable");
             switch(prelastSavedStat().stat()){
-            case Stat::LeftSquareBracket:
+            case Stat::CommandSubbingStart:
             {
                 return throwError(ERROR_PREFIX + "LeftSquareBracket before PendingString (Procedure Call Name)");
             }
@@ -4713,7 +4716,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
             if(moveArgumentToFunctionCall() == Error::Error)
                 return throwError(ERROR_PREFIX + error());
             if(tclProceduresInterpreter.numberOfProcedureCalls() > 0 and (tclProceduresInterpreter.lastProcedureName() == "expr_parser" or tclProceduresInterpreter.lastProcedureName() == "expr")){
-                if(Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
+                if(Error::Error == saveStatWithParsingControl({Stat::Word, textInterpreter.readLastKeyword()}))
                     return throwError( ERROR_PREFIX + error());
             }else{
                 if(Error::Error == saveStatWithParsingControl({Stat::PendingString, textInterpreter.readLastKeyword()}))
@@ -4722,11 +4725,11 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
         }
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){
             if(tclProceduresInterpreter.numberOfProcedureCalls() > 0 and (tclProceduresInterpreter.lastProcedureName() == "expr_parser" or tclProceduresInterpreter.lastProcedureName() == "expr")){
-                if(Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
+                if(Error::Error == saveStatWithParsingControl({Stat::Word, textInterpreter.readLastKeyword()}))
                     return throwError(ERROR_PREFIX + error());
             }else{
                 if(isWhitespaceOccured()){
@@ -4746,7 +4749,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
                         return throwError(ERROR_PREFIX + error());
                 }
                 if(moveArgumentToFunctionCall() == Error::Error or
-                        Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
+                        Error::Error == saveStatWithParsingControl({Stat::Word, textInterpreter.readLastKeyword()}))
                     return throwError(ERROR_PREFIX + error());
             }else{
                 if(!isPrelastSavedStat())
@@ -4770,8 +4773,8 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
         }
     }
         break;
-    case Stat::SpeechMark:
-    case Stat::List:
+    case Stat::DoubleQuotes:
+    case Stat::Braces:
     {
         if(isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "Whitespace for String Processing");
@@ -4785,7 +4788,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
             return throwError(ERROR_PREFIX + "Incomplete Pending Snprintf ?");
         if(tclProceduresInterpreter.numberOfProcedureCalls() > 1 and tclProceduresInterpreter.prelastProcedureCall().name() == "expr_parser"){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
+                    Error::Error == saveStatWithParsingControl({Stat::Word, textInterpreter.readLastKeyword()}))
                 return throwError(ERROR_PREFIX + error());
         }else{
            if(!isWhitespaceOccured())
@@ -4800,7 +4803,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
     {
         if(tclProceduresInterpreter.numberOfProcedureCalls() > 0 and (tclProceduresInterpreter.lastProcedureName() == "expr_parser" or tclProceduresInterpreter.lastProcedureName() == "expr")){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::Operator, textInterpreter.readLastKeyword()}))
+                    Error::Error == saveStatWithParsingControl({Stat::Word, textInterpreter.readLastKeyword()}))
                 return throwError(ERROR_PREFIX + error());
         }else{
            if(!isWhitespaceOccured())
@@ -4813,7 +4816,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
         break;
     case Stat::Ignore:
         break;
-    case Stat::GlobalAccess:
+    case Stat::Namespace:
     {
         lastSavedStat() = {Stat::PendingString, "::" + textInterpreter.readLastKeyword()};
     }
@@ -4825,8 +4828,8 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::Operator>(){
 }
 /*
 template<>
-TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::CodeBlock>: ";
+TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Script>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::Script>: ";
      if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
@@ -4836,24 +4839,24 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
     {
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+                    Error::Error == saveStatWithParsingControl({Stat::Script}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             lastSavedStat() = {Stat::PendingString, lastSavedStat().command() + "{"};    // _PH_
         }
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){
             if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace after incomplete Function call");
-            if(Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+            if(Error::Error == saveStatWithParsingControl({Stat::Script}))
                 return throwError( ERROR_PREFIX + error());
         }else{
             if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
-                        Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+                        Error::Error == saveStatWithParsingControl({Stat::Script}))
                     return throwError(ERROR_PREFIX + error());
             }else{
                 if(moveArgumentToPendingSnprintf() == Error::Error or
@@ -4867,7 +4870,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
     {
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+                    Error::Error == saveStatWithParsingControl({Stat::Script}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             if(moveArgumentToPendingSnprintf() == Error::Error or
@@ -4876,11 +4879,11 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
         }
     }
         break;
-    case Stat::List:
-    case Stat::SpeechMark:
+    case Stat::Braces:
+    case Stat::DoubleQuotes:
         lastSavedStat().appendCommand( "{");
         break;
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     case Stat::EndOfCodeBlock:
     {
         if(isWhitespaceOccured()){
@@ -4909,7 +4912,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
         if(!isPrelastSavedStat())
             return throwError(ERROR_PREFIX + "No prelast stat for Variable");
         switch(prelastSavedStat().stat()){
-        case Stat::LeftSquareBracket:
+        case Stat::CommandSubbingStart:
         {
             return throwError(ERROR_PREFIX + "LeftSquareBracket before PendingString (Procedure Call Name)");
         }
@@ -4948,7 +4951,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
         if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Complete PendingSnprintf");
         if(moveArgumentToFunctionCall() == Error::Error or
-                Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+                Error::Error == saveStatWithParsingControl({Stat::Script}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -4957,7 +4960,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::CodeBlock>
         if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Quoted String (Close-quote Error)");
         if(moveArgumentToFunctionCall() == Error::Error or
-                Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+                Error::Error == saveStatWithParsingControl({Stat::Script}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -4989,17 +4992,17 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
         }
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){
             if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace after incomplete Function call");
-            if(Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+            if(Error::Error == saveStatWithParsingControl({Stat::Script}))
                 return throwError( ERROR_PREFIX + error());
         }else{
             if(isWhitespaceOccured()){
                 if(moveArgumentToFunctionCall() == Error::Error or
-                        Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+                        Error::Error == saveStatWithParsingControl({Stat::Script}))
                     return throwError(ERROR_PREFIX + error());
             }else{
                 if(moveArgumentToPendingSnprintf() == Error::Error or
@@ -5013,7 +5016,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
     {
         if(isWhitespaceOccured()){
             if(moveArgumentToFunctionCall() == Error::Error or
-                    Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+                    Error::Error == saveStatWithParsingControl({Stat::Script}))
                 return throwError(ERROR_PREFIX + error());
         }else{
             if(moveArgumentToPendingSnprintf() == Error::Error or
@@ -5022,11 +5025,11 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
         }
     }
         break;
-    case Stat::List:
-    case Stat::SpeechMark:
+    case Stat::Braces:
+    case Stat::DoubleQuotes:
         lastSavedStat().appendCommand( "{");
         break;
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     case Stat::EndOfCodeBlock:
     {
         if(isWhitespaceOccured()){
@@ -5055,7 +5058,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
         if(!isPrelastSavedStat())
             return throwError(ERROR_PREFIX + "No prelast stat for Variable");
         switch(prelastSavedStat().stat()){
-        case Stat::LeftSquareBracket:
+        case Stat::CommandSubbingStart:
         {
             return throwError(ERROR_PREFIX + "LeftSquareBracket before PendingString (Procedure Call Name)");
         }
@@ -5094,7 +5097,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
         if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Complete PendingSnprintf");
         if(moveArgumentToFunctionCall() == Error::Error or
-                Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+                Error::Error == saveStatWithParsingControl({Stat::Script}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -5103,7 +5106,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<TCLInterpreter::Stat::Expression
         if(!isWhitespaceOccured())
             return throwError(ERROR_PREFIX + "No Whitespace for Quoted String (Close-quote Error)");
         if(moveArgumentToFunctionCall() == Error::Error or
-                Error::Error == saveStatWithParsingControl({Stat::CodeBlock}))
+                Error::Error == saveStatWithParsingControl({Stat::Script}))
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -5127,7 +5130,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::EndOfCodeBloc
         if(!isPrelastSavedStat())
             return throwError(ERROR_PREFIX + "No prelast stat for Variable");
         switch(prelastSavedStat().stat()){
-        case Stat::LeftSquareBracket:
+        case Stat::CommandSubbingStart:
         {
             return throwError(ERROR_PREFIX + "LeftSquareBracket before PendingString (Procedure Call Name)");
         }
@@ -5144,7 +5147,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::EndOfCodeBloc
         }
     }
     case Stat::String:
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     case Stat::EndOfCodeBlock:
     case Stat::StringInQuotes:
     {
@@ -5173,7 +5176,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::EndOfCodeBloc
         }
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(!lastSavedStat().isFunctionReady()){
             if(finalizeProcedureCall() == Error::Error)
@@ -5223,15 +5226,15 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::EndOfCodeBloc
 
     if(!isPrelastSavedStat())
         return throwError("No prelast stat for CodeBlock Control");
-    if(prelastSavedStat().stat() != Stat::CodeBlock)
+    if(prelastSavedStat().stat() != Stat::Script)
         return throwError(ERROR_PREFIX + "Cant end CodeBlock (wrong prestat)");
     lastSavedStat().setStat( Stat::EndOfCodeBlock);    // _PH_
     return Error::NoError;
 }
 */
 template<>
-TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(){
-    const QString ERROR_PREFIX = "TCL Interpreter <Stat::SpecialSign>: ";
+TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::BackslashSubbing>(){
+    const QString ERROR_PREFIX = "TCL Interpreter <Stat::BackslashSubbing>: ";
     QString specialSignStr;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
@@ -5278,7 +5281,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
             }
         }
             break;
-        case Stat::Operator:
+        case Stat::Word:
         {
             if(moveArgumentToFunctionCall() == Error::Error or
                     Error::Error == saveStatWithParsingControl({Stat::PendingString, specialSignStr}))
@@ -5298,7 +5301,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
                 return throwError( ERROR_PREFIX + error());
         }
             break;
-        case Stat::FunctionCall:
+        case Stat::CommandSubbing:
         {
             if(!lastSavedStat().isFunctionReady()){
                 if(!isWhitespaceOccured())
@@ -5316,15 +5319,15 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
                 return throwError(ERROR_PREFIX + error());
         }
             break;
-        case Stat::List:
-        case Stat::SpeechMark:
+        case Stat::Braces:
+        case Stat::DoubleQuotes:
         {
             lastSavedStat().appendCommand(specialSignStr);
         }
             break;
         case Stat::EndOfCodeBlock:
         case Stat::EndOfExpression:
-        case Stat::EndOfList:
+        case Stat::BracesEnd:
         {
             if(!isWhitespaceOccured())
                 return throwError(ERROR_PREFIX + "No whitespace for EndOfExpression or EndOfList or EndOfCodeBlock (Close-bracket Error)");
@@ -5386,7 +5389,7 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
             return throwError(ERROR_PREFIX + "Unknown Stat ");
         }
     }else{
-        if(Error::Error == saveStatWithParsingControl({Stat::SpecialSign}))
+        if(Error::Error == saveStatWithParsingControl({Stat::BackslashSubbing}))
             return throwError(ERROR_PREFIX + error());
     }
 
@@ -5395,30 +5398,30 @@ TCLInterpreter::Error TCLInterpreter::interpret<Interpreter::Stat::SpecialSign>(
 
 TCLInterpreterFunctions TCLInterpreter::interpretFunctions = {
     nullptr,    // None
-    nullptr,    // String
-    nullptr,    // Const
-    &TCLInterpreter::interpret<Stat::Operator>,    // Operator
-    nullptr,    // Variable
-    &TCLInterpreter::interpret<Stat::UnknownString>,
-    nullptr,    // FunctionCall
-    &TCLInterpreter::interpret<Stat::LeftSquareBracket>,
-    &TCLInterpreter::interpret<Stat::RightSquareBracket>,
-    &TCLInterpreter::interpret<Stat::List>,
-    &TCLInterpreter::interpret<Stat::EndOfList>,
-    &TCLInterpreter::interpret<Stat::SpeechMark>,
-    nullptr,    // MainCodeBlock
+    &TCLInterpreter::interpret<Stat::Word>,    // Word
+    //nullptr,    // Const
+    //&TCLInterpreter::interpret<Stat::Word>,    // Operator
+    nullptr,    // VariableSubbing
+    //nullptr, // UnknownString
+    nullptr,    // CommandSubbing
+    &TCLInterpreter::interpret<Stat::CommandSubbingStart>,
+    &TCLInterpreter::interpret<Stat::CommandSubbingEnd>,
+    &TCLInterpreter::interpret<Stat::Braces>,
+    &TCLInterpreter::interpret<Stat::BracesEnd>,
+    &TCLInterpreter::interpret<Stat::DoubleQuotes>,
+    nullptr,    // MainScript
     &TCLInterpreter::interpret<Stat::Whitespace>,
-    &TCLInterpreter::interpret<Stat::VariableAccess>,
-    &TCLInterpreter::interpret<Stat::GlobalAccess>,
+    &TCLInterpreter::interpret<Stat::VariableSubbingStart>,
+    &TCLInterpreter::interpret<Stat::Namespace>,
     &TCLInterpreter::interpret<Stat::Semicolon>,
     &TCLInterpreter::interpret<Stat::Comment>,
     &TCLInterpreter::interpret<Stat::EndOfString>,
-    nullptr,// &TCLInterpreter::interpret<Stat::CodeBlock>,    // CodeBlock
-    nullptr, //&TCLInterpreter::interpret<Stat::EndOfCodeBlock>,     // EndOfCodeBlock
-    nullptr,    // Snprintf
-    &TCLInterpreter::interpret<Stat::SpecialSign>,
-    nullptr,    // PendingString
-    nullptr,    // StringInQuotes
+    nullptr,// &TCLInterpreter::interpret<Stat::Script>,    // Script
+    //nullptr, //&TCLInterpreter::interpret<Stat::EndOfCodeBlock>,     // EndOfCodeBlock
+   // nullptr,    // Snprintf
+    &TCLInterpreter::interpret<Stat::BackslashSubbing>, // BackslashSubbing
+    //nullptr,    // PendingString
+    //nullptr,    // StringInQuotes
     nullptr,    // Ignore
     nullptr, //&TCLInterpreter::interpret<Stat::Expression>,
 
@@ -5589,7 +5592,7 @@ Error TclProcedureInterpreter::nextArgument()
 {
     using Parameter = ProcedureCall::Parameter;
     switch(tclInterpreter.lastSavedStat().stat()){
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     case Stat::PendingSnprintf:
     case Stat::Snprintf:
     {
@@ -5627,7 +5630,7 @@ Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
     {
         return throwError(ERROR_DESCRIPTION + "Snprintf as argument for Snprintf");
     }
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         ProcedureCall procedureCall = procedureCalls.takeLast();
         Parameter parameter(tclInterpreter.takeLastSavedStat(), procedureCall);
@@ -5755,14 +5758,14 @@ Error TCLInterpreter::finalizeProcedureCall(){
     const QString END_OF_EXPRESSION_SIGN = ";\n";
     if(!isPrelastSavedStat())
         return throwError(ERROR_DESCRIPTION + " No stats");
-    if(lastSavedStat().stat() != Stat::FunctionCall)
+    if(lastSavedStat().stat() != Stat::CommandSubbing)
         return throwError(ERROR_DESCRIPTION + "Wrong stat to finalize procedure.");
     if(lastSavedStat().isFunctionReady())
         return throwError(ERROR_DESCRIPTION + "Function call is already complete.");
     switch(prelastSavedStat().stat()){
     case Stat::Snprintf:
     case Stat::PendingSnprintf:
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(tclProceduresInterpreter.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
                 removeProcedureCall() == Error::Error*/)
@@ -5774,7 +5777,7 @@ Error TCLInterpreter::finalizeProcedureCall(){
         }
     }
         break;
-    case Stat::CodeBlock:
+    case Stat::Script:
     {
         SavedStat tempStat;
         if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
@@ -5804,7 +5807,7 @@ Error TCLInterpreter::finalizeProcedureCall(){
             return throwError(ERROR_DESCRIPTION + error());
     }
         break;
-    case Stat::MainCodeBlock:
+    case Stat::MainScript:
     {
         SavedStat tempStat;
         if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
@@ -5841,14 +5844,14 @@ Error TCLInterpreter::finalizeSnprintfCall(){
         return throwError(ERROR_DESCRIPTION + "Snprintf should not call other Snprintf");
     }
         break;
-    case Stat::FunctionCall:
+    case Stat::CommandSubbing:
     {
         if(tclProceduresInterpreter.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
                 removeProcedureCall() == Error::Error*/)
             return throwError(ERROR_DESCRIPTION + error());
     }
         break;
-    /*case Stat::MainCodeBlock:
+    /*case Stat::MainScript:
     {
         SavedStat tempStat;
         if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
@@ -5862,7 +5865,7 @@ Error TCLInterpreter::finalizeSnprintfCall(){
             return throwError(ERROR_DESCRIPTION + error());
     }
         break;
-    case Stat::CodeBlock:
+    case Stat::Script:
     {
         SavedStat tempStat;
         if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
@@ -6068,11 +6071,11 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
 Error Interpreter::processSavedStatsForError(){
     while(!isSavedStatsEmpty()){
         switch(lastSavedStat().stat()){
-        case Stat::CodeBlock:
-        case Stat::MainCodeBlock:
+        case Stat::Script:
+        case Stat::MainScript:
             saveStat({Stat::Ignore});
             return Error::NoError;
-        case Stat::FunctionCall:
+        case Stat::CommandSubbing:
         case Stat::Snprintf:
         case Stat::PendingSnprintf:
             if(removeProcedureCall() == Error::Error)
@@ -6677,7 +6680,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
 
     // IMPORTANT - You cant change FunctionCall, Snprintf or PendingSnprintf stat
     switch(tclInterpreter.lastSavedStat().stat()){
-        case Stat::FunctionCall:
+        case Stat::CommandSubbing:
         case Stat::Snprintf:
         case Stat::PendingSnprintf:
         {
@@ -6783,7 +6786,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
     case Stat::PendingString:
         argumentsForParam1 = {procedureCalls.last().parameters().first().command()};
         break;
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     {
         if(procedureCalls.last().parameters().first().savedStat().isAdvancedList())
         {
@@ -6845,7 +6848,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
         }
     }
         break;
-    case Stat::EndOfList:
+    case Stat::BracesEnd:
     {
         if(procedureCalls.last().parameters()[1].savedStat().isAdvancedList())
         {
@@ -7076,7 +7079,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                     }
                         break;
 
-                    case Stat::FunctionCall:
+                    case Stat::CommandSubbing:
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
@@ -7085,7 +7088,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                     }
                         break;
 
-                    case Stat::EndOfList:
+                    case Stat::BracesEnd:
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
@@ -7102,7 +7105,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                         parameterRefs.clear();
                     }
                         break;
-                    case Stat::SpeechMark:
+                    case Stat::DoubleQuotes:
                     case Stat::StringInQuotes:
                     case Stat::PendingString: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
                     {
@@ -7167,13 +7170,13 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                         }
                             break;
 
-                        case Stat::FunctionCall:
+                        case Stat::CommandSubbing:
                         {
 
                         }
                             break;
 
-                        case Stat::EndOfList:
+                        case Stat::BracesEnd:
                         {
 
                         }
@@ -7186,7 +7189,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
                             parameterRefs.clear();
                         }
                             break;
-                        case Stat::SpeechMark:
+                        case Stat::DoubleQuotes:
                         case Stat::StringInQuotes:
                         case Stat::PendingString: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
                         {
