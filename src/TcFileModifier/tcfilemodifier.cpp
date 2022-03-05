@@ -2457,7 +2457,7 @@ void FSD_ByLine_TcFileModifierData::Data::writeTCInfo(FSD_ByLine_TcFileModifierD
     "//  /*version   */  \"" + tcData.version + "\",\n"
     "//  /*author    */  \"" + tcData.author + "\"\n"
     "//  );\n\n ";
-        dataModel.write(tcInfo + tclToCaplInterpreter_.readCaplCommand() + "\n}\n\n");
+        dataModel.write(tcInfo + tclToCaplInterpreter_.readCommand() + "\n}\n\n");
     }
 }
 

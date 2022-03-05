@@ -2,7 +2,7 @@
 #define CAPLFUNCTIONDEFINIITIONS_HPP
 #include"tclToCAPL.hpp"
 
-class CAPLFunctionDefinitions{
+class FunctionDefinitions{
 public:
     using Parameters = QList<TCLInterpreter::Stat>;
     using Example = QString;

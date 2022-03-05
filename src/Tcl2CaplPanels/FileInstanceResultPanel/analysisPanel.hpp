@@ -32,7 +32,7 @@ public:
     using ConfigRef = Config&;
     using ConfigPtr = Config*;
 
-    AnalysisPanel(FileInstanceResultPanel&, CAPLFunctionDefinitionsRef caplDefinitions);
+    AnalysisPanel(FileInstanceResultPanel&, FunctionDefinitionsRef caplDefinitions);
     virtual ~AnalysisPanel() override;
 
 protected:
@@ -46,7 +46,7 @@ protected:
 
     Layout layout;
     // NO GUI ELEMENT
-    CAPLFunctionDefinitionsRef caplFunctionDefinitions_;
+    FunctionDefinitionsRef caplFunctionDefinitions_;
     // ---------------------
     Splitter splitter;
     QToolBox toolBox;
@@ -66,7 +66,7 @@ public:
     void loadNotSatisfiedRules(QString);
 
     void reloadGui();
-    inline CAPLFunctionDefinitionsRef caplFunctionDefinitions(){return caplFunctionDefinitions_;}
+    inline FunctionDefinitionsRef caplFunctionDefinitions(){return caplFunctionDefinitions_;}
 
 };
 

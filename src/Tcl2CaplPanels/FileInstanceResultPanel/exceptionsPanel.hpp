@@ -58,11 +58,11 @@ public:
             ~ExceptionsList(){}
 
         protected:
-            QString toString(CAPLFunctionDefinitions::Parameters params);
+            QString toString(FunctionDefinitions::Parameters params);
 
         public:
-            void load(CAPLFunctionDefinitions::Definitions::Iterator);
-            void load(CAPLFunctionDefinitions::DefinitionInfo::Iterator);
+            void load(FunctionDefinitions::Definitions::Iterator);
+            void load(FunctionDefinitions::DefinitionInfo::Iterator);
 
 
         };
@@ -76,8 +76,8 @@ public:
 
 
 public:
-    inline void load(CAPLFunctionDefinitions::Definitions::Iterator iter){exceptionsList.load(iter);}
-    inline void load(CAPLFunctionDefinitions::DefinitionInfo::Iterator iter){exceptionsList.load(iter);}
+    inline void load(FunctionDefinitions::Definitions::Iterator iter){exceptionsList.load(iter);}
+    inline void load(FunctionDefinitions::DefinitionInfo::Iterator iter){exceptionsList.load(iter);}
 
 };
 

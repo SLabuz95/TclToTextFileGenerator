@@ -23,8 +23,8 @@ using FormatTarget = TclProcedureInterpreter::ProcedureDefinition::Format::Targe
 
 QString TCLInterpreterPriv::_error = QString();
 
-TCLInterpreter::TCLInterpreter(UserInputConfig& userConfig, CAPLFunctionDefinitionsRef caplFunctionDefinitionsRef)
-    : tclProceduresInterpreter(*this, userConfig), caplFunctionDefinitions(caplFunctionDefinitionsRef), userConfig(userConfig)
+TCLInterpreter::TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsRef functionDefinitionsRef)
+    : tclProceduresInterpreter(*this, userConfig), functionDefinitions(functionDefinitionsRef), userConfig(userConfig)
 {clearError();}
 
 TclProcedureInterpreter::TCLProceduresInterpreter(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig) :
@@ -222,7 +222,7 @@ const TclProcedureInterpreter::ProcedureDefinition::Rule defaultRuleForUnknownPr
             ")"
             }
         },
-        {   // Action 2: Add to CaplFunctionDefinitions
+        {   // Action 2: Add to FunctionDefinitions
             ProcedureDefinition::Action::Executable::AddFunctionDefinition,
             {}
         }
@@ -621,7 +621,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                         ")"
                         }
                     },
-                    {   // Action 2: Add to CaplFunctionDefinitions
+                    {   // Action 2: Add to FunctionDefinitions
                         ProcedureDefinition::Action::Executable::AddFunctionDefinition,
                         {}
                     }
@@ -5469,7 +5469,7 @@ CheckingResult TextInterpreter::checkingPriv(){
                     if(currentChar->toLower() == lastKeyword->keyword.at(index)){
                         currentChar++, index++;
                     }else{
-                        lastKeywordLength = 0;  // KeyWord dont match, find other
+                        lastKeywordLength = 0;  // KeyWord dont match, find another
                         index = 0;
                     }                
                 }else{
@@ -5660,7 +5660,7 @@ Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(SavedStat &statCaplCommand){
+Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(SavedStat &statCommand){
     using RulesForArguments = ProcedureDefinition::RulesForArguments;
     using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
     using Rules = ProcedureDefinition::Rules;
@@ -5724,10 +5724,10 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
             }
         }
         if(not ruleCondtionsPassed){
-            tclInterpreter.caplFunctionDefinitions.addDefinitionNotSatisfiedRules(procedureCall);
+            tclInterpreter.functionDefinitions.addDefinitionNotSatisfiedRules(procedureCall);
         }
     }
-    statCaplCommand.setCAPLCommand(command);
+    statCommand.setCommand(command);
     finalizeOn = false;
 
     tclInterpreter.lastSavedStat().setFunctionReady();
@@ -5735,7 +5735,7 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(SavedStat &statCaplCommand){
+Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(SavedStat &){
     finalizeOn = false;
 
     tclInterpreter.lastSavedStat().setFunctionReady();
@@ -5744,9 +5744,9 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(SavedStat &statCaplCommand){
+Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(SavedStat &statCommand){
 
-    return finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(statCaplCommand);
+    return finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(statCommand);
 
 }
 
@@ -6623,7 +6623,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
     if(finalizeOn){ // Used for procedure
         command = str;
     }else{  // For last argument
-        lastProcedureCall().lastParameter().setCaplCommand( str);
+        lastProcedureCall().lastParameter().setCommand( str);
     }
 }
 
@@ -6639,16 +6639,16 @@ TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition::Action::Executabl
         return;
     }
 
-    TCLInterpreter newTclInterpreter(tclInterpreter.userConfig, tclInterpreter.caplFunctionDefinitions);
+    TCLInterpreter newTclInterpreter(tclInterpreter.userConfig, tclInterpreter.functionDefinitions);
     if(newTclInterpreter.toCAPL(str) == Error::Error or newTclInterpreter.anyErrors())
     {
         throwError(ERROR_PREFIX + "TclParsing Failed:" + " {Current Result: " + newTclInterpreter.error() +"}");
         return;
     }
     if(finalizeOn){ // Used for procedure
-        command = newTclInterpreter.readCaplCommand().remove("\n");
+        command = newTclInterpreter.readCommand().remove("\n");
     }else{  // For last argument
-        lastProcedureCall().lastParameter().setCaplCommand(newTclInterpreter.readCaplCommand().remove("\n"));
+        lastProcedureCall().lastParameter().setCommand(newTclInterpreter.readCommand().remove("\n"));
     }
 }
 
@@ -6712,7 +6712,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
 <TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition::Action::Executable::AddFunctionDefinition>
 (ExecutableActionsParameters parameters)
 {
-    tclInterpreter.caplFunctionDefinitions.addDefinitionNoRules(lastProcedureCall());
+    tclInterpreter.functionDefinitions.addDefinitionNoRules(lastProcedureCall());
 }
 
 template <>
@@ -7027,7 +7027,7 @@ void TCLInterpreter::TCLProceduresInterpreter::executeAction
     if(procedureCalls.last().name() == "set"){
         if(procedureCalls.last().parametersLength() == 2){
             // Init
-            procedureCalls.last().parameters()[0].setCaplCommand(procedureCalls.last().parameters().at(0).caplCommand().replace(":", ""));
+            procedureCalls.last().parameters()[0].setCommand(procedureCalls.last().parameters().at(0).command().replace(":", ""));
             using Mode = UserInputConfig::Settings::InterpreterMode;
             using ParameterRefs = QList<ProcedureCall::Parameters::Iterator>;
             using ParameterRef = ProcedureCall::Parameters::Iterator;

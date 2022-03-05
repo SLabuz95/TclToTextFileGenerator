@@ -65,7 +65,7 @@ protected:
     ErrorsList errorsList;
     AnalysisPanel analysisPanel;
     ProgressBars progressBars;
-    CAPLFunctionDefinitions caplFunctionDefinitions;
+    FunctionDefinitions caplFunctionDefinitions;
     CriticalError criticalError_ = false;
     //QProgressBar* progressBars_data = nullptr;
     //int progressBars_size = 0;

@@ -41,9 +41,9 @@ bool ProceduresNotSatisfiedList::eventFilter(QObject* obj, QEvent* ev){
 }
 
 
-void ProceduresNotSatisfiedList::load(CAPLFunctionDefinitionsRef definitionsRef){
-    using Definitions = CAPLFunctionDefinitions::Definitions;
-    CAPLFunctionDefinitions::Definitions &definitions = definitionsRef.definitionsOnNotSatisfiedRulesView();
+void ProceduresNotSatisfiedList::load(FunctionDefinitionsRef definitionsRef){
+    using Definitions = FunctionDefinitions::Definitions;
+    FunctionDefinitions::Definitions &definitions = definitionsRef.definitionsOnNotSatisfiedRulesView();
     for(Definitions::Iterator definition = definitions.begin();
         definition != definitions.end();
         definition++)

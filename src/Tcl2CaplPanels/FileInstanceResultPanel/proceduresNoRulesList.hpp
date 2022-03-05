@@ -28,7 +28,7 @@ protected:
     QTreeWidget list;
     bool eventFilter(QObject* obj, QEvent* ev)override;
 public:
-    void load(CAPLFunctionDefinitionsRef);
+    void load(FunctionDefinitionsRef);
     inline void clear(){list.clear();}
 
 

@@ -147,7 +147,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
     UserInputConfig::Settings::InterpreterMode savedMode = userInputConfig_.proceduresSettings().mode();
     userInputConfig_.proceduresSettings().setMode(Settings::InterpreterMode::PredefinitionsOnly);
 
-    CAPLFunctionDefinitions caplFunctionDefinitions;
+    FunctionDefinitions caplFunctionDefinitions;
 
     for(QStringList::Iterator definitionPath = definitionPaths().begin();
         definitionPath < definitionPaths().end(); definitionPath++)
@@ -263,7 +263,7 @@ bool Tcl2CaplController::generateCapls_impl(){
     using ErrorMsg = QString;
     const ErrorMsg ERROR_PREFIX = "Definition File Error: ";
     ErrorMsg errorMsg;
-    CAPLFunctionDefinitions caplFunctionDefinitions;
+    FunctionDefinitions caplFunctionDefinitions;
     QDir outputDir = this->outputDir;
 
     int i = 0;

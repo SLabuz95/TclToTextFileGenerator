@@ -40,9 +40,9 @@ bool ProceduresNoRulesList::eventFilter(QObject* obj, QEvent* ev){
 }
 
 
-void ProceduresNoRulesList::load(CAPLFunctionDefinitionsRef definitionsRef){
-    using Definitions = CAPLFunctionDefinitions::Definitions;
-    CAPLFunctionDefinitions::Definitions &definitions = definitionsRef.definitionsOnNoRulesView();
+void ProceduresNoRulesList::load(FunctionDefinitionsRef definitionsRef){
+    using Definitions = FunctionDefinitions::Definitions;
+    FunctionDefinitions::Definitions &definitions = definitionsRef.definitionsOnNoRulesView();
     for(Definitions::Iterator definition = definitions.begin();
         definition != definitions.end();
         definition++)

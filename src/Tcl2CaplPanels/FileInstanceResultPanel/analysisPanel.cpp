@@ -7,7 +7,7 @@
 #include"proceduresNoRulesList.hpp"
 #include"proceduresNotSatisfiedList.hpp"
 
-AnalysisPanel::AnalysisPanel(FileInstanceResultPanel& panel, CAPLFunctionDefinitionsRef caplDefinitions)
+AnalysisPanel::AnalysisPanel(FileInstanceResultPanel& panel, FunctionDefinitionsRef caplDefinitions)
     : resultPanel(panel),
       caplFunctionDefinitions_(caplDefinitions),
       proceduresNoRulesList(*this),
@@ -44,32 +44,32 @@ bool AnalysisPanel::eventFilter(QObject* obj, QEvent* ev){
 }
 
 void AnalysisPanel::loadNoRules(QString procedure, uint numbOfParameters){
-    CAPLFunctionDefinitions::Definitions::Iterator caplDefinition;
+    FunctionDefinitions::Definitions::Iterator caplDefinition;
     if((caplDefinition = caplFunctionDefinitions().definitionsOnNotSatisfiedRulesView().find(procedure)) != caplFunctionDefinitions().definitionsOnNoRulesView().end()){
-        CAPLFunctionDefinitions::DefinitionInfo::Iterator caplDefinitionInfo;
+        FunctionDefinitions::DefinitionInfo::Iterator caplDefinitionInfo;
         if((caplDefinitionInfo = caplDefinition->find(numbOfParameters)) != caplDefinition->end()){
             exceptionsPanel.load(caplDefinitionInfo);
         }
     }
 }
 void AnalysisPanel::loadNotSatisfiedRules(QString procedure, uint numbOfParameters){
-    CAPLFunctionDefinitions::Definitions::Iterator caplDefinition;
+    FunctionDefinitions::Definitions::Iterator caplDefinition;
     if((caplDefinition = caplFunctionDefinitions().definitionsOnNotSatisfiedRulesView().find(procedure)) != caplFunctionDefinitions().definitionsOnNoRulesView().end()){
-        CAPLFunctionDefinitions::DefinitionInfo::Iterator caplDefinitionInfo;
+        FunctionDefinitions::DefinitionInfo::Iterator caplDefinitionInfo;
         if((caplDefinitionInfo = caplDefinition->find(numbOfParameters)) != caplDefinition->end()){
             exceptionsPanel.load(caplDefinitionInfo);
         }
     }
 }
 void AnalysisPanel::loadNoRules(QString procedure){
-    CAPLFunctionDefinitions::Definitions::Iterator caplDefinition;
+    FunctionDefinitions::Definitions::Iterator caplDefinition;
     if((caplDefinition = caplFunctionDefinitions().definitionsOnNoRulesView().find(procedure)) != caplFunctionDefinitions().definitionsOnNoRulesView().end()){
 
         exceptionsPanel.load(caplDefinition);
     }
 }
 void AnalysisPanel::loadNotSatisfiedRules(QString procedure){
-    CAPLFunctionDefinitions::Definitions::Iterator caplDefinition;
+    FunctionDefinitions::Definitions::Iterator caplDefinition;
     if((caplDefinition = caplFunctionDefinitions().definitionsOnNoRulesView().find(procedure)) != caplFunctionDefinitions().definitionsOnNoRulesView().end()){
         exceptionsPanel.load(caplDefinition);
 

@@ -172,7 +172,7 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     //if(not readInputConfig())
       //  return;
 
-    CAPLFunctionDefinitions caplFunctionDefinitions;
+    FunctionDefinitions caplFunctionDefinitions;
     UserInputConfig userInputConfig(tempUserProceduresConfig_);
     TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
     QFile file_DONT_USE_PH_ONLY;
@@ -201,7 +201,7 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     }
 
     // No Errors
-    outputCaplText.append(data.tclToCaplInterpreter_.printPredefinitions() + data.tclToCaplInterpreter_.readCaplCommand());
+    outputCaplText.append(data.tclToCaplInterpreter_.printPredefinitions() + data.tclToCaplInterpreter_.readCommand());
     outputText.setText(outputCaplText);
 
 
@@ -279,7 +279,7 @@ void Tcl2CaplInstructionInstance::generateCaplRaportMode(){
         return;
     //tempUserProceduresConfig_.proceduresSettings().setMode(Mode::TestCaseReport);
 
-    CAPLFunctionDefinitions caplFunctionDefinitions;
+    FunctionDefinitions caplFunctionDefinitions;
    // TcFileModifier::Data data(tempUserProceduresConfig_, caplFunctionDefinitions);
     //QFile file_DONT_USE_PH_ONLY;
     //Tcl2CaplResult::Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, tempUserProceduresConfig_);

@@ -26,10 +26,10 @@ ExceptionsPanel::ExceptionsList::ExceptionsList(ExceptionsPanel& panel)
     //installEventFilter(this);
 }
 
-void ExceptionsPanel::ExceptionsList::load(CAPLFunctionDefinitions::Definitions::Iterator defs)
+void ExceptionsPanel::ExceptionsList::load(FunctionDefinitions::Definitions::Iterator defs)
 {
     clear();
-    using Definitions = CAPLFunctionDefinitions::DefinitionInfo;
+    using Definitions = FunctionDefinitions::DefinitionInfo;
     for(Definitions::Iterator definition = defs.value().begin();
         definition != defs.value().end();
         definition++)
@@ -55,10 +55,10 @@ void ExceptionsPanel::ExceptionsList::load(CAPLFunctionDefinitions::Definitions:
     }
 }
 
-void ExceptionsPanel::ExceptionsList::load(CAPLFunctionDefinitions::DefinitionInfo::Iterator defInfo)
+void ExceptionsPanel::ExceptionsList::load(FunctionDefinitions::DefinitionInfo::Iterator defInfo)
 {
     clear();
-    using Definitions = CAPLFunctionDefinitions::DefinitionInfo;
+    using Definitions = FunctionDefinitions::DefinitionInfo;
     using ParametersNumb = Definitions::mapped_type;
     for(ParametersNumb::Iterator parametersNumb = defInfo.value().begin();
         parametersNumb != defInfo.value().end();
@@ -76,7 +76,7 @@ void ExceptionsPanel::ExceptionsList::load(CAPLFunctionDefinitions::DefinitionIn
     }
 }
 
-QString ExceptionsPanel::ExceptionsList::toString(CAPLFunctionDefinitions::Parameters params){
+QString ExceptionsPanel::ExceptionsList::toString(FunctionDefinitions::Parameters params){
     using Param = decltype(params)::Iterator;
     using Stat = decltype(params)::Type;
     QString retString = "(";

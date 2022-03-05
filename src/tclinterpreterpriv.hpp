@@ -108,9 +108,9 @@ public:
     class SavedStat : public SavedStatPriv{
 
     protected:
+        ListStatInfo* info = nullptr;
         Command _command;
         bool functionReady = false;
-        ListStatInfo* info = nullptr;
 
         void appendCommmand_listProcessing(Command command);
     public:

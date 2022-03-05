@@ -8,8 +8,8 @@
 //#include"Tcl2Capl/caplFunctionDefiniitions.hpp
 
 
-class CAPLFunctionDefinitions;
-using CAPLFunctionDefinitionsRef = CAPLFunctionDefinitions&;
+class FunctionDefinitions;
+using FunctionDefinitionsRef = FunctionDefinitions&;
 class UserInputConfig;
 
 class TCLInterpreter : private TCLInterpreterPriv{
@@ -264,7 +264,7 @@ private:
                     NoBreakRuleCheck,
                     //BreakRuleCheckDontExecOnEndActions,
                     None,
-                    _Default = BreakRuleCheck
+                    _default = BreakRuleCheck
                 };
             private:
                 static QMap<QString,  Control> controlMap;
@@ -274,7 +274,7 @@ private:
                 inline static decltype (controlMap.keys()) getRuleControlFlagNames(){
                     return controlMap.keys();
                 }
-                static constexpr Control defaultControlFlag(){return Control::_Default;}
+                static constexpr Control defaultControlFlag(){return Control::_default;}
                 // End of Concept Definitiom |||||||||||||||||||||||||||||||||||||
                 // Objects -----------------------------------------------------
                 ConditionalActions conditions;
@@ -314,7 +314,6 @@ private:
             RulesForArguments rulesForArguments;
             RulesForArgument rulesForUnspecifiedArgument;
             RulesOnEndOfCall rulesOnEndOfProcedureCall;   // Rules
-            uint currentLevel = 0;
 
             // End of Properties ||||||||||||||||||||||||||||||||||||||||||||
             // Functions ----------------------------------------------------
@@ -343,10 +342,6 @@ private:
                   rulesForUnspecifiedArgument(rulesForUnspecifiedArgument),
                   rulesOnEndOfProcedureCall(rulesOnEnd){}
             // End of Interface |||||||||||||||||||||||||||||||||||||||||||||
-            inline void nextLevel(){currentLevel++;}
-            inline Error previousLevel(){return ((currentLevel == 0)?
-                                                     (currentLevel--, Error::NoError) :
-                                                     (throwError("Too Low Level"), Error::Error));}
             inline bool isRulesForArgumentsEmpty()const{return rulesForArguments.isEmpty();}
             inline bool isRulesEmpty()const{return rulesForArguments.isEmpty() and rulesForUnspecifiedArgument.rules.isEmpty() and
                         rulesForUnspecifiedArgument.rulesOnMoveArgument.isEmpty() and rulesOnEndOfProcedureCall.isEmpty() ;}
@@ -384,7 +379,7 @@ private:
                 inline QString command()const{return _savedStat.command();}
                 //inline void setUserIteractionRequired(){_userInteraction = UserInteraction::Required;}
                 inline void setStat(Stat stat){_savedStat.setStat(stat);}
-                inline void setCommand(Command command){_savedStat.setCAPLCommand(command);}
+                inline void setCommand(Command command){_savedStat.setCommand(command);}
                 //inline UserInteraction userIteraction(){return _userInteraction;}
                 inline SavedStat& savedStat(){return _savedStat;}
                 inline const Parameters& rawParameters()const{return rawParameterStats;}
@@ -405,7 +400,6 @@ private:
                 Parameters _parameters;
                 Parameters _rawParameters;
                 ProcedureDefinitionIterator _procedureDefinition;
-                //SquareBracketLevel _squareBracketLevel;
                 //UserInteraction _userInteraction;
 
             // End of Objects ||||||||||||||||||||||||||||||||||||||||||||
@@ -451,11 +445,10 @@ private:
                 inline bool isRulesForArgumentsEmpty()const{return _procedureDefinition->isRulesForArgumentsEmpty();}
                 inline bool isRulesEmpty()const{return _procedureDefinition->isRulesEmpty();}
                 inline ProcedureCall::Parameters::reference lastParameter(){return _parameters.last();}
-                //inline bool canBeFinalized(SquareBracketLevel level){return level == _squareBracketLevel;}
                 inline Parameters& parameters(){return _parameters;}
-                //inline QString generateCAPLFunctionDefinitionExample(){return QString("// ") + name() + "(" + generateCAPLFunctionDefinitionExampleParameters() + ")";}
-                inline QString generateCAPLFunctionDefinitionExample(){return QString("") + name() + " " + generateCAPLFunctionDefinitionExampleParameters() + "";}
-                inline QString generateCAPLFunctionDefinitionExampleParameters(){
+                //inline QString generateFunctionDefinitionExample(){return QString("// ") + name() + "(" + generatFunctionDefinitionExampleParameters() + ")";}
+                inline QString generateFunctionDefinitionExample(){return QString("") + name() + " " + generateFunctionDefinitionExampleParameters() + "";}
+                inline QString generateFunctionDefinitionExampleParameters(){
                     QString str;
                     for(Parameters::Iterator parameter = parameters().begin(); parameter < _parameters.end(); parameter++)
                         str.append(parameter->toString(ProcedureDefinition::Format::Target::TclFormat) + " ");
@@ -540,8 +533,8 @@ private:
         using ExecutableInterpretFunctions = ExecutableInterpretFunction[static_cast<std::underlying_type_t<ProcedureDefinition::Action::Executable>>(ProcedureDefinition::Action::Executable::Size)];
 
         // ----
-        using CAPLFunctionDefinitionInfo = QMap<uint, QStringList>; // <Numb of Parameters, Examples/ Occurencies>
-        using CAPLFunctionDefinitions = QMap<QString, CAPLFunctionDefinitionInfo>;    // <Name, Info>
+        using FunctionDefinitionInfo = QMap<uint, QStringList>; // <Numb of Parameters, Examples/ Occurencies>
+        using FunctionDefinitions = QMap<QString, FunctionDefinitionInfo>;    // <Name, Info>
         using ProdecuresSettings = ProdecuresSettings;
 
         using NewProcedureCallFunction =  Error (TCLProceduresInterpreter::* const)(ProcedureCall::Name);
@@ -675,7 +668,6 @@ private:
         inline ProcedureCalls::size_type numberOfProcedureCalls()const{return procedureCalls.size();}
         inline ProcedureCall& lastProcedureCall(){return procedureCalls.last();}
         inline ProcedureCall& prelastProcedureCall(){return *(procedureCalls.end() - 2);}
-        //inline bool canLastProcedureCallBeFinalized(){return procedureCalls.last().canBeFinalized(squareBracketsLevel);}
 
         // Action Functions
         QStringList::size_type createAndAssignString(QString&, QStringList);
@@ -753,8 +745,6 @@ private:
 
         // End of Concept Definition ||||||||||||||||||||||||||||||||||
         // Objects ----------------------------------------------------
-        Stat __stat;
-        int lastKeywordLength = 0;
         Keywords::ConstIterator lastKeyword;
         const Keyword endOfStringKeyword = {"\n", {TCLStat::EndOfString}, Keyword::UnknownStringRule::Permitted};
 
@@ -766,6 +756,7 @@ private:
         CharPosition beginOfString;
         CharPosition endOfString;
         Result result = Result::StatFound;
+        int lastKeywordLength = 0;
     public:
         static KeywordsMap keywordsMap;
     private:
@@ -794,7 +785,7 @@ private:
         inline QString readUnknownString(){return QString(savedChar, savedFirstKeywordCharPos - savedChar);}
         inline Error throwErrorIfUnknownStringForForbiddenRule(){
             return (lastKeyword->unknownStringRule == Keyword::UnknownStringRule::Forbidden
-                    && isUnknownString())?  Error::Error : Error::NoError;
+                    and isUnknownString())?  Error::Error : Error::NoError;
         }
         inline QString restOfString()const{return QString(currentChar, endOfString - currentChar);}
         inline QString readTclCommand()const{return QString(beginOfString, endOfString - beginOfString);}
@@ -857,7 +848,7 @@ private:
     // End of Concept Definition
     // Objects ----------------------------------------------------
     protected:
-        CAPLFunctionDefinitionsRef caplFunctionDefinitions;
+        FunctionDefinitionsRef functionDefinitions;
         //Variables variables;
         TextInterpreter textInterpreter;
         TCLProceduresInterpreter tclProceduresInterpreter;
@@ -952,7 +943,7 @@ private:
         void addEmptyLine();
     // Interface -------------------------------------------------
     public:
-        TCLInterpreter(UserInputConfig& userConfig, CAPLFunctionDefinitionsRef caplFunctionDefinitions);
+        TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsRef caplFunctionDefinitions);
 
         inline bool isComplete()const{return savedStatsSize() == 1;}
 
@@ -974,7 +965,7 @@ private:
         inline bool anyErrors(){return ignoreMessages.size();}
         void printErrorReport(QFile& reportFile, QString inputFileName);
         void printErrorReport(QString& inputFileName);
-        Command& readCaplCommand(){return TCLInterpreterPriv::readCaplCommand();}
+        Command& readCommand(){return TCLInterpreterPriv::readCommand();}
         inline Command printPredefinitions(){return predefinitionsControl().getPredefinitionsStr();}
 
         static inline std::underlying_type_t<Stat> cast_stat(const Stat t){return static_cast<std::underlying_type_t<Stat>>(t);}

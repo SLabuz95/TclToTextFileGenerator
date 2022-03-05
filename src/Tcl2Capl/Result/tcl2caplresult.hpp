@@ -40,13 +40,13 @@ public:
         QString _fileContent;
         _InitializeStatus initializeStatus = _InitializeStatus::NOT_INITIALIZED;
         UserInputConfig& userConfig_;
-        CAPLFunctionDefinitionsRef caplFunctionDefinitionsRef_;
+        FunctionDefinitionsRef caplFunctionDefinitionsRef_;
         TestCaseErrors testCaseErrors_ = 0;
 
         //inline QFile& file(){return _file;}
     public:
         using InitializeStatus = _InitializeStatus;
-        Tcl2CaplReadData(QDir outputDir, QFile& reportFile, UserInputConfig& userConfig, CAPLFunctionDefinitionsRef caplFunctionDefinitionsRef)
+        Tcl2CaplReadData(QDir outputDir, QFile& reportFile, UserInputConfig& userConfig, FunctionDefinitionsRef caplFunctionDefinitionsRef)
             : _dir(outputDir), _reportFile(reportFile), userConfig_(userConfig), caplFunctionDefinitionsRef_(caplFunctionDefinitionsRef){}
         ~Tcl2CaplReadData(){
             _file.close();
@@ -60,7 +60,7 @@ public:
         inline bool isInitiliazed(){return initializeStatus != InitializeStatus::NOT_INITIALIZED;}
         Tcl2CaplResult& generateResult();
         inline UserInputConfig& userConfig(){return userConfig_;}
-        inline CAPLFunctionDefinitionsRef caplFunctionDefinitionsRef(){return caplFunctionDefinitionsRef_;}
+        inline FunctionDefinitionsRef caplFunctionDefinitionsRef(){return caplFunctionDefinitionsRef_;}
         inline TestCaseErrors testCaseErrors()const{return testCaseErrors_;}
         inline void setTestCaseErrors(TestCaseErrors number){testCaseErrors_ = number;}
         Predefinitions& predefinitions(){return userConfig_.predefinitions();}

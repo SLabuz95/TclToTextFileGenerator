@@ -11,7 +11,7 @@ public:
     using ErrorsNumber = const uint;
     using CriticalError = const QString;
     using ErrorMsg =  const QString;
-    Tcl2CaplProgressEvent(CAPLFunctionDefinitions& definitions) : QEvent(eventType_static()),
+    Tcl2CaplProgressEvent(FunctionDefinitions& definitions) : QEvent(eventType_static()),
       caplFunctionDefinitions_(definitions)
     {
         ready = true;
@@ -32,13 +32,13 @@ public:
     CriticalError& criticalError()const{return criticalError_;}
     ErrorMsg& errorMsg()const{return errorMsg_;}
     bool isReady(){return ready;}
-    CAPLFunctionDefinitionsRef caplFunctionDefinitions(){return caplFunctionDefinitions_;};
+    FunctionDefinitionsRef caplFunctionDefinitions(){return caplFunctionDefinitions_;};
 
 protected:
     CriticalError criticalError_;
     ErrorsNumber numbOfErrors_ = 0;
     ErrorMsg errorMsg_;
-    CAPLFunctionDefinitions caplFunctionDefinitions_;
+    FunctionDefinitions caplFunctionDefinitions_;
 
     bool ready = false;
 
