@@ -84,21 +84,13 @@ QString ExceptionsPanel::ExceptionsList::toString(FunctionDefinitions::Parameter
     for(Param param = params.begin(); param != params.end(); param++){
         switch(*param){
         case Stat::Script:
-        case Stat::EndOfCodeBlock:
-            retString += "CodeBlock";
+            retString += "Script";
             break;
-        case Stat::Const:
-            retString += "Const";
-            break;
-        case Stat::EndOfExpression:
+        case Stat::Expression:
             retString += "Expression";
             break;
-        case Stat::BracesEnd:
-            retString += "List";
-            break;
-        case Stat::String:
-        case Stat::StringInQuotes:
-            retString += "String";
+        case Stat::BracesStart:
+            retString += "Braces";
             break;
         case Stat::CommandSubbing:
             retString += "FunctionCall";
@@ -106,16 +98,7 @@ QString ExceptionsPanel::ExceptionsList::toString(FunctionDefinitions::Parameter
         case Stat::Word:
             retString += "Operator";
             break;
-        case Stat::PendingSnprintf:
-            retString += "PendingComplexString";
-            break;
-        case Stat::PendingString:
-            retString += "PendingString";
-            break;
-        case Stat::Snprintf:
-            retString += "ComplexString";
-            break;
-        case Stat::Variable:
+        case Stat::VariableSubbing:
             retString += "Variable";
             break;
         default:

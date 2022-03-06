@@ -369,7 +369,7 @@ private:
 
                 Parameter(SavedStat savedStat) : _savedStat(savedStat){}
                 Parameter(SavedStat savedStat, ProcedureCall& procedureCall) : _savedStat(savedStat){
-                    rawParameterStats = {Parameter(Stat::String, procedureCall.name())};
+                    rawParameterStats = {Parameter(Stat::Word, procedureCall.name())};
                     rawParameterStats += procedureCall.rawParameters();
                 }
                 Parameter(const Stat stat, Command command) : _savedStat{stat, command}{}
@@ -473,7 +473,7 @@ private:
                         return QString();
                     if( not _parameters.isEmpty()){
                         switch(_parameters.last().stat()){
-                        case Stat::EndOfCodeBlock:
+                        case Stat::Script:
                             return QString("\n");
                         }
                     }
@@ -882,7 +882,7 @@ private:
         }
 
         inline Error processUnknownString(){
-           return (textInterpreter.isUnknownString())? callInterpretFunction(Stat::UnknownString) : Error::NoError;
+           return (textInterpreter.isUnknownString())? callInterpretFunction(Stat::Word) : Error::NoError;
         }
 
         inline void addPendingProcessingStat(Stats stats){pendingProccessingStats.append(stats);}
@@ -901,8 +901,8 @@ private:
     // End of Functions |||||||||||||||||||||||||||||||||||||||||||
         inline bool isLastProcedureCallExpr(){return tclProceduresInterpreter.numberOfProcedureCalls() > 0 and tclProceduresInterpreter.lastProcedureName() == "expr";}
 
-        inline Error moveArgumentToSnprintf(){return moveArgumentToSnprintf_priv(Stat::Snprintf);}
-        inline Error moveArgumentToPendingSnprintf(){return moveArgumentToSnprintf_priv(Stat::PendingSnprintf);}
+        inline Error moveArgumentToSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::Snprintf);*/}
+        inline Error moveArgumentToPendingSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::PendingSnprintf);*/}
 
         inline bool isPrelastSavedStat()const{return savedStatsBegin() <= savedStatsEnd() - 2;}
         inline SavedStat& prelastSavedStat(){return *(savedStats().end() - 2);}
