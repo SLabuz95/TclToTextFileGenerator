@@ -7,7 +7,7 @@
 
 class Tcl2CaplControllerConfigXmlData : public FSD_DataModelBase<Tcl2CaplControllerConfigXmlData>{
 public:
-    //using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
+    //using TclProcedureInterpreter = TCLCommandsController;
     using OutputConfig = Tcl2CaplControllerConfig;
     using Settings = OutputConfig::Settings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;

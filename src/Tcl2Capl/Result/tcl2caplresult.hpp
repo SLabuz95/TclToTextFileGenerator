@@ -3,7 +3,7 @@
 
 #include<QDir>
 #include"External/FileReader/FilesSpecificData/FSDTemplate.hpp"
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include"Tcl2Capl/controller.hpp"
 
 class Tcl2CaplResult{
@@ -24,7 +24,7 @@ public:
     class Tcl2CaplReadData : public FSD_DataModelBase<Tcl2CaplReadData>{
         using FormatCount = QMap<QString, uint>;
         using TestCaseErrors = uint;
-        using Predefinitions = TCLInterpreterPriv::PredefinitionsControl::Predefinitions;
+        using Predefinitions = PredefinitionsController::Predefinitions;
     protected:
         enum class _InitializeStatus{
             NOT_INITIALIZED,

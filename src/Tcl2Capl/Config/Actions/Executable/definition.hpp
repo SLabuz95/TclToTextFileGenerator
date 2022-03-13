@@ -1,10 +1,10 @@
 #ifndef DEFINITION_EXECUTABLE_HPP
 #define DEFINITION_EXECUTABLE_HPP
 
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include"External/Factory/factory.hpp"
 
-using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
+using TclProcedureInterpreter = TCLCommandsController;
 using Settings = TclProcedureInterpreter::ProdecuresSettings;
 using UserProcedure = TclProcedureInterpreter::ProcedureDefinition;
 using UserProcedureRule = UserProcedure::Rule;

@@ -159,7 +159,7 @@ Tcl2CaplInstructionInstance::readInputConfig(){
         }
         parserConfigInterpreter.deinitialize();
         //tempUserProceduresConfig_ = tempUserDefinitionsData;
-        //TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToUserProcedureDefintions(tempUserProceduresConfig_);
+        //TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(tempUserProceduresConfig_);
     }else{
         //tempUserProceduresConfig_ = UserProceduresConfig();
     }
@@ -186,7 +186,7 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     while(not textStream.atEnd())
     {
         data.lineData = textStream.readLine();
-        if(data.tclToCaplInterpreter_.toCAPL(data.lineData) == TCLInterpreter::Error::Error){
+        if(data.tclToCaplInterpreter_.toCAPL(data.lineData) == TclInterpreterCore::Error::Error){
             QMessageBox::critical(nullptr, QString("Tcl Interpreter"), QString("Internal Critical Error"));
             return;
         }

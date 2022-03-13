@@ -833,8 +833,8 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemConte
     numbOfArgumentCondition.setValidator(new QRegularExpressionValidator(QRegularExpression("(\\>[\\d]+|[\\d+]+)?")));
     settingsLayout.addRow("Liczba argumentów: ", &numbOfArgumentCondition);
     ruleControlComboBox.setCurrentText(
-                TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition::Rule::toStr(
-                    TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition::Rule::Control::BreakRuleCheck));
+                TCLCommandsController::ProcedureDefinition::Rule::toStr(
+                    TCLCommandsController::ProcedureDefinition::Rule::Control::BreakRuleCheck));
 
     settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
 
@@ -875,8 +875,8 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemConte
     numbOfArgumentCondition.setValidator(new QRegularExpressionValidator(QRegularExpression("(\\>[\\d]+|[\\d+]+)?")));
     settingsLayout.addRow("Liczba argumentów: ", &numbOfArgumentCondition);
     ruleControlComboBox.setCurrentText(
-                TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition::Rule::toStr(
-                    TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition::Rule::Control::BreakRuleCheck));
+                TCLCommandsController::ProcedureDefinition::Rule::toStr(
+                    TCLCommandsController::ProcedureDefinition::Rule::Control::BreakRuleCheck));
 
 
     settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);

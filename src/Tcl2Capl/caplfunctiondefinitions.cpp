@@ -1,6 +1,7 @@
 #include"caplFunctionDefiniitions.hpp"
+#include<QDebug>
 
-void FunctionDefinitions::addDefinitionNoRules(TCLInterpreter::TCLProceduresInterpreter::ProcedureCall& procedureCall)
+void FunctionDefinitions::addDefinitionNoRules(TCLCommandsController::ProcedureCall& procedureCall)
 {
     Definitions::Iterator caplDefinition;
     if((caplDefinition = definitionsOnNoRules.find(procedureCall.name())) != definitionsOnNoRules.end()){
@@ -36,7 +37,7 @@ void FunctionDefinitions::addDefinitionNoRules(TCLInterpreter::TCLProceduresInte
     }
 }
 
-void FunctionDefinitions::addDefinitionNotSatisfiedRules(TCLInterpreter::TCLProceduresInterpreter::ProcedureCall& procedureCall)
+void FunctionDefinitions::addDefinitionNotSatisfiedRules(TCLCommandsController::ProcedureCall& procedureCall)
 {
     Definitions::Iterator caplDefinition;
     if((caplDefinition = definitionsOnNotSatisfiedRules.find(procedureCall.name())) != definitionsOnNotSatisfiedRules.end()){

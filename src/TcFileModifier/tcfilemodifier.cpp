@@ -2,7 +2,7 @@
 //#include"External/FileReader/FilesSpecificData/CANoeFilesFormat/TestEnvironment/FRI_FSD_CANoe_TestEnvironment.hpp"
 //#include"External/FileReader/FilesSpecificData/XML/VSysvar/FRI_FSD_XML_VSysVar.hpp"
 #include"External/RegExpCore/regexprcore.hpp"
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 
 
 template <>
@@ -2053,7 +2053,7 @@ template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INTERPRET>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Interpret";
     if(not interpreterData->lineData.isEmpty())
-        if(interpreterData->tclToCaplInterpreter_.toCAPL(interpreterData->lineData) == TCLInterpreter::Error::Error){
+        if(interpreterData->tclToCaplInterpreter_.toCAPL(interpreterData->lineData) == TclInterpreterCore::Error::Error){
             qDebug() << "CRITICAL_ERROR" + interpreterData->tclToCaplInterpreter_.error();
             return config.ERROR_CALL(PRE_ERROR_MSG + " - TCL Interpreter Critical Error");
         }

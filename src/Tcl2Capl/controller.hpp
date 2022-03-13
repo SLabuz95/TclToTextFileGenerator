@@ -9,13 +9,13 @@
 
 class UserInputConfig{
 public:
-    using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
+    using TclProcedureInterpreter = TCLCommandsController;
     using Settings = TclProcedureInterpreter::ProdecuresSettings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
-    using UserProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using UserProcedures = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinitions;
-    using UserDefaultProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using Predefinitions = TCLInterpreterPriv::PredefinitionsControl::Predefinitions;
+    using UserProcedure = TCLCommandsController::ProcedureDefinition;
+    using UserProcedures = TCLCommandsController::ProcedureDefinitions;
+    using UserDefaultProcedure = TCLCommandsController::ProcedureDefinition;
+    using Predefinitions = PredefinitionsController::Predefinitions;
 
     using UserInputConfigData = Tcl2CaplControllerConfig;
     UserInputConfig(){}
@@ -39,13 +39,13 @@ class Tcl2CaplResult;
 class Tcl2CaplController : public QThread{
     // Concept Definition
 public:
-    using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
+    using TclProcedureInterpreter = TCLCommandsController;
     using Settings = TclProcedureInterpreter::ProdecuresSettings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
-    using UserProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using UserProcedures = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinitions;
-    using UserDefaultProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using Predefinitions = TCLInterpreterPriv::PredefinitionsControl::Predefinitions;
+    using UserProcedure = TCLCommandsController::ProcedureDefinition;
+    using UserProcedures = TCLCommandsController::ProcedureDefinitions;
+    using UserDefaultProcedure = TCLCommandsController::ProcedureDefinition;
+    using Predefinitions = PredefinitionsController::Predefinitions;
 
     using Error = QString;
     using Results = QVector<Tcl2CaplResult*>;

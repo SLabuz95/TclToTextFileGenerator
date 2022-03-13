@@ -1,11 +1,11 @@
 #ifndef DEFINITION_RULES_HPP
 #define DEFINITION_RULES_HPP
 
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include"External/Factory/productdef.hpp"
 //#include"External/Factory/factory.hpp"
 
-using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
+using TclProcedureInterpreter = TCLCommandsController;
 using Settings = TclProcedureInterpreter::ProdecuresSettings;
 using UserProcedure = TclProcedureInterpreter::ProcedureDefinition;
 using UserProcedureRule = UserProcedure::Rule;

@@ -17,7 +17,7 @@
 #include<QComboBox>
 #include<QLineEdit>
 #include<QHeaderView>
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include<QFormLayout>
 #include"writeOnlyProceduresList.hpp"
 #include"proceduresList.hpp"

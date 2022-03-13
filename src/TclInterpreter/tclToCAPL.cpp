@@ -4,13 +4,11 @@
 #include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 
 using Interpreter = TCLInterpreter;
-using TextInterpreter = TCLInterpreter::TextInterpreter;
-using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
-using Error = Interpreter::Error;
-using Result = TextInterpreter::Result;
-using ReadIgnoreResult = TextInterpreter::ReadIgnoreResult;
-using CheckingResult = TextInterpreter::CheckingResult;
-using KeywordsMap = TextInterpreter::KeywordsMap;
+using TclProcedureInterpreter = TCLCommandsController;
+using Result = KeywordsController::Result;
+using ReadIgnoreResult = KeywordsController::ReadIgnoreResult;
+using CheckingResult = KeywordsController::CheckingResult;
+using KeywordsMap = KeywordsController::KeywordsMap;
 using TCLInterpreterFunctions = Interpreter::InterpretFunctions;
 using UserInteractionStatus = TclProcedureInterpreter::UserInteractionStatus;
 using Rule = TclProcedureInterpreter::ProcedureDefinition::Rule;
@@ -21,13 +19,11 @@ using FormatRule = TclProcedureInterpreter::ProcedureDefinition::Format::Rule;
 using FormatTarget = TclProcedureInterpreter::ProcedureDefinition::Format::Target;
 
 
-QString TCLInterpreterPriv::_error = QString();
-
 TCLInterpreter::TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsRef functionDefinitionsRef)
-    : tclProceduresInterpreter(*this, userConfig), functionDefinitions(functionDefinitionsRef), userConfig(userConfig)
+    : commandsController(*this, userConfig), functionDefinitions(functionDefinitionsRef), userConfig(userConfig)
 {clearError();}
 
-TclProcedureInterpreter::TCLProceduresInterpreter(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig) :
+TclProcedureInterpreter::TCLCommandsController(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig) :
     tclInterpreter(tclInterpreter),
     procedureDefinitions(
         (userConfig.userProcedureConfig().isEmpty())?
@@ -41,7 +37,7 @@ TclProcedureInterpreter::TCLProceduresInterpreter(TCLInterpreter& tclInterpreter
     finalizeProcedureCallFunction(ProcedureCallFunctions::finalizeCallAt(userConfig.proceduresSettings().mode()))
 {}
 
-KeywordsMap TextInterpreter::keywordsMap ={
+KeywordsMap KeywordsController::keywordsMap ={
     {
         {"#", {Stat::Comment}},
         {"{", {Stat::BracesStart}, Keyword::UnknownStringRule::Forbidden},
@@ -146,11 +142,11 @@ KeywordsMap TextInterpreter::keywordsMap ={
 
 // StartUp Error for Keywords Map
 template <>
-StartUpErrorBase::Message StartUpError<TextInterpreter>::__startupErrorChecking(){
+StartUpErrorBase::Message StartUpError<KeywordsController>::__startupErrorChecking(){
     using Keywords = KeywordsMap::Iterator;
     using Keyword = KeywordsMap::value_type::Iterator;
     KeywordsMap::size_type size = 0;
-    for(Keywords keywords = TextInterpreter::keywordsMap.begin(); keywords < TextInterpreter::keywordsMap.end(); keywords++){
+    for(Keywords keywords = KeywordsController::keywordsMap.begin(); keywords < KeywordsController::keywordsMap.end(); keywords++){
         if(keywords->isEmpty())
             return QString("Empty Keyword Container");
         if(size >= keywords->at(0).keyword.size())
@@ -201,7 +197,7 @@ bool TCLInterpreter::checkInterpretFunctions(){
 
     return true;
 }
-using ProcedureDefinition = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
+using ProcedureDefinition = TCLCommandsController::ProcedureDefinition;
 const TclProcedureInterpreter::ProcedureDefinition::Rule defaultRuleForUnknownProcedureDefinition_onEndOfCall =
 {   // Rule 1
     { // Conditions
@@ -1846,81 +1842,81 @@ ProcedureDefinition(
 );
 
 
-void TCLInterpreterPriv::ListStatInfo::newList(Command command){
-    if(lastListInfo){
-        if(!command.isEmpty())
-            lastListInfo->listInfos.append(ListInfo{{}, command});
+//void TCLInterpreterPriv::ListStatInfo::newList(Command command){
+//    if(lastListInfo){
+//        if(!command.isEmpty())
+//            lastListInfo->listInfos.append(ListInfo{{}, command});
 
-        lastListInfo->listInfos.append(ListInfo{});
-        lastListInfo = lastListInfo->listInfos.end() - 1;
-    }else{
-        if(!command.isEmpty())
-            listInfos.append(ListInfo{{}, command});
+//        lastListInfo->listInfos.append(ListInfo{});
+//        lastListInfo = lastListInfo->listInfos.end() - 1;
+//    }else{
+//        if(!command.isEmpty())
+//            listInfos.append(ListInfo{{}, command});
 
-        listInfos.append(ListInfo{});
-        lastListInfo = listInfos.end() - 1;
-    }
+//        listInfos.append(ListInfo{});
+//        lastListInfo = listInfos.end() - 1;
+//    }
 
-}
+//}
 
-TCLInterpreterPriv::ListStatInfo::EndListResult
-TCLInterpreterPriv::ListStatInfo::endList(Command command){
-    if(lastListInfo){
-        if(!command.isEmpty())
-            lastListInfo->listInfos.append(ListInfo{{}, command});
+//TCLInterpreterPriv::ListStatInfo::EndListResult
+//TCLInterpreterPriv::ListStatInfo::endList(Command command){
+//    if(lastListInfo){
+//        if(!command.isEmpty())
+//            lastListInfo->listInfos.append(ListInfo{{}, command});
 
-        ListInfos::Iterator prelastListInfo = listInfos.end() - 1;
-        if(prelastListInfo == lastListInfo){
-            lastListInfo = nullptr;
-        }else{
-            while(prelastListInfo->listInfos.end() - 1 != lastListInfo)
-                prelastListInfo = prelastListInfo->listInfos.end() - 1;
-            lastListInfo = prelastListInfo;
-        }
-    }else{
-        if(!command.isEmpty())
-            listInfos.append(ListInfo{{}, command});
+//        ListInfos::Iterator prelastListInfo = listInfos.end() - 1;
+//        if(prelastListInfo == lastListInfo){
+//            lastListInfo = nullptr;
+//        }else{
+//            while(prelastListInfo->listInfos.end() - 1 != lastListInfo)
+//                prelastListInfo = prelastListInfo->listInfos.end() - 1;
+//            lastListInfo = prelastListInfo;
+//        }
+//    }else{
+//        if(!command.isEmpty())
+//            listInfos.append(ListInfo{{}, command});
 
-        return EndListResult::EndOfList;
-    }
-    return EndListResult::NoEndOfList;
-}
+//        return EndListResult::EndOfList;
+//    }
+//    return EndListResult::NoEndOfList;
+//}
 
-QString TCLInterpreterPriv::ListStatInfo::ListInfo::toString(const QString& separator)
-{
-    using Info = ListInfos::Iterator;
-    //using LoopControlData = QVector<QPair<Info, Info>>/*currentIteraror, endIterator*/;
+//QString TCLInterpreterPriv::ListStatInfo::ListInfo::toString(const QString& separator)
+//{
+//    using Info = ListInfos::Iterator;
+//    //using LoopControlData = QVector<QPair<Info, Info>>/*currentIteraror, endIterator*/;
 
-    if(strData.isEmpty()){
-    QString str;
+//    if(strData.isEmpty()){
+//    QString str;
 
-    //LoopControlData loopControlData{LoopControlData(listInfos.begin(), listInfos.end())};
+//    //LoopControlData loopControlData{LoopControlData(listInfos.begin(), listInfos.end())};
 
-    /*while(!loopControlData.isEmpty()){
-        if(loopControlData.last().first < loopControlData.last().second)
-        {
-            Info info = loopControlData.last().first;
-            if(info->strData.isEmpty()){
-                loopControlData.append(LoopControlData(info->listInfos.begin(), info->listInfos.end()));
-                loopControlData.
-            }else{
+//    /*while(!loopControlData.isEmpty()){
+//        if(loopControlData.last().first < loopControlData.last().second)
+//        {
+//            Info info = loopControlData.last().first;
+//            if(info->strData.isEmpty()){
+//                loopControlData.append(LoopControlData(info->listInfos.begin(), info->listInfos.end()));
+//                loopControlData.
+//            }else{
 
-            }
-        }else{
-            loopControlData.removeLast();
-        }
-    }*/
-    if(!listInfos.isEmpty()){
-        for(Info info = listInfos.begin(); info < listInfos.end(); info++)
-            str += info->toString(separator) + separator;
-        str.chop(separator.length());
-    }
+//            }
+//        }else{
+//            loopControlData.removeLast();
+//        }
+//    }*/
+//    if(!listInfos.isEmpty()){
+//        for(Info info = listInfos.begin(); info < listInfos.end(); info++)
+//            str += info->toString(separator) + separator;
+//        str.chop(separator.length());
+//    }
 
-        return QString("{") + str + "}";
-    }else{
-        return strData;
-    }
-}
+//        return QString("{") + str + "}";
+//    }else{
+//        return strData;
+//    }
+//}
 
 void Interpreter::addEmptyLine(){
     using InterpreterMode = TclProcedureInterpreter::ProdecuresSettings::InterpreterMode;
@@ -1955,118 +1951,118 @@ void Interpreter::addEmptyLine(){
     }
 }
 
-QString TCLInterpreterPriv::ListStatInfo::ListInfo::toCaplListString()
-{
-    using Info = ListInfos::Iterator;
-    //using LoopControlData = QVector<QPair<Info, Info>>/*currentIteraror, endIterator*/;
-    const QString separator = QString("");
+//QString TCLInterpreterPriv::ListStatInfo::ListInfo::toCaplListString()
+//{
+//    using Info = ListInfos::Iterator;
+//    //using LoopControlData = QVector<QPair<Info, Info>>/*currentIteraror, endIterator*/;
+//    const QString separator = QString("");
 
-    if(strData.isEmpty()){
-        QString str;
+//    if(strData.isEmpty()){
+//        QString str;
 
-    //LoopControlData loopControlData{LoopControlData(listInfos.begin(), listInfos.end())};
+//    //LoopControlData loopControlData{LoopControlData(listInfos.begin(), listInfos.end())};
 
-    /*while(!loopControlData.isEmpty()){
-        if(loopControlData.last().first < loopControlData.last().second)
-        {
-            Info info = loopControlData.last().first;
-            if(info->strData.isEmpty()){
-                loopControlData.append(LoopControlData(info->listInfos.begin(), info->listInfos.end()));
-                loopControlData.
-            }else{
+//    /*while(!loopControlData.isEmpty()){
+//        if(loopControlData.last().first < loopControlData.last().second)
+//        {
+//            Info info = loopControlData.last().first;
+//            if(info->strData.isEmpty()){
+//                loopControlData.append(LoopControlData(info->listInfos.begin(), info->listInfos.end()));
+//                loopControlData.
+//            }else{
 
-            }
-        }else{
-            loopControlData.removeLast();
-        }
-    }*/
-    if(!listInfos.isEmpty()){
-        for(Info info = listInfos.begin(); info < listInfos.end(); info++)
-            str += info->toString(separator) + separator;
-        str.chop(separator.length());
-    }
-        return str;
-    }else{
-        return strData.trimmed();
-    }
-}
+//            }
+//        }else{
+//            loopControlData.removeLast();
+//        }
+//    }*/
+//    if(!listInfos.isEmpty()){
+//        for(Info info = listInfos.begin(); info < listInfos.end(); info++)
+//            str += info->toString(separator) + separator;
+//        str.chop(separator.length());
+//    }
+//        return str;
+//    }else{
+//        return strData.trimmed();
+//    }
+//}
 
-QString TCLInterpreterPriv::ListStatInfo::toCaplListString()
-{
-    using Info = ListInfos::Iterator;
-    //using LoopControlData = QVector<QPair<Info, Info>>/*currentIteraror, endIterator*/;
-    const QString separator = QStringLiteral(", ");
+//QString TCLInterpreterPriv::ListStatInfo::toCaplListString()
+//{
+//    using Info = ListInfos::Iterator;
+//    //using LoopControlData = QVector<QPair<Info, Info>>/*currentIteraror, endIterator*/;
+//    const QString separator = QStringLiteral(", ");
 
-    QString str;
-    QString tempStr;
+//    QString str;
+//    QString tempStr;
 
-    //LoopControlData loopControlData{LoopControlData(listInfos.begin(), listInfos.end())};
+//    //LoopControlData loopControlData{LoopControlData(listInfos.begin(), listInfos.end())};
 
-    /*while(!loopControlData.isEmpty()){
-        if(loopControlData.last().first < loopControlData.last().second)
-        {
-            Info info = loopControlData.last().first;
-            if(info->strData.isEmpty()){
-                loopControlData.append(LoopControlData(info->listInfos.begin(), info->listInfos.end()));
-                loopControlData.
-            }else{
+//    /*while(!loopControlData.isEmpty()){
+//        if(loopControlData.last().first < loopControlData.last().second)
+//        {
+//            Info info = loopControlData.last().first;
+//            if(info->strData.isEmpty()){
+//                loopControlData.append(LoopControlData(info->listInfos.begin(), info->listInfos.end()));
+//                loopControlData.
+//            }else{
 
-            }
-        }else{
-            loopControlData.removeLast();
-        }
-    }*/
-    if(!listInfos.isEmpty()){
-        for(Info info = listInfos.begin(); info < listInfos.end(); info++)
-            if(!(tempStr = info->toCaplListString()).isEmpty())
-                str += QString("\"") + tempStr + "\"" + separator;
-        if(str.endsWith(separator))
-            str.chop(separator.length());
-    }
+//            }
+//        }else{
+//            loopControlData.removeLast();
+//        }
+//    }*/
+//    if(!listInfos.isEmpty()){
+//        for(Info info = listInfos.begin(); info < listInfos.end(); info++)
+//            if(!(tempStr = info->toCaplListString()).isEmpty())
+//                str += QString("\"") + tempStr + "\"" + separator;
+//        if(str.endsWith(separator))
+//            str.chop(separator.length());
+//    }
 
-    return QString("{") + str + "}";
+//    return QString("{") + str + "}";
 
-}
+//}
 
-QString TCLInterpreterPriv::ListStatInfo::toString(const QString& separator)
-{
-    using Info = ListInfos::Iterator;
-    //using LoopControlData = QVector<QPair<Info, Info>>/*currentIteraror, endIterator*/;
-    QString str;
+//QString TCLInterpreterPriv::ListStatInfo::toString(const QString& separator)
+//{
+//    using Info = ListInfos::Iterator;
+//    //using LoopControlData = QVector<QPair<Info, Info>>/*currentIteraror, endIterator*/;
+//    QString str;
 
-    //LoopControlData loopControlData{LoopControlData(listInfos.begin(), listInfos.end())};
+//    //LoopControlData loopControlData{LoopControlData(listInfos.begin(), listInfos.end())};
 
-    /*while(!loopControlData.isEmpty()){
-        if(loopControlData.last().first < loopControlData.last().second)
-        {
-            Info info = loopControlData.last().first;
-            if(info->strData.isEmpty()){
+//    /*while(!loopControlData.isEmpty()){
+//        if(loopControlData.last().first < loopControlData.last().second)
+//        {
+//            Info info = loopControlData.last().first;
+//            if(info->strData.isEmpty()){
 
-            }else{
+//            }else{
 
-            }
-        }else{
-            loopControlData.removeLast();
-        }
-    }*/
-    if(!listInfos.isEmpty()){
-        for(Info info = listInfos.begin(); info < listInfos.end(); info++)
-            str += info->toString(separator) + separator;
-        str.chop(separator.length());
-    }
-    return str;
-}
+//            }
+//        }else{
+//            loopControlData.removeLast();
+//        }
+//    }*/
+//    if(!listInfos.isEmpty()){
+//        for(Info info = listInfos.begin(); info < listInfos.end(); info++)
+//            str += info->toString(separator) + separator;
+//        str.chop(separator.length());
+//    }
+//    return str;
+//}
 
-QString TCLInterpreterPriv::SavedStat::listToCaplString(){
+QString SavedStat::listToCaplString(){
     QString str = "{";
-    if(info){
-        str += info->toCaplListString();
-    }else{
+//    if(info){
+//        str += info->toCaplListString();
+//    }else{
         QStringList elements = _command.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
         for(QStringList::Iterator element = elements.begin(); element < elements.end(); element++)
             *element = QString("\"") + *element + "\"";
         str += elements.join(", ");
-    }
+//    }
     return str + "}";
 }
 
@@ -2190,13 +2186,13 @@ Error Interpreter::newProcedureCall(TclProcedureInterpreter::ProcedureCall::Name
         // Do not add predefinitions group
         break;
     case Stat::Script:
-        predefinitionsControl().newGroup(savedStatsSize());
+        predefinitionsController.newGroup(savedStatsSize());
         break;
     default:
         break;
     }
 
-    if(tclProceduresInterpreter.newProcedureCall(name) == Error::Error)
+    if(commandsController.newProcedureCall(name) == Error::Error)
         return throwError(ERROR_PREFIX + error());
 
 
@@ -2204,7 +2200,7 @@ Error Interpreter::newProcedureCall(TclProcedureInterpreter::ProcedureCall::Name
 }
 
 Error Interpreter::removeProcedureCall_writeOnlyProcedure(){
-    tclProceduresInterpreter.tryToDeactivateWriteOnlyProcedure();
+    commandsController.tryToDeactivateWriteOnlyProcedure();
     return removeProcedureCall_standard();
 }
 
@@ -2240,15 +2236,15 @@ Error Interpreter::moveArgumentToFunctionCall(){
         return throwError(ERROR_DESCRIPTION + "No Function Call" );
     }
 
-    return (tclProceduresInterpreter.nextArgument() == Error::Error or
-                tclProceduresInterpreter.onArgumentProcedureCheck() == Error::Error)
+    return (commandsController.nextArgument() == Error::Error or
+                commandsController.onArgumentProcedureCheck() == Error::Error)
             ?
                 Error::Error :
                 Error::NoError;
 }
 
 Error Interpreter::moveArgumentToSnprintf_priv(Stat stat){
-    using Parameter = TCLProceduresInterpreter::ProcedureCall::Parameter;
+    using Parameter = TCLCommandsController::ProcedureCall::Parameter;
     const QString ERROR_DESCRIPTION = QString("InternalCall: Interpreter::moveArgumentToSnprintf_priv(): ");
     if(!isPrelastSavedStat())
         return throwError("No Stats for snprintf processing");
@@ -2256,21 +2252,21 @@ Error Interpreter::moveArgumentToSnprintf_priv(Stat stat){
 //    case Stat::Snprintf:
 //    case Stat::PendingSnprintf:
 //    {
-//        if(tclProceduresInterpreter.nextArgument() == Error::Error or
-//                tclProceduresInterpreter.onArgumentProcedureCheck() == Error::Error)
+//        if(commandsController.nextArgument() == Error::Error or
+//                commandsController.onArgumentProcedureCheck() == Error::Error)
 //            return throwError(ERROR_DESCRIPTION + error());
 //    }
 //        break;
     default:
     {
-        if(tclProceduresInterpreter.nextArgumentForSnprintf_priv(stat) == Error::Error)
+        if(commandsController.nextArgumentForSnprintf_priv(stat) == Error::Error)
             return throwError(ERROR_DESCRIPTION + error());
     }
     }
     return Error::NoError;
 }
 
-void TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToUserProcedureDefintions(UserInputConfig& userDefinitions){
+void TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(UserInputConfig& userDefinitions){
 
     if(!userDefinitions.userProcedureConfig().isEmpty()){
        for(ProcedureDefinitionIterator defaultDefinition = defaultProcedureDefinitions.begin();
@@ -2335,7 +2331,7 @@ void TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToU
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::Word>(){
+Error Interpreter::interpret<Stat::Word>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Word>: ";
     //SavedStat unknownStringStat;
     // Preconditions
@@ -2347,8 +2343,32 @@ Error Interpreter::interpret<Interpreter::Stat::Word>(){
 
     // Processing
     // #1 ------------------------------------------------------------------
-    switch(lastSavedStat().stat()){
-
+    switch(lastSavedStat().filteredStat()){
+    // Stat BracesStart will be filtered by filteredStat method
+    // New procedure call will handle Braces control (CommandSubbing related)
+// case Stat::BracesStart:
+    // Stat DoubleQuotes will be filtered by filteredStat method
+    // New procedure call will handle Braces control (old Snprintf) (CommandSubbing related)
+// case Stat::DoubleQuotes:
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret(unknownString) == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
+    case Stat::MainScript:
+    case Stat::Script:
+    case Stat::CommandSubbingStart:
+    {
+        if(commandsController.newProcedureCall(unknownString) == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+        // Stat shall be replace by CommandSubbing in the CommandsController
+    #ifdef QT_DEBUG
+        if(lastSavedStat().filteredStat() != Stat::CommandSubbing)
+            qFatal("New Procedure Call did not remove CommandSubbingStart stat");
+    #endif
+    }
+        break;
     case Stat::Ignore:
         break;
     default:
@@ -2360,13 +2380,17 @@ Error Interpreter::interpret<Interpreter::Stat::Word>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::CommandSubbingStart>(){
+Error Interpreter::interpret<Stat::CommandSubbingStart>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::CommandSubbingStart>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-
+    case Stat::CommandSubbingStart: // To implementation -- Possible - UserInteraction + Warning
+        return throwError(ERROR_PREFIX + "CommandSubbingStart after other CommandSubbingStart");
+    case Stat::MainScript:
+    case Stat::Script: // To implementation -- Possible - UserInteraction + Warning
+        return throwError(ERROR_PREFIX + "CommandSubbingStart directly in script");
     case Stat::Ignore:
         break;
     default:
@@ -2376,7 +2400,7 @@ Error Interpreter::interpret<Interpreter::Stat::CommandSubbingStart>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::CommandSubbingEnd>(){
+Error Interpreter::interpret<Stat::CommandSubbingEnd>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::CommandSubbingEnd>: ";
     bool ignoreMoveArgumentProcedure = false;
 
@@ -2395,7 +2419,7 @@ Error Interpreter::interpret<Interpreter::Stat::CommandSubbingEnd>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::BracesStart>(){
+Error Interpreter::interpret<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::BracesStart>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
@@ -2411,7 +2435,7 @@ Error Interpreter::interpret<Interpreter::Stat::BracesStart>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::Braces>(){
+Error Interpreter::interpret<Stat::Braces>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Braces>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
@@ -2428,7 +2452,7 @@ Error Interpreter::interpret<Interpreter::Stat::Braces>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::DoubleQuotes>(){
+Error Interpreter::interpret<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::DoubleQuotes>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
@@ -2446,7 +2470,7 @@ Error Interpreter::interpret<Interpreter::Stat::DoubleQuotes>(){
 
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::Whitespace>(){
+Error Interpreter::interpret<Stat::Whitespace>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Whitespace>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
@@ -2464,7 +2488,7 @@ Error Interpreter::interpret<Interpreter::Stat::Whitespace>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::VariableSubbingStart>(){
+Error Interpreter::interpret<Stat::VariableSubbingStart>(){
 
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::VariableSubbingStart>: ";
      if(isSavedStatsEmpty())
@@ -2481,7 +2505,7 @@ Error Interpreter::interpret<Interpreter::Stat::VariableSubbingStart>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::Namespace>(){
+Error Interpreter::interpret<Stat::Namespace>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Namespace>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
@@ -2497,7 +2521,7 @@ Error Interpreter::interpret<Interpreter::Stat::Namespace>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
+Error Interpreter::interpret<Stat::Semicolon>(){
 
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Semicolon>: ";
     if(isSavedStatsEmpty())
@@ -2519,7 +2543,7 @@ Error Interpreter::interpret<Interpreter::Stat::Semicolon>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::Comment>(){
+Error Interpreter::interpret<Stat::Comment>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Comment>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
@@ -2537,7 +2561,7 @@ Error Interpreter::interpret<Interpreter::Stat::Comment>(){
 }
 
 template<>
-Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
+Error Interpreter::interpret<Stat::EndOfString>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::EndOfString>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
@@ -2558,7 +2582,7 @@ Error Interpreter::interpret<Interpreter::Stat::EndOfString>(){
 }
 
 template<>
-Error TCLInterpreter::interpret<Interpreter::Stat::BackslashSubbing>(){
+Error TCLInterpreter::interpret<Stat::BackslashSubbing>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::BackslashSubbing>: ";
     QString specialSignStr;
     if(isSavedStatsEmpty())
@@ -2640,19 +2664,19 @@ TCLInterpreterFunctions TCLInterpreter::interpretFunctions = {
 };
 //static_assert (TCLInterpreter::checkInterpretFunctions() == true, "Wrong InterpretFunctions");
 
-Error TextInterpreter::initialize(const QString &strToAnalyze){
+Error KeywordsController::initialize(const QString &strToAnalyze){
     currentChar = savedFirstKeywordCharPos = beginOfString = savedChar = strToAnalyze.constBegin();
     endOfString = strToAnalyze.constEnd();
     lastKeywordLength = 0;
     return Error::NoError;
 }
 
-Error TextInterpreter::deinitialize(){
+Error KeywordsController::deinitialize(){
 
     return Error::NoError;
 }
 
-ReadIgnoreResult TextInterpreter::readIgnoreUntilPriv()
+ReadIgnoreResult KeywordsController::readIgnoreUntilPriv()
 {
     while(currentChar < endOfString){
         if(ignoreReadUntilCondtions.contains(readCharacter(currentChar)))
@@ -2662,7 +2686,7 @@ ReadIgnoreResult TextInterpreter::readIgnoreUntilPriv()
     return ReadIgnoreResult::EndOfString;
 }
 
-ReadIgnoreResult TextInterpreter::readIgnoreIfPriv()
+ReadIgnoreResult KeywordsController::readIgnoreIfPriv()
 {
     while(currentChar < endOfString){
         if(!ignoreReadUntilCondtions.contains(readCharacter(currentChar)))
@@ -2673,7 +2697,7 @@ ReadIgnoreResult TextInterpreter::readIgnoreIfPriv()
     return ReadIgnoreResult::EndOfString;
 }
 
-CheckingResult TextInterpreter::checkingPriv(){
+CheckingResult KeywordsController::checkingPriv(){
     int index = currentChar - savedFirstKeywordCharPos;
     while(currentChar < endOfString){
         // Check current stat
@@ -2727,7 +2751,7 @@ CheckingResult TextInterpreter::checkingPriv(){
     return CheckingResult::StatFound;;
 }
 
-CheckingResult TextInterpreter::checkKeyword(int& index){
+CheckingResult KeywordsController::checkKeyword(int& index){
     int i = 0;
     for(KeywordsMap::ConstIterator keywords = keywordsMap.constBegin() + index;
         keywords < keywordsMap.constEnd(); keywords++)
@@ -2749,7 +2773,7 @@ CheckingResult TextInterpreter::checkKeyword(int& index){
     return CheckingResult::StatNotFound;
 }
 
-Result TextInterpreter::interpret(){
+Result KeywordsController::interpret(){
 
     savedChar = savedFirstKeywordCharPos = currentChar;
     lastKeywordLength = 0;
@@ -2782,7 +2806,7 @@ Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::
     return Error::NoError;
 }
 
-inline void TCLInterpreter::TCLProceduresInterpreter::tryToActivateWriteOnlyProcedure(ProcedureCall::Name& name){
+inline void TCLCommandsController::tryToActivateWriteOnlyProcedure(ProcedureCall::Name& name){
     if(writeOnlyProcedureActiveIndex == -1 and tclInterpreter.userConfig.proceduresSettings().isWriteOnlyProcedure(name)){
         writeOnlyProcedureActiveIndex = procedureCalls.size() + 1;
         activateWriteOnlyProcedureMode();
@@ -2800,7 +2824,7 @@ Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::
     return newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
 }
 
-Error TclProcedureInterpreter::nextArgument()
+Error TclProcedureInterpreter::interpret(QString newArgument)
 {
     using Parameter = ProcedureCall::Parameter;
     switch(tclInterpreter.lastSavedStat().stat()){
@@ -2975,7 +2999,7 @@ Error TCLInterpreter::finalizeProcedureCall(){
 //    case Stat::PendingSnprintf:
     case Stat::CommandSubbing:
     {
-        if(tclProceduresInterpreter.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
+        if(commandsController.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
                 removeProcedureCall() == Error::Error*/)
             return throwError(ERROR_DESCRIPTION + error());
 //        if(prelastSavedStat().stat() == Stat::Snprintf){
@@ -2988,11 +3012,11 @@ Error TCLInterpreter::finalizeProcedureCall(){
     {
         SavedStat tempStat;
         if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                tclProceduresInterpreter.finalizeProcedureCall(tempStat) == Error::Error or
+                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
                 /*Preexpressions to Command */
                 ( addPreexpressionsToCodeBlock(),
-                  snprintfController().clear(),
-                  addExpressionToCodeBlock({tempStat.command() + tclProceduresInterpreter.lastProcedureCall().tryToAddEndOfExpressionSign()}),
+                  snprintfController.clear(),
+                  addExpressionToCodeBlock({tempStat.command() + commandsController.lastProcedureCall().tryToAddEndOfExpressionSign()}),
                  false) or
                 // Continue conditional expression
                 removeProcedureCall() == Error::Error)
@@ -3003,7 +3027,7 @@ Error TCLInterpreter::finalizeProcedureCall(){
     {
         SavedStat tempStat;
         if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                tclProceduresInterpreter.finalizeProcedureCall(tempStat) == Error::Error or
+                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
                 /*Preexpressions to Command */
                 ( /*addPreexpressionsToCodeBlock(),
                   snprintfController().clear(),*/
@@ -3018,14 +3042,14 @@ Error TCLInterpreter::finalizeProcedureCall(){
     {
         SavedStat tempStat;
         if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                tclProceduresInterpreter.finalizeProcedureCall(tempStat) == Error::Error or
+                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
                 /*Preexpressions to Command */
                 (   addPreexpressionsToMainCodeBlock(),
-                    snprintfController().clear(),
-                    addExpressionToMainCodeBlock({tempStat.command() + tclProceduresInterpreter.lastProcedureCall().tryToAddEndOfExpressionSign()}) ,
+                    snprintfController.clear(),
+                    addExpressionToMainCodeBlock({tempStat.command() + commandsController.lastProcedureCall().tryToAddEndOfExpressionSign()}) ,
                  false) or
                 // Continue conditional expression
-                ( tclProceduresInterpreter.lastProcedureCall().clearMemory(),
+                ( commandsController.lastProcedureCall().clearMemory(),
                 removeProcedureCall() == Error::Error))
             return throwError(ERROR_DESCRIPTION + error());
     }
@@ -3051,7 +3075,7 @@ Error TCLInterpreter::finalizeSnprintfCall(){
 //        break;
     case Stat::CommandSubbing:
     {
-        if(tclProceduresInterpreter.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
+        if(commandsController.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
                 removeProcedureCall() == Error::Error*/)
             return throwError(ERROR_DESCRIPTION + error());
     }
@@ -3060,7 +3084,7 @@ Error TCLInterpreter::finalizeSnprintfCall(){
     {
         SavedStat tempStat;
         if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                tclProceduresInterpreter.finalizeProcedureCall(tempStat) == Error::Error or
+                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
                 // Preexpressions to Command
                 (   addPreexpressionsToMainCodeBlock(),
                     addExpressionToMainCodeBlock( tempStat.command()) ,
@@ -3074,7 +3098,7 @@ Error TCLInterpreter::finalizeSnprintfCall(){
     {
         SavedStat tempStat;
         if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                tclProceduresInterpreter.finalizeProcedureCall(tempStat) == Error::Error or
+                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
                 //Preexpressions to Command
                 (   addPreexpressionsToCodeBlock(),
                     addExpressionToCodeBlock(tempStat.command()) ,
@@ -3228,7 +3252,7 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
             if(processError() == Error::Error)
                 return Error::Error;
         }
-        tclProceduresInterpreter.dynamicProcedureCheck();
+        commandsController.dynamicProcedureCheck();
         if(isError()){
             if(processError() == Error::Error)
                 return Error::Error;
@@ -3258,7 +3282,7 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
                 if(processError() == Error::Error)
                     return Error::Error;
             }
-            tclProceduresInterpreter.dynamicProcedureCheck();
+            commandsController.dynamicProcedureCheck();
             if(isError()){
                 if(processError() == Error::Error)
                     return Error::Error;

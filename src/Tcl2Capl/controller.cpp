@@ -21,7 +21,7 @@ UserInputConfig::UserInputConfig(UserInputConfigData& configData)
     {
         (*userProcedure) = configProcedure->toProcedureWithRawRules();
     }
-    TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToUserProcedureDefintions(*this);
+    TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(*this);
 }
 
 Tcl2CaplController::~Tcl2CaplController(){
@@ -55,7 +55,7 @@ Tcl2CaplController::Error Tcl2CaplController::readNewInputConfig(){
 
     configFilePath_ = mainPath;
     // Merge with default procedures
-    TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToUserProcedureDefintions(userInputConfig_);
+    TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(userInputConfig_);
     return QString();
 }
 

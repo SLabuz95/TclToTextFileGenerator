@@ -1,25 +1,25 @@
 #ifndef CONTROLLERCONFIG_H
 #define CONTROLLERCONFIG_H
 
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include"Tcl2Capl/Config/Parameters/FCT_products.hpp"
 #include"Tcl2Capl/Config/Rules/FCT_products.hpp"
 
 class Tcl2CaplControllerConfigXmlData;
 class Tcl2CaplControllerConfig{
 public:
-    using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
+    using TclProcedureInterpreter = TCLCommandsController;
     using Settings = TclProcedureInterpreter::ProdecuresSettings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
-    using UserProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using UserProcedures = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinitions;
-    using UserDefaultProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using Predefinitions = TCLInterpreterPriv::PredefinitionsControl::Predefinitions;
+    using UserProcedure = TCLCommandsController::ProcedureDefinition;
+    using UserProcedures = TCLCommandsController::ProcedureDefinitions;
+    using UserDefaultProcedure = TCLCommandsController::ProcedureDefinition;
+    using Predefinitions = PredefinitionsController::Predefinitions;
     using InterpreterRule = UserProcedure::Rule;
     using InterpreterRules = QList<InterpreterRule>;
     using Mode = Settings::InterpreterMode;
     using ControlFlag = InterpreterRule::Control;
-    using UserInteraction = TclProcedureInterpreter::UserInteraction;
+    using UserInteraction = UserInteraction;
     using UserInteractionStatus = TclProcedureInterpreter::UserInteractionStatus;
     using ConditionalActions = InterpreterRule::ConditionalActions;
     using ExecutableActions = InterpreterRule::ExecutableActions;

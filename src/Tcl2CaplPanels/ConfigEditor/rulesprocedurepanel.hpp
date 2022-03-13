@@ -3,7 +3,7 @@
 
 #include<QListWidgetItem>
 #include<QComboBox>
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include<QVBoxLayout>
 #include<QFormLayout>
 #include<QLineEdit>
@@ -44,7 +44,7 @@ public:
             class RuleControlComboBox : public QComboBox{
             public:
                 RuleControlComboBox(){
-                    addItems(TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition::Rule::getRuleControlFlagNames());
+                    addItems(TCLCommandsController::ProcedureDefinition::Rule::getRuleControlFlagNames());
                 }
             };
 

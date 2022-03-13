@@ -173,7 +173,7 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readNewInputConfig
         {
             return error;
         }
-        //TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToUserProcedureDefintions(tempUserProceduresConfig_);
+        //TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(tempUserProceduresConfig_);
     }else{
         // Reset
        // tempUserProceduresConfig_ = UserProceduresConfig();
