@@ -112,7 +112,7 @@ private:
             preexpressions().clear();
         }
     }
-
+    inline QString readCurrentKeyword(){return (proccessingStats.isEmpty())? textInterpreter.readLastKeyword() : textInterpreter.readUnknownString();}
 
 public:
     using InterpretFunctions = InterpretFunction[static_cast<std::underlying_type_t<Stat>>(Stat::Size)];

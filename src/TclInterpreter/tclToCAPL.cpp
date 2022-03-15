@@ -2339,7 +2339,7 @@ Error Interpreter::interpret<Stat::Word>(){
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     // Initialize
-    QString unknownString = textInterpreter.readUnknownString();
+    QString unknownString = readCurrentKeyword();
 
     // Processing
     // #1 ------------------------------------------------------------------
@@ -2385,12 +2385,23 @@ Error Interpreter::interpret<Stat::CommandSubbingStart>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
+    switch(lastSavedStat().filteredStat()){
     case Stat::CommandSubbingStart: // To implementation -- Possible - UserInteraction + Warning
+    {
         return throwError(ERROR_PREFIX + "CommandSubbingStart after other CommandSubbingStart");
+    }
     case Stat::MainScript:
     case Stat::Script: // To implementation -- Possible - UserInteraction + Warning
+    {
         return throwError(ERROR_PREFIX + "CommandSubbingStart directly in script");
+    }
+    case Stat::CommandSubbing:
+    case Stat::BackslashSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
         break;
     default:
@@ -2402,13 +2413,23 @@ Error Interpreter::interpret<Stat::CommandSubbingStart>(){
 template<>
 Error Interpreter::interpret<Stat::CommandSubbingEnd>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::CommandSubbingEnd>: ";
-    bool ignoreMoveArgumentProcedure = false;
-
+    //bool ignoreMoveArgumentProcedure = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
-
+    switch(lastSavedStat().filteredStat()){
+    case Stat::CommandSubbingStart:
+    {
+        if(removeLastStat() == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
+    case Stat::MainScript:
+    case Stat::Script:
+    {
+       return throwError(ERROR_PREFIX + "CommandSubbingEnd in MainScript or Script");
+    }
+        break;
     case Stat::Ignore:
         break;
     default:
@@ -3269,12 +3290,13 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
             if(processError() == Error::Error)
                 return Error::Error;
         }
+        proccessingStats.append(textInterpreter.lastKeywordStats());
+
         if(processUnknownString() == Error::Error){
             if(processError() == Error::Error)
                 return Error::Error;
         }
 
-        proccessingStats.append(textInterpreter.lastKeywordStats());
 
         while(!proccessingStats.isEmpty()){
             Stat savedProccessingStat = proccessingStats.last();
