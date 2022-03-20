@@ -49,6 +49,12 @@ namespace Tcl::Interpreter::Core {
         Script,  // {Parent, Child, Pending} SAVEABLE // Old Name: CodeBLock
         Size
     };
+
+    static constexpr std::underlying_type_t<Stat> numbOfSpecialCommandCalls()
+    {
+        return std::underlying_type_t<Stat>(Stat::Size) - std::underlying_type_t<Stat>(Stat::CommandSubbing);
+    }
+
     using Stats = QVector<Stat>;
 }
 

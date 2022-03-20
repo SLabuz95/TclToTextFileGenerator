@@ -60,6 +60,10 @@ namespace Tcl::Interpreter::Command{
             constexpr static std::underlying_type_t<InterpreterMode> mode2number(InterpreterMode mode){
                 return static_cast<std::underlying_type_t<InterpreterMode>>(mode);
             }
+
+            constexpr static std::underlying_type_t<Stat> specialCallStat2number(const Stat stat){
+                return static_cast<std::underlying_type_t<Stat>>(stat) - static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing);
+            }
         protected:
             WriteOnlyProcedures writeOnlyProcedures_;
 
@@ -97,6 +101,8 @@ namespace Tcl::Interpreter::Command{
 
         using NewProcedureCallFunction =  Error (Controller::* const)(Call::Name);
         using FinalizeProcedureCallFunction = Error (Controller::*)(SavedStat&);
+        using CommandCallSpecialInterpretFunction = Error (Controller::*)(const Stat);
+        //inline Error emptyCommandCallSpecialInterpret(const Stat){return Error::NoError;}
         // ----
 
     private:
@@ -116,6 +122,8 @@ namespace Tcl::Interpreter::Command{
         bool finalizeOn = false;
         NewProcedureCallFunction newProcedureCallFunction = ProcedureCallFunctions::newCallAt(ProdecuresSettings::InterpreterMode::TestCase);
         FinalizeProcedureCallFunction finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCase);
+        //CommandCallSpecialInterpret commandCallSpecialInterpret = &Controller::emptyCommandCallSpecialInterpret;
+
         Calls::size_type writeOnlyProcedureActiveIndex = -1;
 
         //Command command;
@@ -195,19 +203,29 @@ namespace Tcl::Interpreter::Command{
             static const FinalizeProcedureCallFunction finalizeProcedureCalls[
                     std::underlying_type_t<Controller::ProdecuresSettings::InterpreterMode>
                     (Controller::ProdecuresSettings::InterpreterMode::NumbOfModes)];
+
+            static const CommandCallSpecialInterpretFunction commandCallSpecialInterprets[
+                        Tcl::Interpreter::Core::numbOfSpecialCommandCalls()
+                    ];
             using Settings = Controller::ProdecuresSettings;
         public:
-            static inline NewProcedureCallFunction newCallAt(Settings::InterpreterMode mode){
+            static inline NewProcedureCallFunction newCallAt(const Settings::InterpreterMode mode){
                 return newProcedureCalls[Settings::mode2number(mode)];
             }
-            static inline FinalizeProcedureCallFunction finalizeCallAt(Settings::InterpreterMode mode){
+            static inline FinalizeProcedureCallFunction finalizeCallAt(const Settings::InterpreterMode mode){
                 return finalizeProcedureCalls[Settings::mode2number(mode)];
+            }
+
+            static inline CommandCallSpecialInterpretFunction interpretCallAt(const Stat stat){
+                return commandCallSpecialInterprets[Settings::specialCallStat2number(stat)];
             }
         };
 
         inline Error removeProcedureCall(){return procedureCalls.isEmpty()? throwError("TclProcedureInterpreter_Internal: No procedure to remove") :
                                                                             (procedureCalls.removeLast(), Error::NoError);}
-        Error interpret(QString newArgument);
+        // -- !!!
+        inline Error interpret(const Stat stat){return (this->*(ProcedureCallFunctions::interpretCallAt(stat)))(stat);}
+        // ---
         Error nextArgument(){}
         Error nextArgumentForSnprintf_priv(Stat stat);
 
@@ -216,9 +234,12 @@ namespace Tcl::Interpreter::Command{
         template<Controller::ProdecuresSettings::InterpreterMode>
         Error finalizeProcedureCall_mode(SavedStat&);
 
-        static FinalizeProcedureCallFunction finalizeProcedureCalls[
+        template<Stat>  // Special Command Call Stat
+        Error interpretSpecialCommandCall(const Stat);
+
+        /*static FinalizeProcedureCallFunction finalizeProcedureCalls[
         std::underlying_type_t<Controller::ProdecuresSettings::InterpreterMode>
-        (Controller::ProdecuresSettings::InterpreterMode::NumbOfModes)];
+        (Controller::ProdecuresSettings::InterpreterMode::NumbOfModes)];*/
 
        // Error finalizeSnprintfCall(ProcedureCall::Parameter&);
         Error dynamicProcedureCheck();
