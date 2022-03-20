@@ -9,11 +9,11 @@
 
 class UserInputConfig{
 public:
-    using TclProcedureInterpreter = Tcl::Interpreter::CommandsController::Controller;
+    using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
     using Settings = TclProcedureInterpreter::ProdecuresSettings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
-    using UserProcedure = Tcl::Interpreter::CommandsController::Definition;
-    using UserProcedures = Tcl::Interpreter::CommandsController::CommandDefinitions;
+    using UserProcedure = Tcl::Interpreter::Command::Definition;
+    using UserProcedures = Tcl::Interpreter::Command::CommandDefinitions;
     using UserDefaultProcedure = UserProcedure;
     using Predefinitions = Tcl::Interpreter::PredefinitionsController::Predefinitions;
 
@@ -39,11 +39,11 @@ class Tcl2CaplResult;
 class Tcl2CaplController : public QThread{
     // Concept Definition
 public:
-    using TclProcedureInterpreter = Tcl::Interpreter::CommandsController::Controller;
+    using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
     using Settings = TclProcedureInterpreter::ProdecuresSettings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
-    using UserProcedure = Tcl::Interpreter::CommandsController::Definition;
-    using UserProcedures = Tcl::Interpreter::CommandsController::CommandDefinitions;
+    using UserProcedure = Tcl::Interpreter::Command::Definition;
+    using UserProcedures = Tcl::Interpreter::Command::CommandDefinitions;
     using UserDefaultProcedure = UserProcedure;
     using Predefinitions = Tcl::Interpreter::PredefinitionsController::Predefinitions;
 

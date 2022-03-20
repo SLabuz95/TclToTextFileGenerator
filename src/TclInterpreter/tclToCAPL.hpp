@@ -28,7 +28,7 @@ namespace Tcl{
     private:
         // Concept ----------------------------------------------------------------------
         using Preexpressions = QStringList;
-        using CommandsController = CommandsController::Controller;
+        using CommandsController = Command::Controller;
         // ----
         using InterpretFunction = Error (TCLInterpreter::*)();
         // ----
@@ -45,7 +45,7 @@ namespace Tcl{
         using ErrorMessages = QVector<ErrorMessage>;
         // ----
 
-        using AddExpressionToCodeBlockFunction = void (TCLInterpreter::*)(Commands, QString);
+        using AddExpressionToCodeBlockFunction = void (TCLInterpreter::*)(OutputCommands, QString);
         AddExpressionToCodeBlockFunction addExpressionToCodeBlockFunction = &TCLInterpreter::addExpressionToCodeBlock_standard;
         using RemoveProcedureCallFunction = Error (TCLInterpreter::*)();
 
@@ -78,28 +78,28 @@ namespace Tcl{
             }
         }
 
-        /*inline void addExpressionToMainCodeBlock(Command command){command.isEmpty() or
+        /*inline void addExpressionToMainCodeBlock(OutputCommand command){command.isEmpty() or
                                                                     If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) + command ), true);
                                                                    }*/
-        inline void addExpressionToMainCodeBlock(Commands commands, QString postfix = QString()){
+        inline void addExpressionToMainCodeBlock(OutputCommands commands, QString postfix = QString()){
             if(commands.size() > 0){
                 command.append(commands.join("\n") + postfix);
             }
         }
-        /*inline void addExpressionToCodeBlock(Command command){command.isEmpty() or
+        /*inline void addExpressionToCodeBlock(OutputCommand command){command.isEmpty() or
                                                                     If not empty  ( lastSavedStat().setCommand( lastSavedStat().command() +  command + "\n"), true);
                                                                    }*/
 
-        inline void addExpressionToCodeBlock(Commands commands, QString postfix = QString()){
+        inline void addExpressionToCodeBlock(OutputCommands commands, QString postfix = QString()){
             (this->*addExpressionToCodeBlockFunction)(commands, postfix);
         }
 
-        inline void addExpressionToCodeBlock_standard(Commands commands, QString postfix){
+        inline void addExpressionToCodeBlock_standard(OutputCommands commands, QString postfix){
             if(commands.size() > 0)
                 lastSavedStat().appendCommand(commands.join("\n") + postfix);
         }
 
-        inline void addExpressionToCodeBlock_writeOnlyProcedure(Commands commands, QString postfix){
+        inline void addExpressionToCodeBlock_writeOnlyProcedure(OutputCommands commands, QString postfix){
             addExpressionToMainCodeBlock(commands, postfix);
         }
 
@@ -135,7 +135,7 @@ namespace Tcl{
             PredefinitionsController predefinitionsController;
             SnprintfController snprintfController;
             UserInteraction userInteraction;
-            Core::Command command;
+            OutputCommand command;
             SavedStats _savedStats{{Stat::MainScript}};
             Preexpressions _preexpressions;
 
@@ -200,7 +200,7 @@ namespace Tcl{
 
 
 
-            Error newProcedureCall(Interpreter::CommandsController::Call::Name name);
+            Error newProcedureCall(Interpreter::Command::Call::Name name);
             inline Error removeProcedureCall(){return (this->*removeProcedureCallFunction)();}
             inline Error removeProcedureCall_standard(){
                 const QString ERROR_PREFIX = "TCLInterpreter::removeProcedureCall: ";
@@ -249,8 +249,8 @@ namespace Tcl{
             inline bool anyErrors(){return ignoreMessages.size();}
             void printErrorReport(QFile& reportFile, QString inputFileName);
             void printErrorReport(QString& inputFileName);
-            Core::Command& readCommand(){return command;}
-            inline Core::Command printPredefinitions(){return predefinitionsController.getPredefinitionsStr();}
+            OutputCommand& readCommand(){return command;}
+            inline OutputCommand printPredefinitions(){return predefinitionsController.getPredefinitionsStr();}
 
             static inline std::underlying_type_t<Stat> cast_stat(const Stat t){return static_cast<std::underlying_type_t<Stat>>(t);}
             static inline QString cast_stat_str(const Stat t){return QString::number(cast_stat(t));}
@@ -265,8 +265,8 @@ namespace Tcl{
 
         // ----------------------------
 
-        friend class CommandsController::Controller;
-        friend class Interpreter::CommandsController::Command::Call::Parameter;
+        friend class Command::Controller;
+        friend class Command::Call::Parameter;
     };
 
 };

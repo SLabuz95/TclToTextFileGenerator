@@ -21,7 +21,7 @@ UserInputConfig::UserInputConfig(UserInputConfigData& configData)
     {
         (*userProcedure) = configProcedure->toProcedureWithRawRules();
     }
-    CommandsController::Controller::addDefaultProcedureDefinitionsToUserProcedureDefintions(*this);
+    Command::Controller::addDefaultProcedureDefinitionsToUserProcedureDefintions(*this);
 }
 
 Tcl2CaplController::~Tcl2CaplController(){

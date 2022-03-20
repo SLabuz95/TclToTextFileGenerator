@@ -3,18 +3,17 @@
 #include"commandDef.hpp"
 #include"TclInterpreter/SavedStatCont/savedStatCont.hpp"
 
-namespace Tcl::Interpreter::CommandsController::Command{
+namespace Tcl::Interpreter::Command{
     using namespace Tcl::Interpreter::Core;
-    using namespace Tcl::Interpreter::CommandsController;
+    using namespace Tcl::Interpreter;
     class Call{
         public:
         // Concept -----------------------------------------------------
         using Name = Definition::ProcedureName;
-        using PreExpression = Core::Command;
+        using PreExpression = OutputCommand;
         using PreExpressions = QVector<PreExpression>;
         using SquareBracketLevel = uint;
         class Parameter;
-        using Command = Tcl::Interpreter::Core::Command;
         using Parameters = QVector<Parameter>;
         using ProcedureDefinitionIterator = Types::CommandDefinitionIterator;
 
@@ -33,14 +32,14 @@ namespace Tcl::Interpreter::CommandsController::Command{
                 rawParameterStats = {Parameter(Stat::Word, procedureCall.name())};
                 rawParameterStats += procedureCall.rawParameters();
             }
-            Parameter(const Stat stat, Command command) : _savedStat{stat, command}{}
+            Parameter(const Stat stat, OutputCommand command) : _savedStat{stat, command}{}
             //Parameter(SavedStat savedStat) : _savedStat(savedStat){}
 
             inline Stat stat()const{return _savedStat.stat();}
             inline QString command()const{return _savedStat.command();}
             //inline void setUserIteractionRequired(){_userInteraction = UserInteraction::Required;}
             inline void setStat(Stat stat){_savedStat.setStat(stat);}
-            inline void setCommand(Command command){_savedStat.setCommand(command);}
+            inline void setCommand(OutputCommand command){_savedStat.setCommand(command);}
             //inline UserInteraction userIteraction(){return _userInteraction;}
             inline SavedStat& savedStat(){return _savedStat;}
             inline const Parameters& rawParameters()const{return rawParameterStats;}

@@ -833,8 +833,8 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemConte
     numbOfArgumentCondition.setValidator(new QRegularExpressionValidator(QRegularExpression("(\\>[\\d]+|[\\d+]+)?")));
     settingsLayout.addRow("Liczba argumentów: ", &numbOfArgumentCondition);
     ruleControlComboBox.setCurrentText(
-                Tcl::CommandsController::Definition::Rule::toStr(
-                    Tcl::CommandsController::Definition::Rule::Control::BreakRuleCheck));
+                Tcl::Command::Definition::Rule::toStr(
+                    Tcl::Command::Definition::Rule::Control::BreakRuleCheck));
 
     settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
 
@@ -875,8 +875,8 @@ RulesProcedurePanel::QuickRulesList::RulesList::ListItem::ItemContent::ItemConte
     numbOfArgumentCondition.setValidator(new QRegularExpressionValidator(QRegularExpression("(\\>[\\d]+|[\\d+]+)?")));
     settingsLayout.addRow("Liczba argumentów: ", &numbOfArgumentCondition);
     ruleControlComboBox.setCurrentText(
-                Tcl::CommandsController::Definition::Rule::toStr(
-                    Tcl::CommandsController::Definition::Rule::Control::BreakRuleCheck));
+                Tcl::Command::Definition::Rule::toStr(
+                    Tcl::Command::Definition::Rule::Control::BreakRuleCheck));
 
 
     settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);

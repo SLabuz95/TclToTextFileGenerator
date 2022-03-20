@@ -6,8 +6,8 @@
 
 namespace Tcl::Interpreter::Core {
     using TclCommand = QString;
-    using Command = QString;
-    using Commands = QStringList;
+    using OutputCommand = QString;
+    using OutputCommands = QStringList;
     enum class Error : bool{Error, NoError};
 
     // Stat flags:

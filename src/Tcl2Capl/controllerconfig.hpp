@@ -8,12 +8,12 @@
 class Tcl2CaplControllerConfigXmlData;
 class Tcl2CaplControllerConfig{
 public:
-    using TclProcedureInterpreter = Tcl::Interpreter::CommandsController::Controller;
+    using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
     using Settings = TclProcedureInterpreter::ProdecuresSettings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
-    using UserProcedure = Tcl::Interpreter::CommandsController::Command::Definition;
-    using UserProcedures = Tcl::Interpreter::CommandsController::CommandDefinitions;
-    using UserDefaultProcedure = Tcl::Interpreter::CommandsController::Command::Definition;
+    using UserProcedure = Tcl::Interpreter::Command::Definition;
+    using UserProcedures = Tcl::Interpreter::Command::CommandDefinitions;
+    using UserDefaultProcedure = UserProcedure;
     using Predefinitions = Tcl::Interpreter::PredefinitionsController::Predefinitions;
     using InterpreterRule = UserProcedure::Rule;
     using InterpreterRules = QList<InterpreterRule>;

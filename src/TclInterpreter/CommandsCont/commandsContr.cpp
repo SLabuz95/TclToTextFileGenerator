@@ -1,7 +1,23 @@
 #include"TclInterpreter/CommandsCont/commandsCont.hpp"
 #include"TclInterpreter/tclToCAPL.hpp"
+#include"Tcl2Capl/controller.hpp"
 
 using namespace Tcl;
+
+Command::Controller::Controller(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig) :
+    tclInterpreter(tclInterpreter),
+    procedureDefinitions(
+        (userConfig.userProcedureConfig().isEmpty())?
+            defaultProcedureDefinitions
+          : userConfig.userProcedureConfig()),
+    unknownProcedureDefinition(
+        (userConfig.userDefaultProcedureConfig().isRulesEmpty())?
+            Definition::defaultUnknownProcedureDefinition
+          : userConfig.userDefaultProcedureConfig()),
+    newProcedureCallFunction(ProcedureCallFunctions::newCallAt(userConfig.proceduresSettings().mode())),
+    finalizeProcedureCallFunction(ProcedureCallFunctions::finalizeCallAt(userConfig.proceduresSettings().mode()))
+{}
+
 Error Controller::addPreExpressionForUserInteraction()
 {
     ExecutableActionsParameters parameters =

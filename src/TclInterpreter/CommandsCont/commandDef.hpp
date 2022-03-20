@@ -5,7 +5,7 @@
 #include"TclInterpreter/UserInteractionCont/userInteractionCont.hpp"
 #include<QMap>
 
-namespace Tcl::Interpreter::CommandsController::Command{
+namespace Tcl::Interpreter::Command{
     using namespace Tcl::Interpreter::Core;
     using namespace Tcl::Interpreter;
     class Definition{

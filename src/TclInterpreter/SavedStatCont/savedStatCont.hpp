@@ -5,18 +5,17 @@
 
 namespace Tcl::Interpreter {
     using namespace Tcl::Interpreter::Core;
-
     class SavedStat{
     protected:
         Stat pStat = Stat::None;
     //    ListStatInfo* info = nullptr;
-        Command _command;
+        OutputCommand _command;
 
-        void appendCommmand_listProcessing(Command command);
+        void appendCommmand_listProcessing(OutputCommand command);
     public:
         SavedStat(){}
         SavedStat(Stat stat) : pStat(stat){}
-        SavedStat(Stat stat, Command command) : pStat(stat), _command(command){}
+        SavedStat(Stat stat, OutputCommand command) : pStat(stat), _command(command){}
 
         ~SavedStat(){
 
@@ -35,17 +34,17 @@ namespace Tcl::Interpreter {
     //        }
         }
 
-        void setCommand(Command command){
+        void setCommand(OutputCommand command){
             _command = command;
         }
-        void appendCommand(Command command){
+        void appendCommand(OutputCommand command){
             _command.append(command);
         }
 
         void hideInfoBeforeCopyConstructor(){/*info = nullptr;*/}
     //    inline ListStatInfo* advancedList()const{return info;}
 
-        const Command& command()const{return _command;}
+        const OutputCommand& command()const{return _command;}
 
     //    void newListInfo(){
     //        if(!info)

@@ -5,7 +5,7 @@
 class QFile;
 namespace Tcl::Analysis{
     using namespace Tcl::Interpreter;
-    using namespace Tcl::Interpreter::CommandsController::Command;
+    using namespace Tcl::Interpreter::Command;
     class FunctionDefinitions{
     public:
         using Parameters = QList<Stat>;

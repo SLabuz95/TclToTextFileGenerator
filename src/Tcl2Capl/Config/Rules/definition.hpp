@@ -5,9 +5,9 @@
 #include"External/Factory/productdef.hpp"
 //#include"External/Factory/factory.hpp"
 
-using TclProcedureInterpreter = Tcl::Interpreter::CommandsController::Controller;
+using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
 using Settings = TclProcedureInterpreter::ProdecuresSettings;
-using UserProcedure = Tcl::Interpreter::CommandsController::Command::Definition;
+using UserProcedure = Tcl::Interpreter::Command::Definition;
 using UserProcedureRule = UserProcedure::Rule;
 using UserProcedureRules = QList<UserProcedureRule>;
 using Mode = Settings::InterpreterMode;

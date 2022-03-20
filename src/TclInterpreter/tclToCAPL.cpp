@@ -4,8 +4,8 @@
 #include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 
 using TCLInterpreter = Tcl::TCLInterpreter;
-using TclCommandsController = Tcl::Interpreter::CommandsController::Controller;
-namespace TclCommand_NS = Tcl::Interpreter::CommandsController::Command;
+using TclCommandsController = Tcl::Interpreter::Command::Controller;
+namespace TclCommand_NS = Tcl::Interpreter::Command;
 using KeywordsController = Tcl::Interpreter::KeywordsController;
 using Result = KeywordsController::Result;
 using ReadIgnoreResult = KeywordsController::ReadIgnoreResult;
@@ -26,19 +26,7 @@ TCLInterpreter::TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsR
     : commandsController(*this, userConfig), functionDefinitions(functionDefinitionsRef), userConfig(userConfig)
 {clearError();}
 
-TclCommandsController::Controller(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig) :
-    tclInterpreter(tclInterpreter),
-    procedureDefinitions(
-        (userConfig.userProcedureConfig().isEmpty())?
-            defaultProcedureDefinitions
-          : userConfig.userProcedureConfig()),
-    unknownProcedureDefinition(
-        (userConfig.userDefaultProcedureConfig().isRulesEmpty())?
-            Definition::defaultUnknownProcedureDefinition
-          : userConfig.userDefaultProcedureConfig()),
-    newProcedureCallFunction(ProcedureCallFunctions::newCallAt(userConfig.proceduresSettings().mode())),
-    finalizeProcedureCallFunction(ProcedureCallFunctions::finalizeCallAt(userConfig.proceduresSettings().mode()))
-{}
+
 
 KeywordsMap KeywordsController::keywordsMap ={
     {
@@ -2877,8 +2865,8 @@ Result KeywordsController::interpret(){
 }
 
 template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(ProcedureCall::Name name){
-    using Definition = ProcedureDefinitions::Iterator;
+Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(Call::Name name){
+    using Definition = CommandDefinitions::Iterator;
     Definition definition;
     for(definition = procedureDefinitions.begin(); definition < procedureDefinitions.end(); definition++){
         if(definition->name == name)
@@ -2886,9 +2874,9 @@ Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::
     }
     try {
         if(definition == procedureDefinitions.end()){
-            procedureCalls.append(ProcedureCall(name));
+            procedureCalls.append(Call(name));
         }else{
-            procedureCalls.append(ProcedureCall(definition));
+            procedureCalls.append(Call(definition));
         }
     }  catch (std::exception& e) {
         return throwError(e.what());
@@ -2897,7 +2885,7 @@ Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::
     return Error::NoError;
 }
 
-inline void TCLCommandsController::tryToActivateWriteOnlyProcedure(ProcedureCall::Name& name){
+inline void TclProcedureInterpreter::tryToActivateWriteOnlyProcedure(Call::Name& name){
     if(writeOnlyProcedureActiveIndex == -1 and tclInterpreter.userConfig.proceduresSettings().isWriteOnlyProcedure(name)){
         writeOnlyProcedureActiveIndex = procedureCalls.size() + 1;
         activateWriteOnlyProcedureMode();
@@ -2905,19 +2893,19 @@ inline void TCLCommandsController::tryToActivateWriteOnlyProcedure(ProcedureCall
 }
 
 template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(ProcedureCall::Name name){
+Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(Call::Name name){
     tryToActivateWriteOnlyProcedure(name);
     return newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
 }
 
 template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(ProcedureCall::Name name){
+Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(Call::Name name){
     return newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
 }
 
 Error TclProcedureInterpreter::interpret(QString newArgument)
 {
-    using Parameter = ProcedureCall::Parameter;
+    using Parameter = Call::Parameter;
     switch(tclInterpreter.lastSavedStat().stat()){
     case Stat::CommandSubbing:
 //    case Stat::PendingSnprintf:
@@ -2926,7 +2914,7 @@ Error TclProcedureInterpreter::interpret(QString newArgument)
 //        if(procedureCalls.size() < 2){
 //            return throwError("No Procedure Calls for Function-like Argument passing");
 //        }
-//        ProcedureCall procedureCall = procedureCalls.takeLast();
+//        Call procedureCall = procedureCalls.takeLast();
 //        Parameter parameter(tclInterpreter.takeLastSavedStat(), procedureCall);
 //        procedureCalls.last().nextArgument(parameter);
 //    }
@@ -2950,7 +2938,7 @@ Error TclProcedureInterpreter::interpret(QString newArgument)
 Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
 {
     const QString ERROR_DESCRIPTION = QString("InternalCall: TclProcedureInterpreter::nextArgumentForSnprintf_priv(): ");
-    using Parameter = ProcedureCall::Parameter;
+    using Parameter = Call::Parameter;
     switch(tclInterpreter.lastSavedStat().stat()){
 //    case Stat::PendingSnprintf:
 //    case Stat::Snprintf:
@@ -2959,7 +2947,7 @@ Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
 //    }
     case Stat::CommandSubbing:
     {
-        ProcedureCall procedureCall = procedureCalls.takeLast();
+        Call procedureCall = procedureCalls.takeLast();
         Parameter parameter(tclInterpreter.takeLastSavedStat(), procedureCall);
         tclInterpreter.saveStat({stat, QString()});
 //        tclInterpreter.saveStat({Stat::String, QString("concat")});
@@ -3009,9 +2997,9 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
     } // -----------------------------------------------------
     else{
         finalizeOn = true;
-        ProcedureCall& procedureCall = procedureCalls.last();
+        Call& procedureCall = procedureCalls.last();
 
-        ProcedureDefinition::RulesOnEndOfCall& rulesOnEndOfCall = (procedureCall.rulesOnEndOfCall().isEmpty())? defaultUnknownProcedureDefinition.rulesOnEndOfProcedureCall : procedureCall.rulesOnEndOfCall();
+        Definition::RulesOnEndOfCall& rulesOnEndOfCall = (procedureCall.rulesOnEndOfCall().isEmpty())? Definition::defaultUnknownProcedureDefinition.rulesOnEndOfProcedureCall : procedureCall.rulesOnEndOfCall();
         bool ruleCondtionsPassed = false;
 
         using Actions = Rules::value_type::ExecutableActions;
@@ -3211,7 +3199,7 @@ Error TclProcedureInterpreter::dynamicProcedureArgumentCheck_priv(){
     using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
     using Rules = ProcedureDefinition::Rules;
     using Rule = ProcedureDefinition::Rules::Iterator;
-    ProcedureCall& procedureCall = procedureCalls.last();
+    Call& procedureCall = procedureCalls.last();
     RulesForArgument rulesForArgument = procedureCall.lastRulesForArgument_dynamicCheck();
     if(procedureCall.isRulesInRange(rulesForArgument) == Error::Error /*or
             rulesForArgument->status == RulesForArguments::Type::Status::Unspecified*/){
@@ -3273,7 +3261,7 @@ Error TclProcedureInterpreter::onArgumentProcedureCheck_priv(){
     using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
     using Rules = ProcedureDefinition::Rules;
     using Rule = ProcedureDefinition::Rules::Iterator;
-    ProcedureCall& procedureCall = procedureCalls.last();
+    Call& procedureCall = procedureCalls.last();
     ProcedureDefinition::RulesForArguments::Iterator rulesForArgument = procedureCall.lastRulesForArgument_onMoved();
     if(procedureCall.isRulesInRange(rulesForArgument) == Error::Error){
         rulesForArgument = procedureCall.rulesForUnspecifiedArgument();
@@ -3602,7 +3590,7 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                         case Target::Command:
                         {
 
-                            for(ProcedureCall::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + index; responseArg < lastProcedureCall().parameters().end(); responseArg++){
+                            for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + index; responseArg < lastProcedureCall().parameters().end(); responseArg++){
                                 dest += responseArg->toString(target) + seperator;
                                 separatorUsed = true;
                             }

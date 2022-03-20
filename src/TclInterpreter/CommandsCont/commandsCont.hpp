@@ -15,16 +15,14 @@ namespace Tcl{
 };
 
 
-namespace Tcl::Interpreter::CommandsController{
+namespace Tcl::Interpreter::Command{
     using namespace Tcl::Interpreter::Types;
     using namespace Tcl::Interpreter::Core;
     using namespace Tcl;
-    using namespace Command;
     class Controller{
         // Concept ----------------------------------------------------------------------
         class ProdecuresSettings;
         // ----
-        using Command = Tcl::Interpreter::Core::Command;
         // End of Concept |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
         // Concept Definition ------------------------------------------------------------------
 
@@ -109,7 +107,7 @@ namespace Tcl::Interpreter::CommandsController{
         CommandDefinitions& procedureDefinitions;
         Definition& unknownProcedureDefinition;
         static CommandDefinitions defaultProcedureDefinitions;
-        Command command;
+        OutputCommand command;
         Calls procedureCalls;
         Call::Parameters rawParameterStats;
         //UserInteraction& userInteraction;
@@ -210,6 +208,7 @@ namespace Tcl::Interpreter::CommandsController{
         inline Error removeProcedureCall(){return procedureCalls.isEmpty()? throwError("TclProcedureInterpreter_Internal: No procedure to remove") :
                                                                             (procedureCalls.removeLast(), Error::NoError);}
         Error interpret(QString newArgument);
+        Error nextArgument(){}
         Error nextArgumentForSnprintf_priv(Stat stat);
 
         inline Error finalizeProcedureCall(SavedStat& savedStat){return (this->*finalizeProcedureCallFunction)(savedStat);}

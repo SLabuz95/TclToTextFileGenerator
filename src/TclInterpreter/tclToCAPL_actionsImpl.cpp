@@ -4,20 +4,20 @@
 #include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 
 using Interpreter = Tcl::TCLInterpreter;
-using TCLCommandsController = Tcl::Interpreter::CommandsController::Controller;
-namespace TclProcedureCommand = Tcl::Interpreter::CommandsController::Command;
+using TCLCommandsController = Tcl::Interpreter::Command::Controller;
+namespace TclProcedureCommand = Tcl::Interpreter::Command;
 using Result = Tcl::Interpreter::KeywordsController::Result;
 using ReadIgnoreResult = Tcl::Interpreter::KeywordsController::ReadIgnoreResult;
 using CheckingResult = Tcl::Interpreter::KeywordsController::CheckingResult;
 using KeywordsMap = Tcl::Interpreter::KeywordsController::KeywordsMap;
 using TCLInterpreterFunctions = Interpreter::InterpretFunctions;
 using UserInteractionStatus = Tcl::UserInteractionStatus;
-using Rule = Tcl::Interpreter::CommandsController::Command::Definition::Rule;
-using Action = Tcl::Interpreter::CommandsController::Command::Definition::Action;
+using Rule = TclProcedureCommand::Definition::Rule;
+using Action = TclProcedureCommand::Definition::Action;
 using RuleControlFlag = Rule::Control;
-using Format = Tcl::Interpreter::CommandsController::Command::Definition::Format;
-using FormatRule = Tcl::Interpreter::CommandsController::Command::Definition::Format::Rule;
-using FormatTarget = Tcl::Interpreter::CommandsController::Command::Definition::Format::Target;
+using Format = TclProcedureCommand::Definition::Format;
+using FormatRule = TclProcedureCommand::Definition::Format::Rule;
+using FormatTarget = TclProcedureCommand::Definition::Format::Target;
 
 // PROCEDURE DEFINITION ACTIONS ==================================================================================
 template <>
