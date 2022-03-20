@@ -44,7 +44,7 @@ public:
             class RuleControlComboBox : public QComboBox{
             public:
                 RuleControlComboBox(){
-                    addItems(TCLCommandsController::ProcedureDefinition::Rule::getRuleControlFlagNames());
+                    addItems(Tcl::CommandsController::Definition::Rule::getRuleControlFlagNames());
                 }
             };
 

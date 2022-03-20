@@ -8,19 +8,19 @@
 class Tcl2CaplControllerConfigXmlData;
 class Tcl2CaplControllerConfig{
 public:
-    using TclProcedureInterpreter = TCLCommandsController;
+    using TclProcedureInterpreter = Tcl::Interpreter::CommandsController::Controller;
     using Settings = TclProcedureInterpreter::ProdecuresSettings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
-    using UserProcedure = TCLCommandsController::ProcedureDefinition;
-    using UserProcedures = TCLCommandsController::ProcedureDefinitions;
-    using UserDefaultProcedure = TCLCommandsController::ProcedureDefinition;
-    using Predefinitions = PredefinitionsController::Predefinitions;
+    using UserProcedure = Tcl::Interpreter::CommandsController::Command::Definition;
+    using UserProcedures = Tcl::Interpreter::CommandsController::CommandDefinitions;
+    using UserDefaultProcedure = Tcl::Interpreter::CommandsController::Command::Definition;
+    using Predefinitions = Tcl::Interpreter::PredefinitionsController::Predefinitions;
     using InterpreterRule = UserProcedure::Rule;
     using InterpreterRules = QList<InterpreterRule>;
     using Mode = Settings::InterpreterMode;
     using ControlFlag = InterpreterRule::Control;
-    using UserInteraction = UserInteraction;
-    using UserInteractionStatus = TclProcedureInterpreter::UserInteractionStatus;
+    using UserInteraction = Tcl::Interpreter::UserInteraction;
+    using UserInteractionStatus = Tcl::Interpreter::UserInteractionStatus;
     using ConditionalActions = InterpreterRule::ConditionalActions;
     using ExecutableActions = InterpreterRule::ExecutableActions;
 

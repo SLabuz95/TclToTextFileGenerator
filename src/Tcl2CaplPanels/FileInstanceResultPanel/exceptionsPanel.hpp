@@ -19,6 +19,7 @@
 #include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 
 class AnalysisPanel;
+using namespace Tcl::Analysis;
 class ExceptionsPanel : public QWidget{
     using ProcedureRef = Tcl2CaplControllerConfig::Procedure&;
 public:

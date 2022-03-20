@@ -5,7 +5,9 @@
 #include"External/FileReader/FilesSpecificData/FSDTemplate.hpp"
 #include"TclInterpreter/tclToCAPL.hpp"
 #include"Tcl2Capl/controller.hpp"
+#include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 
+using namespace Tcl::Analysis;
 class Tcl2CaplResult{
     // Concept Definition
 
@@ -24,7 +26,7 @@ public:
     class Tcl2CaplReadData : public FSD_DataModelBase<Tcl2CaplReadData>{
         using FormatCount = QMap<QString, uint>;
         using TestCaseErrors = uint;
-        using Predefinitions = PredefinitionsController::Predefinitions;
+        using Predefinitions = Tcl::Interpreter::PredefinitionsController::Predefinitions;
     protected:
         enum class _InitializeStatus{
             NOT_INITIALIZED,

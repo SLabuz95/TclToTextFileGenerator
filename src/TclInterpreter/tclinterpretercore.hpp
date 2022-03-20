@@ -4,7 +4,7 @@
 #include<QtGlobal>
 #include<QString>
 
-namespace TclInterpreterCore {
+namespace Tcl::Interpreter::Core {
     using TclCommand = QString;
     using Command = QString;
     using Commands = QStringList;
@@ -23,29 +23,30 @@ namespace TclInterpreterCore {
         //Operator,           // SAVEABLE // In Development
         VariableSubbing,           // {Child}
         //UnknownString, Word state substitute that state
-        CommandSubbingStart,   // {Processing, Prodromic, Pending} [, SAVABLE
+        CommandSubbingStart,   // {Processing} [
         CommandSubbingEnd,  // {Processing} ],
         Braces,  // } {Processing}   // SAVEABLE (For complete list)
-        MainScript,  // {Parent, Pending} SAVEABLE // Previous name: MainCodeBlock
-        Whitespace, // " " , "\t" {Pending, Processing}   // SAVEABLE (Special Cases)
-        VariableSubbingStart, // $ {Processing, Prodromic, Pending} // SAVEABLE
+        Whitespace, // " " , "\t" {Processing}   // SAVEABLE (Special Cases)
+        VariableSubbingStart, // $ {Processing} // SAVEABLE
         Namespace,   // :: {Processing} // SAVEABLE
         Semicolon, // ; {Processing}
         Comment,    // # {Processing} Save to Pending Stats (if tclCommand ends with \)   // check   add EndOfString Stat to processing stats
         EndOfString,    // {Processing} Deinitialize saved stats
-        Script,  // {Parent, Child, Processing, Pending} SAVEABLE // Old Name: CodeBLock
         //EndOfCodeBlock,  // SAVEABLE
         //Snprintf,   //  SAVEABLE For case of procedure call for speech mark processing -> procedure call [string concat ...]
-        BackslashSubbing, // {Processing, Prodromic, Pnding} // Old Name: SpecialSign
+        BackslashSubbing, // {Parent, Child, Processing} // Old Name: SpecialSign
         //PendingString,  // SAVEABLE
         //PendingSnprintf,    // SAVEABLE
         //StringInQuotes, // SAVEABLE
-        Ignore, // {Parent, Prodromic, Pending} SAVEABLE
         //EndOfExpression, // SAVEABLE
+        MainScript,  // {Parent, Pending} SAVEABLE // Previous name: MainCodeBlock
+        Ignore, // {Parent, Prodromic, Pending} SAVEABLE
         CommandSubbing,       // {Parent, Child, Pending} //  Old name - FunctionCall
         BracesStart,   // {    /// {Parent, Child, Processing, Pending} Everything is a string // SAVEABLE
         DoubleQuotes, // "  {Parent, Child, Processing, Pending}  // SAVEABLE
+        ComplexWord, // {Parent, Child, Pending} If VariableSubbing,BackslashSubbing or CommandSubbing occured with anther string (without whitespace)
         Expression, // {Parent, Child} SAVEABLE
+        Script,  // {Parent, Child, Pending} SAVEABLE // Old Name: CodeBLock
         Size
     };
     using Stats = QVector<Stat>;

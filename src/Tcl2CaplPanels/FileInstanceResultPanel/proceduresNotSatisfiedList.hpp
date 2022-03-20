@@ -9,6 +9,7 @@
 #include"Tcl2Capl/controllerconfig.hpp"
 
 class AnalysisPanel;
+using namespace Tcl::Analysis;
 class ProceduresNotSatisfiedList : public QWidget{
 
     using Config = Tcl2CaplControllerConfig;

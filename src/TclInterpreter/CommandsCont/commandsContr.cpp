@@ -1,23 +1,22 @@
 #include"TclInterpreter/CommandsCont/commandsCont.hpp"
 #include"TclInterpreter/tclToCAPL.hpp"
 
-using CommandsController = TCLCommandsController;
-
-Error CommandsController::addPreExpressionForUserInteraction()
+using namespace Tcl;
+Error Controller::addPreExpressionForUserInteraction()
 {
     ExecutableActionsParameters parameters =
     {
       QString("// _UI_") + QString::number(tclInterpreter.userInteraction.nextUserInteractionNumber()) + " ",
-      ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+      Definition::Format::FORMAT_RULE_CALL(),
       "=",
       " ",
-      ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+      Definition::Format::FORMAT_RULE_CALL(),
        "@ ",
-      ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+      Definition::Format::FORMAT_RULE_CALL(),
         ">0"
     };
     command = QString("/* _UI_") + QString::number(tclInterpreter.userInteraction.nextUserInteractionNumber()) + " */";
-    (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<ProcedureDefinition::Action::Executable>>(ProcedureDefinition::Action::Executable::AddPreExpression)]))(parameters);
+    (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Definition::Action::Executable>>(Definition::Action::Executable::AddPreExpression)]))(parameters);
     tclInterpreter.userInteraction.addNewInfo();
     if(tclInterpreter.isError()){
         return Error::Error;
@@ -26,13 +25,13 @@ Error CommandsController::addPreExpressionForUserInteraction()
     return Error::NoError;
 }
 
-void CommandsController::activateWriteOnlyProcedureMode()
+void Controller::activateWriteOnlyProcedureMode()
 {
     finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCase);
     tclInterpreter.activateWriteOnlyProcedureMode();
 }
 
-void CommandsController::deactivateWriteOnlyProcedureMode()
+void Controller::deactivateWriteOnlyProcedureMode()
 {
     finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCaseReport);
     tclInterpreter.deactivateWriteOnlyProcedureMode();

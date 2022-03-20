@@ -3,27 +3,30 @@
 #include"Tcl2Capl/controller.hpp"
 #include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 
-using Interpreter = TCLInterpreter;
-using TclProcedureInterpreter = TCLCommandsController;
+using TCLInterpreter = Tcl::TCLInterpreter;
+using TclCommandsController = Tcl::Interpreter::CommandsController::Controller;
+namespace TclCommand_NS = Tcl::Interpreter::CommandsController::Command;
+using KeywordsController = Tcl::Interpreter::KeywordsController;
 using Result = KeywordsController::Result;
 using ReadIgnoreResult = KeywordsController::ReadIgnoreResult;
 using CheckingResult = KeywordsController::CheckingResult;
 using KeywordsMap = KeywordsController::KeywordsMap;
-using TCLInterpreterFunctions = Interpreter::InterpretFunctions;
-using UserInteractionStatus = TclProcedureInterpreter::UserInteractionStatus;
-using Rule = TclProcedureInterpreter::ProcedureDefinition::Rule;
-using Action = TclProcedureInterpreter::ProcedureDefinition::Action;
+using TCLInterpreterFunctions = TCLInterpreter::InterpretFunctions;
+using UserInteractionStatus = Tcl::UserInteractionStatus;
+using Rule = TclCommand_NS::Definition::Rule;
+using Action = TclCommand_NS::Definition::Action;
 using RuleControlFlag = Rule::Control;
-using Format = TclProcedureInterpreter::ProcedureDefinition::Format;
-using FormatRule = TclProcedureInterpreter::ProcedureDefinition::Format::Rule;
-using FormatTarget = TclProcedureInterpreter::ProcedureDefinition::Format::Target;
+using Format = TclCommand_NS::Definition::Format;
+using FormatRule = TclCommand_NS::Definition::Format::Rule;
+using FormatTarget = TclCommand_NS::Definition::Format::Target;
 
+using namespace Tcl::Interpreter;
 
 TCLInterpreter::TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsRef functionDefinitionsRef)
     : commandsController(*this, userConfig), functionDefinitions(functionDefinitionsRef), userConfig(userConfig)
 {clearError();}
 
-TclProcedureInterpreter::TCLCommandsController(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig) :
+TclCommandsController::Controller(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig) :
     tclInterpreter(tclInterpreter),
     procedureDefinitions(
         (userConfig.userProcedureConfig().isEmpty())?
@@ -31,7 +34,7 @@ TclProcedureInterpreter::TCLCommandsController(TCLInterpreter& tclInterpreter, U
           : userConfig.userProcedureConfig()),
     unknownProcedureDefinition(
         (userConfig.userDefaultProcedureConfig().isRulesEmpty())?
-            defaultUnknownProcedureDefinition
+            Definition::defaultUnknownProcedureDefinition
           : userConfig.userDefaultProcedureConfig()),
     newProcedureCallFunction(ProcedureCallFunctions::newCallAt(userConfig.proceduresSettings().mode())),
     finalizeProcedureCallFunction(ProcedureCallFunctions::finalizeCallAt(userConfig.proceduresSettings().mode()))
@@ -197,8 +200,8 @@ bool TCLInterpreter::checkInterpretFunctions(){
 
     return true;
 }
-using ProcedureDefinition = TCLCommandsController::ProcedureDefinition;
-const TclProcedureInterpreter::ProcedureDefinition::Rule defaultRuleForUnknownProcedureDefinition_onEndOfCall =
+using ProcedureDefinition = TclCommand_NS::Definition;
+const TclCommand_NS::Definition::Rule defaultRuleForUnknownProcedureDefinition_onEndOfCall =
 {   // Rule 1
     { // Conditions
 
@@ -224,7 +227,7 @@ const TclProcedureInterpreter::ProcedureDefinition::Rule defaultRuleForUnknownPr
     }
 };
 
-TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultProcedureDefinitions = {
+TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefinitions = {
     {
         "set",
         {
@@ -1600,9 +1603,9 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                                 TclProcedureInterpreter::newCompareRule(
                                 // Strings to Compare
                                 {
-                                    Interpreter::cast_stat_str(Stat::String),
-                                    Interpreter::cast_stat_str(Stat::PendingString),
-                                    Interpreter::cast_stat_str(Stat::Braces),
+                                    TCLInterpreter::cast_stat_str(Stat::String),
+                                    TCLInterpreter::cast_stat_str(Stat::PendingString),
+                                    TCLInterpreter::cast_stat_str(Stat::Braces),
 
                                 },
                                 // Format to get string to compare
@@ -1643,13 +1646,13 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
                                 TclProcedureInterpreter::newCompareRule(
                                 // Strings to Compare
                                 {
-                                    Interpreter::cast_stat_str(Stat::StringInQuotes),
-                                    Interpreter::cast_stat_str(Stat::Braces),
-                                    Interpreter::cast_stat_str(Stat::DoubleQuotes),
-                                    Interpreter::cast_stat_str(Stat::PendingSnprintf),
-                                    Interpreter::cast_stat_str(Stat::Variable),
-                                    Interpreter::cast_stat_str(Stat::Snprintf),                                    
-                                    Interpreter::cast_stat_str(Stat::CommandSubbing),
+                                    TCLInterpreter::cast_stat_str(Stat::StringInQuotes),
+                                    TCLInterpreter::cast_stat_str(Stat::Braces),
+                                    TCLInterpreter::cast_stat_str(Stat::DoubleQuotes),
+                                    TCLInterpreter::cast_stat_str(Stat::PendingSnprintf),
+                                    TCLInterpreter::cast_stat_str(Stat::Variable),
+                                    TCLInterpreter::cast_stat_str(Stat::Snprintf),
+                                    TCLInterpreter::cast_stat_str(Stat::CommandSubbing),
                                 },
                                 // Format to get string to compare
                                 {
@@ -1817,7 +1820,7 @@ TclProcedureInterpreter::ProcedureDefinitions TclProcedureInterpreter::defaultPr
 };
 
 
-TclProcedureInterpreter::ProcedureDefinition TclProcedureInterpreter::defaultUnknownProcedureDefinition =
+TclCommand_NS::Definition TclCommand_NS::Definition::defaultUnknownProcedureDefinition =
 ProcedureDefinition(
     // NAME - For Default Procedure Definition: No Name specified
     "",
@@ -1918,7 +1921,7 @@ ProcedureDefinition(
 //    }
 //}
 
-void Interpreter::addEmptyLine(){
+void TCLInterpreter::addEmptyLine(){
     using InterpreterMode = TclProcedureInterpreter::ProdecuresSettings::InterpreterMode;
     const QString ERROR_DESCRIPTION = QString("addEmptyLine: ");
     if(userConfig.proceduresSettings().mode() != InterpreterMode::TestCaseReport){
@@ -2067,12 +2070,13 @@ QString SavedStat::listToCaplString(){
 }
 
 
-QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDefinition::Format::Target target){
+QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Target target){
     using Target = ProcedureDefinition::Format::Target;
 
     switch(target){
     case Target::Command:
         return command();
+
     case Target::SnprintfFormat:
     {
         // Temporary
@@ -2154,12 +2158,12 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
 //            break;
         case Stat::Expression:
         {
-            throwError("Expression to string for TclFormat not implemented");
+            TCLInterpreter::throwError("Expression to string for TclFormat not implemented");
         }
             break;
         case Stat::Script:
         {
-            throwError("CodeBlock to string for TclFormat not implemented");
+            TCLInterpreter::throwError("CodeBlock to string for TclFormat not implemented");
         }
             break;
         default:
@@ -2174,12 +2178,9 @@ QString TclProcedureInterpreter::ProcedureCall::Parameter::toString(ProcedureDef
 }
 
 
-Error Interpreter::newProcedureCall(TclProcedureInterpreter::ProcedureCall::Name name){
+Error TCLInterpreter::newProcedureCall(TclCommand_NS::Call::Name name){
     const QString ERROR_PREFIX = "TCLInterpreter::newProcedureCall: ";
 
-
-    if(name == "proc")
-        qDebug() << "proc";
 
     switch(lastSavedStat().stat()){
     case Stat::CommandSubbingStart:
@@ -2199,29 +2200,29 @@ Error Interpreter::newProcedureCall(TclProcedureInterpreter::ProcedureCall::Name
     return Error::NoError;
 }
 
-Error Interpreter::removeProcedureCall_writeOnlyProcedure(){
+Error TCLInterpreter::removeProcedureCall_writeOnlyProcedure(){
     commandsController.tryToDeactivateWriteOnlyProcedure();
     return removeProcedureCall_standard();
 }
 
-Error Interpreter::saveStatWithParsingControl(SavedStat newSavedStat){
+Error TCLInterpreter::saveStatWithParsingControl(SavedStat newSavedStat){
     // No Control for now
     saveStat(newSavedStat);
     return Error::NoError;
 }
 
-Error Interpreter::removeLastSavedStatWithParsingControl(){
+Error TCLInterpreter::removeLastSavedStatWithParsingControl(){
     // No Control for now
     return removeLastStat();
 }
 
-Error Interpreter::takeLastSavedStatWithParsingControl(SavedStat& savedStat){
+Error TCLInterpreter::takeLastSavedStatWithParsingControl(SavedStat& savedStat){
     // No Control for now
     lastSavedStat().hideInfoBeforeCopyConstructor();
     return (savedStat = takeLastSavedStat(), Error::NoError);
 }
 
-Error Interpreter::moveArgumentToFunctionCall(){
+Error TCLInterpreter::moveArgumentToFunctionCall(){
     const QString ERROR_DESCRIPTION = QString("InternalCall: moveArgumentToFunctionCall() : ");
      if(!isPrelastSavedStat())
         return throwError(ERROR_DESCRIPTION + "Empty Stats");
@@ -2243,9 +2244,9 @@ Error Interpreter::moveArgumentToFunctionCall(){
                 Error::NoError;
 }
 
-Error Interpreter::moveArgumentToSnprintf_priv(Stat stat){
-    using Parameter = TCLCommandsController::ProcedureCall::Parameter;
-    const QString ERROR_DESCRIPTION = QString("InternalCall: Interpreter::moveArgumentToSnprintf_priv(): ");
+Error TCLInterpreter::moveArgumentToSnprintf_priv(Stat stat){
+    using Parameter = TclCommand_NS::Call::Parameter;
+    const QString ERROR_DESCRIPTION = QString("InternalCall: TCLInterpreter::moveArgumentToSnprintf_priv(): ");
     if(!isPrelastSavedStat())
         return throwError("No Stats for snprintf processing");
     switch(prelastSavedStat().stat()){
@@ -2266,13 +2267,13 @@ Error Interpreter::moveArgumentToSnprintf_priv(Stat stat){
     return Error::NoError;
 }
 
-void TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(UserInputConfig& userDefinitions){
+void TclCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(UserInputConfig& userDefinitions){
 
     if(!userDefinitions.userProcedureConfig().isEmpty()){
-       for(ProcedureDefinitionIterator defaultDefinition = defaultProcedureDefinitions.begin();
+       for(CommandDefinitionIterator defaultDefinition = defaultProcedureDefinitions.begin();
            defaultDefinition < defaultProcedureDefinitions.end(); defaultDefinition++)
        {
-           ProcedureDefinitionIterator definition;
+           CommandDefinitionIterator definition;
            for(definition = userDefinitions.userProcedureConfig().begin();
                definition < userDefinitions.userProcedureConfig().end(); definition++)
            {
@@ -2313,25 +2314,25 @@ void TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefinti
         // Rules For Arguments
         using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
         RulesForArgument loopEnd;
-        if(userDefinitions.userDefaultProcedureConfig().rulesForArguments.size() < defaultUnknownProcedureDefinition.rulesForArguments.size()){
-            userDefinitions.userDefaultProcedureConfig().rulesForArguments.resize(defaultUnknownProcedureDefinition.rulesForArguments.size());
+        if(userDefinitions.userDefaultProcedureConfig().rulesForArguments.size() < Definition::defaultUnknownProcedureDefinition.rulesForArguments.size()){
+            userDefinitions.userDefaultProcedureConfig().rulesForArguments.resize(Definition::defaultUnknownProcedureDefinition.rulesForArguments.size());
             loopEnd = userDefinitions.userDefaultProcedureConfig().rulesForArguments.end();
         }else{
-            loopEnd = userDefinitions.userDefaultProcedureConfig().rulesForArguments.begin() + defaultUnknownProcedureDefinition.rulesForArguments.size();
+            loopEnd = userDefinitions.userDefaultProcedureConfig().rulesForArguments.begin() + Definition::defaultUnknownProcedureDefinition.rulesForArguments.size();
         }
 
         // Rules fo Unspecified Arguments
-        userDefinitions.userDefaultProcedureConfig().rulesForUnspecifiedArgument.rules.append(defaultUnknownProcedureDefinition.rulesForUnspecifiedArgument.rules);
-        userDefinitions.userDefaultProcedureConfig().rulesForUnspecifiedArgument.rulesOnMoveArgument.append(defaultUnknownProcedureDefinition.rulesForUnspecifiedArgument.rulesOnMoveArgument);
+        userDefinitions.userDefaultProcedureConfig().rulesForUnspecifiedArgument.rules.append(Definition::defaultUnknownProcedureDefinition.rulesForUnspecifiedArgument.rules);
+        userDefinitions.userDefaultProcedureConfig().rulesForUnspecifiedArgument.rulesOnMoveArgument.append(Definition::defaultUnknownProcedureDefinition.rulesForUnspecifiedArgument.rulesOnMoveArgument);
 
         // Rules on End of Call
-       userDefinitions.userDefaultProcedureConfig().rulesOnEndOfProcedureCall.append(defaultUnknownProcedureDefinition.rulesOnEndOfProcedureCall);
+       userDefinitions.userDefaultProcedureConfig().rulesOnEndOfProcedureCall.append(Definition::defaultUnknownProcedureDefinition.rulesOnEndOfProcedureCall);
 
     }
 }
 
 template<>
-Error Interpreter::interpret<Stat::Word>(){
+Error TCLInterpreter::interpret<Stat::Word>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Word>: ";
     //SavedStat unknownStringStat;
     // Preconditions
@@ -2343,13 +2344,7 @@ Error Interpreter::interpret<Stat::Word>(){
 
     // Processing
     // #1 ------------------------------------------------------------------
-    switch(lastSavedStat().filteredStat()){
-    // Stat BracesStart will be filtered by filteredStat method
-    // New procedure call will handle Braces control (CommandSubbing related)
-// case Stat::BracesStart:
-    // Stat DoubleQuotes will be filtered by filteredStat method
-    // New procedure call will handle Braces control (old Snprintf) (CommandSubbing related)
-// case Stat::DoubleQuotes:
+    switch(lastSavedStat().filteredStat()){    
     case Stat::CommandSubbing:
     {
         if(commandsController.interpret(unknownString) == Error::Error)
@@ -2357,8 +2352,6 @@ Error Interpreter::interpret<Stat::Word>(){
     }
         break;
     case Stat::MainScript:
-    case Stat::Script:
-    case Stat::CommandSubbingStart:
     {
         if(commandsController.newProcedureCall(unknownString) == Error::Error)
             return throwError(ERROR_PREFIX + error());
@@ -2380,28 +2373,22 @@ Error Interpreter::interpret<Stat::Word>(){
 }
 
 template<>
-Error Interpreter::interpret<Stat::CommandSubbingStart>(){
+Error TCLInterpreter::interpret<Stat::CommandSubbingStart>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::CommandSubbingStart>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().filteredStat()){
-    case Stat::CommandSubbingStart: // To implementation -- Possible - UserInteraction + Warning
-    {
-        return throwError(ERROR_PREFIX + "CommandSubbingStart after other CommandSubbingStart");
-    }
-    case Stat::MainScript:
-    case Stat::Script: // To implementation -- Possible - UserInteraction + Warning
-    {
-        return throwError(ERROR_PREFIX + "CommandSubbingStart directly in script");
-    }
     case Stat::CommandSubbing:
-    case Stat::BackslashSubbing:
     {
         if(commandsController.interpret("[") == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
+    case Stat::MainScript:
+    {
+        return throwError(ERROR_PREFIX + "CommandSubbingStart directly in script");
+    }
     case Stat::Ignore:
         break;
     default:
@@ -2411,21 +2398,20 @@ Error Interpreter::interpret<Stat::CommandSubbingStart>(){
 }
 
 template<>
-Error Interpreter::interpret<Stat::CommandSubbingEnd>(){
+Error TCLInterpreter::interpret<Stat::CommandSubbingEnd>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::CommandSubbingEnd>: ";
     //bool ignoreMoveArgumentProcedure = false;
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().filteredStat()){
-    case Stat::CommandSubbingStart:
+    case Stat::CommandSubbing:
     {
-        if(removeLastStat() == Error::Error)
+        if(commandsController.interpret("[") == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
     case Stat::MainScript:
-    case Stat::Script:
     {
        return throwError(ERROR_PREFIX + "CommandSubbingEnd in MainScript or Script");
     }
@@ -2440,13 +2426,25 @@ Error Interpreter::interpret<Stat::CommandSubbingEnd>(){
 }
 
 template<>
-Error Interpreter::interpret<Stat::BracesStart>(){
+Error TCLInterpreter::interpret<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::BracesStart>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-
+    case Stat::MainScript:
+    {
+        // New Procedure call  + Braces
+        // Maybe create new Procedure first, then interpret as BracesStart
+        //if(commandsController.newProcedureCall() == Error::Error)
+        //    return throwError(ERROR_PREFIX + error());
+    }
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
         break;    
     default:
@@ -2456,14 +2454,25 @@ Error Interpreter::interpret<Stat::BracesStart>(){
 }
 
 template<>
-Error Interpreter::interpret<Stat::Braces>(){
+Error TCLInterpreter::interpret<Stat::Braces>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Braces>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-
-
+    case Stat::MainScript:
+    {
+        // New Procedure call  + Braces
+        // Maybe create new Procedure first, then interpret as Braces
+        //if(commandsController.newProcedureCall() == Error::Error)
+        //    return throwError(ERROR_PREFIX + error());
+    }
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
         break;    
     default:
@@ -2473,14 +2482,25 @@ Error Interpreter::interpret<Stat::Braces>(){
 }
 
 template<>
-Error Interpreter::interpret<Stat::DoubleQuotes>(){
+Error TCLInterpreter::interpret<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::DoubleQuotes>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-    /*case Stat::Variable:*/
-
+    case Stat::MainScript:
+    {
+        // New Procedure call  + DoubleQuotes
+        // Maybe create new Procedure first, then interpret as DoubleQuotes
+        //if(commandsController.newProcedureCall() == Error::Error)
+        //    return throwError(ERROR_PREFIX + error());
+    }
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
         break;
     default:
@@ -2491,32 +2511,45 @@ Error Interpreter::interpret<Stat::DoubleQuotes>(){
 
 
 template<>
-Error Interpreter::interpret<Stat::Whitespace>(){
+Error TCLInterpreter::interpret<Stat::Whitespace>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Whitespace>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
-
+    switch(lastSavedStat().stat()){    
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
         break;
-
     default:
-        if(Error::Error == saveStatWithParsingControl({Stat::Whitespace}))
-            return throwError(ERROR_PREFIX + error());
+        // Set Whitespace occurance flag -- Modify Whitespace checking
+        break;
     }
     return Error::NoError;
 }
 
 template<>
-Error Interpreter::interpret<Stat::VariableSubbingStart>(){
+Error TCLInterpreter::interpret<Stat::VariableSubbingStart>(){
 
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::VariableSubbingStart>: ";
      if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-
+    case Stat::MainScript:
+    {
+        return throwError(ERROR_PREFIX + "VariableSubbingStart in MainScript ");
+    }
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
         break;
     default:
@@ -2526,13 +2559,25 @@ Error Interpreter::interpret<Stat::VariableSubbingStart>(){
 }
 
 template<>
-Error Interpreter::interpret<Stat::Namespace>(){
+Error TCLInterpreter::interpret<Stat::Namespace>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Namespace>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-
+    case Stat::MainScript:
+    {
+        // New Procedure call  + DoubleQuotes
+        // Maybe create new Procedure first, then interpret as DoubleQuotes
+        //if(commandsController.newProcedureCall() == Error::Error)
+        //    return throwError(ERROR_PREFIX + error());
+    }
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
         break;    
     default:
@@ -2542,14 +2587,19 @@ Error Interpreter::interpret<Stat::Namespace>(){
 }
 
 template<>
-Error Interpreter::interpret<Stat::Semicolon>(){
+Error TCLInterpreter::interpret<Stat::Semicolon>(){
 
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Semicolon>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
-
+    switch(lastSavedStat().stat()){    
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
     {
         if(removeIgnore() == Error::Error)
@@ -2564,13 +2614,23 @@ Error Interpreter::interpret<Stat::Semicolon>(){
 }
 
 template<>
-Error Interpreter::interpret<Stat::Comment>(){
+Error TCLInterpreter::interpret<Stat::Comment>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Comment>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-
+    case Stat::MainScript:
+    {
+        // Copy from dev branch + think about BackslashSubbing with newline
+    }
+        break;
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
         break;
 
@@ -2582,13 +2642,12 @@ Error Interpreter::interpret<Stat::Comment>(){
 }
 
 template<>
-Error Interpreter::interpret<Stat::EndOfString>(){
+Error TCLInterpreter::interpret<Stat::EndOfString>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::EndOfString>: ";
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     switch(lastSavedStat().stat()){
-
     case Stat::Ignore:
     {
         if(removeIgnore() == Error::Error)
@@ -2650,37 +2709,48 @@ Error TCLInterpreter::interpret<Stat::BackslashSubbing>(){
             return throwError(ERROR_PREFIX + error());
     }
 
+    switch(lastSavedStat().stat()){
+    case Stat::MainScript:
+    {
+        // New Procedure call  + DoubleQuotes
+        // Maybe create new Procedure first, then interpret as DoubleQuotes
+        //if(commandsController.newProcedureCall() == Error::Error)
+        //    return throwError(ERROR_PREFIX + error());
+    }
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret("[") == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
+    case Stat::Ignore:
+        break;
+
+    default:
+        return throwError(ERROR_PREFIX + "Unknown Stat ");
+    }
+
     return Error::NoError;
 }
 
 TCLInterpreterFunctions TCLInterpreter::interpretFunctions = {
     nullptr,    // None
     &TCLInterpreter::interpret<Stat::Word>,    // Word
-    //nullptr,    // Const
-    //&TCLInterpreter::interpret<Stat::Word>,    // Operator
-    nullptr,    // VariableSubbing
-    //nullptr, // UnknownString
-    nullptr,    // CommandSubbing
+    nullptr, // Variable Subbing
     &TCLInterpreter::interpret<Stat::CommandSubbingStart>,
     &TCLInterpreter::interpret<Stat::CommandSubbingEnd>,
-    &TCLInterpreter::interpret<Stat::BracesStart>,
     &TCLInterpreter::interpret<Stat::Braces>,
-    &TCLInterpreter::interpret<Stat::DoubleQuotes>,
-    nullptr,    // MainScript
     &TCLInterpreter::interpret<Stat::Whitespace>,
     &TCLInterpreter::interpret<Stat::VariableSubbingStart>,
     &TCLInterpreter::interpret<Stat::Namespace>,
     &TCLInterpreter::interpret<Stat::Semicolon>,
     &TCLInterpreter::interpret<Stat::Comment>,
     &TCLInterpreter::interpret<Stat::EndOfString>,
-    nullptr,// &TCLInterpreter::interpret<Stat::Script>,    // Script
-    //nullptr, //&TCLInterpreter::interpret<Stat::EndOfCodeBlock>,     // EndOfCodeBlock
-   // nullptr,    // Snprintf
     &TCLInterpreter::interpret<Stat::BackslashSubbing>, // BackslashSubbing
-    //nullptr,    // PendingString
-    //nullptr,    // StringInQuotes
+    nullptr,    // MainScript
     nullptr,    // Ignore
-    nullptr, //&TCLInterpreter::interpret<Stat::Expression>,
+    &TCLInterpreter::interpret<Stat::BracesStart>,
+    &TCLInterpreter::interpret<Stat::DoubleQuotes>,
 
 };
 //static_assert (TCLInterpreter::checkInterpretFunctions() == true, "Wrong InterpretFunctions");
@@ -3319,7 +3389,7 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
     return isError()? Error::Error : Error::NoError;
 }
 
-Error Interpreter::processSavedStatsForError(){
+Error TCLInterpreter::processSavedStatsForError(){
     while(!isSavedStatsEmpty()){
         switch(lastSavedStat().stat()){
         case Stat::Script:
@@ -3330,17 +3400,17 @@ Error Interpreter::processSavedStatsForError(){
 //        case Stat::Snprintf:
 //        case Stat::PendingSnprintf:
 //            if(removeProcedureCall() == Error::Error)
-//                return throwError("Interpreter::processSavedStatsForError: " + error());
+//                return throwError("TCLInterpreter::processSavedStatsForError: " + error());
         default:
             if(removeLastSavedStatWithParsingControl() == Error::Error)
-                return throwError("Interpreter::processSavedStatsForError: " + error() );
+                return throwError("TCLInterpreter::processSavedStatsForError: " + error() );
         }
     }
-    return throwError("Interpreter::processSavedStatsForError: No stats");
+    return throwError("TCLInterpreter::processSavedStatsForError: No stats");
 }
 
 
-void Interpreter::printErrorReport(QFile& reportFile, QString inputFileName){
+void TCLInterpreter::printErrorReport(QFile& reportFile, QString inputFileName){
     if(!ignoreMessages.isEmpty()) {
         if(!reportFile.isOpen()){
             if(!reportFile.open(QIODevice::Text | QIODevice::Append))
@@ -3357,7 +3427,7 @@ void Interpreter::printErrorReport(QFile& reportFile, QString inputFileName){
     }
 }
 
-void Interpreter::printErrorReport(QString& errorReport){
+void TCLInterpreter::printErrorReport(QString& errorReport){
     if( not ignoreMessages.isEmpty()) {
         errorReport.append(TCL_TO_CAPL_ERRORS_LOG_PREFIX_TEXT.toUtf8());
 
@@ -3373,7 +3443,7 @@ void Interpreter::printErrorReport(QString& errorReport){
     }
 }
 
-bool Interpreter::isPredefinitionMode(){
+bool TCLInterpreter::isPredefinitionMode(){
     return userConfig.proceduresSettings().mode() == UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly;
 }
 
@@ -3755,7 +3825,7 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
 }
 
 
-const TclProcedureInterpreter::ProcedureDefinition::Rule::ConditionalActions::value_type TclProcedureInterpreter::newCompareRule(const QStringList stringsToCompare, const QStringList format){
+const TclCommand_NS::Definition::Rule::ConditionalActions::value_type TclProcedureInterpreter::newCompareRule(const QStringList stringsToCompare, const QStringList format){
     Q_ASSERT_X(stringsToCompare.size() > 0 and format.size() > 0, "newCompareRule", "Creating Compare Role");
 
     return ProcedureDefinition::Rule::ConditionalActions::value_type

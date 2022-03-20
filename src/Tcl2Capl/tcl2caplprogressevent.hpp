@@ -5,13 +5,15 @@
 #include<QString>
 #include"caplFunctionDefiniitions.hpp"
 
+
+using namespace Tcl::Analysis;
 class Tcl2CaplProgressEvent : public QEvent{
 
 public:
     using ErrorsNumber = const uint;
     using CriticalError = const QString;
     using ErrorMsg =  const QString;
-    Tcl2CaplProgressEvent(FunctionDefinitions& definitions) : QEvent(eventType_static()),
+    Tcl2CaplProgressEvent(FunctionDefinitionsRef definitions) : QEvent(eventType_static()),
       caplFunctionDefinitions_(definitions)
     {
         ready = true;

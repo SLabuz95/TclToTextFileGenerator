@@ -54,6 +54,8 @@ enum class FSD_ByLine_TcFileModifierData::Stat{
 
     SIZE
 };
+
+using namespace Tcl;
 template<>
 template<>
 struct FSD_ByLine_TcFileModifierData::Data{

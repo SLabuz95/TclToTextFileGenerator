@@ -1,10 +1,11 @@
 #ifndef VARIABLECONT_HPP
 #define VARIABLECONT_HPP
 
+#include"TclInterpreter/tclinterpretercore.hpp"
 #include<QString>
 #include<QMap>
 /*
-class VariablesCont{
+class VariablesController{
     // Concept --------------
     using Name = QString;
     using SetValue = QString;
@@ -36,8 +37,9 @@ class VariablesCont{
     }
     // End of Interface
 };*/
+namespace Tcl::Interpreter{
+    class VariablesController{
 
-class VariablesCont{
         struct VariableInfo{
             using Type = QString;
             using VarName = QString;
@@ -64,5 +66,7 @@ class VariablesCont{
         }*/
 
     };
+
+};
 
 #endif // VARIABLECONT_HPP

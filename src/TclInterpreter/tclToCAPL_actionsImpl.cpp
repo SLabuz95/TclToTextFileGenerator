@@ -3,37 +3,38 @@
 #include"Tcl2Capl/controller.hpp"
 #include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 
-using Interpreter = TCLInterpreter;
-using TclProcedureInterpreter = TCLCommandsController;
-using Result = KeywordsController::Result;
-using ReadIgnoreResult = KeywordsController::ReadIgnoreResult;
-using CheckingResult = KeywordsController::CheckingResult;
-using KeywordsMap = KeywordsController::KeywordsMap;
+using Interpreter = Tcl::TCLInterpreter;
+using TCLCommandsController = Tcl::Interpreter::CommandsController::Controller;
+namespace TclProcedureCommand = Tcl::Interpreter::CommandsController::Command;
+using Result = Tcl::Interpreter::KeywordsController::Result;
+using ReadIgnoreResult = Tcl::Interpreter::KeywordsController::ReadIgnoreResult;
+using CheckingResult = Tcl::Interpreter::KeywordsController::CheckingResult;
+using KeywordsMap = Tcl::Interpreter::KeywordsController::KeywordsMap;
 using TCLInterpreterFunctions = Interpreter::InterpretFunctions;
-using UserInteractionStatus = TclProcedureInterpreter::UserInteractionStatus;
-using Rule = TclProcedureInterpreter::ProcedureDefinition::Rule;
-using Action = TclProcedureInterpreter::ProcedureDefinition::Action;
+using UserInteractionStatus = Tcl::UserInteractionStatus;
+using Rule = Tcl::Interpreter::CommandsController::Command::Definition::Rule;
+using Action = Tcl::Interpreter::CommandsController::Command::Definition::Action;
 using RuleControlFlag = Rule::Control;
-using Format = TclProcedureInterpreter::ProcedureDefinition::Format;
-using FormatRule = TclProcedureInterpreter::ProcedureDefinition::Format::Rule;
-using FormatTarget = TclProcedureInterpreter::ProcedureDefinition::Format::Target;
+using Format = Tcl::Interpreter::CommandsController::Command::Definition::Format;
+using FormatRule = Tcl::Interpreter::CommandsController::Command::Definition::Format::Rule;
+using FormatTarget = Tcl::Interpreter::CommandsController::Command::Definition::Format::Target;
 
 // PROCEDURE DEFINITION ACTIONS ==================================================================================
 template <>
 TclProcedureInterpreter::ConditionResult
 TclProcedureInterpreter::executeConditionalAction
-<TclProcedureInterpreter::ProcedureDefinition::Action::Conditional::CompareNumbOfArguments>
+<TclProcedureCommand::Definition::Action::Conditional::CompareNumbOfArguments>
 (TclProcedureInterpreter::ConditionalActionsParameters parameters)
 {
     const QString ERROR_PREFIX = "executeConditionalAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::CompareNumbOfArguments>: ";
+    TCLCommandsController::Definition::Action::Executable::CompareNumbOfArguments>: ";
     if(parameters.isEmpty()){
         throwError(ERROR_PREFIX + "No action parameters");
         return ConditionResult::Satisfied;
     }
     for(QStringList::ConstIterator parameter = parameters.begin(); parameter < parameters.end(); parameter++){
         bool ok;
-        ProcedureCall::Parameters::size_type size = 0;
+        Call::Parameters::size_type size = 0;
         if((size = (parameter->toInt(&ok))), !ok){
             throwError(ERROR_PREFIX + "Action Argument: " + *parameter + " cant be parsed as integer.");
             return ConditionResult::Satisfied;
@@ -47,11 +48,11 @@ TclProcedureInterpreter::executeConditionalAction
 template <>
 TCLCommandsController::ConditionResult
 TCLCommandsController::executeConditionalAction
-<TCLCommandsController::ProcedureDefinition::Action::Conditional::IsLastSavedStat>
+<TclProcedureCommand::Definition::Action::Conditional::IsLastSavedStat>
 (ConditionalActionsParameters parameters)
 {
     const QString ERROR_PREFIX = "executeConditionalAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::IsSavedStat>: ";
+    TCLCommandsController::Definition::Action::Executable::IsSavedStat>: ";
 
     if(parameters.isEmpty()){
         throwError(ERROR_PREFIX + "No action parameters");
@@ -77,10 +78,10 @@ TCLCommandsController::executeConditionalAction
 template <>
 TCLCommandsController::ConditionResult
 TCLCommandsController::executeConditionalAction
-<TCLCommandsController::ProcedureDefinition::Action::Conditional::Compare>
+<TclProcedureCommand::Definition::Action::Conditional::Compare>
 (ConditionalActionsParameters parameters){
     const QString ERROR_PREFIX = "executeConditionalAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::Compare>: ";
+    TCLCommandsController::Definition::Action::Executable::Compare>: ";
 
 
     QString formatStr;
@@ -113,11 +114,11 @@ TCLCommandsController::executeConditionalAction
 
 template <>
 void TCLCommandsController::executeAction
-<TCLCommandsController::ProcedureDefinition::Action::Executable::Write>
+<TclProcedureCommand::Definition::Action::Executable::Write>
 (ExecutableActionsParameters arguments)
 {
     const QString ERROR_PREFIX = "executeAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::Write>: ";
+    TCLCommandsController::Definition::Action::Executable::Write>: ";
     QStringList::size_type result = 0;
     QString str;
     if((result = createAndAssignString(str, arguments)) != arguments.size()){
@@ -133,9 +134,9 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction<
-TCLCommandsController::ProcedureDefinition::Action::Executable::TclParse> (ExecutableActionsParameters arguments){
+TclProcedureCommand::Definition::Action::Executable::TclParse> (ExecutableActionsParameters arguments){
     const QString ERROR_PREFIX = "executeAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::TclParse>: ";
+    TCLCommandsController::Definition::Action::Executable::TclParse>: ";
     QStringList::size_type result = 0;
     QString str;
     if((result = createAndAssignString(str, arguments)) != arguments.size()){
@@ -158,10 +159,10 @@ TCLCommandsController::ProcedureDefinition::Action::Executable::TclParse> (Execu
 
 template <>
 void TCLCommandsController::executeAction
-<TCLCommandsController::ProcedureDefinition::Action::Executable::Error>
+<TclProcedureCommand::Definition::Action::Executable::Error>
 (ExecutableActionsParameters arguments)
 {
-    const QString ERROR_PREFIX = "executeAction<TCLCommandsController::ProcedureDefinition::Action::Executable::Error>: ";
+    const QString ERROR_PREFIX = "executeAction<TCLCommandsController::Definition::Action::Executable::Error>: ";
 
     if(arguments.isEmpty())
         throwError(ERROR_PREFIX + "No arguments for Action Rule");
@@ -173,11 +174,11 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction
-<TCLCommandsController::ProcedureDefinition::Action::Executable::ChangeLastSavedStat>
+<TclProcedureCommand::Definition::Action::Executable::ChangeLastSavedStat>
 (ExecutableActionsParameters parameters)
 {
     const QString ERROR_PREFIX = "executeAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::ChangeLastSavedStat>: ";
+    TCLCommandsController::Definition::Action::Executable::ChangeLastSavedStat>: ";
 
     // IMPORTANT - You cant change FunctionCall, Snprintf or PendingSnprintf stat
     switch(tclInterpreter.lastSavedStat().stat()){
@@ -213,7 +214,7 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction
-<TCLCommandsController::ProcedureDefinition::Action::Executable::AddFunctionDefinition>
+<TclProcedureCommand::Definition::Action::Executable::AddFunctionDefinition>
 (ExecutableActionsParameters parameters)
 {
     tclInterpreter.functionDefinitions.addDefinitionNoRules(lastProcedureCall());
@@ -221,11 +222,11 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction
-<TCLCommandsController::ProcedureDefinition::Action::Executable::AddPreExpression>
+<TclProcedureCommand::Definition::Action::Executable::AddPreExpression>
 (ExecutableActionsParameters parameters)
 {
     const QString ERROR_PREFIX = "executeAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::AddPreExpression>: ";
+    TCLCommandsController::Definition::Action::Executable::AddPreExpression>: ";
 
     QStringList::size_type result = 0;
     QString str;
@@ -241,11 +242,11 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction
-<TCLCommandsController::ProcedureDefinition::Action::Executable::AddUserInteraction>
+<TclProcedureCommand::Definition::Action::Executable::AddUserInteraction>
 (ExecutableActionsParameters parameters)
 {
     const QString ERROR_PREFIX = "executeAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::AddUserInteraction>: ";
+    TCLCommandsController::Definition::Action::Executable::AddUserInteraction>: ";
 
     QStringList::size_type result = 0;
     QString str;
@@ -268,12 +269,12 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction
-<TCLCommandsController::ProcedureDefinition::Action::Executable::FinalizeForEach>
+<TclProcedureCommand::Definition::Action::Executable::FinalizeForEach>
 (ExecutableActionsParameters parameters)
 {
     /*
     const QString ERROR_PREFIX = "executeAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::FinalizeForEach>: ";
+    TCLCommandsController::Definition::Action::Executable::FinalizeForEach>: ";
 
 
     QString result;
@@ -448,43 +449,43 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction
-<TCLCommandsController::ProcedureDefinition::Action::Executable::AddSnprintf>
+<TclProcedureCommand::Definition::Action::Executable::AddSnprintf>
 (ExecutableActionsParameters parameters)
 {
     const QString ERROR_PREFIX = "executeAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::AddSnprintf>: ";
+    TCLCommandsController::Definition::Action::Executable::AddSnprintf>: ";
 
     const QString snprintfVarName = tclInterpreter.snprintfController.getNextSnprintfVarName();
     ExecutableActionsParameters preexpressionParameters = {
         QStringLiteral("snprintf(") + snprintfVarName + ", elcount(" + snprintfVarName + "), \"",
 
-        ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-        ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-            ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::SnprintfFormat),
+        Definition::Format::FORMAT_RULE_CALL(),
+        Definition::Format::cast_format_rule_str(Definition::Format::Rule::TARGET) +
+            Definition::Format::cast_target_str(Definition::Format::Target::SnprintfFormat),
 
-        ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-        ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::ARGS_AFTER_INDEX) +
+        Definition::Format::FORMAT_RULE_CALL(),
+        Definition::Format::cast_format_rule_str(Definition::Format::Rule::ARGS_AFTER_INDEX) +
             "1",   // Ignore argument 0 == concat
 
         "\", ",
-        ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-        ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-            ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::CaplFormat),
+        Definition::Format::FORMAT_RULE_CALL(),
+        Definition::Format::cast_format_rule_str(Definition::Format::Rule::TARGET) +
+            Definition::Format::cast_target_str(Definition::Format::Target::CaplFormat),
 
-        ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-        ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::SEPARATOR) +
+        Definition::Format::FORMAT_RULE_CALL(),
+        Definition::Format::cast_format_rule_str(Definition::Format::Rule::SEPARATOR) +
             ", ",
 
-        ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-        ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::ARGS_AFTER_INDEX) +
+        Definition::Format::FORMAT_RULE_CALL(),
+        Definition::Format::cast_format_rule_str(Definition::Format::Rule::ARGS_AFTER_INDEX) +
             "1",   // Ignore argument 0 == concat
         ")"
     };
 
 
     (this->*executableInterpretFunctions[
-            static_cast<std::underlying_type_t<ProcedureDefinition::Action::Executable>>(
-                ProcedureDefinition::Action::Executable::AddPreExpression)])(preexpressionParameters);
+            static_cast<std::underlying_type_t<Definition::Action::Executable>>(
+                Definition::Action::Executable::AddPreExpression)])(preexpressionParameters);
     QString CHAR_TYPE = "char";
     tclInterpreter.predefinitionsController.newVariable(CHAR_TYPE, snprintfVarName, {128});
 
@@ -498,18 +499,18 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction
-<TCLCommandsController::ProcedureDefinition::Action::Executable::AddPredefinition>
+<TclProcedureCommand::Definition::Action::Executable::AddPredefinition>
 (ExecutableActionsParameters parameters)
 {
     const QString ERROR_PREFIX = "executeAction<\
-    TCLCommandsController::ProcedureDefinition::Action::Executable::AddPredefinition>: ";
+    TCLCommandsController::Definition::Action::Executable::AddPredefinition>: ";
     using ArrayRanks = PredefinitionsController::ArrayRanks; // 1 Element == 0, no array
     using Variable = PredefinitionsController::Variable;
     //WARNING: Nowy typ lub zmiana nazwy wymaga sprawdzenia algorytmow ponizej
     using ProcedureReturnType = Variable::Type;
     struct ProcedureReturnTypeInfo{
         ProcedureReturnType returnType = QString();
-        ProcedureCall::Parameters::size_type parseFrom = 0;
+        Call::Parameters::size_type parseFrom = 0;
     };
 
     ProcedureReturnType FLOAT_TYPE = "float";
@@ -533,9 +534,9 @@ void TCLCommandsController::executeAction
             // Init
             procedureCalls.last().parameters()[0].setCommand(procedureCalls.last().parameters().at(0).command().replace(":", ""));
             using Mode = UserInputConfig::Settings::InterpreterMode;
-            using ParameterRefs = QList<ProcedureCall::Parameters::Iterator>;
-            using ParameterRef = ProcedureCall::Parameters::Iterator;
-            using RawParameterRef = ProcedureCall::Parameters::ConstIterator;
+            using ParameterRefs = QList<Call::Parameters::Iterator>;
+            using ParameterRef = Call::Parameters::Iterator;
+            using RawParameterRef = Call::Parameters::ConstIterator;
             // First parameterRefs is always first argumet of set procedure
             ParameterRefs parameterRefs{procedureCalls.last().parameters().begin() + 1};
             ParameterRef lastParameterRef = nullptr;
@@ -735,32 +736,32 @@ void TCLCommandsController::executeAction
 
 TclProcedureInterpreter::ConditionInterpretFunctions TclProcedureInterpreter::conditionalInterpreterFunctions = {
     &TCLCommandsController::executeConditionalAction<
-    TCLCommandsController::ProcedureDefinition::Action::Conditional::CompareNumbOfArguments>,
+    TclProcedureCommand::Definition::Action::Conditional::CompareNumbOfArguments>,
     &TCLCommandsController::executeConditionalAction<
-    TCLCommandsController::ProcedureDefinition::Action::Conditional::IsLastSavedStat>,
+    TclProcedureCommand::Definition::Action::Conditional::IsLastSavedStat>,
     &TCLCommandsController::executeConditionalAction<
-    TCLCommandsController::ProcedureDefinition::Action::Conditional::Compare>,
+    TclProcedureCommand::Definition::Action::Conditional::Compare>,
 };
 
 TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::executableInterpretFunctions = {
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::Write>,
+    TclProcedureCommand::Definition::Action::Executable::Write>,
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::TclParse>,
+    TclProcedureCommand::Definition::Action::Executable::TclParse>,
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::Error>,
+    TclProcedureCommand::Definition::Action::Executable::Error>,
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::ChangeLastSavedStat>,
+    TclProcedureCommand::Definition::Action::Executable::ChangeLastSavedStat>,
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::AddFunctionDefinition>,
+    TclProcedureCommand::Definition::Action::Executable::AddFunctionDefinition>,
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::AddPreExpression>,
+    TclProcedureCommand::Definition::Action::Executable::AddPreExpression>,
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::AddUserInteraction>,
+    TclProcedureCommand::Definition::Action::Executable::AddUserInteraction>,
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::FinalizeForEach>,
+    TclProcedureCommand::Definition::Action::Executable::FinalizeForEach>,
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::AddSnprintf>,
+    TclProcedureCommand::Definition::Action::Executable::AddSnprintf>,
     &TCLCommandsController::executeAction<
-    TCLCommandsController::ProcedureDefinition::Action::Executable::AddPredefinition>,
+    TclProcedureCommand::Definition::Action::Executable::AddPredefinition>,
 };
