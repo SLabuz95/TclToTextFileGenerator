@@ -54,6 +54,12 @@ namespace Tcl::Interpreter::Core {
     {
         return std::underlying_type_t<Stat>(Stat::Size) - std::underlying_type_t<Stat>(Stat::CommandSubbing);
     }
+    static constexpr std::underlying_type_t<Stat> numbOfSpecialCommandCallsAndSafeguard()
+    {
+        // Safeguard is special interpreter method which throws error in case of wrong stat passed to interpret method
+        // Safeguard is always at the end of interpret method list
+        return numbOfSpecialCommandCalls() + 1;
+    }
 
     using Stats = QVector<Stat>;
 }

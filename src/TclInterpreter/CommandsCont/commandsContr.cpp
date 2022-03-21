@@ -52,3 +52,7 @@ void Controller::deactivateWriteOnlyProcedureMode()
     finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCaseReport);
     tclInterpreter.deactivateWriteOnlyProcedureMode();
 }
+
+Error Controller::interpret(const Stat processingStat){
+    return (this->*(ProcedureCallFunctions::interpretCallAt(tclInterpreter.lastSavedStat().stat())))(processingStat);
+}

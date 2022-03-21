@@ -62,7 +62,13 @@ namespace Tcl::Interpreter::Command{
             }
 
             constexpr static std::underlying_type_t<Stat> specialCallStat2number(const Stat stat){
-                return static_cast<std::underlying_type_t<Stat>>(stat) - static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing);
+                // If stat other then CommandSubbing or related, stat = Stat::Size
+                // For Stat::Size, special interpret method pointer should be added at the end of the interpret methods list
+                // That interpret method will generate error message for wrong stat interpret call
+                return (stat < Stat::CommandSubbing)? // Error Case
+                    static_cast<std::underlying_type_t<Stat>>(Stat::Size) - static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing)
+                :    // Correct Case
+                    static_cast<std::underlying_type_t<Stat>>(stat) - static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing);
             }
         protected:
             WriteOnlyProcedures writeOnlyProcedures_;
@@ -224,7 +230,7 @@ namespace Tcl::Interpreter::Command{
         inline Error removeProcedureCall(){return procedureCalls.isEmpty()? throwError("TclProcedureInterpreter_Internal: No procedure to remove") :
                                                                             (procedureCalls.removeLast(), Error::NoError);}
         // -- !!!
-        inline Error interpret(const Stat stat){return (this->*(ProcedureCallFunctions::interpretCallAt(stat)))(stat);}
+        Error interpret(const Stat processingStat);
         // ---
         Error nextArgument(){}
         Error nextArgumentForSnprintf_priv(Stat stat);
