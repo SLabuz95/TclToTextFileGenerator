@@ -47,7 +47,7 @@
         Factory(const Factory& ) = delete;
 public:
         template<ProductsList ProductType>
-        class Product : public ProductsConfiguration<ProductsList>::Interface<ProductType>{};
+        class Product : public ProductsConfiguration<ProductsList>::template Interface<ProductType>{};
 
         using ProductBasePtr = ProductBase*;
         using ProductBaseRef = ProductBase&;

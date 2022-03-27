@@ -96,7 +96,7 @@ private:
 public:
     Tcl2CaplController(QStringList& definitions, QStringList& inputPath, QString& outputPath);
 
-    ~Tcl2CaplController();
+    ~Tcl2CaplController() override;
 
     inline void quitAndWait(){quit(); wait();}
     inline bool isError()const{return not _error.isEmpty();}
@@ -117,13 +117,13 @@ public:
         progressEventDest = setProgressEventDest;
         userInputConfig_ = config;
         start();
-    };
+    }
     inline void generateCaplsFromFolderWithTcls(QObject* setProgressEventDest, UserInputConfig::UserInputConfigData& config, UserInputConfig::Settings::InterpreterMode mode){
         progressEventDest = setProgressEventDest;
         userInputConfig_ = config;
         userInputConfig_.proceduresSettings().setMode(mode);
         start();
-    };
+    }
     inline UserInputConfig& userProceduresConfig(){return userInputConfig_;}
 };
 

@@ -2335,7 +2335,7 @@ Error TCLInterpreter::interpret<Stat::Word>(){
     switch(lastSavedStat().filteredStat()){    
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret(unknownString) == Error::Error)
+        if(commandsController.interpret(Stat::Word) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2369,7 +2369,7 @@ Error TCLInterpreter::interpret<Stat::CommandSubbingStart>(){
     switch(lastSavedStat().filteredStat()){
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::CommandSubbingStart) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2395,7 +2395,7 @@ Error TCLInterpreter::interpret<Stat::CommandSubbingEnd>(){
     switch(lastSavedStat().filteredStat()){
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::CommandSubbingEnd) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2413,6 +2413,7 @@ Error TCLInterpreter::interpret<Stat::CommandSubbingEnd>(){
     return Error::NoError;
 }
 
+
 template<>
 Error TCLInterpreter::interpret<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::BracesStart>: ";
@@ -2429,7 +2430,7 @@ Error TCLInterpreter::interpret<Stat::BracesStart>(){
     }
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::BracesStart) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2457,7 +2458,7 @@ Error TCLInterpreter::interpret<Stat::Braces>(){
     }
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::Braces) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2485,7 +2486,7 @@ Error TCLInterpreter::interpret<Stat::DoubleQuotes>(){
     }
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::DoubleQuotes) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2507,7 +2508,7 @@ Error TCLInterpreter::interpret<Stat::Whitespace>(){
     switch(lastSavedStat().stat()){    
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::Whitespace) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2534,7 +2535,7 @@ Error TCLInterpreter::interpret<Stat::VariableSubbingStart>(){
     }
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::VariableSubbingStart) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2562,7 +2563,7 @@ Error TCLInterpreter::interpret<Stat::Namespace>(){
     }
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::Namespace) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2584,7 +2585,7 @@ Error TCLInterpreter::interpret<Stat::Semicolon>(){
     switch(lastSavedStat().stat()){    
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::Semicolon) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2615,7 +2616,7 @@ Error TCLInterpreter::interpret<Stat::Comment>(){
         break;
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::Comment) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2707,7 +2708,7 @@ Error TCLInterpreter::interpret<Stat::BackslashSubbing>(){
     }
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret("[") == Error::Error)
+        if(commandsController.interpret(Stat::BackslashSubbing) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2864,45 +2865,15 @@ Result KeywordsController::interpret(){
     return Result::EndOfString;
 }
 
-template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(Call::Name name){
-    using Definition = CommandDefinitions::Iterator;
-    Definition definition;
-    for(definition = procedureDefinitions.begin(); definition < procedureDefinitions.end(); definition++){
-        if(definition->name == name)
-            break;
-    }
-    try {
-        if(definition == procedureDefinitions.end()){
-            procedureCalls.append(Call(name));
-        }else{
-            procedureCalls.append(Call(definition));
-        }
-    }  catch (std::exception& e) {
-        return throwError(e.what());
-    }
 
-    return Error::NoError;
-}
-
-inline void TclProcedureInterpreter::tryToActivateWriteOnlyProcedure(Call::Name& name){
+void TclProcedureInterpreter::tryToActivateWriteOnlyProcedure(Call::Name& name){
     if(writeOnlyProcedureActiveIndex == -1 and tclInterpreter.userConfig.proceduresSettings().isWriteOnlyProcedure(name)){
         writeOnlyProcedureActiveIndex = procedureCalls.size() + 1;
         activateWriteOnlyProcedureMode();
     }
 }
 
-template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(Call::Name name){
-    tryToActivateWriteOnlyProcedure(name);
-    return newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
-}
-
-template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(Call::Name name){
-    return newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
-}
-
+/*
 Error TclProcedureInterpreter::interpret(QString newArgument)
 {
     using Parameter = Call::Parameter;
@@ -2934,7 +2905,7 @@ Error TclProcedureInterpreter::interpret(QString newArgument)
     }
     return Error::NoError;
 }
-
+*/
 Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
 {
     const QString ERROR_DESCRIPTION = QString("InternalCall: TclProcedureInterpreter::nextArgumentForSnprintf_priv(): ");
@@ -2977,94 +2948,6 @@ Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
     return Error::NoError;
 }
 
-template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(SavedStat &statCommand){
-    using RulesForArguments = ProcedureDefinition::RulesForArguments;
-    using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
-    using Rules = ProcedureDefinition::Rules;
-    using Rule = ProcedureDefinition::Rules::Iterator;
-
-    const QString ERROR_PREFIX = "TclProcedureInterpreter::finalizeProcedureCall: ";
-    command.clear();
-    if(procedureCalls.isEmpty()){
-        return throwError("No Procedure Calls for Finalize");
-    }
-    // User Interaction Section ---------------------------
-    if(procedureCalls.last().isUserInteractionRequired()){
-        if(addPreExpressionForUserInteraction() == Error::Error){
-            return throwError(ERROR_PREFIX + tclInterpreter.error());
-        }
-    } // -----------------------------------------------------
-    else{
-        finalizeOn = true;
-        Call& procedureCall = procedureCalls.last();
-
-        Definition::RulesOnEndOfCall& rulesOnEndOfCall = (procedureCall.rulesOnEndOfCall().isEmpty())? Definition::defaultUnknownProcedureDefinition.rulesOnEndOfProcedureCall : procedureCall.rulesOnEndOfCall();
-        bool ruleCondtionsPassed = false;
-
-        using Actions = Rules::value_type::ExecutableActions;
-        using Action = Actions::Iterator;
-        for(Rule rule = rulesOnEndOfCall.begin(); rule < rulesOnEndOfCall.end(); rule++){
-            using Conditions = Rules::value_type::ConditionalActions;
-            using Condition = Conditions::Iterator;
-            Condition condition;
-            ConditionResult conditionResult = ConditionResult::Satisfied;
-            for(condition = rule->conditions.begin(); condition < rule->conditions.end(); condition++){
-                conditionResult = (this->*(conditionalInterpreterFunctions[static_cast<std::underlying_type_t<Conditions::value_type::ActionType>>(condition->type())]))(condition->parameters());
-                if(tclInterpreter.isError()){
-                    finalizeOn = false;
-                    return throwError(ERROR_PREFIX + tclInterpreter.error());
-                }
-                if(conditionResult == ConditionResult::Unsatisfied){
-                    break;
-                }
-            }
-            if(condition == rule->conditions.end()){
-                ruleCondtionsPassed = true;
-                for(Action action = rule->actions.begin(); action < rule->actions.constEnd(); action++){
-                    (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Actions::value_type::ActionType>>(action->type())]))(action->parameters());
-                    if(tclInterpreter.isError()){
-                        finalizeOn = false;
-                        return throwError(ERROR_PREFIX + tclInterpreter.error());
-                    }
-                }
-                switch(rule->controlFlag){
-                //case Rules::value_type::Control::BreakRuleCheckDontExecOnEndActions:
-                case Rules::value_type::Control::BreakRuleCheck:
-                    rule = rulesOnEndOfCall.end();
-                    break;
-                case Rules::value_type::Control::NoBreakRuleCheck:
-                    ruleCondtionsPassed = false;
-                    break;
-                default:
-                    break;
-                }
-            }
-        }
-        if(not ruleCondtionsPassed){
-            tclInterpreter.functionDefinitions.addDefinitionNotSatisfiedRules(procedureCall);
-        }
-    }
-    statCommand.setCommand(command);
-    finalizeOn = false;
-
-    return Error::NoError;
-}
-
-template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(SavedStat &){
-    finalizeOn = false;
-
-    return Error::NoError;
-
-}
-
-template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(SavedStat &statCommand){
-
-    return finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(statCommand);
-
-}
 
 Error TCLInterpreter::finalizeProcedureCall(){
     const QString ERROR_DESCRIPTION = "TCL_Internal::finalizeProcedureCall";
@@ -3826,25 +3709,4 @@ const TclCommand_NS::Definition::Rule::ConditionalActions::value_type TclProcedu
     };
 }
 
-
-
-
-const TclProcedureInterpreter::NewProcedureCallFunction
-TclProcedureInterpreter::ProcedureCallFunctions::newProcedureCalls
-[TclProcedureInterpreter::ProdecuresSettings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
-{
-    &TclProcedureInterpreter::newProcedureCall_mode<Settings::InterpreterMode::TestCase>,
-    &TclProcedureInterpreter::newProcedureCall_mode<Settings::InterpreterMode::TestCaseReport>,
-    &TclProcedureInterpreter::newProcedureCall_mode<Settings::InterpreterMode::PredefinitionsOnly>,
-};
-
-
-const TclProcedureInterpreter::FinalizeProcedureCallFunction
-TclProcedureInterpreter::ProcedureCallFunctions::finalizeProcedureCalls
-[TclProcedureInterpreter::ProdecuresSettings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
-{
-    &TclProcedureInterpreter::finalizeProcedureCall_mode<Settings::InterpreterMode::TestCase>,
-    &TclProcedureInterpreter::finalizeProcedureCall_mode<Settings::InterpreterMode::TestCaseReport>,
-    &TclProcedureInterpreter::finalizeProcedureCall_mode<Settings::InterpreterMode::PredefinitionsOnly>,
-};
 

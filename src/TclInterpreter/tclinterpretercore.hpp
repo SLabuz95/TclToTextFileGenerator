@@ -15,7 +15,7 @@ namespace Tcl::Interpreter::Core {
     // - Child - child can be saved in another SavedStat
     // - Processing - owns method for interpretation of event for that stat
     // - Prodromic - expects the occurance of specific next event, can be saved in SavedStats stack
-    // - Pending - stat which is keeped to perform all processing operations caused by events, stat has start and end events.
+    // - Pending - stat which is keept to perform all processing operations caused by events, stat has start and end events.
     enum class Stat : uint{
         None,
         Word,             // {Child, Proccessing} //Old Name: String // For definition, Check Tcl concept in Github References

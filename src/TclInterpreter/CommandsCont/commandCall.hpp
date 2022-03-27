@@ -80,6 +80,11 @@ namespace Tcl::Interpreter::Command{
             {}
 
             //Call& operator=(Call&& call){_name = call._name; _arguments = call._arguments;}
+            Error newParameter(Stat);
+            inline Parameters::size_type rawParametersLength()const{return _rawParameters.size();}
+            inline Parameters::size_type lastRawParameterIndex()const{return rawParametersLength();}
+
+            // -----------------------------
             inline void nextArgument(Parameter& arg){_parameters.append(arg); _rawParameters.append(arg);}
             inline Parameters::size_type parametersLength()const{return _parameters.size();}
             inline Parameters::size_type lastArgumentIndex()const{return parametersLength();}
