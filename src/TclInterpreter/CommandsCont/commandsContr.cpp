@@ -200,11 +200,46 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::CommandSub
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat){
-    case Stat::Word:
+    case Stat::Comment:
     {
-
+        // Comment Control required
+        // Finialize Procedure call or threat as word
+        // Call from main TclInterpreter or CommandsCall
+        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
+    }
+        Q_FALLTHROUGH();
+    case Stat::Word:
+    case Stat::BracesStart:
+    case Stat::Braces:
+    case Stat::DoubleQuotes:
+    case Stat::Whitespace:
+    case Stat::VariableSubbingStart:
+    case Stat::Namespace:
+    case Stat::BackslashSubbing:
+        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+    case Stat::CommandSubbingStart:
+    {
+        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
+        // Call from main TclInterpreter or CommandsCall
     }
         break;
+    case Stat::CommandSubbingEnd:
+    {
+        // Finialize Procedure call
+        // Call from main TclInterpreter or CommandsCall
+        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
+    }
+        break;
+    case Stat::EndOfString:
+    case Stat::Semicolon:
+    {
+        // Finialize Procedure call
+        // Call from main TclInterpreter or CommandsCall
+        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
+    }
+        break;
+    default:
+        return throwError(ERROR_PREFIX + "Unknown Stat ");
     }
 
     return Error::NoError;
@@ -213,6 +248,8 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::CommandSub
 template<>
 Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(Stat parameterStat){
     const QString ERROR_PREFIX = "New Parameter Error: ";
+    QString unknownString;
+
     switch(lastProcedureCall().rawParametersLength()){
     // 1. Is number of parameters 0 (no parameter indicates that no procedure name has been defined - new parameter will create parameter for procedure name)
     // States allowed for procedure name:
@@ -222,15 +259,15 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
     // - BracesStart
     case 0:
     {
-        QString unknownString;
         switch(parameterStat){
         case Stat::Word:
             unknownString = tclInterpreter.readCurrentKeyword();
-        case Stat::ComplexWord:
+        Q_FALLTHROUGH();
+        //case Stat::ComplexWord: "BackslashSubbing or VariableSubbing initialize new procedure ComplexWord"
         case Stat::DoubleQuotes:
         case Stat::BracesStart:
         {
-
+            lastProcedureCall().newParameter(parameterStat, unknownString);
         }
             break;
         default:
@@ -241,9 +278,27 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
     // 2. Is number of parameters 1 (1 parameter indicates that new parameter will be second parameter - first parameter is "ready" as procedure name - name for procedure definitions can be assigned)
     case 1:
     {
+        switch(parameterStat){
+        case Stat::Word:
+        {
+            unknownString = tclInterpreter.readCurrentKeyword();
+            lastProcedureCall().rawParameters().last().appendCommand(unknownString);
+        }
+            break;
 
+        }
     }
         break;
+    default:
+        switch(parameterStat){
+        case Stat::Word:
+        {
+            unknownString = tclInterpreter.readCurrentKeyword();
+            lastProcedureCall().rawParameters().last().appendCommand(unknownString);
+        }
+            break;
+
+        }
     }
 
 
@@ -255,7 +310,30 @@ template<>
 Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::BracesStart>(Stat processingStat){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::BracesStart>: ";
 
-
+    switch(processingStat){
+    case Stat::BracesStart:
+        // List Control required
+    case Stat::Comment:
+    case Stat::Word:
+    case Stat::DoubleQuotes:
+    case Stat::Whitespace:
+    case Stat::VariableSubbingStart:
+    case Stat::Namespace:
+    case Stat::BackslashSubbing:    // Probably only \newLine available
+    case Stat::CommandSubbingStart:
+    case Stat::CommandSubbingEnd:
+    case Stat::EndOfString:
+    case Stat::Semicolon:
+        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+    case Stat::Braces:
+    {
+        // End of Braces
+        // List Control required
+    }
+        break;
+    default:
+        return throwError(ERROR_PREFIX + "Unknown Stat ");
+    }
 
     return Error::NoError;
 }
@@ -264,7 +342,29 @@ template<>
 Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::DoubleQuotes>(Stat processingStat){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::DoubleQuotes>: ";
 
-
+    switch(processingStat){
+    case Stat::BracesStart:
+    case Stat::Braces:
+    case Stat::Comment:
+    case Stat::Word:
+    case Stat::Whitespace:
+    case Stat::VariableSubbingStart:
+    case Stat::Namespace:
+    case Stat::BackslashSubbing:    // Probably only \newLine available
+    case Stat::CommandSubbingStart:
+    case Stat::CommandSubbingEnd:
+    case Stat::EndOfString:
+    case Stat::Semicolon:
+        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+    case Stat::DoubleQuotes:
+    {
+        // End of Double Quotes
+        // List Control required
+    }
+        break;
+    default:
+        return throwError(ERROR_PREFIX + "Unknown Stat ");
+    }
 
     return Error::NoError;
 }
@@ -273,7 +373,34 @@ template<>
 Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ComplexWord>(Stat processingStat){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::ComplexWord>: ";
 
-
+    switch(processingStat){
+    case Stat::Comment:
+    {
+        // Comment Control required
+        // Finialize Procedure call or threat as word
+        // Call from main TclInterpreter or CommandsCall
+        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
+    }
+    case Stat::BracesStart:
+    case Stat::Braces:
+    case Stat::Word:
+    case Stat::DoubleQuotes:
+    case Stat::VariableSubbingStart:
+    case Stat::Namespace:
+    case Stat::BackslashSubbing:    // Probably only \newLine available
+    case Stat::CommandSubbingStart:
+    case Stat::CommandSubbingEnd:
+        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+    case Stat::EndOfString:
+    case Stat::Semicolon:
+    case Stat::Whitespace:
+    {
+        // End of Complex Word
+    }
+        break;
+    default:
+        return throwError(ERROR_PREFIX + "Unknown Stat ");
+    }
 
     return Error::NoError;
 }
@@ -282,7 +409,34 @@ template<>
 Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Expression>(Stat processingStat){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
 
-
+    switch(processingStat){
+    case Stat::Comment:
+    {
+        // Comment Control required
+        // Finialize Procedure call or threat as word
+        // Call from main TclInterpreter or CommandsCall
+        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
+    }
+    case Stat::BracesStart:
+    case Stat::Braces:
+    case Stat::Word:
+    case Stat::DoubleQuotes:
+    case Stat::VariableSubbingStart:
+    case Stat::Namespace:
+    case Stat::BackslashSubbing:    // Probably only \newLine available
+    case Stat::CommandSubbingStart:
+    case Stat::CommandSubbingEnd:
+        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+    case Stat::EndOfString:
+    case Stat::Semicolon:
+    case Stat::Whitespace:
+    {
+        // End of Complex Word
+    }
+        break;
+    default:
+        return throwError(ERROR_PREFIX + "Unknown Stat ");
+    }
 
     return Error::NoError;
 }
@@ -291,7 +445,33 @@ template<>
 Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Script>(Stat processingStat){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
 
-
+    switch(processingStat){
+    // Like in Main Script
+    case Stat::Comment:
+    {
+        // Just comment like in MainScript
+    }
+        break;
+    case Stat::BracesStart:
+    case Stat::Braces:
+    case Stat::Word:
+    case Stat::DoubleQuotes:
+    case Stat::VariableSubbingStart:
+    case Stat::Namespace:
+    case Stat::BackslashSubbing:    // Probably only \newLine available
+    case Stat::CommandSubbingStart:
+    case Stat::CommandSubbingEnd:
+        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+    case Stat::EndOfString:
+    case Stat::Semicolon:
+    case Stat::Whitespace:
+    {
+        // End of Complex Word
+    }
+        break;
+    default:
+        return throwError(ERROR_PREFIX + "Unknown Stat ");
+    }
 
     return Error::NoError;
 }

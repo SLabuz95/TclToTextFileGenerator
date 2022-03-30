@@ -40,6 +40,7 @@ namespace Tcl::Interpreter::Command{
             //inline void setUserIteractionRequired(){_userInteraction = UserInteraction::Required;}
             inline void setStat(Stat stat){_savedStat.setStat(stat);}
             inline void setCommand(OutputCommand command){_savedStat.setCommand(command);}
+            inline void appendCommand(OutputCommand command){_savedStat.appendCommand(command);}
             //inline UserInteraction userIteraction(){return _userInteraction;}
             inline SavedStat& savedStat(){return _savedStat;}
             inline const Parameters& rawParameters()const{return rawParameterStats;}
@@ -80,7 +81,9 @@ namespace Tcl::Interpreter::Command{
             {}
 
             //Call& operator=(Call&& call){_name = call._name; _arguments = call._arguments;}
-            Error newParameter(Stat);
+            Error newParameter(Stat stat, OutputCommand rawCommand){
+                _rawParameters.append({stat, rawCommand});
+            }
             inline Parameters::size_type rawParametersLength()const{return _rawParameters.size();}
             inline Parameters::size_type lastRawParameterIndex()const{return rawParametersLength();}
 

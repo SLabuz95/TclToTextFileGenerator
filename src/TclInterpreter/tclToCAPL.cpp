@@ -2515,7 +2515,6 @@ Error TCLInterpreter::interpret<Stat::Whitespace>(){
     case Stat::Ignore:
         break;
     default:
-        // Set Whitespace occurance flag -- Modify Whitespace checking
         break;
     }
     return Error::NoError;
@@ -3231,7 +3230,7 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
             if(processError() == Error::Error)
                 return Error::Error;
         }
-        proccessingStats.append(textInterpreter.lastKeywordStats());
+        proccessingStats.append(textInterpreter.lastKeywordStat());
 
         if(processUnknownString() == Error::Error){
             if(processError() == Error::Error)

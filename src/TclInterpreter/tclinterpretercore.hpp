@@ -26,7 +26,7 @@ namespace Tcl::Interpreter::Core {
         CommandSubbingStart,   // {Processing} [
         CommandSubbingEnd,  // {Processing} ],
         Braces,  // } {Processing}   // SAVEABLE (For complete list)
-        Whitespace, // " " , "\t" {Processing}   // SAVEABLE (Special Cases)
+        Whitespace, // " " , "\t" {Processing}
         VariableSubbingStart, // $ {Processing} // SAVEABLE
         Namespace,   // :: {Processing} // SAVEABLE
         Semicolon, // ; {Processing}

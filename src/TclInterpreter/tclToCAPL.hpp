@@ -147,7 +147,7 @@ namespace Tcl{
             static InterpretFunctions interpretFunctions;
             ErrorMessages ignoreMessages;
             RemoveProcedureCallFunction removeProcedureCallFunction = &TCLInterpreter::removeProcedureCall_standard;
-            bool _whitespace = false;
+            //bool _whitespace = false;
 
         // End of Objects ||||||||||||||||||||||||||||||||||||||||||||
         // Functions --------------------------------------------------
@@ -155,14 +155,7 @@ namespace Tcl{
             template<Stat stat>
             Error interpret();
 
-            inline Error callInterpretFunction(Stat stat = Stat::Size){
-                if(checkWhitespace() == Error::NoError){
-                    if(isSavedStatsEmpty())
-                        return throwError("Empty Stats after Whitespace");
-
-                }else{
-                    return Error::Error;
-                }
+            inline Error callInterpretFunction(Stat stat = Stat::Size){                
                 if(stat != Stat::Size){
                     proccessingStats.append(stat);
                 }
@@ -175,12 +168,12 @@ namespace Tcl{
 
             inline void addPendingProcessingStat(Stats stats){pendingProccessingStats.append(stats);}
             inline void addPendingProcessingStat(Stat stat){pendingProccessingStats.append(stat);}
-            inline Error checkWhitespace(){
+            /*inline Error checkWhitespace(){
                 return ((_whitespace = (lastSavedStat().stat() == Stat::Whitespace)))?
                             removeLastStat() :
                             Error::NoError;
-            }
-            inline bool isWhitespaceOccured()const{return _whitespace;}
+            }*/
+            //inline bool isWhitespaceOccured()const{return _whitespace;}
             //Error interpretFunctionCall(qsizetype functionCallPos);
 
             Error moveArgumentToFunctionCall();

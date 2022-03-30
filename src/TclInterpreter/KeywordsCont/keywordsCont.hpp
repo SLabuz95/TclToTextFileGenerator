@@ -37,7 +37,7 @@ namespace Tcl::Interpreter{
               Permitted
             };
             const QString keyword;
-            const Stats stats;
+            const Stat stat;
             const UnknownStringRule unknownStringRule = UnknownStringRule::Permitted;
         };
 
@@ -96,7 +96,7 @@ namespace Tcl::Interpreter{
     public:
        ~KeywordsController(){}
 
-        inline Stats lastKeywordStats()const{return lastKeyword->stats;}
+        inline Stat lastKeywordStat()const{return lastKeyword->stat;}
         Error initialize(const QString&);
         Error deinitialize();
 
