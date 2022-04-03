@@ -30,44 +30,44 @@ TCLInterpreter::TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsR
 
 KeywordsMap KeywordsController::keywordsMap ={
     {
-        {"#", {Stat::Comment}},
-        {"{", {Stat::BracesStart}, Keyword::UnknownStringRule::Forbidden},
-        {"}", {Stat::Braces}},
-        {"[", {Stat::CommandSubbingStart}},
-        {"]", {Stat::CommandSubbingEnd}},
-        {"(", {Stat::Word}},
-        {")", {Stat::Word}},
-        {"+", {Stat::Word}},
-        {"-", {Stat::Word}},
-        {"*", {Stat::Word}},
-        {"/", {Stat::Word}},
-        {"%", {Stat::Word}},
-        {">", {Stat::Word}},
-        {"<", {Stat::Word}},
-        {"!", {Stat::Word}},
-        {"&", {Stat::Word}},
-        {"|", {Stat::Word}},
-        {"^", {Stat::Word}},
-        {"?", {Stat::Word}},
-        {":", {Stat::Word}},
-        {" ", {Stat::Whitespace}},
-        {"\t", {Stat::Whitespace}},
-        {"$", {Stat::VariableSubbingStart}},
-        {"\"", {Stat::DoubleQuotes}},
-        {";", {Stat::Semicolon}},
-        {"\\", {Stat::BackslashSubbing}}
+        {"#", Stat::Comment},
+        {"{", Stat::BracesStart, Keyword::UnknownStringRule::Forbidden},
+        {"}", Stat::Braces},
+        {"[", Stat::CommandSubbingStart},
+        {"]", Stat::CommandSubbingEnd},
+        {"(", Stat::Word},
+        {")", Stat::Word},
+        {"+", Stat::Word},
+        {"-", Stat::Word},
+        {"*", Stat::Word},
+        {"/", Stat::Word},
+        {"%", Stat::Word},
+        {">", Stat::Word},
+        {"<", Stat::Word},
+        {"!", Stat::Word},
+        {"&", Stat::Word},
+        {"|", Stat::Word},
+        {"^", Stat::Word},
+        {"?", Stat::Word},
+        {":", Stat::Word},
+        {" ", Stat::Whitespace},
+        {"\t", Stat::Whitespace},
+        {"$", Stat::VariableSubbing},
+        {"\"", Stat::DoubleQuotes},
+        {";", Stat::Semicolon},
+        {"\\", Stat::BackslashSubbing}
 
     },
     {
-        {"::", {Stat::Namespace}},
-        {"==", {Stat::Word}},
-        {"!=", {Stat::Word}},
-        {">=", {Stat::Word}},
-        {"<=", {Stat::Word}},
-        {"&&", {Stat::Word}},
-        {"||", {Stat::Word}},
-        {"<<", {Stat::Word}},
-        {">>", {Stat::Word}},
+        {"::", Stat::Namespace},
+        {"==", Stat::Word},
+        {"!=", Stat::Word},
+        {">=", Stat::Word},
+        {"<=", Stat::Word},
+        {"&&", Stat::Word},
+        {"||", Stat::Word},
+        {"<<", Stat::Word},
+        {">>", Stat::Word},
     },
 };
 
@@ -158,13 +158,13 @@ StartUpErrorBase::Message StartUpError<KeywordsController>::__startupErrorChecki
 bool TCLInterpreter::checkInterpretFunctions(){
     constexpr Stat implementedStats[] = {
         Stat::Word,
+        Stat::VariableSubbing,
         Stat::CommandSubbingStart,
         Stat::CommandSubbingEnd,
         Stat::BracesStart,
         Stat::Braces,
         Stat::DoubleQuotes,
         Stat::Whitespace,
-        Stat::VariableSubbingStart,
         Stat::Namespace,
         Stat::Semicolon,
         Stat::Comment,
@@ -2344,10 +2344,6 @@ Error TCLInterpreter::interpret<Stat::Word>(){
         if(commandsController.newProcedureCall(unknownString) == Error::Error)
             return throwError(ERROR_PREFIX + error());
         // Stat shall be replace by CommandSubbing in the CommandsController
-    #ifdef QT_DEBUG
-        if(lastSavedStat().filteredStat() != Stat::CommandSubbing)
-            qFatal("New Procedure Call did not remove CommandSubbingStart stat");
-    #endif
     }
         break;
     case Stat::Ignore:
@@ -2403,7 +2399,6 @@ Error TCLInterpreter::interpret<Stat::CommandSubbingEnd>(){
     {
        return throwError(ERROR_PREFIX + "CommandSubbingEnd in MainScript or Script");
     }
-        break;
     case Stat::Ignore:
         break;
     default:
@@ -2521,7 +2516,7 @@ Error TCLInterpreter::interpret<Stat::Whitespace>(){
 }
 
 template<>
-Error TCLInterpreter::interpret<Stat::VariableSubbingStart>(){
+Error TCLInterpreter::interpret<Stat::VariableSubbing>(){
 
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::VariableSubbingStart>: ";
      if(isSavedStatsEmpty())
@@ -2534,7 +2529,7 @@ Error TCLInterpreter::interpret<Stat::VariableSubbingStart>(){
     }
     case Stat::CommandSubbing:
     {
-        if(commandsController.interpret(Stat::VariableSubbingStart) == Error::Error)
+        if(commandsController.interpret(Stat::VariableSubbing) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
         break;
@@ -2724,12 +2719,11 @@ Error TCLInterpreter::interpret<Stat::BackslashSubbing>(){
 TCLInterpreterFunctions TCLInterpreter::interpretFunctions = {
     nullptr,    // None
     &TCLInterpreter::interpret<Stat::Word>,    // Word
-    nullptr, // Variable Subbing
+    &TCLInterpreter::interpret<Stat::VariableSubbing>,
     &TCLInterpreter::interpret<Stat::CommandSubbingStart>,
     &TCLInterpreter::interpret<Stat::CommandSubbingEnd>,
     &TCLInterpreter::interpret<Stat::Braces>,
     &TCLInterpreter::interpret<Stat::Whitespace>,
-    &TCLInterpreter::interpret<Stat::VariableSubbingStart>,
     &TCLInterpreter::interpret<Stat::Namespace>,
     &TCLInterpreter::interpret<Stat::Semicolon>,
     &TCLInterpreter::interpret<Stat::Comment>,

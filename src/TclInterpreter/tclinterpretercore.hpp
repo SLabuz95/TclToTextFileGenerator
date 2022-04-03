@@ -21,13 +21,13 @@ namespace Tcl::Interpreter::Core {
         Word,             // {Child, Proccessing} //Old Name: String // For definition, Check Tcl concept in Github References
         //Const,              // SAVEABLE   // Check const or string is only in special cases - const and string distinction do not change interpreter behaviour
         //Operator,           // SAVEABLE // In Development
-        VariableSubbing,           // {Child}
+        VariableSubbing,           // $ {Child, Processing} // Never as stand alone child of CommandSubbing (only child of DoubleQuotes or ComplexWord)
         //UnknownString, Word state substitute that state
         CommandSubbingStart,   // {Processing} [
         CommandSubbingEnd,  // {Processing} ],
         Braces,  // } {Processing}   // SAVEABLE (For complete list)
         Whitespace, // " " , "\t" {Processing}
-        VariableSubbingStart, // $ {Processing} // SAVEABLE
+        //VariableSubbingStart, // $ {Processing} // SAVEABLE
         Namespace,   // :: {Processing} // SAVEABLE
         Semicolon, // ; {Processing}
         Comment,    // # {Processing} Save to Pending Stats (if tclCommand ends with \)   // check   add EndOfString Stat to processing stats

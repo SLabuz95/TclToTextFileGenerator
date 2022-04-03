@@ -109,6 +109,8 @@ namespace Tcl::Interpreter::Command{
         using FinalizeProcedureCallFunction = Error (Controller::*)(SavedStat&);
         using CommandCallSpecialInterpretFunction = Error (Controller::*)(const Stat);
         using CommandCallSpecialNewParameterFunction = Error (Controller::*)(const Stat);
+        using CommandCallSpecialNewCallFunction = Error (Controller::*)(const Stat);
+        using CommandCallSpecialFinalizeCallFunction = Error (Controller::*)(const Stat);
         //inline Error emptyCommandCallSpecialInterpret(const Stat){return Error::NoError;}
         // ----
 
@@ -123,6 +125,8 @@ namespace Tcl::Interpreter::Command{
             //FinalizeProcedureCallFunction finalizeProcedureCall;
             CommandCallSpecialInterpretFunction interpretCall;
             CommandCallSpecialNewParameterFunction newParameterCall;
+            CommandCallSpecialNewCallFunction newCall;
+            CommandCallSpecialFinalizeCallFunction finalizeCall;
         };
 
         //static const CommandCallSpecialInterpretFunction commandCallSpecialInterprets[];
@@ -261,6 +265,10 @@ namespace Tcl::Interpreter::Command{
         Error interpretSpecialCommandCall_mode(const Stat);
         template<Stat>  // New Parameter Call Stat
         Error newParameterSpecialCommandCall_mode(const Stat);
+        template<Stat>  // Special Command Call Stat
+        Error newCallSpecialCommandCall_mode(const Stat);
+        template<Stat>  // New Parameter Call Stat
+        Error finalizeCallSpecialCommandCall_mode(const Stat);
         // Special case for Stat::Size
         Error interpretSpecialCommandCall_throwErrorForWrongStat(const Stat){
             return throwError("TclProcedureInterpreter_Internal: Wrong stat used for command call interpet methods");

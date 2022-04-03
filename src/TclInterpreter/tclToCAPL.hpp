@@ -194,6 +194,7 @@ namespace Tcl{
 
 
             Error newProcedureCall(Interpreter::Command::Call::Name name);
+            Error newProcedureCall(Stat);
             inline Error removeProcedureCall(){return (this->*removeProcedureCallFunction)();}
             inline Error removeProcedureCall_standard(){
                 const QString ERROR_PREFIX = "TCLInterpreter::removeProcedureCall: ";
