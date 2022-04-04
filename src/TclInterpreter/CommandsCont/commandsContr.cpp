@@ -694,7 +694,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesS
         if(lastProcedureCall().rawParametersLength() != 0){
             lastProcedureCall().rawParameters().last().appendCommand(unknownString);
         }else{
-            return lastProcedureCall().newParameter(Stat::Word, unknownString);
+            return lastProcedureCall().newParameter(Stat::BackslashSubbing, unknownString);
         }
     }
         break;
@@ -711,7 +711,8 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesS
     case Stat::Semicolon:
     {
         unknownString = tclInterpreter.readCurrentKeyword();
-        if(lastProcedureCall().rawParametersLength() != 0){
+        if(lastProcedureCall().rawParametersLength() != 0
+                and lastProcedureCall().rawParameters().last().stat() == Stat::Word){
             lastProcedureCall().rawParameters().last().appendCommand(unknownString);
         }else{
             return lastProcedureCall().newParameter(Stat::Word, unknownString);
@@ -728,53 +729,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesS
 template<>
 Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::BracesStart>(Stat processingStat){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
-
-    switch(processingStat){
-    case Stat::Comment:
-    {
-        // Comment Control required
-        // Finialize Procedure call or threat as word
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-    }
-        Q_FALLTHROUGH();
-    case Stat::Word:
-    case Stat::BracesStart:
-    case Stat::Braces:
-    case Stat::DoubleQuotes:
-    case Stat::Whitespace:
-    case Stat::VariableSubbing:
-    case Stat::Namespace:
-    case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
-    case Stat::CommandSubbingStart:
-    {
-        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
-        // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
-    }
-        break;
-    case Stat::CommandSubbingEnd:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-       //return tclInterpreter.finializeProcedureCall(processingStat);
-    }
-    case Stat::EndOfString:
-    case Stat::Semicolon:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
-    }
-        break;
-    default:
-        return throwError(ERROR_PREFIX + "Unknown Stat ");
-    }
-
-    return Error::NoError;
+    return throwError(ERROR_PREFIX + "No implementation for new call for Braces");
 }
 
 template<>
@@ -782,44 +737,15 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::BracesS
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat){
-    case Stat::Comment:
-    {
-        // Comment Control required
-        // Finialize Procedure call or threat as word
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-    }
-        Q_FALLTHROUGH();
-    case Stat::Word:
-    case Stat::BracesStart:
     case Stat::Braces:
-    case Stat::DoubleQuotes:
-    case Stat::Whitespace:
-    case Stat::VariableSubbing:
-    case Stat::Namespace:
-    case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
-    case Stat::CommandSubbingStart:
     {
-        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
-        // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
-    }
-        break;
-    case Stat::CommandSubbingEnd:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-       //return tclInterpreter.finializeProcedureCall(processingStat);
-    }
-    case Stat::EndOfString:
-    case Stat::Semicolon:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
+        // 1. Check if List/Braces Controller allows to finialize call
+        // 1.1. If yes
+        // - Just finalize call (default complete call + add to parameter of previous call)
+        // 1.2. If no
+        // -  Controller will update current state of List
+        // - newParameterSpecialCommandCall_mode for Braces
+
     }
         break;
     default:
@@ -931,44 +857,19 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::DoubleQuotes
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat){
-    case Stat::Comment:
-    {
-        // Comment Control required
-        // Finialize Procedure call or threat as word
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-    }
-        Q_FALLTHROUGH();
-    case Stat::Word:
-    case Stat::BracesStart:
-    case Stat::Braces:
-    case Stat::DoubleQuotes:
-    case Stat::Whitespace:
-    case Stat::VariableSubbing:
-    case Stat::Namespace:
-    case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
     case Stat::CommandSubbingStart:
     {
-        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
-        // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
+
     }
         break;
-    case Stat::CommandSubbingEnd:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-       //return tclInterpreter.finializeProcedureCall(processingStat);
-    }
-    case Stat::EndOfString:
-    case Stat::Semicolon:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
+    case Stat::BracesStart:
+    {// Review again
+        // 1. If last parameter is Empty VariableSubbing
+        // - Call Braces Procedure
+        // 2. if Word
+        // - Append with Braces controller
+        // 3. Otherwise
+
     }
         break;
     default:
@@ -983,44 +884,16 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::DoubleQ
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat){
-    case Stat::Comment:
-    {
-        // Comment Control required
-        // Finialize Procedure call or threat as word
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-    }
-        Q_FALLTHROUGH();
-    case Stat::Word:
-    case Stat::BracesStart:
-    case Stat::Braces:
     case Stat::DoubleQuotes:
-    case Stat::Whitespace:
-    case Stat::VariableSubbing:
-    case Stat::Namespace:
-    case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
-    case Stat::CommandSubbingStart:
     {
-        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
-        // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
-    }
-        break;
-    case Stat::CommandSubbingEnd:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-       //return tclInterpreter.finializeProcedureCall(processingStat);
-    }
-    case Stat::EndOfString:
-    case Stat::Semicolon:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
+        // 1. If empty parameter (empty Word)
+        // - Remove parameter
+        // - Finialize Call
+        // 2. If Empty VariableSubbing
+        // - Change to Word with sign $
+        // - Finialize Call
+        // 3. Otherwise
+        // - Finialize Call
     }
         break;
     default:
@@ -1149,6 +1022,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Complex
                 }
             }
                 break;
+                // Review
             default:
                 return throwError(ERROR_PREFIX + "Unknown Stat ");
             }
@@ -1171,44 +1045,14 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ComplexWord>
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat){
-    case Stat::Comment:
-    {
-        // Comment Control required
-        // Finialize Procedure call or threat as word
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-    }
-        Q_FALLTHROUGH();
-    case Stat::Word:
-    case Stat::BracesStart:
-    case Stat::Braces:
-    case Stat::DoubleQuotes:
-    case Stat::Whitespace:
-    case Stat::VariableSubbing:
-    case Stat::Namespace:
-    case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
     case Stat::CommandSubbingStart:
     {
-        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
-        // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
+
     }
         break;
-    case Stat::CommandSubbingEnd:
+    case Stat::VariableSubbing:
     {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-       //return tclInterpreter.finializeProcedureCall(processingStat);
-    }
-    case Stat::EndOfString:
-    case Stat::Semicolon:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
+
     }
         break;
     default:
@@ -1223,46 +1067,11 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Complex
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat){
-    case Stat::Comment:
-    {
-        // Comment Control required
-        // Finialize Procedure call or threat as word
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-    }
-        Q_FALLTHROUGH();
-    case Stat::Word:
-    case Stat::BracesStart:
-    case Stat::Braces:
-    case Stat::DoubleQuotes:
     case Stat::Whitespace:
-    case Stat::VariableSubbing:
-    case Stat::Namespace:
-    case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
-    case Stat::CommandSubbingStart:
     {
-        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
-        // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
+        // Finialize ComplexWord
+
     }
-        break;
-    case Stat::CommandSubbingEnd:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-       //return tclInterpreter.finializeProcedureCall(processingStat);
-    }
-    case Stat::EndOfString:
-    case Stat::Semicolon:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
-    }
-        break;
     default:
         return throwError(ERROR_PREFIX + "Unknown Stat ");
     }
