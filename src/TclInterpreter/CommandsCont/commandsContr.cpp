@@ -1,4 +1,5 @@
 #include"TclInterpreter/CommandsCont/commandsCont.hpp"
+#include"TclInterpreter/CommandsCont/commandCallConfig.hpp"
 #include"TclInterpreter/tclToCAPL.hpp"
 #include"Tcl2Capl/controller.hpp"
 
@@ -13,9 +14,10 @@ Command::Controller::Controller(TCLInterpreter& tclInterpreter, UserInputConfig&
     unknownProcedureDefinition(
         (userConfig.userDefaultProcedureConfig().isRulesEmpty())?
             Definition::defaultUnknownProcedureDefinition
-          : userConfig.userDefaultProcedureConfig()),
-    newProcedureCallFunction(ProcedureCallFunctions::newCallAt(userConfig.proceduresSettings().mode())),
-    finalizeProcedureCallFunction(ProcedureCallFunctions::finalizeCallAt(userConfig.proceduresSettings().mode()))
+          : userConfig.userDefaultProcedureConfig())//,
+//    Commented but required
+//    newProcedureCallFunction(ProcedureCallFunctions::newCallAt(userConfig.proceduresSettings().mode())),
+//    finalizeProcedureCallFunction(ProcedureCallFunctions::finalizeCallAt(userConfig.proceduresSettings().mode()))
 {}
 
 Error Controller::addPreExpressionForUserInteraction()
@@ -43,13 +45,15 @@ Error Controller::addPreExpressionForUserInteraction()
 
 void Controller::activateWriteOnlyProcedureMode()
 {
-    finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCase);
+//    Commented but required
+//    finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCase);
     tclInterpreter.activateWriteOnlyProcedureMode();
 }
 
 void Controller::deactivateWriteOnlyProcedureMode()
 {
-    finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCaseReport);
+//    Commented but required
+//    finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCaseReport);
     tclInterpreter.deactivateWriteOnlyProcedureMode();
 }
 
@@ -196,59 +200,47 @@ TclProcedureInterpreter::ProcedureCallFunctions::finalizeProcedureCalls
 
 //
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::CommandSubbing>(Stat processingStat){
+Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
     case Stat::Comment:
     {
         // Comment Control required
         // Finialize Procedure call or threat as word
         // Call from main TclInterpreter or CommandsCall
         // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
+
     }
         Q_FALLTHROUGH();
     case Stat::Word:
-    case Stat::BracesStart:
     case Stat::Braces:
-    case Stat::DoubleQuotes:
     case Stat::Whitespace:
-    case Stat::VariableSubbing:
     case Stat::Namespace:
-    case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+        // Above states can create ComplexWord
     case Stat::CommandSubbingStart:
-    {
-        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
+    case Stat::BracesStart:
+    case Stat::DoubleQuotes:
+    case Stat::VariableSubbing:
+    case Stat::BackslashSubbing:    // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
         // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
-    }
-        break;
-    case Stat::CommandSubbingEnd:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-       //return tclInterpreter.finializeProcedureCall(processingStat);
-    }
+        return newCallProcessing();
+    case Stat::CommandSubbingEnd:    
     case Stat::EndOfString:
     case Stat::Semicolon:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
+    {        
+        return finalizeCallProcessing();
     }
         break;
     default:
         return throwError(ERROR_PREFIX + "Unknown Stat ");
     }
-
+    // Unreachable
     return Error::NoError;
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(Stat parameterStat){
+Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
@@ -261,7 +253,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
     // - BracesStart
     case 0:
     {
-        switch(parameterStat){
+        switch(processingStat()){
         case Stat::Comment:
             return throwError(ERROR_PREFIX + "Comment sign as first sign of procedure name");
         case Stat::Word:
@@ -274,15 +266,6 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
         }
             break;
         //case Stat::ComplexWord: "BackslashSubbing or VariableSubbing initialize new procedure ComplexWord"
-        case Stat::DoubleQuotes:
-        case Stat::BracesStart:
-        case Stat::VariableSubbing:
-        case Stat::BackslashSubbing:
-        {
-            //lastProcedureCall().newParameter(parameterStat, unknownString);
-            return tclInterpreter.newProcedureCall(parameterStat);
-        }
-            break;        
         case Stat::Whitespace:
         {
             // Ignore whitespace before procedure name
@@ -297,18 +280,25 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
     // 2. Is number of parameters 1 (1 parameter indicates that new parameter will be second parameter - first parameter is "ready" as procedure name - name for procedure definitions can be assigned)
     default:
     {
-        switch(parameterStat){
+        switch(processingStat()){
+        case Stat::Comment:
+            if(lastProcedureCall().rawParametersLength() == 1 and
+                    lastProcedureCall().isLastParameterEmpty())
+                // If first parameter is empty (procedure name parameter)
+            {
+                return throwError(ERROR_PREFIX + "Comment sign as first sign of procedure name");
+            }
         case Stat::Word:
-        case Stat::CommandSubbingEnd:
         case Stat::Braces:
         case Stat::Namespace:
-        case Stat::Comment:
+        case Stat::CommandSubbingEnd:// Called from newCallProcedure only to create new parameter or append Word parameter
         {
-            unknownString = tclInterpreter.readCurrentKeyword();
+            unknownString = tclInterpreter.readCurrentKeyword();            
             if(lastProcedureCall().rawParameters().last().stat() == Stat::Word){
                 lastProcedureCall().rawParameters().last().appendCommand(unknownString);
             }else{  // Any other stat is parameter without whitespace after parameter Ex. "abc"abc Expection [puts abc]abc - ComplexWord
-                return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
+                return throwError(ERROR_PREFIX + "Impossible Case");
+                //return lastProcedureCall().newParameter(Stat::Word, unknownString);
             }
         }
             break;
@@ -318,17 +308,22 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
         case Stat::BackslashSubbing:
         {
             //lastProcedureCall().newParameter(parameterStat, unknownString);
-            return tclInterpreter.newProcedureCall(parameterStat);
+            //return tclInterpreter.newProcedureCall(parameterStat);
         }
             break;
         case Stat::Whitespace:
         {
             // Create new empty Word parameter
-            if(not (lastProcedureCall().rawParameters().last().stat() == Stat::Word
-                    or not lastProcedureCall().rawParameters().last().command().isEmpty()))
-            {
-                // Dont create if stat is empty Word
-                return lastProcedureCall().newParameter(Stat::Word, QString());
+            if(not lastProcedureCall().rawParameters().last().isEmpty()){
+                switch(lastProcedureCall().rawParameters().last().stat()){
+                    case Stat::VariableSubbing:
+                    {
+                      // Variable controller
+                        // If empty Variable
+                        // Change to Word with $ sign
+                    }
+                }
+                return newParameterProcessing();
             }
         }
             break;
@@ -344,18 +339,47 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::CommandSubbing>(Stat processingStat){
+Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "New Call Special Command <Stat::CommandSubbing>: ";
 
-    switch(processingStat){    
+    switch(processingStat()){
     case Stat::CommandSubbingStart:
     {
         // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
         // Call from main TclInterpreter or CommandsCall
 
-        // 1. 0 or 1 parameters
-        // - throw error to find example (CommandSubbingStart in procedure Name)
-        // - Warning: If changed ^^^^^^^^^, verify if VariableSubbing can be in procedure name
+        // If last parameter VariableSubbing
+        // - If empty, change to Word with $
+        // - finally
+        // - - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
+        // - - Create new Call CommandSubbing
+        // if empty Word, then change to CommandSubbing (end of case)
+        if(not lastProcedureCall().isLastParameterEmpty()){
+            switch(lastProcedureCall().rawParameters().last().stat()){
+            case Stat::VariableSubbing:
+            {
+                // Variable Subbing is Empty
+                if(/*VariableSubbing.IsEmpty*/ false){
+                    // change to Word with $
+                }
+            }
+            Q_FALLTHROUGH();
+            default:
+            {
+                // - - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
+                if(createCallAndMoveLastParameterToOne(Stat::ComplexWord) == Error::Error){
+                    return throwError(ERROR_PREFIX + error());
+                }
+                break;
+            }
+            // Error Cases
+            case Stat::Braces:
+            case Stat::DoubleQuotes:
+            case Stat::Script:
+                return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
+            }
+        }
+
         // 2. Other numb of Parameters
         // 2.1. Is last parameter empty Word (empty parameter)
         // - Create new Call CommandSubbing
@@ -373,117 +397,129 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::CommandSubbi
         // 2.5.2. OtherWise
         // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
         // - Create new Call CommandSubbing
-        return newProcedureCall(Stat::CommandSubbing);
+        return createCall(Stat::CommandSubbing);
+        //return newProcedureCall(Stat::CommandSubbing);
     }
     break;
     case Stat::DoubleQuotes:
     case Stat::BracesStart:
     {
-        // 1. 0 parameters
+        // 1. 0 parameters (Not applicable)
         // - Create new Call DoubleQuotes or BracesStart (processingStat)
-        // 2. 1 parameter
-        // 2.1. Is last parameter Word
-        // 2.1.1. Is empty
-        // - throw error and check the case to implement solution (Empty Word in procedure name for processing stats DoubleQuotes and BracesStart)
-        // 2.1.2. Not Empty
-        // - treat state as Word parameter - append current Word
-        // 2.2. Is last parameter VariableSubbing - no example then no implementation for now
-        // - throw error to find example (VariableSubbing used as procedure name - please contact author)
-        // 2.3. CommandSubbing
-        // - throw error to find example (CommandSubbing in procedure name which is forbidden)
-        // 2.4. For Braces, Script and DoubleQuotes
-        // - return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        // 2.5. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 2.6. BackslashSubbing
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add new parameter as Word parameter
-        // 3. Other number of parameters
-        // 3.1. Is last parameter empty Word (empty parameter)
-        // - Create new Call DoubleQuotes or BracesStart (processingStat)
-        // 3.2. Otherwise (No Word or not empty Word excluding Script, Braces, DoubleQuotes and ComplexWord)
-        // - treat state as Word parameter - append current Word
-        // 3.3. For Braces, Script and DoubleQuotes
-        // - return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        // 3.4. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
+
+        if(lastProcedureCall().isLastParameterEmpty()){
+            // Change to processing stat
+            // Call Processing State Procedure call
+            return createCall(processingStat());
+        }else{
+            switch(lastProcedureCall().rawParameters().last().stat()){
+            case Stat::VariableSubbing:
+            {
+                // Variable Subbing is Empty
+                // If BracesStat , Special variableSubbing control
+                // if DoubleQuotes, change to Word with $ sign
+                if(/*VariableSubbing.IsEmpty*/ false){
+                    if(/*DoubleQuotes*/ false){
+                        // change to Word with $
+                    }else{ // BracesStat
+
+                    }
+                }
+            }
+            Q_FALLTHROUGH();
+            default:
+            {
+                break;
+            }
+            // Error Cases
+            case Stat::Braces:
+            case Stat::DoubleQuotes:
+            case Stat::Script:
+                return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
+            }
+        }
+
         // 3.5. For special control of VariableSubbing and ONLY FOR BRACES state
         // - As VariableSubbing controller, is VariableSubbing parameter empty (OutputCommand is empty or no raw parameters- that means no Braces)
         // 3.5.1. If empty
         // - initialize parameter as Braces controlled - act as below vvv (Braces Call will be initialized only for empty VariableSubbing parameter, otherwise current method would not be called cause of processing Braces Call)
         // - Create new Call for BracesStart
-        // 3.5.2. Otherwise
-        // - treat state as Word parameter - append current Word
 
+        return newParameterProcessing(); // After ComplexWord creation, new Parameter call will be called for COmplexWord
     }
         break;
     case Stat::VariableSubbing:
     {
-        // 1. 0 or 1 parameters
-        // - throw error to find example (VariableSubbing in procedure Name)
-        // - Warning: If changed ^^^^^^^^^, verify if VariableSubbing can be in procedure name
-        // 2. Other number of parameters
-        // 2.1. Is last parameter empty Word (empty parameter)
-        // - Change to VariableSubbing
-        // 2.2. Otherwise (No Word or not empty Word excluding Script, Braces, DoubleQuotes and ComplexWord)
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add new parameter as VariableSubbing parameter
-        // 2.3. For Braces, Script and DoubleQuotes
-        // - return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        // 2.4. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
+        if(lastProcedureCall().rawParametersLength() == 1){
+            return throwError(ERROR_PREFIX + "VariableSubbing in procedure name");
+        }
+        if(lastProcedureCall().isLastParameterEmpty()){
+            // Change to VariableSubbing
+        }else{
+            switch(lastProcedureCall().rawParameters().last().stat()){
+            case Stat::VariableSubbing:
+            {
+                // Variable Subbing is Empty
+                if(/*VariableSubbing.IsEmpty*/ false){
+                    // change to Word with $
+                }
+            }
+            Q_FALLTHROUGH();
+            default:
+            {
+                break;
+            }
+            // Error Cases
+            case Stat::Braces:
+            case Stat::DoubleQuotes:
+            case Stat::Script:
+                return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
+            }
+            if(createCallAndMoveLastParameterToOne(Stat::ComplexWord) == Error::Error){
+                return throwError(ERROR_PREFIX + error());
+            }
+            return newParameter(Stat::VariableSubbing);
+        }
         // 2.5.1. For empty VariableSubbing (check parameter with VariableSubbing Controller)
         // - Change to Word with $ sign
         // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
         // - Add VariableSubbing parameter
         // 2.5.2. OtherWise
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add VariableSubbing parameter
 
-    }
+   }
         break;
     case Stat::BackslashSubbing:
     {
-        // 1. 0
-        // - Add new parameter BackslashSubbing
-        // 2. 1 parameter
-        // 2.1. Is last parameter Word
-        // 2.1.1. Is empty
-        // - throw error and check the case to implement solution (Empty Word in procedure name for processing stats DoubleQuotes and BracesStart)
-        // 2.1.2. Not Empty
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add BackslashSubbing parameter
-        // 2.2. Is last parameter VariableSubbing - no example then no implementation for now
-        // - throw error to find example (VariableSubbing used as procedure name - please contact author)
-        // 2.3. CommandSubbing
-        // - throw error to find example (CommandSubbing in procedure name which is forbidden)
-        // 2.4. For Braces, Script and DoubleQuotes
-        // - return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        // 2.5. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 2.6. BackslashSubbing
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add BackslashSubbing parameter
-        // 3. Other number of parameters
-        // 3.1. Is last parameter empty Word (empty parameter)
-        // - Add BackslashSubbing parameter
-        // 3.2. Otherwise (No Word or not empty Word excluding Script, Braces, DoubleQuotes and ComplexWord)
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add BackslashSubbing parameter
-        // 3.3. For Braces, Script and DoubleQuotes
-        // - return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        // 3.4. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 3.5. For VariableSubbing
-        // - As VariableSubbing controller, is VariableSubbing parameter empty (OutputCommand is empty or no raw parameters- that means no Braces)
-        // 3.5.1. If empty
-        // - Change to Word with $ sign
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add BackslashSubbing parameter
-        // 3.5.2. Otherwise
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add BackslashSubbing parameter
-
+        if(lastProcedureCall().isLastParameterEmpty()){
+            // Change to BackslashSubbing + execute special Backslash control proceudre
+        }else{
+            switch(lastProcedureCall().rawParameters().last().stat()){
+            case Stat::VariableSubbing:
+            {
+                // Variable Subbing is Empty
+                if(/*VariableSubbing.IsEmpty*/ false){
+                    // change to Word with $
+                }
+            }
+            Q_FALLTHROUGH();
+            default:
+            {
+                break;
+            }
+            // Error Cases
+            case Stat::Braces:
+            case Stat::DoubleQuotes:
+            case Stat::Script:
+                return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
+            }
+            // execute special Backslash control proceudre
+            // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
+            if(createCallAndMoveLastParameterToOne(Stat::ComplexWord) == Error::Error){
+                return throwError(ERROR_PREFIX + error());
+            }
+            // - Add BackslashSubbing parameter + execute special Backslash control proceudre
+            return newParameter(Stat::BackslashSubbing);
+        }
     }
         break;
     default:
@@ -494,146 +530,85 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::CommandSubbi
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::CommandSubbing>(Stat processingStat){
+Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "Finalize Call Special Command <Stat::CommandSubbing>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
     case Stat::CommandSubbingEnd:
     {
-        // 1. 0
-        // 1.1. If call for CommandSubbing [] checked by Controller is not CommandSubbing (no previous call or Script)
-        // - Interpret as Word parameter (new parameter)
-        // 1.2. If call for CommandSubbing [] checked by Controller is CommandSubbing (Previous call is CommandSubbing, DoubleQuotes or ComplexWord)
+        if(/* 1.1. If call for CommandSubbing [] checked by Controller is not CommandSubbing (no previous call or Script)*/ false){
+            // - Interpret as Word parameter (new parameter)
+            return newParameterProcessing();
+        }else{
+            if(lastProcedureCall().isLastParameterEmpty()){
+
+            }
+            // 1.2. If call for CommandSubbing [] checked by Controller is CommandSubbing (Previous call is CommandSubbing, DoubleQuotes or ComplexWord)
+            switch(lastProcedureCall().rawParameters().last().stat()){
+            case Stat::VariableSubbing:
+            {
+                // Variable Subbing is Empty
+                if(/*VariableSubbing.IsEmpty*/ false){
+                    // change to Word with $
+                }
+            }
+            Q_FALLTHROUGH();
+            default:
+                break;
+            }
+            // execute special Backslash control proceudre
+            // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
+            // - Add BackslashSubbing parameter
         // - Just finalize call (default complete call + move to last parameter of previous call)
-        // 2. 1 parameter
-        // 2.1. If call for CommandSubbing [] checked by Controller is not CommandSubbing (no previous call or Script)
-        // 2.1.1 If last parameter is Word
-        // - Append last parameter with ] sign
-        // 2.1.2. Is empty Word
-        // - throw error and check the case to implement solution (Empty Word in procedure name for processing stats DoubleQuotes and BracesStart)
-        // 2.1.3. Is last parameter VariableSubbing - no example then no implementation for now
-        // - throw error to find example (VariableSubbing used as procedure name - please contact author)
-        // 2.1.4. CommandSubbing
-        // - throw error to find example (CommandSubbing in procedure name which is forbidden)
-        // 2.1.5. For Braces, Script and DoubleQuotes
-        // - return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        // 2.1.6. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 2.1.7. BackslashSubbing
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add Word parameter with sign ]
-        // 2.2. If call for CommandSubbing [] checked by Controller is CommandSubbing (Previous call is CommandSubbing, DoubleQuotes or ComplexWord)
-        // 2.2.1 If last parameter is Word or BackslashSubbing
-        // - Just finalize call (default complete call + move to last parameter of previous call)
-        // 2.2.2. Is empty Word
-        // - throw error and check the case to implement solution (Empty Word in procedure name for processing stats DoubleQuotes and BracesStart)
-        // 2.2.3. Is last parameter VariableSubbing - no example then no implementation for now
-        // - throw error to find example (VariableSubbing used as procedure name - please contact author)
-        // 2.2.4. CommandSubbing
-        // - throw error to find example (CommandSubbing in procedure name which is forbidden)
-        // 2.2.5. For Braces, Script and DoubleQuotes
-        // - return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        // 2.2.6. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 3. Other number of parameters
-        // 3.1. If call for CommandSubbing [] checked by Controller is not CommandSubbing (no previous call or Script)
-        // 3.1.1. Is last parameter empty Word (empty parameter)
-        // - Append Word with ]
-        // 3.1.2. Otherwise (No Word or not empty Word excluding Script, Braces, DoubleQuotes and ComplexWord)
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add BackslashSubbing parameter
-        // 3.1.3. For Braces, Script and DoubleQuotes
-        // - return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        // 3.1.4. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 3.1.5. For VariableSubbing
-        // - As VariableSubbing controller, is VariableSubbing parameter empty (OutputCommand is empty or no raw parameters- that means no Braces)
-        // 3.1.5.1. If empty
-        // - Change to Word with $ sign
-        // - Append Word with ]
-        // 3.1.5.2. Otherwise
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add Word parameter with sign ]
-        // 3.2. If call for CommandSubbing [] checked by Controller is CommandSubbing (Previous call is CommandSubbing, DoubleQuotes or ComplexWord)
-        // 3.2.1. Is last parameter empty Word (empty parameter)
-        // - Remove last Parameter (its empty parameter)
-        // - Just finalize call (default complete call + move to last parameter of previous call)
-        // 3.2.2. Otherwise (No Word or not empty Word excluding ComplexWord)
-        // - Create New Call ComplexWord with first parameter (move current parameter to first parameter of ComplexWord)
-        // - Add BackslashSubbing parameter
-        // 3.2.3. For Braces, Script and DoubleQuotes
-        // - return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        // 3.2.4. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 3.2.5. For VariableSubbing
-        // - As VariableSubbing controller, is VariableSubbing parameter empty (OutputCommand is empty or no raw parameters- that means no Braces)
-        // 3.2.5.1. If empty
-        // - Change to Word with $ sign
-        // - Append Word with ]
-        // 3.2.5.2. Otherwise
-        // - Just finalize call (default complete call + move to last parameter of previous call)
+           return finializeCall();
+        }
+
     }
         break;
     case Stat::Semicolon:
     case Stat::EndOfString:
     {
         // 1. 0
-        // 1.1. If call for CommandSubbing [] checked by Controller is not CommandSubbing (no previous call or Script)
-        // - throw error (created empty call in Script which you try to finalize by EndOfString)
-        // 1.2. If call for CommandSubbing [] checked by Controller is CommandSubbing (Previous call is CommandSubbing, DoubleQuotes or ComplexWord)
-        // - Act as whitespace for 0 parameters (check newParameterProcedure)
-        // 2. 1 parameter
-        // 2.1. If call for CommandSubbing [] checked by Controller is not CommandSubbing (no previous call or Script)
-        // 2.1.1 If last parameter is Word
-        // - Just finalize call (default complete call)
-        // 2.1.2. Is empty Word
-        // - throw error and check the case to implement solution (Empty Word in procedure name for processing stats DoubleQuotes and BracesStart)
-        // 2.1.3. Is last parameter VariableSubbing - no example then no implementation for now
-        // - throw error to find example (VariableSubbing used as procedure name - please contact author)
-        // 2.1.4. CommandSubbing
-        // - throw error to find example (CommandSubbing in procedure name which is forbidden)
-        // 2.1.5. For Braces, Script and DoubleQuotes
-        // - Just finalize call (default complete call)
-        // 2.1.6. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 2.1.7. BackslashSubbing
-        // - Just finalize call (default complete call)
-        // 2.2. If call for CommandSubbing [] checked by Controller is CommandSubbing (Previous call is CommandSubbing, DoubleQuotes or ComplexWord)
-        // 2.2.1 If last parameter is Word or BackslashSubbing
-        // - throw error (try to finalize (true CommandSubbing) by EndOfString) - no implemntation
-        // 2.2.2. Is empty Word
-        // - throw error and check the case to implement solution (Empty Word in procedure name for processing stats DoubleQuotes and BracesStart)
-        // 2.2.3. Is last parameter VariableSubbing - no example then no implementation for now
-        // - throw error to find example (VariableSubbing used as procedure name - please contact author)
-        // 2.2.4. CommandSubbing
-        // - throw error to find example (CommandSubbing in procedure name which is forbidden)
-        // 2.2.5. For Braces, Script and DoubleQuotes
-        // - throw error (try to finalize (true CommandSubbing) by EndOfString) - no implemntation
-        // 2.2.6. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 3. Other number of parameters
-        // 3.1. If call for CommandSubbing [] checked by Controller is not CommandSubbing (no previous call or Script)
-        // 3.1.1. Is last parameter empty Word (empty parameter)
-        // - Remove last Parameter (its empty parameter)
-        // - Just finalize call (default complete call)
-        // 3.1.2. Otherwise (No Word or not empty Word excluding Script, Braces, DoubleQuotes and ComplexWord)
-        // - Just finalize call (default complete call)
-        // 3.1.3. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
-        // 3.1.5. For VariableSubbing
-        // - As VariableSubbing controller, is VariableSubbing parameter empty (OutputCommand is empty or no raw parameters- that means no Braces)
-        // 3.1.5.1. If empty
-        // - Change to Word with $ sign
-        // - Just finalize call (default complete call)
-        // 3.1.5.2. Otherwise
-        // - Just finalize call (default complete call)
-        // 3.2. If call for CommandSubbing [] checked by Controller is CommandSubbing (Previous call is CommandSubbing, DoubleQuotes or ComplexWord)
-        // 3.2.1. Is last parameter empty Word (empty parameter)
-        // - throw error (try to finalize (true CommandSubbing) by EndOfString) - no implemntation
-        // 3.2.2. Otherwise (No Word or not empty Word excluding ComplexWord)
-        // - throw error (try to finalize (true CommandSubbing) by EndOfString) - no implemntation
-        // 3.2.4. For ComplexWord
-        // - Impossible Case -  throw error for created new parameter after Whitespace of ComplexWord
+        if(/* 1.1. If call for CommandSubbing [] checked by Controller is not CommandSubbing (no previous call or Script)*/ false){
+            if(lastProcedureCall().isLastParameterEmpty()){
+                if(lastProcedureCall().rawParameters().length() > 1){
+                    // Remove last parameter
+
+                    // - Just finalize call (default complete call)
+                }else{
+
+                    return throwError(ERROR_PREFIX + "Impossible case");
+                    // - Act as whitespace for 0 parameters (check newParameterProcedure)
+                }
+            }else{
+                switch(lastProcedureCall().rawParameters().last().stat()){
+                case Stat::VariableSubbing:
+                {
+                    // Variable Subbing is Empty
+                    if(/*VariableSubbing.IsEmpty*/ false){
+                        // change to Word with $
+                    }
+                }
+                Q_FALLTHROUGH();
+                default:
+                    break;
+                }
+                // - Just finalize call (default complete call)
+            }
+        }else{
+            if(lastProcedureCall().isLastParameterEmpty()){
+                if(lastProcedureCall().rawParameters().length() > 1){
+                    // Remove last parameter
+
+                    // - throw error (try to finalize (true CommandSubbing) by EndOfString) - no implemntation
+                }else{
+                    // Possible case - just ignore
+                    // - Act as whitespace for 0 parameters (check newParameterProcedure)
+                }
+            }
+            // - throw error (try to finalize (true CommandSubbing) by EndOfString) - no implemntation
+
+        }
 
     }
         break;
@@ -645,14 +620,11 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Command
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::BracesStart>(Stat processingStat){
+Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::BracesStart>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
     case Stat::BracesStart:
-    {
-        // List Control required
-    }
     case Stat::Comment:
     case Stat::Word:
     case Stat::DoubleQuotes:
@@ -664,12 +636,12 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::BracesStar
     case Stat::CommandSubbingEnd:
     case Stat::EndOfString:
     case Stat::Semicolon:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+        return newParameterProcessing();
     case Stat::Braces:
     {
         // End of Braces
         // List Control required
-        return tclInterpreter.finalizeProcedureCall(processingStat);
+        return finalizeCallProcessing();
     }
         break;
     default:
@@ -680,25 +652,28 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::BracesStar
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesStart>(Stat parameterStat){
+Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
-    switch(parameterStat){
+    switch(processingStat()){
     case Stat::BackslashSubbing:
     {
         // Interpret then add as parameter
         QString interpretedString = QString() /* procedure */;
-
+        // Only allowed backslash subbing for newLine (processed and saved)
+        // Otherwise just saved
         unknownString = interpretedString;
         if(lastProcedureCall().rawParametersLength() != 0){
             lastProcedureCall().rawParameters().last().appendCommand(unknownString);
         }else{
-            return lastProcedureCall().newParameter(Stat::BackslashSubbing, unknownString);
+            return lastProcedureCall().newParameter(Stat::Word, unknownString);
         }
     }
-        break;
+        break;    
+    case Stat::VariableSubbing:
     case Stat::Word:
+    case Stat::CommandSubbingStart:
     case Stat::CommandSubbingEnd:
     case Stat::Braces:
     case Stat::Namespace:
@@ -706,17 +681,11 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesS
     case Stat::Whitespace:
     case Stat::DoubleQuotes:
     case Stat::BracesStart:
-    case Stat::VariableSubbing:
     case Stat::EndOfString:
     case Stat::Semicolon:
     {
         unknownString = tclInterpreter.readCurrentKeyword();
-        if(lastProcedureCall().rawParametersLength() != 0
-                and lastProcedureCall().rawParameters().last().stat() == Stat::Word){
-            lastProcedureCall().rawParameters().last().appendCommand(unknownString);
-        }else{
-            return lastProcedureCall().newParameter(Stat::Word, unknownString);
-        }
+        lastProcedureCall().rawParameters().last().appendCommand(unknownString);
     }
         break;
     default:
@@ -727,16 +696,16 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesS
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::BracesStart>(Stat processingStat){
-    const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
+Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::BracesStart>(){
+    const QString ERROR_PREFIX = "New Call Special Command <Stat::BracesStart>: ";
     return throwError(ERROR_PREFIX + "No implementation for new call for Braces");
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::BracesStart>(Stat processingStat){
-    const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
+Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::BracesStart>(){
+    const QString ERROR_PREFIX = "Finalize Call Special Command <Stat::BracesStart>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
     case Stat::Braces:
     {
         // 1. Check if List/Braces Controller allows to finialize call
@@ -744,7 +713,7 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::BracesS
         // - Just finalize call (default complete call + add to parameter of previous call)
         // 1.2. If no
         // -  Controller will update current state of List
-        // - newParameterSpecialCommandCall_mode for Braces
+        // - append last raw parameter Word
 
     }
         break;
@@ -756,29 +725,27 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::BracesS
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::DoubleQuotes>(Stat processingStat){
+Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::DoubleQuotes>: ";
 
-    switch(processingStat){
-    case Stat::BracesStart:
+    switch(processingStat()){
     case Stat::Braces:
     case Stat::Comment:
     case Stat::Word:
     case Stat::Whitespace:
     case Stat::VariableSubbing:
     case Stat::Namespace:
-    case Stat::BackslashSubbing:    // Probably only \newLine available
-    case Stat::CommandSubbingStart:
+    case Stat::BackslashSubbing:
     case Stat::CommandSubbingEnd:
     case Stat::EndOfString:
     case Stat::Semicolon:
-        return newParameterSpecialCommandCall_mode<Stat::DoubleQuotes>(processingStat);
+        return newParameterProcessing();
+    case Stat::CommandSubbingStart:
+    case Stat::BracesStart:
+        return newCallProcessing();
     case Stat::DoubleQuotes:
-    {
         // End of Double Quotes
-        // List Control required
-        return tclInterpreter.finalizeProcedureCall(processingStat);
-    }
+        return finalizeCallProcessing();
         break;
     default:
         return throwError(ERROR_PREFIX + "Unknown Stat ");
@@ -788,11 +755,11 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::DoubleQuot
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQuotes>(Stat parameterStat){
+Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
-    switch(parameterStat){
+    switch(processingStat()){
     case Stat::Word:
     case Stat::CommandSubbingEnd:
     case Stat::Braces:
@@ -801,25 +768,31 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQ
     case Stat::Whitespace:
     case Stat::Semicolon:
     case Stat::EndOfString:
+    case Stat::BracesStart:
     {// Append if last parameter is Word or VariableSubbing
         unknownString = tclInterpreter.readCurrentKeyword();
-        if(lastProcedureCall().rawParametersLength() != 0){
-            if(lastProcedureCall().rawParameters().last().stat() == Stat::Word
-                    or lastProcedureCall().rawParameters().last().stat() == Stat::VariableSubbing ){
-                lastProcedureCall().rawParameters().last().appendCommand(unknownString);
-            }else{
-                return lastProcedureCall().newParameter(Stat::Word, unknownString);
-            }
-        }else{
+        switch(lastProcedureCall().rawParameters().last().stat()){
+        case Stat::Word:
+        {
+            lastProcedureCall().rawParameters().last().appendCommand(unknownString);
+        }
+            break;
+        case Stat::VariableSubbing:
+        {
+            // 1. Variable Subbing controller will decise what to do
+            // - If Variable with Braces - create new parameter Word
+            // - If Variable empty or "simple" -  extend as much you can, if rest of string exists (returned not empty string) - create new parameter Word
+        }
+            break;
+        case Stat::CommandSubbing:
+        case Stat::BackslashSubbing:
+        {
             return lastProcedureCall().newParameter(Stat::Word, unknownString);
         }
-    }
-        break;
-    case Stat::CommandSubbingStart:
-    case Stat::BracesStart:
-    {
-        //lastProcedureCall().newParameter(parameterStat, unknownString);
-        return tclInterpreter.newProcedureCall(parameterStat);
+            break;
+        default:
+            return throwError(ERROR_PREFIX + "Unknown Stat ");
+        }
     }
         break;
     case Stat::BackslashSubbing:
@@ -828,20 +801,17 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQ
         QString interpretedString = QString() /* procedure */;
 
         unknownString = interpretedString;
+        // If last parameter is mepty VariableSubbing - Change to Word with $ sign
+
         return lastProcedureCall().newParameter(parameterStat, interpretedString);
     }
         break;
     case Stat::VariableSubbing:
     {
-        // Empty VariableSubbing == Command.isEmpty and RawParameters.isEmpty
-        if(lastProcedureCall().rawParameters().last().stat() == Stat::VariableSubbing
-                and lastProcedureCall().rawParameters().last().command().isEmpty()
-                and lastProcedureCall().rawParameters().last().rawParameters().isEmpty())
-        {   // Change to Word with $ sign + add new parameter VariableSubbing
+        // if empty VariableSubbing
+        // Change to Word with $ sign
+        // finally add new parameter VariableSubbing
 
-        }else{
-            return lastProcedureCall().newParameter(parameterStat, QString());
-        }
     }
         break;
     default:
@@ -853,22 +823,28 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQ
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::DoubleQuotes>(Stat processingStat){
+Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
     case Stat::CommandSubbingStart:
     {
+        // if empty parameter, change to CommandSubbing
+        if(lastProcedureCall().isLastParameterEmpty()){
+            //
+        }else{
+            if(lastProcedureCall().rawParameters().last().stat() == Stat::VariableSubbing){
+                // if empty VariableSubbing, change to Word with $ sign + BracesStart VariableSubbing
 
+            }
+        }
+        // if empty VariableSubbing, change to Word with $ sign
+        // finally new procedure call CommandSubbing
+        return createCall(Stat::CommandSubbing);
     }
         break;
     case Stat::BracesStart:
-    {// Review again
-        // 1. If last parameter is Empty VariableSubbing
-        // - Call Braces Procedure
-        // 2. if Word
-        // - Append with Braces controller
-        // 3. Otherwise
+    {
 
     }
         break;
@@ -880,19 +856,21 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::DoubleQuotes
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::DoubleQuotes>(Stat processingStat){
+Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
     case Stat::DoubleQuotes:
-    {
-        // 1. If empty parameter (empty Word)
-        // - Remove parameter
-        // - Finialize Call
-        // 2. If Empty VariableSubbing
-        // - Change to Word with sign $
-        // - Finialize Call
-        // 3. Otherwise
+    {       
+        if(lastProcedureCall().isLastParameterEmpty()){
+            // remove empty parameter
+        }else{
+            if(/* Empty VariableSubbing*/ false){
+                // - Change to Word with sign $
+
+            }
+        }
+
         // - Finialize Call
     }
         break;
@@ -904,10 +882,10 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::DoubleQ
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ComplexWord>(Stat processingStat){
+Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ComplexWord>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::ComplexWord>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
     case Stat::Comment:
     {
         // Comment Control required
@@ -915,24 +893,22 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ComplexWor
         // Call from main TclInterpreter or CommandsCall
         // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
     }
-    case Stat::BracesStart:
     case Stat::Braces:
     case Stat::Word:
     case Stat::DoubleQuotes:
     case Stat::VariableSubbing:
     case Stat::Namespace:
     case Stat::BackslashSubbing:    // Probably only \newLine available
-    case Stat::CommandSubbingStart:
     case Stat::CommandSubbingEnd:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+        return newParameterProcessing();
     case Stat::EndOfString:
     case Stat::Semicolon:
     case Stat::Whitespace:
-    {
         // End of Complex Word
-        return tclInterpreter.finalizeProcedureCall(processingStat);
-    }
-        break;
+        return finalizeCallProcessing();
+    case Stat::CommandSubbingStart:
+    case Stat::BracesStart:
+        return newCallProcessing();
     default:
         return throwError(ERROR_PREFIX + "Unknown Stat ");
     }
@@ -941,25 +917,23 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ComplexWor
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::ComplexWord>(Stat parameterStat){
+Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::ComplexWord>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
-
-    switch(parameterStat){
+    switch(processingStat()){
     case Stat::BackslashSubbing:
     {
         // Interpret then add as parameter
         QString interpretedString = QString() /* procedure */;
 
+        // If empty VariableSubbing, change to Word  with $
+        // Otherwise new Parameter
+
         unknownString = interpretedString;
-        return lastProcedureCall().newParameter(parameterStat, interpretedString);
+        return lastProcedureCall().newParameter(processingStat(), interpretedString);
     }
         break;
-    case Stat::BracesStart:
-    {
-
-    }
     case Stat::Word:
     case Stat::CommandSubbingEnd:
     case Stat::Braces:
@@ -967,197 +941,40 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Complex
     case Stat::Comment:
     {
         unknownString = tclInterpreter.readCurrentKeyword();
-        if(lastProcedureCall().rawParametersLength() != 0){
-            switch(lastProcedureCall().rawParameters().last().stat()){
-            case Stat::Word:
-                lastProcedureCall().rawParameters().last().appendCommand(unknownString);
-                break;
-            case Stat::VariableSubbing:
-            {
-                // VariableSubbing Controller required
-                // For now simple solution for braces only
-                if(not lastProcedureCall().rawParameters().last().rawParameters().isEmpty()
-                        and lastProcedureCall().rawParameters().last().rawParameters().first().stat() == Stat::Braces)
-                {
-                    return lastProcedureCall().newParameter(parameterStat, unknownString);
-                }else{
-                    return throwError(ERROR_PREFIX + "No VariableSubbing Controller");
-                }
-            }
-                break;
-            case Stat::CommandSubbing:
-            case Stat::BackslashSubbing:
-            {
-                return lastProcedureCall().newParameter(parameterStat, unknownString);
-            }
-                break;
-            default:
-                return throwError(ERROR_PREFIX + "Unknown Stat ");
-            }
-        }else{
-            return throwError("No parameters for ComplexWord");
-        }
-    }
-        break;
-    case Stat::CommandSubbingStart:
-    {
-        //lastProcedureCall().newParameter(parameterStat, unknownString);
-        return tclInterpreter.newProcedureCall(parameterStat);
-    }
-        break;
-    case Stat::VariableSubbing:
-    {
-        if(lastProcedureCall().rawParametersLength() != 0){
-            switch(lastProcedureCall().rawParameters().last().stat()){
-            case Stat::VariableSubbing:
-            {
-                // VariableSubbing Controller required
-                // For now simple solution for braces only
-                if(not lastProcedureCall().rawParameters().last().rawParameters().isEmpty()
-                        and lastProcedureCall().rawParameters().last().rawParameters().first().stat() == Stat::Braces)
-                {
-                    return lastProcedureCall().newParameter(parameterStat, unknownString);
-                }else{
-                    return throwError(ERROR_PREFIX + "No VariableSubbing Controller");
-                }
-            }
-                break;
-                // Review
-            default:
-                return throwError(ERROR_PREFIX + "Unknown Stat ");
-            }
 
-        }else{
-            return throwError("No parameters for ComplexWord");
-        }
-    }
-        break;
-    default:
-        return throwError(ERROR_PREFIX + "Unknown Stat ");
-    }
-
-
-    return Error::NoError;
-}
-
-template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ComplexWord>(Stat processingStat){
-    const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
-
-    switch(processingStat){
-    case Stat::CommandSubbingStart:
-    {
-
-    }
-        break;
-    case Stat::VariableSubbing:
-    {
-
-    }
-        break;
-    default:
-        return throwError(ERROR_PREFIX + "Unknown Stat ");
-    }
-
-    return Error::NoError;
-}
-
-template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::ComplexWord>(Stat processingStat){
-    const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
-
-    switch(processingStat){
-    case Stat::Whitespace:
-    {
-        // Finialize ComplexWord
-
-    }
-    default:
-        return throwError(ERROR_PREFIX + "Unknown Stat ");
-    }
-
-    return Error::NoError;
-}
-
-template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Expression>(Stat processingStat){
-    const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
-
-    switch(processingStat){
-    case Stat::Comment:
-    {
-        // Comment Control required
-        // Finialize Procedure call or threat as word
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-    }
-    case Stat::BracesStart:
-    case Stat::Braces:
-    case Stat::Word:
-    case Stat::DoubleQuotes:
-    case Stat::VariableSubbing:
-    case Stat::Namespace:
-    case Stat::BackslashSubbing:    // Probably only \newLine available
-    case Stat::CommandSubbingStart:
-    case Stat::CommandSubbingEnd:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
-    case Stat::EndOfString:
-    case Stat::Semicolon:
-    case Stat::Whitespace:
-    {
-        // End of Complex Word
-        return tclInterpreter.finalizeProcedureCall(processingStat);
-    }
-        break;
-    default:
-        return throwError(ERROR_PREFIX + "Unknown Stat ");
-    }
-
-    return Error::NoError;
-}
-
-template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Expression>(Stat parameterStat){
-    const QString ERROR_PREFIX = "New Parameter Error: ";
-    QString unknownString;
-
-    switch(parameterStat){
-    case Stat::Word:
-    case Stat::CommandSubbingEnd:
-    case Stat::Braces:
-    case Stat::Namespace:
-    case Stat::Comment:
-    {
-        unknownString = tclInterpreter.readCurrentKeyword();
-        if(lastProcedureCall().rawParameters().last().stat() == Stat::Word){
+        switch(lastProcedureCall().rawParameters().last().stat()){
+        case Stat::Word:
             lastProcedureCall().rawParameters().last().appendCommand(unknownString);
-        }else{  // Any other stat is parameter without whitespace after parameter Ex. "abc"abc Expection [puts abc]abc - ComplexWord
-            return throwError(ERROR_PREFIX + "No whitespace after DoubleQuotes or Braces. Stat for this error: " + QString::number(qToUnderlying(lastProcedureCall().rawParameters().last().stat())));
-        }
-    }
-        break;
-    case Stat::DoubleQuotes:
-    case Stat::BracesStart:
-    case Stat::VariableSubbing:
-    case Stat::BackslashSubbing:
-    {
-        //lastProcedureCall().newParameter(parameterStat, unknownString);
-        return tclInterpreter.newProcedureCall(parameterStat);
-    }
-        break;
-    case Stat::Whitespace:
-    {
-        // Create new empty Word parameter
-        if(not (lastProcedureCall().rawParameters().last().stat() == Stat::Word
-                or not lastProcedureCall().rawParameters().last().command().isEmpty()))
+            break;
+        case Stat::VariableSubbing:
         {
-            // Dont create if stat is empty Word
-            return lastProcedureCall().newParameter(Stat::Word, QString());
+            // VariableSubbing Controller required
+            // If empty VariableSubbing, change to Word with $ sign
+            // Otherwise new parameter Word
+        }
+            break;
+        case Stat::CommandSubbing:
+        case Stat::BackslashSubbing:
+        {
+            return lastProcedureCall().newParameter(processingStat(), unknownString);
+        }
+            break;
+        default:
+            return throwError(ERROR_PREFIX + "Unknown Stat ");
         }
     }
         break;
+    case Stat::VariableSubbing:
+    {
+
+        // VariableSubbing Controller required
+        // For empty VariableSubbing, change to Word with $ sign
+        // finally new Parameter
+
+    }
+        break;
     default:
-        return ErrorController::throwError(ERROR_PREFIX + "Forbidden Stat");
+        return throwError(ERROR_PREFIX + "Unknown Stat ");
     }
 
 
@@ -1165,48 +982,22 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Express
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Expression>(Stat processingStat){
+Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ComplexWord>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
-    switch(processingStat){
-    case Stat::Comment:
-    {
-        // Comment Control required
-        // Finialize Procedure call or threat as word
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-    }
-        Q_FALLTHROUGH();
-    case Stat::Word:
-    case Stat::BracesStart:
-    case Stat::Braces:
-    case Stat::DoubleQuotes:
-    case Stat::Whitespace:
-    case Stat::VariableSubbing:
-    case Stat::Namespace:
-    case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+    switch(processingStat()){
     case Stat::CommandSubbingStart:
     {
-        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
-        // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
+        // Last parameter is Empty VariableSubbing, change to Word with $ sign
+        // finally new call CommandSubbing + new parameter
+        return createCall(Stat::CommandSubbing);
     }
         break;
-    case Stat::CommandSubbingEnd:
+    case Stat::BracesStart:
     {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-       //return tclInterpreter.finializeProcedureCall(processingStat);
-    }
-    case Stat::EndOfString:
-    case Stat::Semicolon:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
+        // Last parameter is Empty VariableSubbing, new call Braces
+        // If Word, append Word
+        // Otherwise new Word Parameter
     }
         break;
     default:
@@ -1217,50 +1008,23 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Expression>(
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Expression>(Stat processingStat){
+Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::ComplexWord>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
-    switch(processingStat){
-    case Stat::Comment:
-    {
-        // Comment Control required
-        // Finialize Procedure call or threat as word
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-    }
-        Q_FALLTHROUGH();
-    case Stat::Word:
-    case Stat::BracesStart:
-    case Stat::Braces:
-    case Stat::DoubleQuotes:
-    case Stat::Whitespace:
-    case Stat::VariableSubbing:
-    case Stat::Namespace:
-    case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
-    case Stat::CommandSubbingStart:
-    {
-        // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
-        // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
-    }
-        break;
-    case Stat::CommandSubbingEnd:
-    {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-       //return tclInterpreter.finializeProcedureCall(processingStat);
-    }
+    switch(processingStat()){
     case Stat::EndOfString:
     case Stat::Semicolon:
     {
-        // Finialize Procedure call
-        // Call from main TclInterpreter or CommandsCall
-        // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
+        // Last parameter is Empty VariableSubbing, new call Braces
+        // Finalize and add new empty parameter
+        // Recall interpreter procedure TclInterpreter for the same state
     }
         break;
+    case Stat::Whitespace:
+    {
+        // Last parameter is Empty VariableSubbing, new call Braces
+        // Finalize and add new empty parameter
+    }
     default:
         return throwError(ERROR_PREFIX + "Unknown Stat ");
     }
@@ -1269,10 +1033,94 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Express
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Script>(Stat processingStat){
+Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Expression>(){
+    const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
+    return interpretSpecialCommandCall_mode<Stat::CommandSubbing>();
+}
+
+template<>
+Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Expression>(){
+    const QString ERROR_PREFIX = "New Parameter Error: ";
+    return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>();
+}
+
+template<>
+Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Expression>(){
+    const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
+    return newCallSpecialCommandCall_mode<Stat::CommandSubbing>();
+}
+
+template<>
+Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Expression>(){
+    const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
+    return finalizeCallSpecialCommandCall_mode<Stat::CommandSubbing>();
+}
+
+template<>
+Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Script>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
+    // Like in Main Script
+    case Stat::Comment:
+    {
+        // Comment Control
+        // Copy from dev branch + think about BackslashSubbing with newline
+    }
+        break;
+    case Stat::BracesStart:
+    case Stat::Word:
+    case Stat::DoubleQuotes:
+    case Stat::Namespace:
+    case Stat::BackslashSubbing:    // Probably only \newLine available
+        return newCallProcessing();
+    case Stat::Braces:
+        return finalizeCallProcessing();
+    case Stat::Semicolon:    
+    case Stat::Whitespace:
+        break;
+    // Error cases
+    case Stat::CommandSubbingEnd:
+        return throwError(ERROR_PREFIX + "CommandSubbingEnd in script");
+    case Stat::VariableSubbing:
+        return throwError(ERROR_PREFIX + "VariableSubbing in script ");
+    case Stat::CommandSubbingStart:
+        return throwError(ERROR_PREFIX + "CommandSubbingStart in script");
+    default:
+        return throwError(ERROR_PREFIX + "Unknown Stat ");
+    }
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Script>(){
+    const QString ERROR_PREFIX = "New Parameter Error: ";
+    return ErrorController::throwError(ERROR_PREFIX + "No implemantation");
+}
+
+template<>
+Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Script>(){
+    const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
+
+    return (createCall(Stat::CommandSubbing) == Error::Error
+            or interpret() == Error::Error)? Error::Error : Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Script>(){
+    const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
+    // If main script, newCallSpecialCommandCall_mode
+    // else finialize
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ExprCommand>(){
+    const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
+
+    switch(processingStat()){
     // Like in Main Script
     case Stat::Comment:
     {
@@ -1293,12 +1141,12 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Script>(St
     case Stat::Namespace:
     case Stat::BackslashSubbing:    // Probably only \newLine available
     case Stat::CommandSubbingStart:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+        return newParameterProcessing();
     case Stat::EndOfString:
     case Stat::Semicolon:
     {
         // End of Complex Word
-        return tclInterpreter.finalizeProcedureCall(processingStat);
+        return finalizeCallProcessing();
     }
         break;
     default:
@@ -1309,11 +1157,11 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Script>(St
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Script>(Stat parameterStat){
+Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::ExprCommand>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
-    switch(parameterStat){
+    switch(processingStat()){
     case Stat::Braces:
     case Stat::DoubleQuotes:
     case Stat::BracesStart:
@@ -1328,7 +1176,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Script>
     case Stat::BackslashSubbing:
     {
         unknownString = tclInterpreter.readCurrentKeyword();
-        return tclInterpreter.newProcedureCall(unknownString);
+        return newProcedureCall(unknownString);
     }
         break;
     default:
@@ -1340,10 +1188,10 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Script>
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Script>(Stat processingStat){
+Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ExprCommand>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
     case Stat::Comment:
     {
         // Comment Control required
@@ -1360,12 +1208,12 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Script>(Stat
     case Stat::VariableSubbing:
     case Stat::Namespace:
     case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>();
     case Stat::CommandSubbingStart:
     {
         // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
         // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
+        return newCallProcessing();
     }
         break;
     case Stat::CommandSubbingEnd:
@@ -1381,7 +1229,7 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Script>(Stat
         // Finialize Procedure call
         // Call from main TclInterpreter or CommandsCall
         // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
+        return finalizeCallProcessing();
     }
         break;
     default:
@@ -1392,10 +1240,10 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Script>(Stat
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Script>(Stat processingStat){
+Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::ExprCommand>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
-    switch(processingStat){
+    switch(processingStat()){
     case Stat::Comment:
     {
         // Comment Control required
@@ -1412,12 +1260,12 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Script>
     case Stat::VariableSubbing:
     case Stat::Namespace:
     case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(processingStat);
+        return newParameterProcessing();
     case Stat::CommandSubbingStart:
     {
         // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
         // Call from main TclInterpreter or CommandsCall
-        return tclInterpreter.newProcedureCall(processingStat);
+        return newCallProcessing();
     }
         break;
     case Stat::CommandSubbingEnd:
@@ -1433,7 +1281,7 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Script>
         // Finialize Procedure call
         // Call from main TclInterpreter or CommandsCall
         // Verify what type of CommandSubbing it is (for script CommandSubbing, commandSubbingEnd will be used as sign)
-        return tclInterpreter.finializeProcedureCall(processingStat);
+        return finalizeCallProcessing();
     }
         break;
     default:
@@ -1443,8 +1291,45 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Script>
     return Error::NoError;
 }
 
-const TclProcedureInterpreter::ProcedureCallFunctions::CommandCallControlFunctions
-TclProcedureInterpreter::ProcedureCallFunctions::commandCallSpecialFunctions
+template<>
+Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Ignore>(){
+    const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
+
+    switch(processingStat()){
+    case Stat::Semicolon:
+    case Stat::EndOfString:
+    {
+        if(removeIgnore() == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+    default:
+        break;
+    }
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Ignore>(){
+    const QString ERROR_PREFIX = "New Parameter Error: ";
+    return ErrorController::throwError(ERROR_PREFIX + "No implemantation");
+}
+
+template<>
+Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Ignore>(){
+    const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
+    return ErrorController::throwError(ERROR_PREFIX + "No implemantation");
+}
+
+template<>
+Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Ignore>(){
+    const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
+    return ErrorController::throwError(ERROR_PREFIX + "No implemantation");
+}
+
+
+const CallConfig::CommandCallControlFunctions
+CallConfig::commandCallSpecialFunctions
 [Tcl::Interpreter::Core::numbOfSpecialCommandCallsAndSafeguard()] =
 {
     //CommandSubbing
@@ -1489,6 +1374,20 @@ TclProcedureInterpreter::ProcedureCallFunctions::commandCallSpecialFunctions
         &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Script>,
         &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Script>,
     },
+    //ExprCommand
+    {
+        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ExprCommand>,
+        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::CommandSubbing>,
+    },
+    //Ignore
+    {
+        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Ignore>,
+        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Ignore>,
+        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Ignore>,
+        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Ignore>,
+    },
     // SafeGuard
     {
         &TclProcedureInterpreter::interpretSpecialCommandCall_throwErrorForWrongStat,
@@ -1511,3 +1410,20 @@ TclProcedureInterpreter::ProcedureCallFunctions::commandCallSpecialInterprets
         &TclProcedureInterpreter::interpretSpecialCommandCall_throwErrorForWrongStat
 };
 */
+
+
+Error Controller::createCall(Stat stat, Call::Parameter&& parameter){
+    // If Stat id for semi command call stats is correct (If wrong stat , stat id of Stat::Size is returnedgh)
+    if(Settings::specialCallStat2number(stat) == Settings::specialCallStat2number(Stat::Size)){
+        return throwError("Wrong stat for CreateCall procedure. Stat: " + QString::number(TCLInterpreter::cast_stat(stat)));
+    }
+    procedureCalls.append(Call(stat, parameter));
+    return Error::NoError;
+}
+
+Error Controller::createCallAndMoveLastParameterToOne(Stat stat){
+    if(not procedureCalls.last().isLastParameterEmpty())
+        return throwError("CreateAndMove procedure: No parameters or empty parameter");
+    else
+        return createCall(stat, procedureCalls.last().rawParameters().takeLast());
+}

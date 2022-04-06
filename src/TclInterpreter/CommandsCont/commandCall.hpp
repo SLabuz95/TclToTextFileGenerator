@@ -6,6 +6,8 @@
 namespace Tcl::Interpreter::Command{
     using namespace Tcl::Interpreter::Core;
     using namespace Tcl::Interpreter;
+
+    class Controller;
     class Call{
         public:
         // Concept -----------------------------------------------------
@@ -25,18 +27,28 @@ namespace Tcl::Interpreter::Command{
             SavedStat _savedStat;
             //UserInteraction _userInteraction = UserInteraction::NotRequired;
             Parameters rawParameterStats;
+            /*
+            // TO be defined new structure of Parameter (remove above implemenation)
+            Stat parameterStat;
+            union ParameterData{
+                OutputCommand outputCommand; // For simple stats
+                int /*Redefine type when parameters controller will be ready - Possible Type Name: ParameterId*/ /* parameterId;
+            } parameterData;
+            */
         public:
+            Parameter() : _savedStat(Stat::Word){}
 
             Parameter(SavedStat savedStat) : _savedStat(savedStat){}
             Parameter(SavedStat savedStat, Call& procedureCall) : _savedStat(savedStat){
-                rawParameterStats = {Parameter(Stat::Word, procedureCall.name())};
-                rawParameterStats += procedureCall.rawParameters();
+//                rawParameterStats = {Parameter(Stat::Word, procedureCall.name())};
+//                rawParameterStats += procedureCall.rawParameters();
             }
             Parameter(const Stat stat, OutputCommand command) : _savedStat{stat, command}{}
             //Parameter(SavedStat savedStat) : _savedStat(savedStat){}
 
             inline Stat stat()const{return _savedStat.stat();}
             inline QString command()const{return _savedStat.command();}
+            inline const QString& commandRef()const{return _savedStat.command();}
             //inline void setUserIteractionRequired(){_userInteraction = UserInteraction::Required;}
             inline void setStat(Stat stat){_savedStat.setStat(stat);}
             inline void setCommand(OutputCommand command){_savedStat.setCommand(command);}
@@ -53,11 +65,17 @@ namespace Tcl::Interpreter::Command{
                     param->clearMemory();
             }
 
+            bool isEmpty()const
+            {
+                return stat() == Stat::Word and commandRef().isEmpty();
+            }
+
         };
         // End of Concept Definition ||||||||||||||||||||||||||||||||||
         // Objects ----------------------------------------------------
         protected:
-            Name _name;
+            Stat stat;
+            //Name _name;
             Parameters _parameters;
             Parameters _rawParameters;
             ProcedureDefinitionIterator _procedureDefinition;
@@ -68,21 +86,18 @@ namespace Tcl::Interpreter::Command{
 
         // End of Functions |||||||||||||||||||||||||||||||||||||||||||
         // Interface -------------------------------------------------
+        private:
+
         public:
-            Call(QString name)
-                : _name(name), _procedureDefinition(&Definition::defaultUnknownProcedureDefinition)
-            {
-                if(name.isEmpty())
-                    throw std::runtime_error("New Procedure Call without name and default procedure definition");
-            }
-
-            Call(ProcedureDefinitionIterator procedureDefinition)
-                : _procedureDefinition(procedureDefinition)/*, _userInteraction(_procedureDefinition->userInteraction)*/
-            {}
-
+            Call(Stat, Parameter&&);
             //Call& operator=(Call&& call){_name = call._name; _arguments = call._arguments;}
+            Error createCall(Stat, Call::Parameter&&);
+            inline Error newParameter(){
+                return newParameter(Stat::Word, QString());
+            }
             Error newParameter(Stat stat, OutputCommand rawCommand){
                 _rawParameters.append({stat, rawCommand});
+                return Error::NoError;
             }
             inline Parameters::size_type rawParametersLength()const{return _rawParameters.size();}
             inline Parameters::size_type lastRawParameterIndex()const{return rawParametersLength();}
@@ -91,7 +106,8 @@ namespace Tcl::Interpreter::Command{
             inline void nextArgument(Parameter& arg){_parameters.append(arg); _rawParameters.append(arg);}
             inline Parameters::size_type parametersLength()const{return _parameters.size();}
             inline Parameters::size_type lastArgumentIndex()const{return parametersLength();}
-            inline QString name()const{return (_name.isEmpty())? _procedureDefinition->name : _name;}
+            inline QString name()const{return QString();// (_name.isEmpty())? _procedureDefinition->name : _name;
+                                      }
             inline Definition::RulesForArguments::Iterator lastRulesForArgument_dynamicCheck()const{
                 return (lastArgumentIndex() < _procedureDefinition->rulesForArguments.size())?
                             _procedureDefinition->rulesForArguments.begin() + lastArgumentIndex() :
@@ -147,6 +163,13 @@ namespace Tcl::Interpreter::Command{
                 }
                 return QString(";\n");
             }
+            bool isLastParameterEmpty()const // If no parameters return true
+            {
+                return rawParametersLength() and /* if 0 (impossible case), returns false (no parameters to check)*/
+                        _rawParameters.last().isEmpty();
+            }
+
+
             // End of Interface |||||||||||||||||||||||||||||||||||||||||||||
     };
 

@@ -5,7 +5,7 @@
 #include"External/Factory/factory.hpp"
 
 using TclProcedureInterpreter = TCLCommandsController;
-using Settings = TclProcedureInterpreter::ProdecuresSettings;
+using Settings = Tcl::Interpreter::Command::Settings;
 using UserProcedure = TclProcedureInterpreter::ProcedureDefinition;
 using UserProcedureRule = UserProcedure::Rule;
 using UserProcedureRules = QList<UserProcedureRule>;

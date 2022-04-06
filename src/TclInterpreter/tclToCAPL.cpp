@@ -155,6 +155,7 @@ StartUpErrorBase::Message StartUpError<KeywordsController>::__startupErrorChecki
 // Implemented Interpret Functions
 
 //constexpr
+/*
 bool TCLInterpreter::checkInterpretFunctions(){
     constexpr Stat implementedStats[] = {
         Stat::Word,
@@ -187,7 +188,7 @@ bool TCLInterpreter::checkInterpretFunctions(){
     }
 
     return true;
-}
+}*/
 using ProcedureDefinition = TclCommand_NS::Definition;
 const TclCommand_NS::Definition::Rule defaultRuleForUnknownProcedureDefinition_onEndOfCall =
 {   // Rule 1
@@ -1910,9 +1911,9 @@ ProcedureDefinition(
 //}
 
 void TCLInterpreter::addEmptyLine(){
-    using InterpreterMode = TclProcedureInterpreter::ProdecuresSettings::InterpreterMode;
+    using InterpreterMode = Tcl::Interpreter::Command::Settings::InterpreterMode;
     const QString ERROR_DESCRIPTION = QString("addEmptyLine: ");
-    if(userConfig.proceduresSettings().mode() != InterpreterMode::TestCaseReport){
+ /*  if(userConfig.proceduresSettings().mode() != InterpreterMode::TestCaseReport){
         if(savedStats().isEmpty())
         {
             throwError(ERROR_DESCRIPTION + "No saved stats");
@@ -1939,7 +1940,7 @@ void TCLInterpreter::addEmptyLine(){
             return;
         }
         }
-    }
+    }*/
 }
 
 //QString TCLInterpreterPriv::ListStatInfo::ListInfo::toCaplListString()
@@ -2332,20 +2333,19 @@ Error TCLInterpreter::interpret<Stat::Word>(){
 
     // Processing
     // #1 ------------------------------------------------------------------
-    switch(lastSavedStat().filteredStat()){    
+    switch(lastSavedStat().filteredStat()){
+    case Stat::MainScript:
+    {
+        if(commandsController.createCall(Stat::CommandSubbing) == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+        // Stat shall be replace by CommandSubbing in the CommandsController
+    }
     case Stat::CommandSubbing:
     {
         if(commandsController.interpret(Stat::Word) == Error::Error)
             return throwError(ERROR_PREFIX + error());
     }
-        break;
-    case Stat::MainScript:
-    {
-        if(commandsController.newProcedureCall(unknownString) == Error::Error)
-            return throwError(ERROR_PREFIX + error());
-        // Stat shall be replace by CommandSubbing in the CommandsController
-    }
-        break;
+        break;    
     case Stat::Ignore:
         break;
     default:
@@ -2415,13 +2415,15 @@ Error TCLInterpreter::interpret<Stat::BracesStart>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
+    switch(lastSavedStat().filteredStat()){
     case Stat::MainScript:
     {
+
         // New Procedure call  + Braces
         // Maybe create new Procedure first, then interpret as BracesStart
-        //if(commandsController.newProcedureCall() == Error::Error)
-        //    return throwError(ERROR_PREFIX + error());
+        if(commandsController.createCall(Stat::CommandSubbing) == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+
     }
     case Stat::CommandSubbing:
     {
@@ -2443,13 +2445,13 @@ Error TCLInterpreter::interpret<Stat::Braces>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
+    switch(lastSavedStat().filteredStat()){
     case Stat::MainScript:
     {
         // New Procedure call  + Braces
         // Maybe create new Procedure first, then interpret as Braces
-        //if(commandsController.newProcedureCall() == Error::Error)
-        //    return throwError(ERROR_PREFIX + error());
+        if(commandsController.createCall(Stat::CommandSubbing) == Error::Error)
+            return throwError(ERROR_PREFIX + error());
     }
     case Stat::CommandSubbing:
     {
@@ -2471,13 +2473,13 @@ Error TCLInterpreter::interpret<Stat::DoubleQuotes>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
+    switch(lastSavedStat().filteredStat()){
     case Stat::MainScript:
     {
         // New Procedure call  + DoubleQuotes
         // Maybe create new Procedure first, then interpret as DoubleQuotes
-        //if(commandsController.newProcedureCall() == Error::Error)
-        //    return throwError(ERROR_PREFIX + error());
+        if(commandsController.createCall(Stat::CommandSubbing) == Error::Error)
+            return throwError(ERROR_PREFIX + error());
     }
     case Stat::CommandSubbing:
     {
@@ -2500,7 +2502,7 @@ Error TCLInterpreter::interpret<Stat::Whitespace>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){    
+    switch(lastSavedStat().filteredStat()){
     case Stat::CommandSubbing:
     {
         if(commandsController.interpret(Stat::Whitespace) == Error::Error)
@@ -2522,7 +2524,7 @@ Error TCLInterpreter::interpret<Stat::VariableSubbing>(){
      if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
+    switch(lastSavedStat().filteredStat()){
     case Stat::MainScript:
     {
         return throwError(ERROR_PREFIX + "VariableSubbingStart in MainScript ");
@@ -2547,13 +2549,13 @@ Error TCLInterpreter::interpret<Stat::Namespace>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
+    switch(lastSavedStat().filteredStat()){
     case Stat::MainScript:
     {
         // New Procedure call  + DoubleQuotes
         // Maybe create new Procedure first, then interpret as DoubleQuotes
-        //if(commandsController.newProcedureCall() == Error::Error)
-        //    return throwError(ERROR_PREFIX + error());
+        if(commandsController.createCall(Stat::CommandSubbing) == Error::Error)
+            return throwError(ERROR_PREFIX + error());
     }
     case Stat::CommandSubbing:
     {
@@ -2576,7 +2578,7 @@ Error TCLInterpreter::interpret<Stat::Semicolon>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){    
+    switch(lastSavedStat().filteredStat()){
     case Stat::CommandSubbing:
     {
         if(commandsController.interpret(Stat::Semicolon) == Error::Error)
@@ -2602,7 +2604,7 @@ Error TCLInterpreter::interpret<Stat::Comment>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
+    switch(lastSavedStat().filteredStat()){
     case Stat::MainScript:
     {
         // Copy from dev branch + think about BackslashSubbing with newline
@@ -2630,7 +2632,13 @@ Error TCLInterpreter::interpret<Stat::EndOfString>(){
     if(isSavedStatsEmpty())
         return throwError(ERROR_PREFIX + "Empty Stats");
 
-    switch(lastSavedStat().stat()){
+    switch(lastSavedStat().filteredStat()){
+    case Stat::CommandSubbing:
+    {
+        if(commandsController.interpret(Stat::Comment) == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }
+        break;
     case Stat::Ignore:
     {
         if(removeIgnore() == Error::Error)
@@ -2692,13 +2700,13 @@ Error TCLInterpreter::interpret<Stat::BackslashSubbing>(){
             return throwError(ERROR_PREFIX + error());
     }
 
-    switch(lastSavedStat().stat()){
+    switch(lastSavedStat().filteredStat()){
     case Stat::MainScript:
     {
         // New Procedure call  + DoubleQuotes
         // Maybe create new Procedure first, then interpret as DoubleQuotes
-        //if(commandsController.newProcedureCall() == Error::Error)
-        //    return throwError(ERROR_PREFIX + error());
+        if(commandsController.createCall(Stat::CommandSubbing) == Error::Error)
+            return throwError(ERROR_PREFIX + error());
     }
     case Stat::CommandSubbing:
     {
@@ -3198,11 +3206,37 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
     if(isError())
         return Error::Error;
     textInterpreter.initialize(tclCommand);
-    proccessingStats = pendingProccessingStats;
-    pendingProccessingStats = {};
-    while(!proccessingStats.isEmpty()){
-        Stat savedProccessingStat = proccessingStats.last();
+//    proccessingStats = pendingProccessingStats;
+//    pendingProccessingStats = {};
+//    while(!proccessingStats.isEmpty()){
+//        Stat savedProccessingStat = proccessingStats.last();
 
+//        if(callInterpretFunction() == Error::Error){
+//            if(processError() == Error::Error)
+//                return Error::Error;
+//        }
+//        commandsController.dynamicProcedureCheck();
+//        if(isError()){
+//            if(processError() == Error::Error)
+//                return Error::Error;
+//        }
+//        if(savedProccessingStat == Stat::EndOfString){
+//            textInterpreter.deinitialize();
+//            return Error::NoError;
+//        }
+//    }
+//    pendingProccessingStats = {};
+    while(textInterpreter.runSearchingMode() == Result::StatFound){        
+
+        if(processUnknownString() == Error::Error){
+            if(processError() == Error::Error)
+                return Error::Error;
+        }
+
+        processingStat = textInterpreter.lastKeywordStat();
+
+//        while(!proccessingStats.isEmpty()){
+//            Stat savedProccessingStat = proccessingStats.last();
         if(callInterpretFunction() == Error::Error){
             if(processError() == Error::Error)
                 return Error::Error;
@@ -3212,42 +3246,11 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
             if(processError() == Error::Error)
                 return Error::Error;
         }
-        if(savedProccessingStat == Stat::EndOfString){
+        if(processingStat == Stat::EndOfString){
             textInterpreter.deinitialize();
             return Error::NoError;
         }
-    }
-    pendingProccessingStats = {};
-    while(textInterpreter.runSearchingMode() == Result::StatFound){
-        if(textInterpreter.throwErrorIfUnknownStringForForbiddenRule() == Error::Error){
-            throwError("TCL Interpreter: Unknown String is Forbidden");
-            if(processError() == Error::Error)
-                return Error::Error;
-        }
-        proccessingStats.append(textInterpreter.lastKeywordStat());
-
-        if(processUnknownString() == Error::Error){
-            if(processError() == Error::Error)
-                return Error::Error;
-        }
-
-
-        while(!proccessingStats.isEmpty()){
-            Stat savedProccessingStat = proccessingStats.last();
-            if(callInterpretFunction() == Error::Error){
-                if(processError() == Error::Error)
-                    return Error::Error;
-            }
-            commandsController.dynamicProcedureCheck();
-            if(isError()){
-                if(processError() == Error::Error)
-                    return Error::Error;
-            }
-            if(savedProccessingStat == Stat::EndOfString){
-                textInterpreter.deinitialize();
-                return Error::NoError;
-            }
-        }
+//        }
     }
 
     return isError()? Error::Error : Error::NoError;

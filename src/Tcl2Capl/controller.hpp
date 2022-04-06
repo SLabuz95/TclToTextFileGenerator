@@ -10,7 +10,7 @@
 class UserInputConfig{
 public:
     using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
-    using Settings = TclProcedureInterpreter::ProdecuresSettings;
+    using Settings = Tcl::Interpreter::Command::Settings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
     using UserProcedure = Tcl::Interpreter::Command::Definition;
     using UserProcedures = Tcl::Interpreter::Command::CommandDefinitions;
@@ -40,7 +40,7 @@ class Tcl2CaplController : public QThread{
     // Concept Definition
 public:
     using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
-    using Settings = TclProcedureInterpreter::ProdecuresSettings;
+    using Settings = Tcl::Interpreter::Command::Settings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
     using UserProcedure = Tcl::Interpreter::Command::Definition;
     using UserProcedures = Tcl::Interpreter::Command::CommandDefinitions;

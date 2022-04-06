@@ -3,4 +3,10 @@
 
 using namespace Tcl::Interpreter::Command;
 using namespace Tcl::Interpreter;
+/*
+Call::Call(const Stat statF)
+    : stat(statF), _rawParameters(1)
+{
 
+}
+*/

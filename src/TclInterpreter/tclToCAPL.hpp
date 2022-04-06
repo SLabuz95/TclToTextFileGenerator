@@ -41,6 +41,8 @@ namespace Tcl{
         inline static const QString& error(){return ErrorController::error();}
     private:
         //
+        bool unknownStringProcessing = false;
+        Stat processingStat = Stat::Size;
         using ErrorMessage = ErrorController::ErrorMessage;
         using ErrorMessages = QVector<ErrorMessage>;
         // ----
@@ -51,23 +53,23 @@ namespace Tcl{
 
         inline Preexpressions& preexpressions(){return _preexpressions;}
 
-        inline void saveStat(SavedStat newStat){_savedStats.append(newStat);}
+        //inline void saveStat(SavedStat newStat){_savedStats.append(newStat);}
 
-        inline SavedStat& lastSavedStat(){return _savedStats.last();}
-        inline SavedStat takeLastSavedStat(){return _savedStats.takeLast();}
-        inline SavedStats& savedStats(){return _savedStats;}
-        inline SavedStats::size_type savedStatsSize()const{return _savedStats.size();}
-        inline bool isSavedStatsEmpty()const{return _savedStats.isEmpty();}
-        inline SavedStats::ConstIterator savedStatsBegin()const{return _savedStats.begin();}
-        inline SavedStats::ConstIterator savedStatsEnd()const{return _savedStats.end();}
-        Error removeLastStat(){return (_savedStats.isEmpty())? throwError("removeLastStat: No elements to remove")
-                                                                       : (_savedStats.removeLast(), Error::NoError);
-        }
+        //inline SavedStat& lastSavedStat(){return _savedStats.last();}
+        //inline SavedStat takeLastSavedStat(){return _savedStats.takeLast();}
+        //inline SavedStats& savedStats(){return _savedStats;}
+        //inline SavedStats::size_type savedStatsSize()const{return _savedStats.size();}
+        //inline bool isSavedStatsEmpty()const{return _savedStats.isEmpty();}
+        //inline SavedStats::ConstIterator savedStatsBegin()const{return _savedStats.begin();}
+        //inline SavedStats::ConstIterator savedStatsEnd()const{return _savedStats.end();}
+        //Error removeLastStat(){return (_savedStats.isEmpty())? throwError("removeLastStat: No elements to remove")
+        //                                                               : (_savedStats.removeLast(), Error::NoError);
+        //}
 
         inline void prepareCodeBlockContent(){
             QString predefinitions = predefinitionsController.getPredefinitionsGroupStr();
-            if(not predefinitions.isEmpty())
-                lastSavedStat().setCommand(predefinitions + lastSavedStat().command());
+//            if(not predefinitions.isEmpty())
+//                lastSavedStat().setCommand(predefinitions + lastSavedStat().command());
         }
 
         inline void addPreexpressionsToCodeBlock(){
@@ -95,8 +97,8 @@ namespace Tcl{
         }
 
         inline void addExpressionToCodeBlock_standard(OutputCommands commands, QString postfix){
-            if(commands.size() > 0)
-                lastSavedStat().appendCommand(commands.join("\n") + postfix);
+//            if(commands.size() > 0)
+//                lastSavedStat().appendCommand(commands.join("\n") + postfix);
         }
 
         inline void addExpressionToCodeBlock_writeOnlyProcedure(OutputCommands commands, QString postfix){
@@ -110,9 +112,9 @@ namespace Tcl{
                 preexpressions().clear();
             }
         }
-        inline QString readCurrentKeyword(){return (proccessingStats.isEmpty())? textInterpreter.readLastKeyword() : textInterpreter.readUnknownString();}
-        inline bool isCurrentKeywordProcessing()const{return proccessingStats.isEmpty();}
-        inline bool isUnknownStringProcessing()const{return not isCurrentKeywordProcessing();}
+        inline QString readCurrentKeyword(){return (unknownStringProcessing)? textInterpreter.readUnknownString() : textInterpreter.readLastKeyword();}
+//        inline bool isCurrentKeywordProcessing()const{return proccessingStats.isEmpty();}
+//        inline bool isUnknownStringProcessing()const{return not isCurrentKeywordProcessing();}
     public:
         using InterpretFunctions = InterpretFunction[static_cast<std::underlying_type_t<Stat>>(Stat::Size)];
         // End Of Concept ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -136,15 +138,15 @@ namespace Tcl{
             SnprintfController snprintfController;
             UserInteraction userInteraction;
             OutputCommand command;
-            SavedStats _savedStats{{Stat::MainScript}};
+            //SavedStats _savedStats{{Stat::MainScript}};
             Preexpressions _preexpressions;
 
             UserInputConfig& userConfig;
 
-            Stats proccessingStats{};
-            Stats pendingProccessingStats{}; // Saved stats to use in next initialization
+            //Stats proccessingStats{};
+            //Stats pendingProccessingStats{}; // Saved stats to use in next initialization
 
-            static InterpretFunctions interpretFunctions;
+            //static InterpretFunctions interpretFunctions;
             ErrorMessages ignoreMessages;
             RemoveProcedureCallFunction removeProcedureCallFunction = &TCLInterpreter::removeProcedureCall_standard;
             //bool _whitespace = false;
@@ -152,22 +154,28 @@ namespace Tcl{
         // End of Objects ||||||||||||||||||||||||||||||||||||||||||||
         // Functions --------------------------------------------------
 
-            template<Stat stat>
-            Error interpret();
 
-            inline Error callInterpretFunction(Stat stat = Stat::Size){                
-                if(stat != Stat::Size){
-                    proccessingStats.append(stat);
-                }
-                return (this->*(interpretFunctions[static_cast<std::underlying_type_t<Stat>>(proccessingStats.takeLast())]))();
+            inline Error callInterpretFunction(){
+                return commandsController.interpret();
             }
 
             inline Error processUnknownString(){
-               return (textInterpreter.isUnknownString())? callInterpretFunction(Stat::Word) : Error::NoError;
+                Error error = Error::NoError;
+                if(textInterpreter.throwErrorIfUnknownStringForForbiddenRule() == Error::Error){
+                    throwError("TCL Interpreter: Unknown String is Forbidden");
+                    if(processError() == Error::Error)
+                        return Error::Error;
+                }
+                if(textInterpreter.isUnknownString()){
+                    unknownStringProcessing = true;
+                    error = callInterpretFunction();
+                    unknownStringProcessing = false;
+                }
+                return error;
             }
 
-            inline void addPendingProcessingStat(Stats stats){pendingProccessingStats.append(stats);}
-            inline void addPendingProcessingStat(Stat stat){pendingProccessingStats.append(stat);}
+//            inline void addPendingProcessingStat(Stats stats){pendingProccessingStats.append(stats);}
+//            inline void addPendingProcessingStat(Stat stat){pendingProccessingStats.append(stat);}
             /*inline Error checkWhitespace(){
                 return ((_whitespace = (lastSavedStat().stat() == Stat::Whitespace)))?
                             removeLastStat() :
@@ -179,17 +187,20 @@ namespace Tcl{
             Error moveArgumentToFunctionCall();
             Error moveArgumentToSnprintf_priv(const Stat);
         // End of Functions |||||||||||||||||||||||||||||||||||||||||||
-            inline bool isLastProcedureCallExpr(){return commandsController.numberOfProcedureCalls() > 0 and commandsController.lastProcedureName() == "expr";}
+//            inline bool isLastProcedureCallExpr(){return commandsController.numberOfProcedureCalls() > 0 and commandsController.lastProcedureName() == "expr";}
 
             inline Error moveArgumentToSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::Snprintf);*/}
             inline Error moveArgumentToPendingSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::PendingSnprintf);*/}
 
-            inline bool isPrelastSavedStat()const{return savedStatsBegin() <= savedStatsEnd() - 2;}
-            inline SavedStat& prelastSavedStat(){return *(savedStats().end() - 2);}
+//            inline bool isPrelastSavedStat()const{return savedStatsBegin() <= savedStatsEnd() - 2;}
+//            inline SavedStat& prelastSavedStat(){return *(savedStats().end() - 2);}
 
             void addIgnoreMessage(ErrorMessage message){ignoreMessages.append(message);}
-            Error removeIgnore(){return (isSavedStatsEmpty())?
-                                throwError("TCLInterpreter::removeIgnore: No stats") : (removeLastStat(), Error::NoError);}
+            Error removeIgnore(){
+//                return (isSavedStatsEmpty())?
+//                                throwError("TCLInterpreter::removeIgnore: No stats") :
+//                                (removeLastStat(), Error::NoError);
+            }
 
 
 
@@ -198,22 +209,24 @@ namespace Tcl{
             inline Error removeProcedureCall(){return (this->*removeProcedureCallFunction)();}
             inline Error removeProcedureCall_standard(){
                 const QString ERROR_PREFIX = "TCLInterpreter::removeProcedureCall: ";
-                if(commandsController.numberOfProcedureCalls() == 0)
-                    return throwError(ERROR_PREFIX + "No procedure calls");
+//                if(commandsController.numberOfProcedureCalls() == 0)
+//                    return throwError(ERROR_PREFIX + "No procedure calls");
 
-                if(commandsController.removeProcedureCall() == Error::Error)
-                    return throwError(ERROR_PREFIX + error());
+//                if(commandsController.removeProcedureCall() == Error::Error)
+//                    return throwError(ERROR_PREFIX + error());
                 return Error::NoError;
             }
             Error removeProcedureCall_writeOnlyProcedure();
             Error finalizeProcedureCall();
             Error finalizeSnprintfCall();
 
-            Error processError(){addIgnoreMessage(ErrorMessage(error(), textInterpreter.readTclCommand(), textInterpreter.restOfString()));
-                                 if(processSavedStatsForError() == Error::Error)
-                                     return Error::Error;
-                                 clearError();
-                                return Error::NoError;}
+            Error processError(){
+                addIgnoreMessage(ErrorMessage(error(), textInterpreter.readTclCommand(), textInterpreter.restOfString()));
+                 if(processSavedStatsForError() == Error::Error)
+                     return Error::Error;
+                 clearError();
+                return Error::NoError;
+            }
             Error processSavedStatsForError();
             Error saveStatWithParsingControl(SavedStat);
             Error removeLastSavedStatWithParsingControl();
@@ -224,7 +237,7 @@ namespace Tcl{
         public:
             TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsRef caplFunctionDefinitions);
 
-            inline bool isComplete()const{return savedStatsSize() == 1;}
+//          inline bool isComplete()const{return savedStatsSize() == 1;}
 
             Error toCAPL(TclCommand&);
             //Error addReadyCommand(TclCommand&);
@@ -239,7 +252,7 @@ namespace Tcl{
 
             }
 
-            static bool checkInterpretFunctions();
+//            static bool checkInterpretFunctions();
             inline bool anyErrors(){return ignoreMessages.size();}
             void printErrorReport(QFile& reportFile, QString inputFileName);
             void printErrorReport(QString& inputFileName);

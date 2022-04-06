@@ -35,12 +35,14 @@ TclProcedureInterpreter::executeConditionalAction
     for(QStringList::ConstIterator parameter = parameters.begin(); parameter < parameters.end(); parameter++){
         bool ok;
         Call::Parameters::size_type size = 0;
-        if((size = (parameter->toInt(&ok))), !ok){
+        size = parameter->toInt(&ok);
+        if(!ok){
             throwError(ERROR_PREFIX + "Action Argument: " + *parameter + " cant be parsed as integer.");
             return ConditionResult::Satisfied;
         }
-        if(lastProcedureCall().parametersLength() == size)
-            return ConditionResult::Satisfied;
+//        Commented but required
+//        if(lastProcedureCall().parametersLength() == size)
+//            return ConditionResult::Satisfied;
     }
     return ConditionResult::Unsatisfied;
 }
@@ -61,16 +63,19 @@ TCLCommandsController::executeConditionalAction
     for(QStringList::ConstIterator parameter = parameters.begin(); parameter < parameters.end(); parameter++){
         bool ok;
         Stat stat = Stat::Size;
-        if((stat = static_cast<Stat>(parameter->toInt(&ok))), !ok){
+        stat = static_cast<Stat>(parameter->toInt(&ok));
+        if(!ok){
             throwError(ERROR_PREFIX + "Action Argument: " + *parameter + " cant be parsed as integer.");
             return ConditionResult::Satisfied;
         }
         if(stat >= Stat::Size){
-            throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)) + " Current size: " + QString::number(tclInterpreter.savedStatsSize()));
+//            Commented but required
+//            throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)) + " Current size: " + QString::number(tclInterpreter.savedStatsSize()));
             return ConditionResult::Satisfied;
         }
-        if(tclInterpreter.lastSavedStat().stat() == stat)
-            return ConditionResult::Satisfied;
+//        Commented but required
+//        if(tclInterpreter.lastSavedStat().stat() == stat)
+//            return ConditionResult::Satisfied;
     }
     return ConditionResult::Unsatisfied;
 }
@@ -128,7 +133,8 @@ void TCLCommandsController::executeAction
     if(finalizeOn){ // Used for procedure
         command = str;
     }else{  // For last argument
-        lastProcedureCall().lastParameter().setCommand( str);
+//        Commented but required
+//        lastProcedureCall().lastParameter().setCommand( str);
     }
 }
 
@@ -153,7 +159,8 @@ TclProcedureCommand::Definition::Action::Executable::TclParse> (ExecutableAction
     if(finalizeOn){ // Used for procedure
         command = newTclInterpreter.readCommand().remove("\n");
     }else{  // For last argument
-        lastProcedureCall().lastParameter().setCommand(newTclInterpreter.readCommand().remove("\n"));
+//        Commented but required
+//        lastProcedureCall().lastParameter().setCommand(newTclInterpreter.readCommand().remove("\n"));
     }
 }
 
@@ -181,17 +188,18 @@ void TCLCommandsController::executeAction
     TCLCommandsController::Definition::Action::Executable::ChangeLastSavedStat>: ";
 
     // IMPORTANT - You cant change FunctionCall, Snprintf or PendingSnprintf stat
-    switch(tclInterpreter.lastSavedStat().stat()){
-        case Stat::CommandSubbing:
+//            COmmented but Required
+//    switch(tclInterpreter.lastSavedStat().stat()){
+//        case Stat::CommandSubbing:
         //case Stat::Snprintf:
         //case Stat::PendingSnprintf:
-        {
-            throwError(ERROR_PREFIX + "Its impossible to change CommandCall, Snprintf or PendingSnprintf");
-            return ;
-        }
-        default:
-            break;
-    }
+//        {
+//            throwError(ERROR_PREFIX + "Its impossible to change CommandCall, Snprintf or PendingSnprintf");
+//            return ;
+//        }
+//        default:
+//            break;
+//    }
 
     if(parameters.size() != 1){
         throwError(ERROR_PREFIX + "Number of action arguments dont match. Expected: 1.");
@@ -199,17 +207,21 @@ void TCLCommandsController::executeAction
     }
     bool ok;
     Stat stat = Stat::Size;
-    if((stat = static_cast<Stat>(parameters.first().toInt(&ok))), !ok){
+    stat = static_cast<Stat>(parameters.first().toInt(&ok));
+    if(!ok){
         throwError(ERROR_PREFIX + "Action Argument: " + parameters.first() + " cant be parsed as integer.");
         return ;
     }
-    if(stat >= Stat::Size or stat == Stat::None){
-        throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)) + " Current size: " + QString::number(tclInterpreter.savedStatsSize()));
-        return ;
-    }
+//    Commented but required
+//    if(stat >= Stat::Size or stat == Stat::None){
+//        throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)) + " Current size: " + QString::number(tclInterpreter.savedStatsSize()));
+//        return ;
+//    }
     //if(lastProcedureCall().name() == "foreach")
       //  qDebug() << "Test";
-    tclInterpreter.lastSavedStat().setStat(stat);
+
+//    Commented but required
+//    tclInterpreter.lastSavedStat().setStat(stat);
 }
 
 template <>
@@ -217,7 +229,8 @@ void TCLCommandsController::executeAction
 <TclProcedureCommand::Definition::Action::Executable::AddFunctionDefinition>
 (ExecutableActionsParameters parameters)
 {
-    tclInterpreter.functionDefinitions.addDefinitionNoRules(lastProcedureCall());
+//    Commented but required
+//    tclInterpreter.functionDefinitions.addDefinitionNoRules(lastProcedureCall());
 }
 
 template <>
