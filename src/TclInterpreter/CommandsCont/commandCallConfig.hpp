@@ -7,7 +7,7 @@
 namespace Tcl::Interpreter::Command{
     class Settings{
    public:
-        using NewCallInterModeFctPtr =  Error (Controller::* const)(Call::Name);
+        using CallDefinitionInterModeFctPtr =  Error (Controller::* const)(Call::Name);
         using FinalizeCallInterModeFctPtr = Error (Controller::*)(SavedStat&);
         using WriteOnlyProcedures = QStringList;
 

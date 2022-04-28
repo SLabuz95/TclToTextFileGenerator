@@ -803,7 +803,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQ
         unknownString = interpretedString;
         // If last parameter is mepty VariableSubbing - Change to Word with $ sign
 
-        return lastProcedureCall().newParameter(parameterStat, interpretedString);
+        return lastProcedureCall().newParameter(processingStat(), interpretedString);
     }
         break;
     case Stat::VariableSubbing:

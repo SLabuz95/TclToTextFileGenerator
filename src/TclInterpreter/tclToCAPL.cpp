@@ -2170,7 +2170,7 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
 Error TCLInterpreter::newProcedureCall(TclCommand_NS::Call::Name name){
     const QString ERROR_PREFIX = "TCLInterpreter::newProcedureCall: ";
 
-
+/* Commented but required
     switch(lastSavedStat().stat()){
     case Stat::CommandSubbingStart:
         // Do not add predefinitions group
@@ -2185,7 +2185,7 @@ Error TCLInterpreter::newProcedureCall(TclCommand_NS::Call::Name name){
     if(commandsController.newProcedureCall(name) == Error::Error)
         return throwError(ERROR_PREFIX + error());
 
-
+*/
     return Error::NoError;
 }
 
@@ -2194,25 +2194,9 @@ Error TCLInterpreter::removeProcedureCall_writeOnlyProcedure(){
     return removeProcedureCall_standard();
 }
 
-Error TCLInterpreter::saveStatWithParsingControl(SavedStat newSavedStat){
-    // No Control for now
-    saveStat(newSavedStat);
-    return Error::NoError;
-}
-
-Error TCLInterpreter::removeLastSavedStatWithParsingControl(){
-    // No Control for now
-    return removeLastStat();
-}
-
-Error TCLInterpreter::takeLastSavedStatWithParsingControl(SavedStat& savedStat){
-    // No Control for now
-    lastSavedStat().hideInfoBeforeCopyConstructor();
-    return (savedStat = takeLastSavedStat(), Error::NoError);
-}
-
 Error TCLInterpreter::moveArgumentToFunctionCall(){
     const QString ERROR_DESCRIPTION = QString("InternalCall: moveArgumentToFunctionCall() : ");
+/* Commented but required
      if(!isPrelastSavedStat())
         return throwError(ERROR_DESCRIPTION + "Empty Stats");
     switch (prelastSavedStat().stat()) {
@@ -2231,10 +2215,12 @@ Error TCLInterpreter::moveArgumentToFunctionCall(){
             ?
                 Error::Error :
                 Error::NoError;
+*/
 }
 
 Error TCLInterpreter::moveArgumentToSnprintf_priv(Stat stat){
     using Parameter = TclCommand_NS::Call::Parameter;
+/*
     const QString ERROR_DESCRIPTION = QString("InternalCall: TCLInterpreter::moveArgumentToSnprintf_priv(): ");
     if(!isPrelastSavedStat())
         return throwError("No Stats for snprintf processing");
@@ -2253,6 +2239,7 @@ Error TCLInterpreter::moveArgumentToSnprintf_priv(Stat stat){
             return throwError(ERROR_DESCRIPTION + error());
     }
     }
+*/
     return Error::NoError;
 }
 
@@ -2319,7 +2306,7 @@ void TclCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefinti
 
     }
 }
-
+/*
 template<>
 Error TCLInterpreter::interpret<Stat::Word>(){
     const QString ERROR_PREFIX = "TCL Interpreter <Stat::Word>: ";
@@ -2744,7 +2731,7 @@ TCLInterpreterFunctions TCLInterpreter::interpretFunctions = {
 
 };
 //static_assert (TCLInterpreter::checkInterpretFunctions() == true, "Wrong InterpretFunctions");
-
+*/
 Error KeywordsController::initialize(const QString &strToAnalyze){
     currentChar = savedFirstKeywordCharPos = beginOfString = savedChar = strToAnalyze.constBegin();
     endOfString = strToAnalyze.constEnd();
@@ -2907,300 +2894,306 @@ Error TclProcedureInterpreter::interpret(QString newArgument)
     return Error::NoError;
 }
 */
-Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
-{
-    const QString ERROR_DESCRIPTION = QString("InternalCall: TclProcedureInterpreter::nextArgumentForSnprintf_priv(): ");
-    using Parameter = Call::Parameter;
-    switch(tclInterpreter.lastSavedStat().stat()){
-//    case Stat::PendingSnprintf:
-//    case Stat::Snprintf:
+//Commented but required
+//Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
+//{
+//    const QString ERROR_DESCRIPTION = QString("InternalCall: TclProcedureInterpreter::nextArgumentForSnprintf_priv(): ");
+//    using Parameter = Call::Parameter;
+
+//    switch(tclInterpreter.lastSavedStat().stat()){
+////    case Stat::PendingSnprintf:
+////    case Stat::Snprintf:
+////    {
+////        return throwError(ERROR_DESCRIPTION + "Snprintf as argument for Snprintf");
+////    }
+//    case Stat::CommandSubbing:
 //    {
-//        return throwError(ERROR_DESCRIPTION + "Snprintf as argument for Snprintf");
+//        Call procedureCall = procedureCalls.takeLast();
+//        Parameter parameter(tclInterpreter.takeLastSavedStat(), procedureCall);
+//        tclInterpreter.saveStat({stat, QString()});
+////        tclInterpreter.saveStat({Stat::String, QString("concat")});
+//        if(tclInterpreter.newProcedureCall("string") == Error::Error or
+//                nextArgument() == Error::Error or
+//                onArgumentProcedureCheck() == Error::Error or
+//             (procedureCalls.last().nextArgument(parameter),
+//                onArgumentProcedureCheck() == Error::Error))
+//            return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
 //    }
-    case Stat::CommandSubbing:
-    {
-        Call procedureCall = procedureCalls.takeLast();
-        Parameter parameter(tclInterpreter.takeLastSavedStat(), procedureCall);
-        tclInterpreter.saveStat({stat, QString()});
-//        tclInterpreter.saveStat({Stat::String, QString("concat")});
-        if(tclInterpreter.newProcedureCall("string") == Error::Error or
-                nextArgument() == Error::Error or
-                onArgumentProcedureCheck() == Error::Error or
-             (procedureCalls.last().nextArgument(parameter),
-                onArgumentProcedureCheck() == Error::Error))
-            return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
-    }
-        break;
-    default:
-    {
-        Parameter parameter(tclInterpreter.takeLastSavedStat());
-        tclInterpreter.saveStat({stat, QString()});
-//        tclInterpreter.saveStat({Stat::String, QString("concat")});
-        if(tclInterpreter.newProcedureCall("string") == Error::Error or
-                nextArgument() == Error::Error or
-                onArgumentProcedureCheck() == Error::Error)
-            return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
-        if(!parameter.command().isEmpty() and
-                (procedureCalls.last().nextArgument(parameter),
-                onArgumentProcedureCheck() == Error::Error))
-            return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
-    }
-    }
-    return Error::NoError;
-}
+//        break;
+//    default:
+//    {
+//        Parameter parameter(tclInterpreter.takeLastSavedStat());
+//        tclInterpreter.saveStat({stat, QString()});
+////        tclInterpreter.saveStat({Stat::String, QString("concat")});
+//        if(tclInterpreter.newProcedureCall("string") == Error::Error or
+//                nextArgument() == Error::Error or
+//                onArgumentProcedureCheck() == Error::Error)
+//            return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
+//        if(!parameter.command().isEmpty() and
+//                (procedureCalls.last().nextArgument(parameter),
+//                onArgumentProcedureCheck() == Error::Error))
+//            return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
+//    }
+//    }
+
+//    return Error::NoError;
+//}
 
 
 Error TCLInterpreter::finalizeProcedureCall(){
     const QString ERROR_DESCRIPTION = "TCL_Internal::finalizeProcedureCall";
     const QString END_OF_EXPRESSION_SIGN = ";\n";
-    if(!isPrelastSavedStat())
-        return throwError(ERROR_DESCRIPTION + " No stats");
-    if(lastSavedStat().stat() != Stat::CommandSubbing)
-        return throwError(ERROR_DESCRIPTION + "Wrong stat to finalize procedure.");
-    switch(prelastSavedStat().stat()){
-//    case Stat::Snprintf:
-//    case Stat::PendingSnprintf:
-    case Stat::CommandSubbing:
-    {
-        if(commandsController.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
-                removeProcedureCall() == Error::Error*/)
-            return throwError(ERROR_DESCRIPTION + error());
-//        if(prelastSavedStat().stat() == Stat::Snprintf){
-//            if(moveArgumentToSnprintf() == Error::Error)
-//                return throwError(ERROR_DESCRIPTION + error());
-//        }
-    }
-        break;
-    case Stat::Script:
-    {
-        SavedStat tempStat;
-        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-                /*Preexpressions to Command */
-                ( addPreexpressionsToCodeBlock(),
-                  snprintfController.clear(),
-                  addExpressionToCodeBlock({tempStat.command() + commandsController.lastProcedureCall().tryToAddEndOfExpressionSign()}),
-                 false) or
-                // Continue conditional expression
-                removeProcedureCall() == Error::Error)
-            return throwError(ERROR_DESCRIPTION + error());
-    }
-        break;
-    case Stat::Expression:
-    {
-        SavedStat tempStat;
-        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-                /*Preexpressions to Command */
-                ( /*addPreexpressionsToCodeBlock(),
-                  snprintfController().clear(),*/
-                  addExpressionToCodeBlock({tempStat.command()}) ,
-                 false) or
-                // Continue conditional expression
-                removeProcedureCall() == Error::Error)
-            return throwError(ERROR_DESCRIPTION + error());
-    }
-        break;
-    case Stat::MainScript:
-    {
-        SavedStat tempStat;
-        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-                /*Preexpressions to Command */
-                (   addPreexpressionsToMainCodeBlock(),
-                    snprintfController.clear(),
-                    addExpressionToMainCodeBlock({tempStat.command() + commandsController.lastProcedureCall().tryToAddEndOfExpressionSign()}) ,
-                 false) or
-                // Continue conditional expression
-                ( commandsController.lastProcedureCall().clearMemory(),
-                removeProcedureCall() == Error::Error))
-            return throwError(ERROR_DESCRIPTION + error());
-    }
-        break;
-    default:
-        return throwError(ERROR_DESCRIPTION + "Wrong prestat to finalize procedure.");
-    }
+// Commented but required
+//    if(!isPrelastSavedStat())
+//        return throwError(ERROR_DESCRIPTION + " No stats");
+//    if(lastSavedStat().stat() != Stat::CommandSubbing)
+//        return throwError(ERROR_DESCRIPTION + "Wrong stat to finalize procedure.");
+//    switch(prelastSavedStat().stat()){
+////    case Stat::Snprintf:
+////    case Stat::PendingSnprintf:
+//    case Stat::CommandSubbing:
+//    {
+//        if(commandsController.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
+//                removeProcedureCall() == Error::Error*/)
+//            return throwError(ERROR_DESCRIPTION + error());
+////       if(prelastSavedStat().stat() == Stat::Snprintf){
+////            if(moveArgumentToSnprintf() == Error::Error)
+////                return throwError(ERROR_DESCRIPTION + error());
+////        }
+//    }
+//        break;
+//    case Stat::Script:
+//    {
+//        SavedStat tempStat;
+//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
+//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
+//                /*Preexpressions to Command */
+//                ( addPreexpressionsToCodeBlock(),
+//                  snprintfController.clear(),
+//                  addExpressionToCodeBlock({tempStat.command() + commandsController.lastProcedureCall().tryToAddEndOfExpressionSign()}),
+//                 false) or
+//                // Continue conditional expression
+//                removeProcedureCall() == Error::Error)
+//            return throwError(ERROR_DESCRIPTION + error());
+//    }
+//        break;
+//    case Stat::Expression:
+//    {
+//        SavedStat tempStat;
+//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
+//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
+//                /*Preexpressions to Command */
+//                ( /*addPreexpressionsToCodeBlock(),
+//                  snprintfController().clear(),*/
+//                  addExpressionToCodeBlock({tempStat.command()}) ,
+//                 false) or
+//                // Continue conditional expression
+//                removeProcedureCall() == Error::Error)
+//            return throwError(ERROR_DESCRIPTION + error());
+//    }
+//        break;
+//    case Stat::MainScript:
+//    {
+//        SavedStat tempStat;
+//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
+//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
+//                /*Preexpressions to Command */
+//                (   addPreexpressionsToMainCodeBlock(),
+//                    snprintfController.clear(),
+//                    addExpressionToMainCodeBlock({tempStat.command() + commandsController.lastProcedureCall().tryToAddEndOfExpressionSign()}) ,
+//                 false) or
+//                // Continue conditional expression
+//                ( commandsController.lastProcedureCall().clearMemory(),
+//                removeProcedureCall() == Error::Error))
+//            return throwError(ERROR_DESCRIPTION + error());
+//    }
+//        break;
+//    default:
+//        return throwError(ERROR_DESCRIPTION + "Wrong prestat to finalize procedure.");
+//    }
     return Error::NoError;
 }
 
 Error TCLInterpreter::finalizeSnprintfCall(){
     const QString ERROR_DESCRIPTION = "TCL_Internal::finalizeProcedureCall";
-    if(!isPrelastSavedStat())
-        return throwError(ERROR_DESCRIPTION + " No stats");
-//    if(not( lastSavedStat().stat() == Stat::Snprintf or lastSavedStat().stat() == Stat::PendingSnprintf))
-//        return throwError(ERROR_DESCRIPTION + "Wrong stat to finalize procedure.");
-    switch(prelastSavedStat().stat()){
-//    case Stat::Snprintf:
-//    case Stat::PendingSnprintf:
+// Commented but required
+//    if(!isPrelastSavedStat())
+//        return throwError(ERROR_DESCRIPTION + " No stats");
+////    if(not( lastSavedStat().stat() == Stat::Snprintf or lastSavedStat().stat() == Stat::PendingSnprintf))
+////        return throwError(ERROR_DESCRIPTION + "Wrong stat to finalize procedure.");
+//    switch(prelastSavedStat().stat()){
+////    case Stat::Snprintf:
+////    case Stat::PendingSnprintf:
+////    {
+////        return throwError(ERROR_DESCRIPTION + "Snprintf should not call other Snprintf");
+////    }
+////        break;
+//    case Stat::CommandSubbing:
 //    {
-//        return throwError(ERROR_DESCRIPTION + "Snprintf should not call other Snprintf");
+//        if(commandsController.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
+//                removeProcedureCall() == Error::Error*/)
+//            return throwError(ERROR_DESCRIPTION + error());
 //    }
 //        break;
-    case Stat::CommandSubbing:
-    {
-        if(commandsController.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
-                removeProcedureCall() == Error::Error*/)
-            return throwError(ERROR_DESCRIPTION + error());
-    }
-        break;
-    /*case Stat::MainScript:
-    {
-        SavedStat tempStat;
-        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-                // Preexpressions to Command
-                (   addPreexpressionsToMainCodeBlock(),
-                    addExpressionToMainCodeBlock( tempStat.command()) ,
-                 false) or
-                // Continue conditional expression
-                removeProcedureCall() == Error::Error)
-            return throwError(ERROR_DESCRIPTION + error());
-    }
-        break;
-    case Stat::Script:
-    {
-        SavedStat tempStat;
-        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-                //Preexpressions to Command
-                (   addPreexpressionsToCodeBlock(),
-                    addExpressionToCodeBlock(tempStat.command()) ,
-                 false) or
-                // Continue conditional expression
-                removeProcedureCall() == Error::Error)
-            return throwError(ERROR_DESCRIPTION + error());
-    }
-        break;*/
-    default:
-        return throwError(ERROR_DESCRIPTION + "Wrong prestat to finalize procedure.");
-    }
+//    /*case Stat::MainScript:
+//    {
+//        SavedStat tempStat;
+//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
+//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
+//                // Preexpressions to Command
+//                (   addPreexpressionsToMainCodeBlock(),
+//                    addExpressionToMainCodeBlock( tempStat.command()) ,
+//                 false) or
+//                // Continue conditional expression
+//                removeProcedureCall() == Error::Error)
+//            return throwError(ERROR_DESCRIPTION + error());
+//    }
+//        break;
+//    case Stat::Script:
+//    {
+//        SavedStat tempStat;
+//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
+//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
+//                //Preexpressions to Command
+//                (   addPreexpressionsToCodeBlock(),
+//                    addExpressionToCodeBlock(tempStat.command()) ,
+//                 false) or
+//                // Continue conditional expression
+//                removeProcedureCall() == Error::Error)
+//            return throwError(ERROR_DESCRIPTION + error());
+//    }
+//        break;*/
+//    default:
+//        return throwError(ERROR_DESCRIPTION + "Wrong prestat to finalize procedure.");
+//    }
     return Error::NoError;
 }
 
+// Commented but required
+//Error TclProcedureInterpreter::dynamicProcedureArgumentCheck_priv(){
+//    using RulesForArguments = ProcedureDefinition::RulesForArguments;
+//    using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
+//    using Rules = ProcedureDefinition::Rules;
+//    using Rule = ProcedureDefinition::Rules::Iterator;
+//    Call& procedureCall = procedureCalls.last();
+//    RulesForArgument rulesForArgument = procedureCall.lastRulesForArgument_dynamicCheck();
+//    if(procedureCall.isRulesInRange(rulesForArgument) == Error::Error /*or
+//            rulesForArgument->status == RulesForArguments::Type::Status::Unspecified*/){
+//        rulesForArgument = procedureCall.rulesForUnspecifiedArgument();
+//    }
+//    bool ruleCondtionsPassed = false;
+//    using Actions = Rules::value_type::ExecutableActions;
+//    using Action = Actions::Iterator;
+//    for(Rule rule = rulesForArgument->rules.begin(); rule < rulesForArgument->rules.end(); rule++){
+//        using Conditions = Rules::value_type::ConditionalActions;
+//        using Condition = Conditions::Iterator;
+//        Condition condition;
+//        ConditionResult conditionResult = ConditionResult::Satisfied;
+//        for(condition = rule->conditions.begin(); condition < rule->conditions.end(); condition++){
+//            conditionResult = (this->*(conditionalInterpreterFunctions[static_cast<std::underlying_type_t<Conditions::value_type::ActionType>>(condition->type())]))(condition->parameters());
+//            if(tclInterpreter.isError()){
+//                return Error::Error;
+//            }
+//            if(conditionResult == ConditionResult::Unsatisfied){
+//                break;
+//            }
+//        }
+//        if(condition == rule->conditions.end()){
+//            ruleCondtionsPassed = true;
+//            for(Action action = rule->actions.begin(); action < rule->actions.end(); action++){
+//                (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Actions::value_type::ActionType>>(action->type())]))(action->parameters());
+//                if(tclInterpreter.isError()){
+//                    return Error::Error;
+//                }
+//            }
+//            switch(rule->controlFlag){
+//            //case Rules::value_type::Control::BreakRuleCheckDontExecOnEndActions:
+//                //return Error::NoError;
+//            case Rules::value_type::Control::BreakRuleCheck:
+//                rule = rulesForArgument->rules.end();
+//                break;
+//            case Rules::value_type::Control::NoBreakRuleCheck:
+//                ruleCondtionsPassed = false;
+//                break;
+//            default:
+//                break;
+//            }
+//        }
+//    }
+//    return Error::NoError;
+//}
 
-Error TclProcedureInterpreter::dynamicProcedureArgumentCheck_priv(){
-    using RulesForArguments = ProcedureDefinition::RulesForArguments;
-    using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
-    using Rules = ProcedureDefinition::Rules;
-    using Rule = ProcedureDefinition::Rules::Iterator;
-    Call& procedureCall = procedureCalls.last();
-    RulesForArgument rulesForArgument = procedureCall.lastRulesForArgument_dynamicCheck();
-    if(procedureCall.isRulesInRange(rulesForArgument) == Error::Error /*or
-            rulesForArgument->status == RulesForArguments::Type::Status::Unspecified*/){
-        rulesForArgument = procedureCall.rulesForUnspecifiedArgument();
-    }
-    bool ruleCondtionsPassed = false;
-    using Actions = Rules::value_type::ExecutableActions;
-    using Action = Actions::Iterator;
-    for(Rule rule = rulesForArgument->rules.begin(); rule < rulesForArgument->rules.end(); rule++){
-        using Conditions = Rules::value_type::ConditionalActions;
-        using Condition = Conditions::Iterator;
-        Condition condition;
-        ConditionResult conditionResult = ConditionResult::Satisfied;
-        for(condition = rule->conditions.begin(); condition < rule->conditions.end(); condition++){
-            conditionResult = (this->*(conditionalInterpreterFunctions[static_cast<std::underlying_type_t<Conditions::value_type::ActionType>>(condition->type())]))(condition->parameters());
-            if(tclInterpreter.isError()){
-                return Error::Error;
-            }
-            if(conditionResult == ConditionResult::Unsatisfied){
-                break;
-            }
-        }
-        if(condition == rule->conditions.end()){
-            ruleCondtionsPassed = true;
-            for(Action action = rule->actions.begin(); action < rule->actions.end(); action++){
-                (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Actions::value_type::ActionType>>(action->type())]))(action->parameters());
-                if(tclInterpreter.isError()){
-                    return Error::Error;
-                }
-            }
-            switch(rule->controlFlag){
-            //case Rules::value_type::Control::BreakRuleCheckDontExecOnEndActions:
-                //return Error::NoError;
-            case Rules::value_type::Control::BreakRuleCheck:
-                rule = rulesForArgument->rules.end();
-                break;
-            case Rules::value_type::Control::NoBreakRuleCheck:
-                ruleCondtionsPassed = false;
-                break;
-            default:
-                break;
-            }
-        }
-    }
-    return Error::NoError;
-}
+// Commented but required
+//Error TclProcedureInterpreter::dynamicProcedureCheck(){
+//    if(procedureCalls.isEmpty() or
+//            procedureCalls.last().isRulesEmpty() or
+//            procedureCalls.last().isUserInteractionRequired())
+//        return Error::NoError;
+//    return dynamicProcedureArgumentCheck_priv();
+//}
 
+// Commented but required
+//Error TclProcedureInterpreter::onArgumentProcedureCheck_priv(){
+//    using RulesForArguments = ProcedureDefinition::RulesForArguments;
+//    using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
+//    using Rules = ProcedureDefinition::Rules;
+//    using Rule = ProcedureDefinition::Rules::Iterator;
+//    Call& procedureCall = procedureCalls.last();
+//    ProcedureDefinition::RulesForArguments::Iterator rulesForArgument = procedureCall.lastRulesForArgument_onMoved();
+//    if(procedureCall.isRulesInRange(rulesForArgument) == Error::Error){
+//        rulesForArgument = procedureCall.rulesForUnspecifiedArgument();
+//    }
+//    bool ruleCondtionsPassed = false;
+//    using Actions = Rules::value_type::ExecutableActions;
+//    using Action = Actions::Iterator;
+//    for(Rule rule = rulesForArgument->rulesOnMoveArgument.begin(); rule < rulesForArgument->rulesOnMoveArgument.end(); rule++){
+//        using Conditions = Rules::value_type::ConditionalActions;
+//        using Condition = Conditions::Iterator;
+//        Condition condition;
+//        ConditionResult conditionResult = ConditionResult::Satisfied;
+//        for(condition = rule->conditions.begin(); condition < rule->conditions.end(); condition++){
+//            conditionResult = (this->*(conditionalInterpreterFunctions[static_cast<std::underlying_type_t<Conditions::value_type::ActionType>>(condition->type())]))(condition->parameters());
+//            if(tclInterpreter.isError()){
+//                return Error::Error;
+//            }
+//            if(conditionResult == ConditionResult::Unsatisfied){
+//                break;
+//            }
+//        }
+//        if(condition == rule->conditions.end()){
+//            ruleCondtionsPassed = true;
+//            for(Action action = rule->actions.begin(); action < rule->actions.end(); action++){
+//                (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Actions::value_type::ActionType>>(action->type())]))(action->parameters());
+//                if(tclInterpreter.isError()){
+//                    return Error::Error;
+//                }
+//            }
+//            switch(rule->controlFlag){
+//            //case Rules::value_type::Control::BreakRuleCheckDontExecOnEndActions:
+//              //  return Error::Error;
+//            case Rules::value_type::Control::BreakRuleCheck:
+//                rule = rulesForArgument->rulesOnMoveArgument.end();
+//                break;
+//            case Rules::value_type::Control::NoBreakRuleCheck:
+//                ruleCondtionsPassed = false;
+//                break;
+//            default:
+//                break;
+//            }
+//        }
+//    }
+//    return Error::NoError;
+//}
 
-Error TclProcedureInterpreter::dynamicProcedureCheck(){
-    if(procedureCalls.isEmpty() or
-            procedureCalls.last().isRulesEmpty() or
-            procedureCalls.last().isUserInteractionRequired())
-        return Error::NoError;
-    return dynamicProcedureArgumentCheck_priv();
-}
+// Commented but required
+//Error TclProcedureInterpreter::onArgumentProcedureCheck(){
+//    if(procedureCalls.isEmpty() or
+//            procedureCalls.last().isRulesEmpty() or
+//            procedureCalls.last().isUserInteractionRequired())
+//        return Error::NoError;
+//    return onArgumentProcedureCheck_priv();
 
-Error TclProcedureInterpreter::onArgumentProcedureCheck_priv(){
-    using RulesForArguments = ProcedureDefinition::RulesForArguments;
-    using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
-    using Rules = ProcedureDefinition::Rules;
-    using Rule = ProcedureDefinition::Rules::Iterator;
-    Call& procedureCall = procedureCalls.last();
-    ProcedureDefinition::RulesForArguments::Iterator rulesForArgument = procedureCall.lastRulesForArgument_onMoved();
-    if(procedureCall.isRulesInRange(rulesForArgument) == Error::Error){
-        rulesForArgument = procedureCall.rulesForUnspecifiedArgument();
-    }
-    bool ruleCondtionsPassed = false;
-    using Actions = Rules::value_type::ExecutableActions;
-    using Action = Actions::Iterator;
-    for(Rule rule = rulesForArgument->rulesOnMoveArgument.begin(); rule < rulesForArgument->rulesOnMoveArgument.end(); rule++){
-        using Conditions = Rules::value_type::ConditionalActions;
-        using Condition = Conditions::Iterator;
-        Condition condition;
-        ConditionResult conditionResult = ConditionResult::Satisfied;
-        for(condition = rule->conditions.begin(); condition < rule->conditions.end(); condition++){
-            conditionResult = (this->*(conditionalInterpreterFunctions[static_cast<std::underlying_type_t<Conditions::value_type::ActionType>>(condition->type())]))(condition->parameters());
-            if(tclInterpreter.isError()){
-                return Error::Error;
-            }
-            if(conditionResult == ConditionResult::Unsatisfied){
-                break;
-            }
-        }
-        if(condition == rule->conditions.end()){
-            ruleCondtionsPassed = true;
-            for(Action action = rule->actions.begin(); action < rule->actions.end(); action++){
-                (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Actions::value_type::ActionType>>(action->type())]))(action->parameters());
-                if(tclInterpreter.isError()){
-                    return Error::Error;
-                }
-            }
-            switch(rule->controlFlag){
-            //case Rules::value_type::Control::BreakRuleCheckDontExecOnEndActions:
-              //  return Error::Error;
-            case Rules::value_type::Control::BreakRuleCheck:
-                rule = rulesForArgument->rulesOnMoveArgument.end();
-                break;
-            case Rules::value_type::Control::NoBreakRuleCheck:
-                ruleCondtionsPassed = false;
-                break;
-            default:
-                break;
-            }
-        }
-    }
-    return Error::NoError;
-}
-
-
-Error TclProcedureInterpreter::onArgumentProcedureCheck(){
-    if(procedureCalls.isEmpty() or
-            procedureCalls.last().isRulesEmpty() or
-            procedureCalls.last().isUserInteractionRequired())
-        return Error::NoError;
-    return onArgumentProcedureCheck_priv();
-
-}
+//}
 
 Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
     if(isError())
@@ -3241,7 +3234,8 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
             if(processError() == Error::Error)
                 return Error::Error;
         }
-        commandsController.dynamicProcedureCheck();
+//        Commented but required
+//        commandsController.dynamicProcedureCheck();
         if(isError()){
             if(processError() == Error::Error)
                 return Error::Error;
@@ -3257,23 +3251,24 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
 }
 
 Error TCLInterpreter::processSavedStatsForError(){
-    while(!isSavedStatsEmpty()){
-        switch(lastSavedStat().stat()){
-        case Stat::Script:
-        case Stat::MainScript:
-            saveStat({Stat::Ignore});
-            return Error::NoError;
-        case Stat::CommandSubbing:
-//        case Stat::Snprintf:
-//        case Stat::PendingSnprintf:
-//            if(removeProcedureCall() == Error::Error)
-//                return throwError("TCLInterpreter::processSavedStatsForError: " + error());
-        default:
-            if(removeLastSavedStatWithParsingControl() == Error::Error)
-                return throwError("TCLInterpreter::processSavedStatsForError: " + error() );
-        }
-    }
-    return throwError("TCLInterpreter::processSavedStatsForError: No stats");
+    // Commented but required
+//    while(!isSavedStatsEmpty()){
+//        switch(lastSavedStat().stat()){
+//        case Stat::Script:
+//        case Stat::MainScript:
+//            saveStat({Stat::Ignore});
+//            return Error::NoError;
+//        case Stat::CommandSubbing:
+////        case Stat::Snprintf:
+////        case Stat::PendingSnprintf:
+////            if(removeProcedureCall() == Error::Error)
+////                return throwError("TCLInterpreter::processSavedStatsForError: " + error());
+//        default:
+//            if(removeLastSavedStatWithParsingControl() == Error::Error)
+//                return throwError("TCLInterpreter::processSavedStatsForError: " + error() );
+//        }
+//    }
+//    return throwError("TCLInterpreter::processSavedStatsForError: No stats");
 }
 
 
