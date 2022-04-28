@@ -89,7 +89,7 @@ namespace Tcl::Interpreter::Command{
         private:
 
         public:
-            Call(Stat, Parameter&&);
+            Call(Stat, Parameter&);
             //Call& operator=(Call&& call){_name = call._name; _arguments = call._arguments;}
             Error createCall(Stat, Call::Parameter&&);
             inline Error newParameter(){

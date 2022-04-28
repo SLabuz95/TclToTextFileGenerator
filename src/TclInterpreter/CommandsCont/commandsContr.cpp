@@ -59,7 +59,7 @@ void Controller::deactivateWriteOnlyProcedureMode()
 
 
 template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(Call::Name name){
+Error TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::TestCase>(Call::Name name){
     using Definition = CommandDefinitions::Iterator;
     Definition definition;
     for(definition = procedureDefinitions.begin(); definition < procedureDefinitions.end(); definition++){
@@ -79,28 +79,27 @@ Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::
     return Error::NoError;
 }
 template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(Call::Name name){
+Error TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::TestCaseReport>(Call::Name name){
     tryToActivateWriteOnlyProcedure(name);
-    return newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
+    return callDefinition_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
 }
 
 template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(Call::Name name){
-    return newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
+Error TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::PredefinitionsOnly>(Call::Name name){
+    return callDefinition_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
 }
 
-const TclProcedureInterpreter::NewProcedureCallFunction
-TclProcedureInterpreter::ProcedureCallFunctions::newProcedureCalls
-[TclProcedureInterpreter::ProdecuresSettings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
+const Settings::CallDefinitionInterModeFctPtr
+Settings::callDefinitionInterModeCalls[Settings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
 {
-    &TclProcedureInterpreter::newProcedureCall_mode<Settings::InterpreterMode::TestCase>,
-    &TclProcedureInterpreter::newProcedureCall_mode<Settings::InterpreterMode::TestCaseReport>,
-    &TclProcedureInterpreter::newProcedureCall_mode<Settings::InterpreterMode::PredefinitionsOnly>,
+    &TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::TestCase>,
+    &TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::TestCaseReport>,
+    &TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::PredefinitionsOnly>,
 };
 
 
 template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(SavedStat &statCommand){
+Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCase>(SavedStat &statCommand){
     using ProcedureDefinition = Command::Definition;
     using RulesForArguments = ProcedureDefinition::RulesForArguments;
     using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
@@ -175,7 +174,7 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(SavedStat &){
+Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCaseReport>(SavedStat &){
     finalizeOn = false;
 
     return Error::NoError;
@@ -183,19 +182,18 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(SavedStat &statCommand){
+Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::PredefinitionsOnly>(SavedStat &statCommand){
 
-    return finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(statCommand);
+    return finalizeCall_mode<Settings::InterpreterMode::TestCase>(statCommand);
 
 }
 
-const TclProcedureInterpreter::FinalizeProcedureCallFunction
-TclProcedureInterpreter::ProcedureCallFunctions::finalizeProcedureCalls
-[TclProcedureInterpreter::ProdecuresSettings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
+const Settings::FinalizeCallInterModeFctPtr
+Settings::finalizeCallInterModeCalls[Settings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
 {
-    &TclProcedureInterpreter::finalizeProcedureCall_mode<Settings::InterpreterMode::TestCase>,
-    &TclProcedureInterpreter::finalizeProcedureCall_mode<Settings::InterpreterMode::TestCaseReport>,
-    &TclProcedureInterpreter::finalizeProcedureCall_mode<Settings::InterpreterMode::PredefinitionsOnly>,
+    &TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCase>,
+    &TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCaseReport>,
+    &TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::PredefinitionsOnly>,
 };
 
 //
@@ -803,7 +801,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQ
         unknownString = interpretedString;
         // If last parameter is mepty VariableSubbing - Change to Word with $ sign
 
-        return lastProcedureCall().newParameter(parameterStat, interpretedString);
+        return lastProcedureCall().newParameter(processingStat(), interpretedString);
     }
         break;
     case Stat::VariableSubbing:
@@ -1414,9 +1412,8 @@ TclProcedureInterpreter::ProcedureCallFunctions::commandCallSpecialInterprets
 
 Error Controller::createCall(Stat stat, Call::Parameter&& parameter){
     // If Stat id for semi command call stats is correct (If wrong stat , stat id of Stat::Size is returnedgh)
-    if(Settings::specialCallStat2number(stat) == Settings::specialCallStat2number(Stat::Size)){
+    if(Settings::specialCallStat2number(stat) == Settings::specialCallStat2number(Stat::Size))
         return throwError("Wrong stat for CreateCall procedure. Stat: " + QString::number(TCLInterpreter::cast_stat(stat)));
-    }
     procedureCalls.append(Call(stat, parameter));
     return Error::NoError;
 }
@@ -1424,6 +1421,7 @@ Error Controller::createCall(Stat stat, Call::Parameter&& parameter){
 Error Controller::createCallAndMoveLastParameterToOne(Stat stat){
     if(not procedureCalls.last().isLastParameterEmpty())
         return throwError("CreateAndMove procedure: No parameters or empty parameter");
-    else
-        return createCall(stat, procedureCalls.last().rawParameters().takeLast());
+    return createCall(stat, procedureCalls.last().rawParameters().takeLast());
 }
+
+

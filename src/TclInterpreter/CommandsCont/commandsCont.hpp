@@ -156,10 +156,12 @@ namespace Tcl::Interpreter::Command{
     //    }
 /*
         inline Error newProcedureCall(Call::Name name){return (this->*newProcedureCallFunction)(name);}
-
-        template<Controller::ProdecuresSettings::InterpreterMode>
-        Error newProcedureCall_mode(Call::Name name);
-
+*/
+        template<Settings::InterpreterMode>
+        Error callDefinition_mode(Call::Name name);
+        template<Settings::InterpreterMode>
+        Error finalizeCall_mode(SavedStat&);
+/*
         inline Error removeProcedureCall(){return procedureCalls.isEmpty()? throwError("TclProcedureInterpreter_Internal: No procedure to remove") :
                                                                      (procedureCalls.removeLast(), Error::NoError);}
         // -- !!!        
@@ -171,8 +173,7 @@ namespace Tcl::Interpreter::Command{
 
         inline Error finalizeProcedureCall(SavedStat& savedStat){return (this->*finalizeProcedureCallFunction)(savedStat);}
 
-        template<Controller::ProdecuresSettings::InterpreterMode>
-        Error finalizeProcedureCall_mode(SavedStat&);
+
 */
         inline Error interpret(){
             return (this->*(currentCommandCallFunctions->interpretCall))();

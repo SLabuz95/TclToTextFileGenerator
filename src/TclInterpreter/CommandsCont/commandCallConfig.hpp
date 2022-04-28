@@ -7,7 +7,7 @@
 namespace Tcl::Interpreter::Command{
     class Settings{
    public:
-        using NewCallInterModeFctPtr =  Error (Controller::* const)(Call::Name);
+        using CallDefinitionInterModeFctPtr =  Error (Controller::* const)(Call::Name);
         using FinalizeCallInterModeFctPtr = Error (Controller::*)(SavedStat&);
         using WriteOnlyProcedures = QStringList;
 
@@ -38,15 +38,15 @@ namespace Tcl::Interpreter::Command{
         WriteOnlyProcedures writeOnlyProcedures_;
         InterpreterMode mode_ = InterpreterMode::TestCase;
 
-        static const NewCallInterModeFctPtr newProcedureCalls[];
-        static const FinalizeCallInterModeFctPtr finalizeProcedureCalls[];
+        static const CallDefinitionInterModeFctPtr callDefinitionInterModeCalls[];
+        static const FinalizeCallInterModeFctPtr finalizeCallInterModeCalls[];
 
     public:
-        static inline NewCallInterModeFctPtr newCallAt(const Settings::InterpreterMode mode){
-            return newProcedureCalls[mode2number(mode)];
+        static inline CallDefinitionInterModeFctPtr newCallAt(const Settings::InterpreterMode mode){
+            return callDefinitionInterModeCalls[mode2number(mode)];
         }
         static inline FinalizeCallInterModeFctPtr finalizeCallAt(const Settings::InterpreterMode mode){
-            return finalizeProcedureCalls[mode2number(mode)];
+            return finalizeCallInterModeCalls[mode2number(mode)];
         }
 
         inline InterpreterMode mode(){return mode_;}
