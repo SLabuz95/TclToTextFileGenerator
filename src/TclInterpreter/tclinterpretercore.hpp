@@ -49,7 +49,8 @@ namespace Tcl::Interpreter::Core {
         Script,  // {Parent, Child, Pending} SAVEABLE // Old Name: CodeBLock
         ExprCommand, // {Parent, Child} SAVEABLE
         Ignore, // {Parent, Prodromic, Pending} SAVEABLE
-        Size
+        Size,
+        Common // - Used to define one command processing procedure in Tcl Command Controller
     };
 
     static constexpr std::underlying_type_t<Stat> numbOfSpecialCommandCalls()

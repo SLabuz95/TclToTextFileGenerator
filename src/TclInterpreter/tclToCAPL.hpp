@@ -33,12 +33,12 @@ namespace Tcl{
         using InterpretFunction = Error (TCLInterpreter::*)();
         // ----
         // Aliasses
-        inline static Error throwError(){return ErrorController::throwError();}
-        inline static Error throwError(const QString str){return ErrorController::throwError(str);}
-        inline static void clearError(){ErrorController::clearError();}
+        inline Error throwError(){return errorController.throwError();}
+        inline Error throwError(const QString str){return errorController.throwError(str);}
+        inline void clearError(){errorController.clearError();}
     public:
-        inline static bool isError(){return ErrorController::isError();}
-        inline static const QString& error(){return ErrorController::error();}
+        inline bool isError(){return errorController.isError();}
+        inline const QString& error(){return errorController.error();}
     private:
         //
         bool unknownStringProcessing = false;
@@ -148,6 +148,7 @@ namespace Tcl{
 
             //static InterpretFunctions interpretFunctions;
             ErrorMessages ignoreMessages;
+            ErrorController errorController;
             RemoveProcedureCallFunction removeProcedureCallFunction = &TCLInterpreter::removeProcedureCall_standard;
             //bool _whitespace = false;
 

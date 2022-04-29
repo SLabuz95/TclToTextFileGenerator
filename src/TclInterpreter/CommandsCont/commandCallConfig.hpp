@@ -38,15 +38,15 @@ namespace Tcl::Interpreter::Command{
         WriteOnlyProcedures writeOnlyProcedures_;
         InterpreterMode mode_ = InterpreterMode::TestCase;
 
-        static const NewCallInterModeFctPtr newProcedureCalls[];
-        static const FinalizeCallInterModeFctPtr finalizeProcedureCalls[];
+        static const CallDefinitionInterModeFctPtr callDefinitionInterModeCalls[];
+        static const FinalizeCallInterModeFctPtr finalizeCallInterModeCalls[];
 
     public:
-        static inline NewCallInterModeFctPtr newCallAt(const Settings::InterpreterMode mode){
-            return newProcedureCalls[mode2number(mode)];
+        static inline CallDefinitionInterModeFctPtr newCallAt(const Settings::InterpreterMode mode){
+            return callDefinitionInterModeCalls[mode2number(mode)];
         }
         static inline FinalizeCallInterModeFctPtr finalizeCallAt(const Settings::InterpreterMode mode){
-            return finalizeProcedureCalls[mode2number(mode)];
+            return finalizeCallInterModeCalls[mode2number(mode)];
         }
 
         inline InterpreterMode mode(){return mode_;}
@@ -74,6 +74,12 @@ namespace Tcl::Interpreter::Command{
         using NewParameterFctPtr = Error (Controller::*)();
         using NewCallFctPtr = Error (Controller::*)();
         using FinalizeCallFunctionFctPtr = Error (Controller::*)();
+        using ConstructorFctPtr = Error (Controller::*)();
+        using DestructorFctPtr = Error (Controller::*)();
+        enum class NewParameterProcedureStat : bool{
+            FirstParameter,
+            OtherParameters
+        };
 
     public:
         class CommandCallControlFunctions{
@@ -81,16 +87,19 @@ namespace Tcl::Interpreter::Command{
             //NewProcedureCallFunction newProcedureCall;
             //FinalizeProcedureCallFunction finalizeProcedureCall;
             InterpretFctPtr interpretCall;
-            NewParameterFctPtr newParameterCall;
+            NewParameterFctPtr newParameterProcessing;
             NewCallFctPtr newCall;
             FinalizeCallFunctionFctPtr finalizeCall;
+            ConstructorFctPtr constructor;
+            NewParameterFctPtr newParameter;
+            DestructorFctPtr destructor;
         };
         static CommandCallControlFunctions const* controlFunctionsForStat(const Stat stat){
             return &commandCallSpecialFunctions[Settings::specialCallStat2number(stat)];
         }
     private:
         //static const CommandCallSpecialInterpretFunction commandCallSpecialInterprets[];
-        static const CommandCallControlFunctions commandCallSpecialFunctions[];
+        static CommandCallControlFunctions commandCallSpecialFunctions[];
 
             /*static inline CommandCallSpecialInterpretFunction interpretCallAt(const Stat stat){
                 return commandCallSpecialInterprets[Settings::specialCallStat2number(stat)];

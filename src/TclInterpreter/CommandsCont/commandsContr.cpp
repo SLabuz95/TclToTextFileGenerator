@@ -59,7 +59,7 @@ void Controller::deactivateWriteOnlyProcedureMode()
 
 
 template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(Call::Name name){
+Error TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::TestCase>(Call::Name name){
     using Definition = CommandDefinitions::Iterator;
     Definition definition;
     for(definition = procedureDefinitions.begin(); definition < procedureDefinitions.end(); definition++){
@@ -67,11 +67,12 @@ Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::
             break;
     }
     try {
+        /* Commented but required
         if(definition == procedureDefinitions.end()){
             procedureCalls.append(Call(name));
         }else{
             procedureCalls.append(Call(definition));
-        }
+        }*/
     }  catch (std::exception& e) {
         return throwError(e.what());
     }
@@ -79,28 +80,27 @@ Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::
     return Error::NoError;
 }
 template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(Call::Name name){
+Error TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::TestCaseReport>(Call::Name name){
     tryToActivateWriteOnlyProcedure(name);
-    return newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
+    return callDefinition_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
 }
 
 template<>
-Error TclProcedureInterpreter::newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(Call::Name name){
-    return newProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
+Error TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::PredefinitionsOnly>(Call::Name name){
+    return callDefinition_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(name);
 }
 
-const TclProcedureInterpreter::NewProcedureCallFunction
-TclProcedureInterpreter::ProcedureCallFunctions::newProcedureCalls
-[TclProcedureInterpreter::ProdecuresSettings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
+const Settings::CallDefinitionInterModeFctPtr
+Settings::callDefinitionInterModeCalls[Settings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
 {
-    &TclProcedureInterpreter::newProcedureCall_mode<Settings::InterpreterMode::TestCase>,
-    &TclProcedureInterpreter::newProcedureCall_mode<Settings::InterpreterMode::TestCaseReport>,
-    &TclProcedureInterpreter::newProcedureCall_mode<Settings::InterpreterMode::PredefinitionsOnly>,
+    &TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::TestCase>,
+    &TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::TestCaseReport>,
+    &TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::PredefinitionsOnly>,
 };
 
 
 template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(SavedStat &statCommand){
+Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCase>(SavedStat &statCommand){
     using ProcedureDefinition = Command::Definition;
     using RulesForArguments = ProcedureDefinition::RulesForArguments;
     using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
@@ -175,7 +175,7 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCaseReport>(SavedStat &){
+Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCaseReport>(SavedStat &){
     finalizeOn = false;
 
     return Error::NoError;
@@ -183,24 +183,52 @@ Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Setti
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly>(SavedStat &statCommand){
+Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::PredefinitionsOnly>(SavedStat &statCommand){
 
-    return finalizeProcedureCall_mode<UserInputConfig::Settings::InterpreterMode::TestCase>(statCommand);
+    return finalizeCall_mode<Settings::InterpreterMode::TestCase>(statCommand);
 
 }
 
-const TclProcedureInterpreter::FinalizeProcedureCallFunction
-TclProcedureInterpreter::ProcedureCallFunctions::finalizeProcedureCalls
-[TclProcedureInterpreter::ProdecuresSettings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
+const Settings::FinalizeCallInterModeFctPtr
+Settings::finalizeCallInterModeCalls[Settings::mode2number(Settings::InterpreterMode::NumbOfModes)] =
 {
-    &TclProcedureInterpreter::finalizeProcedureCall_mode<Settings::InterpreterMode::TestCase>,
-    &TclProcedureInterpreter::finalizeProcedureCall_mode<Settings::InterpreterMode::TestCaseReport>,
-    &TclProcedureInterpreter::finalizeProcedureCall_mode<Settings::InterpreterMode::PredefinitionsOnly>,
+    &TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCase>,
+    &TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCaseReport>,
+    &TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::PredefinitionsOnly>,
 };
 
 //
+
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::CommandSubbing>(){
+Error TclProcedureInterpreter::constructor_mode<Stat::Common>(){
+    const QString ERROR_PREFIX = "Constructor Special Command <Stat::Common>: ";
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::newParameter_mode<Stat::Common>(){
+    const QString ERROR_PREFIX = "New Parameter Special Command <Stat::Common>: ";
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::destructor_mode<Stat::Common>(){
+    const QString ERROR_PREFIX = "Destructor Special Command <Stat::Common>: ";
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::newParameter_mode<Stat::CommandSubbing>(){
+    const QString ERROR_PREFIX = "New Parameter Special Command <Stat::Common>: ";
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::interpret_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat()){
@@ -240,7 +268,7 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::CommandSub
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::CommandSubbing>(){
+Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
@@ -273,7 +301,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
             break;
 
         default:
-            return ErrorController::throwError(ERROR_PREFIX + "Forbidden Stat");
+            return throwError(ERROR_PREFIX + "Forbidden Stat");
         }
     }
         break;
@@ -328,7 +356,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
         }
             break;
         default:
-            return ErrorController::throwError(ERROR_PREFIX + "Forbidden Stat");
+            return throwError(ERROR_PREFIX + "Forbidden Stat");
         }
     }
         break;    
@@ -339,7 +367,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Command
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::CommandSubbing>(){
+Error TclProcedureInterpreter::newCall_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "New Call Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat()){
@@ -530,7 +558,7 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::CommandSubbi
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::CommandSubbing>(){
+Error TclProcedureInterpreter::finalizeCall_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "Finalize Call Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat()){
@@ -620,7 +648,7 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Command
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::BracesStart>(){
+Error TclProcedureInterpreter::interpret_mode<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::BracesStart>: ";
 
     switch(processingStat()){
@@ -652,7 +680,7 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::BracesStar
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesStart>(){
+Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
@@ -696,13 +724,13 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesS
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::BracesStart>(){
+Error TclProcedureInterpreter::newCall_mode<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "New Call Special Command <Stat::BracesStart>: ";
     return throwError(ERROR_PREFIX + "No implementation for new call for Braces");
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::BracesStart>(){
+Error TclProcedureInterpreter::finalizeCall_mode<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "Finalize Call Special Command <Stat::BracesStart>: ";
 
     switch(processingStat()){
@@ -725,7 +753,7 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::BracesS
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::DoubleQuotes>(){
+Error TclProcedureInterpreter::interpret_mode<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::DoubleQuotes>: ";
 
     switch(processingStat()){
@@ -755,7 +783,7 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::DoubleQuot
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQuotes>(){
+Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
@@ -823,7 +851,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQ
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::DoubleQuotes>(){
+Error TclProcedureInterpreter::newCall_mode<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat()){
@@ -856,7 +884,7 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::DoubleQuotes
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::DoubleQuotes>(){
+Error TclProcedureInterpreter::finalizeCall_mode<Stat::DoubleQuotes>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat()){
@@ -882,7 +910,7 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::DoubleQ
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ComplexWord>(){
+Error TclProcedureInterpreter::interpret_mode<Stat::ComplexWord>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::ComplexWord>: ";
 
     switch(processingStat()){
@@ -917,7 +945,7 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ComplexWor
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::ComplexWord>(){
+Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::ComplexWord>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
@@ -982,7 +1010,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Complex
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ComplexWord>(){
+Error TclProcedureInterpreter::newCall_mode<Stat::ComplexWord>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat()){
@@ -1008,7 +1036,7 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ComplexWord>
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::ComplexWord>(){
+Error TclProcedureInterpreter::finalizeCall_mode<Stat::ComplexWord>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat()){
@@ -1033,31 +1061,31 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Complex
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Expression>(){
+Error TclProcedureInterpreter::interpret_mode<Stat::Expression>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
-    return interpretSpecialCommandCall_mode<Stat::CommandSubbing>();
+    return interpret_mode<Stat::CommandSubbing>();
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Expression>(){
+Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::Expression>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
-    return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>();
+    return newParameterProcessing_mode<Stat::CommandSubbing>();
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Expression>(){
+Error TclProcedureInterpreter::newCall_mode<Stat::Expression>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
-    return newCallSpecialCommandCall_mode<Stat::CommandSubbing>();
+    return newCall_mode<Stat::CommandSubbing>();
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Expression>(){
+Error TclProcedureInterpreter::finalizeCall_mode<Stat::Expression>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
-    return finalizeCallSpecialCommandCall_mode<Stat::CommandSubbing>();
+    return finalizeCall_mode<Stat::CommandSubbing>();
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Script>(){
+Error TclProcedureInterpreter::interpret_mode<Stat::Script>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
 
     switch(processingStat()){
@@ -1094,13 +1122,13 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Script>(){
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Script>(){
+Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::Script>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
-    return ErrorController::throwError(ERROR_PREFIX + "No implemantation");
+    return throwError(ERROR_PREFIX + "No implemantation");
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Script>(){
+Error TclProcedureInterpreter::newCall_mode<Stat::Script>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     return (createCall(Stat::CommandSubbing) == Error::Error
@@ -1108,16 +1136,16 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Script>(){
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Script>(){
+Error TclProcedureInterpreter::finalizeCall_mode<Stat::Script>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
-    // If main script, newCallSpecialCommandCall_mode
+    // If main script, newCall_mode
     // else finialize
 
     return Error::NoError;
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ExprCommand>(){
+Error TclProcedureInterpreter::interpret_mode<Stat::ExprCommand>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
 
     switch(processingStat()){
@@ -1157,7 +1185,7 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ExprComman
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::ExprCommand>(){
+Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::ExprCommand>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
     QString unknownString;
 
@@ -1180,7 +1208,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::ExprCom
     }
         break;
     default:
-        return ErrorController::throwError(ERROR_PREFIX + "Forbidden Stat");
+        return throwError(ERROR_PREFIX + "Forbidden Stat");
     }
 
 
@@ -1188,7 +1216,7 @@ Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::ExprCom
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ExprCommand>(){
+Error TclProcedureInterpreter::newCall_mode<Stat::ExprCommand>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat()){
@@ -1208,7 +1236,7 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ExprCommand>
     case Stat::VariableSubbing:
     case Stat::Namespace:
     case Stat::BackslashSubbing:
-        return newParameterSpecialCommandCall_mode<Stat::CommandSubbing>();
+        return newParameterProcessing_mode<Stat::CommandSubbing>();
     case Stat::CommandSubbingStart:
     {
         // New procedure call (TclInterpreter will add savedStat as TclInterpreter)
@@ -1240,7 +1268,7 @@ Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ExprCommand>
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::ExprCommand>(){
+Error TclProcedureInterpreter::finalizeCall_mode<Stat::ExprCommand>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
 
     switch(processingStat()){
@@ -1292,7 +1320,7 @@ Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::ExprCom
 }
 
 template<>
-Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Ignore>(){
+Error TclProcedureInterpreter::interpret_mode<Stat::Ignore>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
 
     switch(processingStat()){
@@ -1310,83 +1338,83 @@ Error TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Ignore>(){
 }
 
 template<>
-Error TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Ignore>(){
+Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::Ignore>(){
     const QString ERROR_PREFIX = "New Parameter Error: ";
-    return ErrorController::throwError(ERROR_PREFIX + "No implemantation");
+    return throwError(ERROR_PREFIX + "No implemantation");
 }
 
 template<>
-Error TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Ignore>(){
+Error TclProcedureInterpreter::newCall_mode<Stat::Ignore>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
-    return ErrorController::throwError(ERROR_PREFIX + "No implemantation");
+    return throwError(ERROR_PREFIX + "No implemantation");
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Ignore>(){
+Error TclProcedureInterpreter::finalizeCall_mode<Stat::Ignore>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::CommandSubbing>: ";
-    return ErrorController::throwError(ERROR_PREFIX + "No implemantation");
+    return throwError(ERROR_PREFIX + "No implemantation");
 }
 
 
-const CallConfig::CommandCallControlFunctions
+CallConfig::CommandCallControlFunctions
 CallConfig::commandCallSpecialFunctions
 [Tcl::Interpreter::Core::numbOfSpecialCommandCallsAndSafeguard()] =
 {
     //CommandSubbing
     {
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::CommandSubbing>,
-        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::CommandSubbing>,
-        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::CommandSubbing>,
-        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::interpret_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::newParameterProcessing_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::newCall_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::finalizeCall_mode<Stat::CommandSubbing>,
     },
     //BracesStart
     {
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::BracesStart>,
-        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::BracesStart>,
-        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::BracesStart>,
-        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::BracesStart>,
+        &TclProcedureInterpreter::interpret_mode<Stat::BracesStart>,
+        &TclProcedureInterpreter::newParameterProcessing_mode<Stat::BracesStart>,
+        &TclProcedureInterpreter::newCall_mode<Stat::BracesStart>,
+        &TclProcedureInterpreter::finalizeCall_mode<Stat::BracesStart>,
     },
     //DoubleQuotes
     {
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::DoubleQuotes>,
-        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::DoubleQuotes>,
-        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::DoubleQuotes>,
-        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::DoubleQuotes>,
+        &TclProcedureInterpreter::interpret_mode<Stat::DoubleQuotes>,
+        &TclProcedureInterpreter::newParameterProcessing_mode<Stat::DoubleQuotes>,
+        &TclProcedureInterpreter::newCall_mode<Stat::DoubleQuotes>,
+        &TclProcedureInterpreter::finalizeCall_mode<Stat::DoubleQuotes>,
     },
     //ComplexWord
     {
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ComplexWord>,
-        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::ComplexWord>,
-        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::ComplexWord>,
-        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::ComplexWord>,
+        &TclProcedureInterpreter::interpret_mode<Stat::ComplexWord>,
+        &TclProcedureInterpreter::newParameterProcessing_mode<Stat::ComplexWord>,
+        &TclProcedureInterpreter::newCall_mode<Stat::ComplexWord>,
+        &TclProcedureInterpreter::finalizeCall_mode<Stat::ComplexWord>,
     },
     //Expression
     {
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Expression>,
-        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Expression>,
-        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Expression>,
-        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Expression>,
+        &TclProcedureInterpreter::interpret_mode<Stat::Expression>,
+        &TclProcedureInterpreter::newParameterProcessing_mode<Stat::Expression>,
+        &TclProcedureInterpreter::newCall_mode<Stat::Expression>,
+        &TclProcedureInterpreter::finalizeCall_mode<Stat::Expression>,
     },
     //Script
     {
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Script>,
-        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Script>,
-        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Script>,
-        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Script>,
+        &TclProcedureInterpreter::interpret_mode<Stat::Script>,
+        &TclProcedureInterpreter::newParameterProcessing_mode<Stat::Script>,
+        &TclProcedureInterpreter::newCall_mode<Stat::Script>,
+        &TclProcedureInterpreter::finalizeCall_mode<Stat::Script>,
     },
     //ExprCommand
     {
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ExprCommand>,
-        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::CommandSubbing>,
-        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::CommandSubbing>,
-        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::interpret_mode<Stat::ExprCommand>,
+        &TclProcedureInterpreter::newParameterProcessing_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::newCall_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::finalizeCall_mode<Stat::CommandSubbing>,
     },
     //Ignore
     {
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Ignore>,
-        &TclProcedureInterpreter::newParameterSpecialCommandCall_mode<Stat::Ignore>,
-        &TclProcedureInterpreter::newCallSpecialCommandCall_mode<Stat::Ignore>,
-        &TclProcedureInterpreter::finalizeCallSpecialCommandCall_mode<Stat::Ignore>,
+        &TclProcedureInterpreter::interpret_mode<Stat::Ignore>,
+        &TclProcedureInterpreter::newParameterProcessing_mode<Stat::Ignore>,
+        &TclProcedureInterpreter::newCall_mode<Stat::Ignore>,
+        &TclProcedureInterpreter::finalizeCall_mode<Stat::Ignore>,
     },
     // SafeGuard
     {
@@ -1401,12 +1429,12 @@ const TclProcedureInterpreter::CommandCallSpecialInterpretFunction
 TclProcedureInterpreter::ProcedureCallFunctions::commandCallSpecialInterprets
 [Tcl::Interpreter::Core::numbOfSpecialCommandCallsAndSafeguard()] =
 {
-    &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::CommandSubbing>,
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::BracesStart>,
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::DoubleQuotes>,
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::ComplexWord>,
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Expression>,
-        &TclProcedureInterpreter::interpretSpecialCommandCall_mode<Stat::Script>,
+    &TclProcedureInterpreter::interpret_mode<Stat::CommandSubbing>,
+        &TclProcedureInterpreter::interpret_mode<Stat::BracesStart>,
+        &TclProcedureInterpreter::interpret_mode<Stat::DoubleQuotes>,
+        &TclProcedureInterpreter::interpret_mode<Stat::ComplexWord>,
+        &TclProcedureInterpreter::interpret_mode<Stat::Expression>,
+        &TclProcedureInterpreter::interpret_mode<Stat::Script>,
         &TclProcedureInterpreter::interpretSpecialCommandCall_throwErrorForWrongStat
 };
 */
@@ -1414,9 +1442,8 @@ TclProcedureInterpreter::ProcedureCallFunctions::commandCallSpecialInterprets
 
 Error Controller::createCall(Stat stat, Call::Parameter&& parameter){
     // If Stat id for semi command call stats is correct (If wrong stat , stat id of Stat::Size is returnedgh)
-    if(Settings::specialCallStat2number(stat) == Settings::specialCallStat2number(Stat::Size)){
+    if(Settings::specialCallStat2number(stat) == Settings::specialCallStat2number(Stat::Size))
         return throwError("Wrong stat for CreateCall procedure. Stat: " + QString::number(TCLInterpreter::cast_stat(stat)));
-    }
     procedureCalls.append(Call(stat, parameter));
     return Error::NoError;
 }
@@ -1424,6 +1451,10 @@ Error Controller::createCall(Stat stat, Call::Parameter&& parameter){
 Error Controller::createCallAndMoveLastParameterToOne(Stat stat){
     if(not procedureCalls.last().isLastParameterEmpty())
         return throwError("CreateAndMove procedure: No parameters or empty parameter");
-    else
-        return createCall(stat, procedureCalls.last().rawParameters().takeLast());
+    return createCall(stat, procedureCalls.last().rawParameters().takeLast());
 }
+
+
+Error Controller::throwError(){return tclInterpreter.throwError();}
+Error Controller::throwError(const QString str){return tclInterpreter.throwError(str);}
+const QString& Controller::error(){return tclInterpreter.error();}

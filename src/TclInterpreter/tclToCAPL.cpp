@@ -2147,12 +2147,14 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
 //            break;
         case Stat::Expression:
         {
-            TCLInterpreter::throwError("Expression to string for TclFormat not implemented");
+            // Commented but required
+            //errorController.throwError("Expression to string for TclFormat not implemented");
         }
             break;
         case Stat::Script:
         {
-            TCLInterpreter::throwError("CodeBlock to string for TclFormat not implemented");
+            // Commented but required
+            //errorController.throwError("CodeBlock to string for TclFormat not implemented");
         }
             break;
         default:

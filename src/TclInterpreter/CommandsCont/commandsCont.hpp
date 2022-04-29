@@ -33,9 +33,9 @@ namespace Tcl::Interpreter::Command{
         }
      private:
         // Aliases
-        inline static Error throwError(){return ErrorController::throwError();}
-        inline static Error throwError(const QString str){return ErrorController::throwError(str);}
-        inline static const QString& error(){return ErrorController::error();}
+        Error throwError();
+        Error throwError(const QString str);
+        const QString& error();
         // ---------
 
         static QMap<const QString,  UserInteractionStatus> userInteractionMap;
@@ -131,6 +131,8 @@ namespace Tcl::Interpreter::Command{
     public:
         //Error createCall(Stat, Call::Parameter&&);
         Error createCall(Stat, Call::Parameter&& = Call::Parameter());
+        Error addNewParameter();
+
         Controller(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig);
 
         // WriteOnlyProcedures
@@ -156,10 +158,12 @@ namespace Tcl::Interpreter::Command{
     //    }
 /*
         inline Error newProcedureCall(Call::Name name){return (this->*newProcedureCallFunction)(name);}
-
-        template<Controller::ProdecuresSettings::InterpreterMode>
-        Error newProcedureCall_mode(Call::Name name);
-
+*/
+        template<Settings::InterpreterMode>
+        Error callDefinition_mode(Call::Name name);
+        template<Settings::InterpreterMode>
+        Error finalizeCall_mode(SavedStat&);
+/*
         inline Error removeProcedureCall(){return procedureCalls.isEmpty()? throwError("TclProcedureInterpreter_Internal: No procedure to remove") :
                                                                      (procedureCalls.removeLast(), Error::NoError);}
         // -- !!!        
@@ -171,15 +175,14 @@ namespace Tcl::Interpreter::Command{
 
         inline Error finalizeProcedureCall(SavedStat& savedStat){return (this->*finalizeProcedureCallFunction)(savedStat);}
 
-        template<Controller::ProdecuresSettings::InterpreterMode>
-        Error finalizeProcedureCall_mode(SavedStat&);
+
 */
         inline Error interpret(){
             return (this->*(currentCommandCallFunctions->interpretCall))();
         }
 
         inline Error newParameterProcessing(){
-            return (this->*(currentCommandCallFunctions->newParameterCall))();
+            return (this->*(currentCommandCallFunctions->newParameterProcessing))();
         }
 
         inline Error newCallProcessing(){
@@ -190,15 +193,33 @@ namespace Tcl::Interpreter::Command{
             return (this->*(currentCommandCallFunctions->finalizeCall))();
         }
 
+        inline Error constructor(){
+            return (this->*(currentCommandCallFunctions->constructor))();
+        }
+
+        inline Error newParameter(){
+            return (this->*(currentCommandCallFunctions->newParameter))();
+        }
+
+        inline Error destructor(){
+            return (this->*(currentCommandCallFunctions->destructor))();
+        }
+
 
         template<Stat>  // Special Command Call Stat
-        Error interpretSpecialCommandCall_mode();
-        template<Stat>  // New Parameter Call Stat
-        Error newParameterSpecialCommandCall_mode();
+        Error interpret_mode();
+        template<Stat>  // New Parameter Processing Call Stat
+        Error newParameterProcessing_mode();
         template<Stat>  // Special Command Call Stat
-        Error newCallSpecialCommandCall_mode();
+        Error newCall_mode();
         template<Stat>  // New Parameter Call Stat
-        Error finalizeCallSpecialCommandCall_mode();
+        Error finalizeCall_mode();
+        template<Stat>  // Constructor Call Stat
+        Error constructor_mode();
+        template<Stat>  // New Parameter Call Stat
+        Error newParameter_mode();
+        template<Stat>  // Destructor Call Stat
+        Error destructor_mode();
         // Special case for Stat::Size
         Error interpretSpecialCommandCall_throwErrorForWrongStat(){
             return throwError("TclProcedureInterpreter_Internal: Wrong stat used for command call interpet methods");
