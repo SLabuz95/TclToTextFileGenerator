@@ -2,6 +2,7 @@
 #define TCLTOCAPL_HPP
 
 #include"tclinterpretercore.hpp"
+#include"ListsCont/listsCont.hpp"
 #include<QtGlobal>
 #include<QXmlStreamWriter>
 #include"External/RegExpCore/regexprcore.hpp"
@@ -33,16 +34,16 @@ namespace Tcl{
         using InterpretFunction = Error (TCLInterpreter::*)();
         // ----
         // Aliasses
-        inline Error throwError(){return errorController.throwError();}
-        inline Error throwError(const QString str){return errorController.throwError(str);}
         inline void clearError(){errorController.clearError();}
     public:
+        inline Error throwError(){return errorController.throwError();}
+        inline Error throwError(const QString str){return errorController.throwError(str);}
         inline bool isError(){return errorController.isError();}
         inline const QString& error(){return errorController.error();}
     private:
         //
         bool unknownStringProcessing = false;
-        Stat processingStat = Stat::Size;
+        Stat _processingStat = Stat::Size;
         using ErrorMessage = ErrorController::ErrorMessage;
         using ErrorMessages = QVector<ErrorMessage>;
         // ----
@@ -112,11 +113,21 @@ namespace Tcl{
                 preexpressions().clear();
             }
         }
-        inline QString readCurrentKeyword(){return (unknownStringProcessing)? textInterpreter.readUnknownString() : textInterpreter.readLastKeyword();}
+
+        inline QString readCurrentKeyword(){return (unknownStringProcessing)? textInterpreter().readUnknownString() : textInterpreter().readLastKeyword();}
 //        inline bool isCurrentKeywordProcessing()const{return proccessingStats.isEmpty();}
 //        inline bool isUnknownStringProcessing()const{return not isCurrentKeywordProcessing();}
+
+        Error interpreterProcedure_standard();
+        Error interpreterProcedure_backslashSubbingSpecial();
+
+        using InterpreterProcedureFctPtr = Error (TCLInterpreter::*)();
+        InterpreterProcedureFctPtr currentInterpreterProcedure = &TCLInterpreter::interpreterProcedure_standard;
+        inline Error callCurrentInterpreterProcedure(){
+            return (this->*currentInterpreterProcedure)();
+        }
     public:
-        using InterpretFunctions = InterpretFunction[static_cast<std::underlying_type_t<Stat>>(Stat::Size)];
+        //using InterpretFunctions = InterpretFunction[static_cast<std::underlying_type_t<Stat>>(Stat::Size)];
         // End Of Concept ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
         // Concept Definition ------------------------------------------------------------------
 
@@ -132,8 +143,10 @@ namespace Tcl{
             //Variables variables;
             // Controllers
 
-            KeywordsController textInterpreter;
+            KeywordsController _textInterpreter;
             CommandsController commandsController;
+            ListController _listController;
+            VariableController _variableController;
             PredefinitionsController predefinitionsController;
             SnprintfController snprintfController;
             UserInteraction userInteraction;
@@ -162,12 +175,12 @@ namespace Tcl{
 
             inline Error processUnknownString(){
                 Error error = Error::NoError;
-                if(textInterpreter.throwErrorIfUnknownStringForForbiddenRule() == Error::Error){
+                if(textInterpreter().throwErrorIfUnknownStringForForbiddenRule() == Error::Error){
                     throwError("TCL Interpreter: Unknown String is Forbidden");
                     if(processError() == Error::Error)
                         return Error::Error;
                 }
-                if(textInterpreter.isUnknownString()){
+                if(textInterpreter().isUnknownString()){
                     unknownStringProcessing = true;
                     error = callInterpretFunction();
                     unknownStringProcessing = false;
@@ -222,7 +235,7 @@ namespace Tcl{
             Error finalizeSnprintfCall();
 
             Error processError(){
-                addIgnoreMessage(ErrorMessage(error(), textInterpreter.readTclCommand(), textInterpreter.restOfString()));
+                addIgnoreMessage(ErrorMessage(error(), textInterpreter().readTclCommand(), textInterpreter().restOfString()));
                  if(processSavedStatsForError() == Error::Error)
                      return Error::Error;
                  clearError();
@@ -239,6 +252,12 @@ namespace Tcl{
             TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsRef caplFunctionDefinitions);
 
 //          inline bool isComplete()const{return savedStatsSize() == 1;}
+
+            inline VariableController& variableController(){return _variableController;}
+            inline KeywordsController& textInterpreter(){return _textInterpreter;}
+            inline ListController& listController(){return _listController;}
+
+            inline Stat processingStat()const{return _processingStat;}
 
             Error toCAPL(TclCommand&);
             //Error addReadyCommand(TclCommand&);
@@ -266,6 +285,13 @@ namespace Tcl{
             inline PredefinitionsController::Predefinitions& predefinitions(){return predefinitionsController.getPredefinitions();}
 
             bool isPredefinitionMode();
+
+            inline void setStandardInterpreterMode(){
+                currentInterpreterProcedure = &TCLInterpreter::interpreterProcedure_standard;
+            }
+            inline void setBackslashSubbingInterpreterMode(){
+                currentInterpreterProcedure = &TCLInterpreter::interpreterProcedure_backslashSubbingSpecial;
+            }
         // End of Interface |||||||||||||||||||||||||||||||||||||||||||||
 
          // Interpret Functions

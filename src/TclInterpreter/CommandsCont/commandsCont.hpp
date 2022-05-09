@@ -127,15 +127,52 @@ namespace Tcl::Interpreter::Command{
         // Interface ----------------------------------------------------------------------------
         Error createCallAndMoveLastParameterToOne(Stat);
 
-        inline Stat processingStat()const;//{return tclInterpreter.processingStat();}
+        Stat processingStat()const;//{return tclInterpreter.processingStat();}
+
+        bool backslashSubbingActive = true;
     public:
         //Error createCall(Stat, Call::Parameter&&);
         Error createCall(Stat, Call::Parameter&& = Call::Parameter());
         Error addNewParameter();
+        Error addNewParameter(QString);
+        Error addNewParameter(Stat, QString = QString(), OutputCommand = OutputCommand());
+        Error addFinalizedCallParameter();
+        Error startVariableSubbing();
+        Error processVariableSubbing();
+        Error performVariableSubbingRecoveryProcedure(){};
+        Error processBackslashSubbing();
+        inline void activateBackslashSubbing(){backslashSubbingActive = true;}
+        inline void deactivateBackslashSubbing(){backslashSubbingActive = false;}
+
+        Error finalizeCall();
+        Error removeIgnore(){};
 
         Controller(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig);
 
+
+
+        inline bool isMainScript()const{
+            return procedureCalls.isEmpty();
+        }
+
+        inline bool isNotCommandSubbing()const{
+            return procedureCalls.isEmpty() or procedureCalls.last().stat() == Stat::Script;
+        }
+
+        inline bool isCommandSubbingCall()const{
+            return not isNotCommandSubbing();
+        }
+
+        inline void updateCurrentCallProcedures(){
+            currentCommandCallFunctions = CallConfig::controlFunctionsForStat((procedureCalls.isEmpty())? Stat::Size : procedureCalls.last().stat());
+        }
+
+        inline void updateCurrentCallProcedures(Stat stat){
+            currentCommandCallFunctions = CallConfig::controlFunctionsForStat(stat);
+        }
+
         // WriteOnlyProcedures
+
         void tryToActivateWriteOnlyProcedure(Call::Name& name);
         //inline bool isWriteOnlyProcedureActive()const{return writeOnlyProcedureActiveIndex != -1;}
         inline void tryToDeactivateWriteOnlyProcedure(){

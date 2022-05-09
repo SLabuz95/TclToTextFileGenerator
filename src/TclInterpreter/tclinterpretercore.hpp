@@ -21,7 +21,6 @@ namespace Tcl::Interpreter::Core {
         Word,             // {Child, Proccessing} //Old Name: String // For definition, Check Tcl concept in Github References
         //Const,              // SAVEABLE   // Check const or string is only in special cases - const and string distinction do not change interpreter behaviour
         //Operator,           // SAVEABLE // In Development
-        VariableSubbing,           // $ {Child, Processing} // Never as stand alone child of CommandSubbing (only child of DoubleQuotes or ComplexWord)
         //UnknownString, Word state substitute that state
         CommandSubbingStart,   // {Processing} [
         CommandSubbingEnd,  // {Processing} ],
@@ -34,7 +33,6 @@ namespace Tcl::Interpreter::Core {
         EndOfString,    // {Processing} Deinitialize saved stats
         //EndOfCodeBlock,  // SAVEABLE
         //Snprintf,   //  SAVEABLE For case of procedure call for speech mark processing -> procedure call [string concat ...]
-        BackslashSubbing, // {Parent, Child, Processing} // Old Name: SpecialSign
         //PendingString,  // SAVEABLE
         //PendingSnprintf,    // SAVEABLE
         //StringInQuotes, // SAVEABLE
@@ -49,6 +47,8 @@ namespace Tcl::Interpreter::Core {
         Script,  // {Parent, Child, Pending} SAVEABLE // Old Name: CodeBLock
         ExprCommand, // {Parent, Child} SAVEABLE
         Ignore, // {Parent, Prodromic, Pending} SAVEABLE
+        VariableSubbing,           // $ {Child, Processing} // Specific behaviour
+        BackslashSubbing, // {Parent, Child, Processing} // Old Name: SpecialSign
         Size,
         Common // - Used to define one command processing procedure in Tcl Command Controller
     };

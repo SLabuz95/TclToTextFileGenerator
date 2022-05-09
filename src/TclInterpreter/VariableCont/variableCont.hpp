@@ -4,6 +4,7 @@
 #include"TclInterpreter/tclinterpretercore.hpp"
 #include<QString>
 #include<QMap>
+#include"TclInterpreter/CommandsCont/commandCall.hpp"
 /*
 class VariablesController{
     // Concept --------------
@@ -38,7 +39,8 @@ class VariablesController{
     // End of Interface
 };*/
 namespace Tcl::Interpreter{
-    class VariablesController{
+    using namespace Command;
+    class VariableController{
 
         struct VariableInfo{
             using Type = QString;
@@ -54,7 +56,7 @@ namespace Tcl::Interpreter{
         using ArrayRanks = VariableInfo::ArrayRanks;
         using Value = VariableInfo::Value;
         using Variables_priv = QMap<VarName, VariableInfo>;
-        Variables_priv variables;
+        //Variables_priv variables;
 
     public:
         using Variable = VariableInfo;
@@ -64,7 +66,7 @@ namespace Tcl::Interpreter{
             // Jezeli sie zmienia
             //if()
         }*/
-
+        void processVariableSubbingParameter(Call::Parameter&, QString&);
     };
 
 };

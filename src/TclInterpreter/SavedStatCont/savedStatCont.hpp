@@ -13,7 +13,7 @@ namespace Tcl::Interpreter {
 
         void appendCommmand_listProcessing(OutputCommand command);
     public:
-        SavedStat(){}
+        //SavedStat(){}
         SavedStat(Stat stat) : pStat(stat){}
         SavedStat(Stat stat, OutputCommand command) : pStat(stat), _command(command){}
 

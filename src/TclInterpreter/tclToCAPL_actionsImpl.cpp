@@ -10,7 +10,7 @@ using Result = Tcl::Interpreter::KeywordsController::Result;
 using ReadIgnoreResult = Tcl::Interpreter::KeywordsController::ReadIgnoreResult;
 using CheckingResult = Tcl::Interpreter::KeywordsController::CheckingResult;
 using KeywordsMap = Tcl::Interpreter::KeywordsController::KeywordsMap;
-using TCLInterpreterFunctions = Interpreter::InterpretFunctions;
+//using TCLInterpreterFunctions = Interpreter::InterpretFunctions;
 using UserInteractionStatus = Tcl::UserInteractionStatus;
 using Rule = TclProcedureCommand::Definition::Rule;
 using Action = TclProcedureCommand::Definition::Action;
@@ -545,7 +545,8 @@ void TCLCommandsController::executeAction
     if(procedureCalls.last().name() == "set"){
         if(procedureCalls.last().parametersLength() == 2){
             // Init
-            procedureCalls.last().parameters()[0].setCommand(procedureCalls.last().parameters().at(0).command().replace(":", ""));
+//            Commented but required
+//            procedureCalls.last().parameters()[0].setCommand(procedureCalls.last().parameters().at(0).command().replace(":", ""));
             using Mode = UserInputConfig::Settings::InterpreterMode;
             using ParameterRefs = QList<Call::Parameters::Iterator>;
             using ParameterRef = Call::Parameters::Iterator;
@@ -577,19 +578,20 @@ void TCLCommandsController::executeAction
                     case Stat::VariableSubbing:
                     {
                         Variable variable;
-                        if(tclInterpreter.predefinitionsController.findVariable(variable, lastParameterRef->command()) or tclInterpreter.predefinitionsController.findVariableGlobally(tclInterpreter.userConfig.predefinitions(), variable, lastParameterRef->command())){
-                            if(tclInterpreter.userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly or not variable.type.isEmpty()){
-                                type = variable.type;
-                                value = lastParameterRef->command();
-                                arrayRanks = variable.arrayRanks;
-                            }
-                        }else{
-                            if(tclInterpreter.userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly){
-                                type = CHAR_TYPE;
-                                arrayRanks = {128};
-                                value = lastParameterRef->command();
-                            }
-                        }
+//                        Commented but required
+//                        if(tclInterpreter.predefinitionsController.findVariable(variable, lastParameterRef->command()) or tclInterpreter.predefinitionsController.findVariableGlobally(tclInterpreter.userConfig.predefinitions(), variable, lastParameterRef->command())){
+//                            if(tclInterpreter.userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly or not variable.type.isEmpty()){
+//                                type = variable.type;
+//                                value = lastParameterRef->command();
+//                                arrayRanks = variable.arrayRanks;
+//                            }
+//                        }else{
+//                            if(tclInterpreter.userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly){
+//                                type = CHAR_TYPE;
+//                                arrayRanks = {128};
+//                                value = lastParameterRef->command();
+//                            }
+//                        }
                         parameterRefs.clear();
                     }
                         break;
@@ -598,7 +600,8 @@ void TCLCommandsController::executeAction
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
-                        value = lastParameterRef->command();
+//                        Commented but required
+//                        value = lastParameterRef->command();
                         parameterRefs.clear();
                     }
                         break;
@@ -607,7 +610,8 @@ void TCLCommandsController::executeAction
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
-                        value = lastParameterRef->command();
+//                        Commented but required
+//                        value = lastParameterRef->command();
                         parameterRefs.clear();
                     }
                         break;
@@ -624,23 +628,24 @@ void TCLCommandsController::executeAction
 //                    case Stat::StringInQuotes:
 //                    case Stat::PendingString: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
                     {
-                        if(tclInterpreter.isStringConstNumber(lastParameterRef->command())){ // For any new string, check if its number
-                            /*if(tclInterpreter.isStringUIntNumber(lastParameterRef->command())){ // If Uint
-                                //type = UINT_TYPE;
-                            }else{  // No Uint, Probably Integer*/
-                                if(tclInterpreter.isStringIntNumber(lastParameterRef->command())){  // Integer
-                                    type = INT_TYPE;
-                                }else{ // No Integer, for sure its Float
-                                    type = FLOAT_TYPE;
-                                }
-                            //}
+//                        Commented but required
+//                        if(tclInterpreter.isStringConstNumber(lastParameterRef->command())){ // For any new string, check if its number
+//                            /*if(tclInterpreter.isStringUIntNumber(lastParameterRef->command())){ // If Uint
+//                                //type = UINT_TYPE;
+//                            }else{  // No Uint, Probably Integer*/
+//                                if(tclInterpreter.isStringIntNumber(lastParameterRef->command())){  // Integer
+//                                    type = INT_TYPE;
+//                                }else{ // No Integer, for sure its Float
+//                                    type = FLOAT_TYPE;
+//                                }
+//                          }
 //                            lastParameterRef->setStat(Stat::Const);
-                        }else{
-                            type = CHAR_TYPE;
-                            arrayRanks = {128};
-                        }
-                        // Stop Loop Clear ParameterRefs
-                        value = lastParameterRef->command();
+//                        }else{
+//                            type = CHAR_TYPE;
+//                            arrayRanks = {128};
+//                        }
+//                     // Stop Loop Clear ParameterRefs
+//                        value = lastParameterRef->command();
                         parameterRefs.clear();
                     }
                         break;
@@ -663,78 +668,79 @@ void TCLCommandsController::executeAction
 
                     }
                 }else{
-                    for(RawParameterRef rawParameter = lastParameterRef->rawParameters().constBegin();
-                        rawParameter < lastParameterRef->rawParameters().constEnd(); rawParameter++)
-                    {
-                        switch(rawParameter->stat()){
-//                           case Stat::Const:    // If const that means const is float, check if its uinteger
-//                           {
-//                                // For Expressions
-//                                if(type.front() != FLOAT_TYPE.front()){ // Type other than FLOAT_TYPE
-//                                    if(tclInterpreter.isStringIntNumber(rawParameter->command())){ // Int
-//                                        type = INT_TYPE;
-//                                    }else{  // Parameter is Float
-//                                        type = FLOAT_TYPE;
-//                                    }
-//                                }else{} // Type is already float
-//                           }
-//                            break;
-                        case Stat::VariableSubbing:
-                        {
-
-                        }
-                            break;
-
-                        case Stat::CommandSubbing:
-                        {
-
-                        }
-                            break;
-
-                        case Stat::Braces:
-                        {
-
-                        }
-                            break;
-                        case Stat::Word:
-                        {
-                            type = CHAR_TYPE;
-                            arrayRanks = {128};
-                            value = lastParameterRef->command();
-                            parameterRefs.clear();
-                        }
-                            break;
-                        case Stat::DoubleQuotes:
-//                        case Stat::StringInQuotes:
-//                        case Stat::PendingString: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
-                        {
-
-                        }
-                            break;
-
-//                        case Stat::Snprintf:
-//                        case Stat::PendingSnprintf:
+//                    Commented but required
+//                    for(RawParameterRef rawParameter = lastParameterRef->rawParameters().constBegin();
+//                        rawParameter < lastParameterRef->rawParameters().constEnd(); rawParameter++)
+//                    {
+//                        switch(rawParameter->stat()){
+////                           case Stat::Const:    // If const that means const is float, check if its uinteger
+////                           {
+////                                // For Expressions
+////                                if(type.front() != FLOAT_TYPE.front()){ // Type other than FLOAT_TYPE
+////                                    if(tclInterpreter.isStringIntNumber(rawParameter->command())){ // Int
+////                                        type = INT_TYPE;
+////                                    }else{  // Parameter is Float
+////                                        type = FLOAT_TYPE;
+////                                    }
+////                                }else{} // Type is already float
+////                           }
+////                            break;
+//                        case Stat::VariableSubbing:
 //                        {
 
 //                        }
 //                            break;
 
-                        default:
-                        {
-                           throwError(ERROR_PREFIX + "Not implemented stat for initialized stat");
-                           return;
-                        }
-                        }
-                    }
-                }
+//                        case Stat::CommandSubbing:
+//                        {
+
+//                        }
+//                            break;
+
+//                        case Stat::Braces:
+//                        {
+
+//                        }
+//                            break;
+//                        case Stat::Word:
+//                        {
+//                            type = CHAR_TYPE;
+//                            arrayRanks = {128};
+//                            value = lastParameterRef->command();
+//                            parameterRefs.clear();
+//                        }
+//                            break;
+//                        case Stat::DoubleQuotes:
+////                        case Stat::StringInQuotes:
+////                        case Stat::PendingString: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
+//                        {
+
+//                        }
+//                            break;
+
+////                        case Stat::Snprintf:
+////                        case Stat::PendingSnprintf:
+////                        {
+
+////                        }
+////                            break;
+
+//                        default:
+//                        {
+//                           throwError(ERROR_PREFIX + "Not implemented stat for initialized stat");
+//                           return;
+//                        }
+//                        }
+//                    }
+//                }
             }
-        }else{
-            type = CHAR_TYPE;
-            arrayRanks = {128};
-        }
-    }else{
-        type = CHAR_TYPE;
-    }
+//        }else{
+//            type = CHAR_TYPE;
+//            arrayRanks = {128};
+//        }
+//    }else{
+//        type = CHAR_TYPE;
+//    }
 
     // Otherwise
 
@@ -742,8 +748,9 @@ void TCLCommandsController::executeAction
         throwError(ERROR_PREFIX + "Numb of arguments of procedure call is 0.");
         return;
     }
-    tclInterpreter.predefinitionsController.newVariable(type, procedureCalls.last().parameters().first().command());
-
+//    Commented but required
+//    tclInterpreter.predefinitionsController.newVariable(type, procedureCalls.last().parameters().first().command());
+}}}
 }
 
 

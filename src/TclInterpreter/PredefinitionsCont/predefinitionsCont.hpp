@@ -8,7 +8,7 @@
 namespace Tcl::Interpreter{
 
     class PredefinitionsController{
-        using Variable_priv = VariablesController::Variable;
+        using Variable_priv = VariableController::Variable;
         using Predefinitions_priv = QList<Variable_priv>;
         using Type = Variable_priv::Type;
         using VarName = Variable_priv::VarName;
@@ -16,7 +16,7 @@ namespace Tcl::Interpreter{
         using VariableNames = QStringList;
         using GroupPredefinitionPositions = QVector<Predefinitions_priv::size_type>;
         using GroupVariableNamePositions = QVector<VariableNames::size_type>;
-        using Group = Types::SavedStats::size_type;
+        using Group = Interpreter::Types::SavedStats::size_type;
         using Groups = QVector<Group>;
 
         Predefinitions_priv predefinitions;

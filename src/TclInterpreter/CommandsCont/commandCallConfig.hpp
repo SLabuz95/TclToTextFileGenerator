@@ -97,6 +97,10 @@ namespace Tcl::Interpreter::Command{
         static CommandCallControlFunctions const* controlFunctionsForStat(const Stat stat){
             return &commandCallSpecialFunctions[Settings::specialCallStat2number(stat)];
         }
+
+        static void setCommandSubbingNewParameter_procedureNameMode();
+        static void setCommandSubbingNewParameter_parametersMode();
+
     private:
         //static const CommandCallSpecialInterpretFunction commandCallSpecialInterprets[];
         static CommandCallControlFunctions commandCallSpecialFunctions[];

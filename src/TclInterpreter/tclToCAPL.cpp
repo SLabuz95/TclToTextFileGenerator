@@ -11,7 +11,7 @@ using Result = KeywordsController::Result;
 using ReadIgnoreResult = KeywordsController::ReadIgnoreResult;
 using CheckingResult = KeywordsController::CheckingResult;
 using KeywordsMap = KeywordsController::KeywordsMap;
-using TCLInterpreterFunctions = TCLInterpreter::InterpretFunctions;
+//using TCLInterpreterFunctions = TCLInterpreter::InterpretFunctions;
 using UserInteractionStatus = Tcl::UserInteractionStatus;
 using Rule = TclCommand_NS::Definition::Rule;
 using Action = TclCommand_NS::Definition::Action;
@@ -23,7 +23,7 @@ using FormatTarget = TclCommand_NS::Definition::Format::Target;
 using namespace Tcl::Interpreter;
 
 TCLInterpreter::TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsRef functionDefinitionsRef)
-    : commandsController(*this, userConfig), functionDefinitions(functionDefinitionsRef), userConfig(userConfig)
+    : functionDefinitions(functionDefinitionsRef), commandsController(*this, userConfig), _listController(*this), userConfig(userConfig)
 {clearError();}
 
 
@@ -2064,7 +2064,8 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
 
     switch(target){
     case Target::Command:
-        return command();
+//        Commented but required
+//        return command();
 
     case Target::SnprintfFormat:
     {
@@ -2097,13 +2098,17 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
         case Stat::DoubleQuotes:
 //        case Stat::PendingString:
 //        case Stat::StringInQuotes:
-            return QString("\"") + command() + "\"";
-        case Stat::Script:
-            return QString("{") + command() + "}";
+//            Commented but required
+//            return QString("\"") + command() + "\"";
+//        case Stat::Script:
+//            return QString("{") + command() + "}";
         case Stat::Braces:
-            return savedStat().listToCaplString();
+//            Commented but required
+//            return savedStat().listToCaplString();
         default:
-            return command();
+//            Commented but required
+//            return command();
+            break;
         }
     }
         break;
@@ -2113,18 +2118,20 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
         QString str;
         switch (stat()) {
         case Stat::VariableSubbing:
-            return QString("$") + command();
-        case Stat::Braces:
-            return QString("{") + savedStat().listToTclListString() + "}";
-        case Stat::DoubleQuotes:
-            return command();
+//            Commented but required
+//            return QString("$") + command();
+//        case Stat::Braces:
+//            return QString("{") + savedStat().listToTclListString() + "}";
+//        case Stat::DoubleQuotes:
+//            return command();
 //        case Stat::StringInQuotes:
 //            return QString("\"") + command() + "\"";
         case Stat::CommandSubbing:
         {
             str = QString("[");
-            for(Parameter parameter = rawParameterStats.begin(); parameter < rawParameterStats.end();  parameter++)
-                str += parameter->toString(target) + " ";
+//            Commented but required
+//            for(Parameter parameter = rawParameterStats.begin(); parameter < rawParameterStats.end();  parameter++)
+//                str += parameter->toString(target) + " ";
             str += QString("]");
             return str;
         }
@@ -2157,8 +2164,9 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
             //errorController.throwError("CodeBlock to string for TclFormat not implemented");
         }
             break;
-        default:
-            return command();
+//            Commented but required
+//        default:
+//            return command();
         }
     }
         break;
@@ -2649,13 +2657,13 @@ Error TCLInterpreter::interpret<Stat::BackslashSubbing>(){
         return throwError(ERROR_PREFIX + "Empty Stats");
 
     // Check and prepare specialSignStr
-    if(textInterpreter.isCurrentChar()) // Accesible -> Analysis
+    if(textInterpreter().isCurrentChar()) // Accesible -> Analysis
     {
         bool whitespaceAfterSpecialSign = false;
-        switch (textInterpreter.currentCharForSpecialSign()->toLatin1()) {
+        switch (textInterpreter().currentCharForSpecialSign()->toLatin1()) {
         case ' ':
         case '\t':
-            specialSignStr = *textInterpreter.currentCharForSpecialSign();
+            specialSignStr = *textInterpreter().currentCharForSpecialSign();
             whitespaceAfterSpecialSign = true;
             break;
         case '\\':
@@ -2668,14 +2676,14 @@ Error TCLInterpreter::interpret<Stat::BackslashSubbing>(){
         case 'r':
         case 'v':
         case 't':
-            specialSignStr = QStringLiteral("\\") + *textInterpreter.currentCharForSpecialSign();
+            specialSignStr = QStringLiteral("\\") + *textInterpreter().currentCharForSpecialSign();
             break;
         default:
-            specialSignStr = *textInterpreter.currentCharForSpecialSign();
+            specialSignStr = *textInterpreter().currentCharForSpecialSign();
         }
 
         // Finally _ Increment CurrentChar (Less Readable and safe, but more efficient and less work around)
-        textInterpreter.incrementCurrentCharDueToSpecialSign();
+        textInterpreter().incrementCurrentCharDueToSpecialSign();
 
         switch(lastSavedStat().stat()){
 
@@ -3200,7 +3208,7 @@ Error TCLInterpreter::finalizeSnprintfCall(){
 Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
     if(isError())
         return Error::Error;
-    textInterpreter.initialize(tclCommand);
+    textInterpreter().initialize(tclCommand);
 //    proccessingStats = pendingProccessingStats;
 //    pendingProccessingStats = {};
 //    while(!proccessingStats.isEmpty()){
@@ -3216,19 +3224,21 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
 //                return Error::Error;
 //        }
 //        if(savedProccessingStat == Stat::EndOfString){
-//            textInterpreter.deinitialize();
+//            textInterpreter().deinitialize();
 //            return Error::NoError;
 //        }
 //    }
 //    pendingProccessingStats = {};
-    while(textInterpreter.runSearchingMode() == Result::StatFound){        
+    /*
+
+    while(textInterpreter().runSearchingMode() == Result::StatFound){
 
         if(processUnknownString() == Error::Error){
             if(processError() == Error::Error)
                 return Error::Error;
         }
 
-        processingStat = textInterpreter.lastKeywordStat();
+        processingStat = textInterpreter().lastKeywordStat();
 
 //        while(!proccessingStats.isEmpty()){
 //            Stat savedProccessingStat = proccessingStats.last();
@@ -3243,7 +3253,39 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
                 return Error::Error;
         }
         if(processingStat == Stat::EndOfString){
-            textInterpreter.deinitialize();
+            textInterpreter().deinitialize();
+            return Error::NoError;
+        }
+//        }
+    }
+*/
+    return callCurrentInterpreterProcedure();
+}
+
+Error TCLInterpreter::interpreterProcedure_standard(){
+    while(textInterpreter().runSearchingMode() == Result::StatFound){
+
+        if(processUnknownString() == Error::Error){
+            if(processError() == Error::Error)
+                return Error::Error;
+        }
+
+        _processingStat = textInterpreter().lastKeywordStat();
+
+//        while(!proccessingStats.isEmpty()){
+//            Stat savedProccessingStat = proccessingStats.last();
+        if(callInterpretFunction() == Error::Error){
+            if(processError() == Error::Error)
+                return Error::Error;
+        }
+//        Commented but required
+//        commandsController.dynamicProcedureCheck();
+        if(isError()){
+            if(processError() == Error::Error)
+                return Error::Error;
+        }
+        if(processingStat() == Stat::EndOfString){
+            textInterpreter().deinitialize();
             return Error::NoError;
         }
 //        }
@@ -3251,6 +3293,30 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
 
     return isError()? Error::Error : Error::NoError;
 }
+Error TCLInterpreter::interpreterProcedure_backslashSubbingSpecial(){
+    if(callInterpretFunction() == Error::Error){
+        if(processError() == Error::Error)
+            return Error::Error;
+    }else{
+        _processingStat = Stat::Whitespace;
+        unknownStringProcessing = true;
+        if(callInterpretFunction() == Error::Error){
+            unknownStringProcessing = false;
+            if(processError() == Error::Error)
+                return Error::Error;
+        }
+        unknownStringProcessing = false;
+//        Commented but required
+//        commandsController.dynamicProcedureCheck();
+        if(isError()){
+            if(processError() == Error::Error)
+                return Error::Error;
+        }
+    }
+
+    return Error::NoError;
+}
+
 
 Error TCLInterpreter::processSavedStatsForError(){
     // Commented but required
@@ -3419,7 +3485,8 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                                 dest += targetStr->at(index);
                                 break;*/
                             case Target::Command:
-                                dest += lastProcedureCall().parameters()[index].command();
+//                                Commented but required
+//                                dest += lastProcedureCall().parameters()[index].command();
                                 break;
                             case Target::ProcedureParametersStat:
                                 dest += QString::number(
