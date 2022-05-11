@@ -8,7 +8,7 @@ namespace Tcl::Interpreter::Command{
     class Settings{
    public:
         using CallDefinitionInterModeFctPtr =  Error (Controller::* const)(Call::Name);
-        using FinalizeCallInterModeFctPtr = Error (Controller::*)(SavedStat&);
+        using FinalizeCallInterModeFctPtr = Error (Controller::*)();
         using WriteOnlyProcedures = QStringList;
 
         enum class InterpreterMode : quint8{
@@ -84,8 +84,8 @@ namespace Tcl::Interpreter::Command{
     public:
         class CommandCallControlFunctions{
         public:
-            //NewProcedureCallFunction newProcedureCall;
-            //FinalizeProcedureCallFunction finalizeProcedureCall;
+            //CallDefinitionInterModeFctPtr newProcedureCall;
+            //FinalizeCallInterModeFctPtr finalizeProcedureCall;
             InterpretFctPtr interpretCall;
             NewParameterFctPtr newParameterProcessing;
             NewCallFctPtr newCall;

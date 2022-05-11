@@ -17,8 +17,8 @@ Command::Controller::Controller(TCLInterpreter& tclInterpreter, UserInputConfig&
             Definition::defaultUnknownProcedureDefinition
           : userConfig.userDefaultProcedureConfig())//,
 //    Commented but required
-//    newProcedureCallFunction(ProcedureCallFunctions::newCallAt(userConfig.proceduresSettings().mode())),
-//    finalizeProcedureCallFunction(ProcedureCallFunctions::finalizeCallAt(userConfig.proceduresSettings().mode()))
+//    callDefinitionFunction(ProcedureCallFunctions::newCallAt(userConfig.proceduresSettings().mode())),
+//    finalizeCallFunction(ProcedureCallFunctions::finalizeCallAt(userConfig.proceduresSettings().mode()))
 {}
 
 Error Controller::addPreExpressionForUserInteraction()
@@ -47,14 +47,14 @@ Error Controller::addPreExpressionForUserInteraction()
 void Controller::activateWriteOnlyProcedureMode()
 {
 //    Commented but required
-//    finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCase);
+//    finalizeCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCase);
     tclInterpreter.activateWriteOnlyProcedureMode();
 }
 
 void Controller::deactivateWriteOnlyProcedureMode()
 {
 //    Commented but required
-//    finalizeProcedureCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCaseReport);
+//    finalizeCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCaseReport);
     tclInterpreter.deactivateWriteOnlyProcedureMode();
 }
 
@@ -101,7 +101,7 @@ Settings::callDefinitionInterModeCalls[Settings::mode2number(Settings::Interpret
 
 
 template<>
-Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCase>(SavedStat &statCommand){
+Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCase>(){
     using ProcedureDefinition = Command::Definition;
     using RulesForArguments = ProcedureDefinition::RulesForArguments;
     using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
@@ -169,14 +169,15 @@ Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::Test
             tclInterpreter.functionDefinitions.addDefinitionNotSatisfiedRules(procedureCall);
         }
     }
-    statCommand.setCommand(command);
+    // Commented but required
+    //statCommand.setCommand(command);
     finalizeOn = false;
 
     return Error::NoError;
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCaseReport>(SavedStat &){
+Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCaseReport>(){
     finalizeOn = false;
 
     return Error::NoError;
@@ -184,9 +185,9 @@ Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::Test
 }
 
 template<>
-Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::PredefinitionsOnly>(SavedStat &statCommand){
+Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::PredefinitionsOnly>(){
 
-    return finalizeCall_mode<Settings::InterpreterMode::TestCase>(statCommand);
+    return finalizeCall_mode<Settings::InterpreterMode::TestCase>();
 
 }
 
@@ -513,12 +514,27 @@ template<>
 Error TclProcedureInterpreter::newParameter_mode<Stat::CommandSubbingStart>(){
     const QString ERROR_PREFIX = "New Parameter Special Command <Stat::CommandSubbingStart>: ";
 
+    // CHECK FOR FINALIZE OF SPECIFIC CALLS vvvvvv
+    // Verify if procedure name is "possible" (Only Word are OK. For ComplexWord, Braces, DoubleQuotes and BackslashSubbing you need to check params)
+    // Impossible procedure name contains:
+    // - CommandSubbing
+    // - VariableSubbing
+    // - BackslashSubbing (with special meaning) ???? Or NO
+
+    if(callDefinition(lastProcedureCall().name()) == Error::Error)
+        return throwError(ERROR_PREFIX + error());
+
+    CallConfig::setCommandSubbingNewParameter_parametersMode();
+
     return Error::NoError;
 }
 
 template<>
 Error TclProcedureInterpreter::newParameter_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "New Parameter Special Command <Stat::CommandSubbing>: ";
+
+    if(performRulesCheckForNewParameter() == Error::Error)
+        return throwError(ERROR_PREFIX + error());
 
     return Error::NoError;
 }
@@ -537,7 +553,13 @@ template<>
 Error TclProcedureInterpreter::destructor_mode<Stat::CommandSubbing>(){
     const QString ERROR_PREFIX = "Destructor Special Command <Stat::Common>: ";
 
+    if(addNewParameter() == Error::Error)
+        return throwError(ERROR_PREFIX + error());
 
+    lastProcedureCall().parameters().removeLast(); // Shall be empty after previous procedure
+
+    if(finalizeProcedureCall() == Error::Error)
+        return throwError(ERROR_PREFIX + error());
 
     return Error::NoError;
 }
@@ -646,6 +668,16 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::BracesStart>(){
 template<>
 Error TclProcedureInterpreter::constructor_mode<Stat::BracesStart>(){
     const QString ERROR_PREFIX = "Constructor Special Command <Stat::BracesStart>: ";
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::destructor_mode<Stat::BracesStart>(){
+    const QString ERROR_PREFIX = "Destructor Special Command <Stat::BracesStart>: ";
+
+    // Maybe toString with Raw target - createRawString?
+
     return Error::NoError;
 }
 
@@ -768,6 +800,22 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::DoubleQuotes>(){
 }
 
 template<>
+Error TclProcedureInterpreter::constructor_mode<Stat::DoubleQuotes>(){
+    const QString ERROR_PREFIX = "Constructor Special Command <Stat::DoubleQuotes>: ";
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::destructor_mode<Stat::DoubleQuotes>(){
+    const QString ERROR_PREFIX = "Destructor Special Command <Stat::DoubleQuotes>: ";
+
+    // Maybe toString with Raw target - createRawString?
+
+    return Error::NoError;
+}
+
+template<>
 Error TclProcedureInterpreter::interpret_mode<Stat::ComplexWord>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::ComplexWord>: ";
 
@@ -884,6 +932,22 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::ComplexWord>(){
 }
 
 template<>
+Error TclProcedureInterpreter::constructor_mode<Stat::ComplexWord>(){
+    const QString ERROR_PREFIX = "Constructor Special Command <Stat::ComplexWord>: ";
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::destructor_mode<Stat::ComplexWord>(){
+    const QString ERROR_PREFIX = "Destructor Special Command <Stat::ComplexWord>: ";
+
+    // Maybe toString with Raw target - createRawString?
+
+    return Error::NoError;
+}
+/*
+template<>
 Error TclProcedureInterpreter::interpret_mode<Stat::Expression>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
     return interpret_mode<Stat::CommandSubbing>();
@@ -906,7 +970,7 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::Expression>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Expression>: ";
     return finalizeCall_mode<Stat::CommandSubbing>();
 }
-
+*/
 template<>
 Error TclProcedureInterpreter::interpret_mode<Stat::Script>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
@@ -971,6 +1035,23 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::Script>(){
     return Error::NoError;
 }
 
+
+template<>
+Error TclProcedureInterpreter::constructor_mode<Stat::Script>(){
+    const QString ERROR_PREFIX = "Constructor Special Command <Stat::Script>: ";
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::destructor_mode<Stat::Script>(){
+    const QString ERROR_PREFIX = "Destructor Special Command <Stat::Script>: ";
+
+    // Maybe toString with Raw target - createRawString?
+
+    return Error::NoError;
+}
+/*
 template<>
 Error TclProcedureInterpreter::interpret_mode<Stat::ExprCommand>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
@@ -1144,6 +1225,7 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::ExprCommand>(){
 
     return Error::NoError;
 }
+*/
 
 template<>
 Error TclProcedureInterpreter::interpret_mode<Stat::Ignore>(){
@@ -1182,6 +1264,22 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::Ignore>(){
     return throwError(ERROR_PREFIX + "No implemantation");
 }
 
+
+template<>
+Error TclProcedureInterpreter::constructor_mode<Stat::Ignore>(){
+    const QString ERROR_PREFIX = "Constructor Special Command <Stat::Ignore>: ";
+
+    return Error::NoError;
+}
+
+template<>
+Error TclProcedureInterpreter::destructor_mode<Stat::Ignore>(){
+    const QString ERROR_PREFIX = "Destructor Special Command <Stat::Ignore>: ";
+
+    // Maybe toString with Raw target - createRawString?
+
+    return Error::NoError;
+}
 
 template<>
 Error TclProcedureInterpreter::interpret_mode<Stat::VariableSubbing>(){
@@ -1317,7 +1415,7 @@ CallConfig::commandCallSpecialFunctions
         &TclProcedureInterpreter::constructor_mode<Stat::Common>,
         &TclProcedureInterpreter::newParameter_mode<Stat::Common>,
         &TclProcedureInterpreter::destructor_mode<Stat::Common>,
-    },
+    },/*
     //Expression
     {
         &TclProcedureInterpreter::interpret_mode<Stat::Expression>,
@@ -1327,7 +1425,7 @@ CallConfig::commandCallSpecialFunctions
         &TclProcedureInterpreter::constructor_mode<Stat::Common>,
         &TclProcedureInterpreter::newParameter_mode<Stat::Common>,
         &TclProcedureInterpreter::destructor_mode<Stat::Common>,
-    },
+    },*/
     //Script
     {
         &TclProcedureInterpreter::interpret_mode<Stat::Script>,
@@ -1337,7 +1435,7 @@ CallConfig::commandCallSpecialFunctions
         &TclProcedureInterpreter::constructor_mode<Stat::Common>,
         &TclProcedureInterpreter::newParameter_mode<Stat::Common>,
         &TclProcedureInterpreter::destructor_mode<Stat::Common>,
-    },
+    },/*
     //ExprCommand
     {
         &TclProcedureInterpreter::interpret_mode<Stat::ExprCommand>,
@@ -1347,7 +1445,7 @@ CallConfig::commandCallSpecialFunctions
         &TclProcedureInterpreter::constructor_mode<Stat::Common>,
         &TclProcedureInterpreter::newParameter_mode<Stat::Common>,
         &TclProcedureInterpreter::destructor_mode<Stat::Common>,
-    },
+    },*/
     //Ignore
     {
         &TclProcedureInterpreter::interpret_mode<Stat::Ignore>,
@@ -1648,13 +1746,14 @@ Error Controller::addNewParameter(QString wordParameterStr)    // To create Word
     return Error::NoError;
 }
 
-Error Controller::addNewParameter(Stat stat, QString rawParameter, OutputCommand outputCommand){
+Error Controller::addNewParameter(Stat stat, QString rawCommand, OutputCommand outputCommand)    // To create Word parameter or append Word parameter
+{
     if(lastProcedureCall().isLastParameterEmpty()){
-        return (lastProcedureCall().replaceLastParameter(stat, rawParameter, outputCommand) == Error::NoError
+        return (lastProcedureCall().replaceLastParameter(stat, rawCommand, outputCommand) == Error::NoError
                 and newParameter() == Error::NoError)?
                     Error::NoError : Error::Error;
     }else{
-        return (lastProcedureCall().newParameter(stat, rawParameter, outputCommand) == Error::NoError
+        return (lastProcedureCall().newParameter(stat, rawCommand, outputCommand) == Error::NoError
                 and newParameter() == Error::NoError)?
                     Error::NoError : Error::Error;
     }
@@ -1677,8 +1776,7 @@ Error Controller::addFinalizedCallParameter(){
                 CallConfig::setCommandSubbingNewParameter_parametersMode();
             }
         }
-
-        if(lastProcedureCall().newParameter(lastCall) == Error::Error){
+        if(addNewParameter(lastCall) == Error::Error){
             return Error::Error;
         }
     }else{
@@ -1689,6 +1787,68 @@ Error Controller::addFinalizedCallParameter(){
 
 Error Controller::finalizeCall(){
     return (destructor() == Error::NoError
+            and finalizeProcedureCall() == Error::NoError
             and addFinalizedCallParameter() == Error::NoError)?
                 Error::NoError : Error::Error;
+}
+
+Error Controller::performRulesCheckForNewParameter(){
+    const QString ERROR_PREFIX = QString("InternalCall: performRulesCheckForNewParameter() : ");
+    if(procedureCalls.isEmpty() or
+                procedureCalls.last().isRulesEmpty() or
+                procedureCalls.last().isUserInteractionRequired())
+            return Error::NoError;
+    return (onArgumentProcedureCheck() == Error::Error)? throwError(ERROR_PREFIX + error()) : Error::NoError;
+}
+
+Error TclProcedureInterpreter::onArgumentProcedureCheck(){
+    using RulesForArguments = Definition::RulesForArguments;
+    using RulesForArgument = Definition::RulesForArguments::Iterator;
+    using Rules = Definition::Rules;
+    using Rule = Definition::Rules::Iterator;
+    Call& procedureCall = procedureCalls.last();
+    RulesForArguments::Iterator rulesForArgument = procedureCall.lastRulesForArgument_onMoved();
+    if(procedureCall.isRulesInRange(rulesForArgument) == Error::Error){
+        rulesForArgument = procedureCall.rulesForUnspecifiedArgument();
+    }
+    bool ruleCondtionsPassed = false;
+    using Actions = Rules::value_type::ExecutableActions;
+    using Action = Actions::Iterator;
+    for(Rule rule = rulesForArgument->rulesOnMoveArgument.begin(); rule < rulesForArgument->rulesOnMoveArgument.end(); rule++){
+        using Conditions = Rules::value_type::ConditionalActions;
+        using Condition = Conditions::Iterator;
+        Condition condition;
+        ConditionResult conditionResult = ConditionResult::Satisfied;
+        for(condition = rule->conditions.begin(); condition < rule->conditions.end(); condition++){
+            conditionResult = (this->*(conditionalInterpreterFunctions[static_cast<std::underlying_type_t<Conditions::value_type::ActionType>>(condition->type())]))(condition->parameters());
+            if(tclInterpreter.isError()){
+                return Error::Error;
+            }
+            if(conditionResult == ConditionResult::Unsatisfied){
+                break;
+            }
+        }
+        if(condition == rule->conditions.end()){
+            ruleCondtionsPassed = true;
+            for(Action action = rule->actions.begin(); action < rule->actions.end(); action++){
+                (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Actions::value_type::ActionType>>(action->type())]))(action->parameters());
+                if(tclInterpreter.isError()){
+                    return Error::Error;
+                }
+            }
+            switch(rule->controlFlag){
+            //case Rules::value_type::Control::BreakRuleCheckDontExecOnEndActions:
+              //  return Error::Error;
+            case Rules::value_type::Control::BreakRuleCheck:
+                rule = rulesForArgument->rulesOnMoveArgument.end();
+                break;
+            case Rules::value_type::Control::NoBreakRuleCheck:
+                ruleCondtionsPassed = false;
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    return Error::NoError;
 }

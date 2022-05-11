@@ -5,7 +5,9 @@
 #include"Tcl2Capl/controllerconfigmanager.hpp"
 #include"app.hpp"
 
-ConfigEditor::ConfigEditor(App& app)
+using namespace Panels::Configuration;
+
+Panel::Panel(App& app)
     : app_(app),
       fileConfigPanel(*this)
 {
@@ -13,8 +15,8 @@ ConfigEditor::ConfigEditor(App& app)
     noSelectedProcedurePanel.setText(NO_SELECTED_PROCEDURE_PANEL_TEXT);
     noSelectedProcedurePanel.setAlignment(Qt::AlignCenter);
 
-    toolBox.addItem(&writeOnlyProceduresList, "Procedury - tryb raportowy");
-    toolBox.addItem(&proceduresList, "Procedury");
+    //toolBox.addItem(&writeOnlyProceduresList, "Procedury - tryb raportowy");
+    //toolBox.addItem(&proceduresList, "Procedury");
     splitter.addWidget(&toolBox);
     splitter.addWidget(&rulesProcedurePanel);
 
@@ -37,12 +39,12 @@ ConfigEditor::ConfigEditor(App& app)
     }
 }
 
-bool ConfigEditor::isDefaultConfig(){
-   Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "ConfigEditor::isDefaultConfig", "Internal error: ConfingInfo is not registered");
+bool Panel::isDefaultConfig(){
+   Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "Panel::isDefaultConfig", "Internal error: ConfingInfo is not registered");
    return configInfoPtr->isDefaultConfig();
 }
 
-ConfigEditor::~ConfigEditor(){
+Panel::~Panel(){
     if(configInfoPtr){
         if(app().configManager().unloadConfig(configInfoPtr, this) == false){
             qDebug() << "ConfigManager::unregister Error: " + app().configManager().lastErrorMessage();
@@ -51,7 +53,7 @@ ConfigEditor::~ConfigEditor(){
     configInfoPtr = nullptr;
 }
 
-bool ConfigEditor::eventFilter(QObject* obj, QEvent* ev){
+bool Panel::eventFilter(QObject* obj, QEvent* ev){
     if(obj == this and ev->type() == QEvent::Close){
         delete obj;
         return true;
@@ -60,9 +62,9 @@ bool ConfigEditor::eventFilter(QObject* obj, QEvent* ev){
 }
 
 
-bool ConfigEditor::newConfig(){
+bool Panel::newConfig(){
     // Check if configInfo still exists
-    Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "ConfigEditor::newConfig", "Internal error: ConfingInfo is not registered");
+    Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "Panel::newConfig", "Internal error: ConfingInfo is not registered");
 
     bool errorOccurred = false;
 
@@ -102,8 +104,8 @@ bool ConfigEditor::newConfig(){
     return not errorOccurred;
 }
 
-void ConfigEditor::loadConfigData(ConfigInfoPtr configInfo, LoadConfigSettings settings){
-    Q_ASSERT_X(configInfo != nullptr, "ConfigEditor::loadConfig", "ConfigInfo is null");
+void Panel::loadConfigData(ConfigInfoPtr configInfo, LoadConfigSettings settings){
+    Q_ASSERT_X(configInfo != nullptr, "Panel::loadConfig", "ConfigInfo is null");
     if(configInfo != configInfoPtr){    // If
         configInfoPtr = configInfo;
         writeOnlyProceduresList.loadProcedures(&configInfoPtr->controllerConfig().writeOnlyProcedures(), settings);
@@ -116,11 +118,11 @@ void ConfigEditor::loadConfigData(ConfigInfoPtr configInfo, LoadConfigSettings s
     }
 }
 
-void ConfigEditor::reloadGui(){
+void Panel::reloadGui(){
 
 }
 
-bool ConfigEditor::saveConfig(QString path){
+bool Panel::saveConfig(QString path){
     bool errorOccurred = false;
 
     if(app().configManager().saveConfig(configInfoPtr, path) == nullptr){    // Error
@@ -131,7 +133,7 @@ bool ConfigEditor::saveConfig(QString path){
 }
 
 
-bool ConfigEditor::readConfig(QString path)
+bool Panel::readConfig(QString path)
 {
     bool errorOccurred = false;
 
@@ -147,6 +149,6 @@ bool ConfigEditor::readConfig(QString path)
     return not errorOccurred;
 }
 
-void ConfigEditor::clearProcedureRulesPanel(){
+void Panel::clearProcedureRulesPanel(){
     splitter.replaceWidget(1, &noSelectedProcedurePanel);
 }

@@ -7,37 +7,40 @@
 #include<QPushButton>
 
 class QFileInfo;
-class ConfigEditor;
-class FileConfigPanel : public QWidget{
+namespace Panels::Configuration{
+    class Panel;
+}
+namespace Panels::Configuration{
+    class FileConfigPanel : public QWidget{
 
-    using ConfigEditorRef = ConfigEditor&;
-    using MainLayout = QFormLayout;
-    using Layout = QHBoxLayout;
-    using FilePathLineEdit = QLineEdit;
-    using OpenButton = QPushButton;
-    using SaveButton = QPushButton;
-    using SaveAsButton = QPushButton;
+        using PanelRef = Panel&;
+        using MainLayout = QFormLayout;
+        using Layout = QHBoxLayout;
+        using FilePathLineEdit = QLineEdit;
+        using OpenButton = QPushButton;
+        using SaveButton = QPushButton;
+        using SaveAsButton = QPushButton;
 
-    ConfigEditorRef configEditor_;
-    MainLayout mainLayout;
-    Layout layout;
-    FilePathLineEdit filePathLineEdit;
-    OpenButton openButton;
-    SaveButton saveButton;
-    SaveAsButton saveAsButton;
+        PanelRef configEditor_;
+        MainLayout mainLayout;
+        Layout layout;
+        FilePathLineEdit filePathLineEdit;
+        OpenButton openButton;
+        SaveButton saveButton;
+        SaveAsButton saveAsButton;
 
-protected:
-    bool eventFilter(QObject* obj, QEvent* ev)override;
+    protected:
+        bool eventFilter(QObject* obj, QEvent* ev)override;
 
-public:
-    FileConfigPanel(ConfigEditorRef, QString = QString());
+    public:
+        FileConfigPanel(PanelRef, QString = QString());
 
-    inline QString filePathStr(){return filePathLineEdit.text();}
+        inline QString filePathStr(){return filePathLineEdit.text();}
 
-    void newButtonPressed();
-    void openButtonPressed();
-    void saveButtonPressed();
-    void saveAsButtonPressed();
-};
-
+        void newButtonPressed();
+        void openButtonPressed();
+        void saveButtonPressed();
+        void saveAsButtonPressed();
+    };
+}
 #endif // FILECONFIGPANEL_HPP

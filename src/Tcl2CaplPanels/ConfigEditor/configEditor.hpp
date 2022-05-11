@@ -28,67 +28,71 @@
 
 class App;
 class ActionsView;
-class ConfigEditor : public QWidget{
-public:
-    using Config = Tcl2CaplControllerConfig;
-    using ConfigRef = Config&;
-    using ConfigPtr = Config*;
-    using ConfigInfoPtr = ControllerConfigInfo::SelfPtr;
 
-    ConfigEditor(App&);
-    virtual ~ConfigEditor() override;
+namespace Panels::Configuration{
+    class Panel : public QWidget{
+    public:
+        using Config = Tcl2CaplControllerConfig;
+        using ConfigRef = Config&;
+        using ConfigPtr = Config*;
+        using ConfigInfoPtr = ControllerConfigInfo::SelfPtr;
 
-protected:
-    using Layout = QVBoxLayout;
-    using Splitter = QSplitter;
+        Panel(App&);
+        virtual ~Panel() override;
 
-    using RulesView = QTreeWidget;
-    using NoSelectedProcedurePanel =  QLabel;
+    protected:
+        using Layout = QVBoxLayout;
+        using Splitter = QSplitter;
 
-    App& app_;
+        using RulesView = QTreeWidget;
+        using NoSelectedProcedurePanel =  QLabel;
 
-    Layout layout;
-    FileConfigPanel fileConfigPanel;
-    // NO GUI ELEMENT
-    ConfigInfoPtr configInfoPtr = nullptr;
-    // ---------------------
-    Splitter splitter;
-    QToolBox toolBox;
-    WriteOnlyProceduresList writeOnlyProceduresList;
-    ProceduresList proceduresList;
-    RulesProcedurePanel rulesProcedurePanel;
-    NoSelectedProcedurePanel noSelectedProcedurePanel;
+        App& app_;
+
+        Layout layout;
+        FileConfigPanel fileConfigPanel;
+        // NO GUI ELEMENT
+        ConfigInfoPtr configInfoPtr = nullptr;
+        // ---------------------
+        Splitter splitter;
+        QToolBox toolBox;
+        WriteOnlyProceduresList writeOnlyProceduresList;
+        ProceduresList proceduresList;
+        RulesProcedurePanel rulesProcedurePanel;
+        NoSelectedProcedurePanel noSelectedProcedurePanel;
 
 
-    bool newConfig();
-    bool readConfig(QString);
-    bool saveConfig(QString);
-    void loadConfigData(ConfigInfoPtr, LoadConfigSettings);
-    void reloadGui();
+        bool newConfig();
+        bool readConfig(QString);
+        bool saveConfig(QString);
+        void loadConfigData(ConfigInfoPtr, LoadConfigSettings);
+        void reloadGui();
 
-    void loadProcedureRulesPanel();
-    void clearProcedureRulesPanel();
+        void loadProcedureRulesPanel();
+        void clearProcedureRulesPanel();
 
-    bool eventFilter(QObject*, QEvent*) override;
+        bool eventFilter(QObject*, QEvent*) override;
 
-public:
-    inline bool request_newConfig(){return newConfig();}
-    inline bool request_readConfig(QString path){return readConfig(path);}
-    inline bool request_saveConfig(QString path){return saveConfig(path);}
-    inline bool anyChanges(){
-        return writeOnlyProceduresList.anyChanges() or
-                proceduresList.anyChanges();
-    }
+    public:
+        inline bool request_newConfig(){return newConfig();}
+        inline bool request_readConfig(QString path){return readConfig(path);}
+        inline bool request_saveConfig(QString path){return saveConfig(path);}
+        inline bool anyChanges(){
+            return writeOnlyProceduresList.anyChanges() or
+                    proceduresList.anyChanges();
+        }
 
-     bool isDefaultConfig();
+         bool isDefaultConfig();
 
-    inline void reloadGuiForUpdatedConfig(){
-        writeOnlyProceduresList.reloadGui();
-        proceduresList.reloadGui();
-        reloadGui();
-    }
+        inline void reloadGuiForUpdatedConfig(){
+            writeOnlyProceduresList.reloadGui();
+            proceduresList.reloadGui();
+            reloadGui();
+        }
 
-    inline App& app()const{return app_;}
+        inline App& app()const{return app_;}
+    };
+
 };
 
 #endif // CONFIGEDITOR_HPP

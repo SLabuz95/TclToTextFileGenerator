@@ -96,8 +96,8 @@ namespace Tcl::Interpreter::Command{
 
             // Final Implementation? You dont require all raw parameters cause you cant change them
             // If you will allow access to parameters of complex parameters ( other calls), then maybe change to above Implementation
-            QString outputCommand;
-            QString rawCommand;
+            QString outputCommand_;
+            QString rawCommand_;
             Stat stat_;
 
 
@@ -119,14 +119,16 @@ namespace Tcl::Interpreter::Command{
                 appendCommand(command, rawCommand);
             }
             inline Stat stat()const{return stat_;}
+            inline OutputCommand outputCommand()const{return outputCommand_;}
+            inline OutputCommand rawCommand()const{return rawCommand_;}
 
             //inline QString command()const{return _savedStat.command();}
             //inline const QString& commandRef()const{return _savedStat.command();}
             //inline void setUserIteractionRequired(){_userInteraction = UserInteraction::Required;}
             //inline void setStat(Stat stat){_savedStat.setStat(stat);}
             //inline void setCommand(OutputCommand command){_savedStat.setCommand(command);}
-            inline void appendCommand(OutputCommand command){ rawCommand.append(command); outputCommand.append(command);}
-            inline void appendCommand(OutputCommand command, OutputCommand rawCommand){ rawCommand.append(rawCommand); outputCommand.append(command);}
+            inline void appendCommand(OutputCommand command){ rawCommand_.append(command); outputCommand_.append(command);}
+            inline void appendCommand(OutputCommand command, OutputCommand rawCommand){ rawCommand.append(rawCommand); outputCommand_.append(command);}
             //inline UserInteraction userIteraction(){return _userInteraction;}
             //inline SavedStat& savedStat(){return _savedStat;}
             //inline const Parameters& rawParameters()const{return rawParameterStats;}
@@ -141,7 +143,7 @@ namespace Tcl::Interpreter::Command{
 
             bool isEmpty()const
             {
-                return stat() == Stat::Word and rawCommand.isEmpty();
+                return stat() == Stat::Word and rawCommand_.isEmpty();
             }
 
 
@@ -190,10 +192,6 @@ namespace Tcl::Interpreter::Command{
                 _parameters.last() = Parameter(stat, outputCommand, rawParameter);
                 return Error::NoError;
             }
-            Error newParameter(Call& callRef){
-                _parameters.append({callRef.stat(), callRef.outputCommand(), callRef.rawCommand()});
-                return Error::NoError;
-            }
             inline Parameters::size_type rawParametersLength()const{return _parameters.size();}
             inline Parameters::size_type lastRawParameterIndex()const{return rawParametersLength();}
 
@@ -201,8 +199,7 @@ namespace Tcl::Interpreter::Command{
             //nline void nextArgument(Parameter& arg){_parameters.append(arg); _parameters.append(arg);}
             inline Parameters::size_type parametersLength()const{return _parameters.size();}
             inline Parameters::size_type lastArgumentIndex()const{return parametersLength();}
-            inline QString name()const{return QString();// (_name.isEmpty())? _procedureDefinition->name : _name;
-                                      }
+            inline QString name(){return parameters().at(0).rawCommand();}
             inline Definition::RulesForArguments::Iterator lastRulesForArgument_dynamicCheck()const{
                 return (lastArgumentIndex() < _procedureDefinition->rulesForArguments.size())?
                             _procedureDefinition->rulesForArguments.begin() + lastArgumentIndex() :
@@ -246,7 +243,8 @@ namespace Tcl::Interpreter::Command{
                 using Parameter = Parameters::Iterator;
                 for(Parameter param = _parameters.begin(); param < _parameters.end(); param++)
                     param->clearMemory();
-            }
+            }/*
+               Commented but required
             QString tryToAddEndOfExpressionSign()const{
                 if(name() == "expr_parser")
                     return QString();
@@ -257,7 +255,7 @@ namespace Tcl::Interpreter::Command{
                     }
                 }
                 return QString(";\n");
-            }
+            }*/
             bool isLastParameterEmpty()const // If no parameters return true
             {
                 return rawParametersLength() and /* if 0 (impossible case), returns false (no parameters to check)*/

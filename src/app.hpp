@@ -22,7 +22,7 @@ public:
 
     // GUI
     AppWindow appWindow;
-    //ConfigEditor configEditor;
+    //Panel configEditor;
     ControllerConfigManager configManager_;
     //Tcl2CaplControllerConfig config;
 

@@ -5,7 +5,9 @@
 #include<QFileDialog>
 #include"configEditor.hpp"
 
-FileConfigPanel::FileConfigPanel(ConfigEditorRef configEditor, QString filePath)
+using namespace Panels::Configuration;
+
+FileConfigPanel::FileConfigPanel(PanelRef configEditor, QString filePath)
     : configEditor_(configEditor)
 {
     if(QFileInfo::exists(filePath)){

@@ -58,7 +58,7 @@ InfoPtr ControllerConfigManager::loadConfig(EventHandlerPtr subsriber, Info::Con
     Q_ASSERT_X(subsriber != nullptr, "ControllerConfigManager::loadConfig", "Internal error: Subscriber is nullptr");
     using InfoIter = InfosBySubsribers::key_value_iterator;
     //WARNING: Any register of the same configPath but with new modification time will UPDATE current config for the config path.
-    //WARNING: For empty configPath, config is temporary and depends of subsriber (stand-alone or InstructionsInterpreter ConfigEditor only)
+    //WARNING: For empty configPath, config is temporary and depends of subsriber (stand-alone or InstructionsInterpreter Panel only)
 
     if(configPath.isEmpty()){
         // Load Temporary Config
@@ -140,7 +140,7 @@ InfoPtr ControllerConfigManager::changeConfig(InfoPtr infoF, Info::ConfigPath co
 InfoPtr ControllerConfigManager::registerConfig(EventHandlerPtr subsriber, Info::ConfigPath configPath){
     /*using InfoIter = InfosBySubsribers::key_value_iterator;
     //WARNING: Any register of the same configPath but with new modification time will UPDATE current config for the config path.
-    //WARNING: For empty configPath, config is temporary and depends of subsriber (stand-alone or InstructionsInterpreter ConfigEditor only)
+    //WARNING: For empty configPath, config is temporary and depends of subsriber (stand-alone or InstructionsInterpreter Panel only)
 
     if(configPath.isEmpty()){
         // Load Temporary Config
