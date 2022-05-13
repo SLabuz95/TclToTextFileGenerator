@@ -11,6 +11,7 @@
 #include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
 #include"Tcl2Capl/controllerconfigmanager.hpp"
 
+using namespace Panels::Configuration;
 class TestModule;
 class App : public QApplication{
 public:
@@ -25,6 +26,7 @@ public:
     //Panel configEditor;
     ControllerConfigManager configManager_;
     //Tcl2CaplControllerConfig config;
+    Panel* p = nullptr;
 
     void clearMemory();
 

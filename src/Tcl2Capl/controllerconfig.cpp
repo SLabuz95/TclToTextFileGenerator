@@ -161,6 +161,10 @@ void Tcl2CaplControllerConfig::RulesForArgument::toRule(UserProcedureRule &rule)
 bool operator==(const Tcl2CaplControllerConfig::Procedure& lhs, const Tcl2CaplControllerConfig::Procedure& rhs){
     return lhs.name() == rhs.name();
 }
+
+bool operator==(const Tcl2CaplControllerConfig::Attribute& attribute, const QString& rhs)
+{ return attribute.name == rhs; }
+
 /*
 bool Tcl2CaplControllerConfig::writeToFile(QFile file){
     QFileInfo fileInfo(file);

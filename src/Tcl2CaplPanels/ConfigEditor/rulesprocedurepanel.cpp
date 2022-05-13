@@ -7,6 +7,8 @@
 
 RulesProcedurePanel::RulesProcedurePanel(){
     layout.addWidget(&quickRulesList);
+    layout.setContentsMargins(0,0,0,0);
+    layout.setSpacing(0);
     setLayout(&layout);
 }
 
@@ -26,8 +28,11 @@ void RulesProcedurePanel::QuickRulesList::RulesList::loadRules(QuickRulesRef rul
 
 RulesProcedurePanel::QuickRulesList::QuickRulesList(){
     layout.addWidget(&list);
+    layout.setSpacing(0);
+    layout.setContentsMargins(0,0,0,0);
 
     setLayout(&layout);
+
     installEventFilter(this);
 }
 

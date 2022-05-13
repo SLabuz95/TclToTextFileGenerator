@@ -43,9 +43,9 @@ namespace Tcl::Interpreter::Core {
         BracesStart,   // {    /// {Parent, Child, Processing, Pending} Everything is a string // SAVEABLE
         DoubleQuotes, // "  {Parent, Child, Processing, Pending}  // SAVEABLE
         ComplexWord, // {Parent, Child, Pending} If VariableSubbing,BackslashSubbing or CommandSubbing occured with anther string (without whitespace)
-        Expression, // {Parent, Child} SAVEABLE
+        //Expression, // {Parent, Child} SAVEABLE
         Script,  // {Parent, Child, Pending} SAVEABLE // Old Name: CodeBLock
-        ExprCommand, // {Parent, Child} SAVEABLE
+        //ExprCommand, // {Parent, Child} SAVEABLE
         Ignore, // {Parent, Prodromic, Pending} SAVEABLE
         VariableSubbing,           // $ {Child, Processing} // Specific behaviour
         BackslashSubbing, // {Parent, Child, Processing} // Old Name: SpecialSign

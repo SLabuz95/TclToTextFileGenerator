@@ -67,6 +67,7 @@ namespace Tcl::Interpreter{
             //if()
         }*/
         void processVariableSubbingParameter(Call::Parameter&, QString&);
+        bool isFirstSignOk(QString);
     };
 
 };

@@ -23,7 +23,7 @@ using FormatTarget = TclCommand_NS::Definition::Format::Target;
 using namespace Tcl::Interpreter;
 
 TCLInterpreter::TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsRef functionDefinitionsRef)
-    : functionDefinitions(functionDefinitionsRef), commandsController(*this, userConfig), _listController(*this), userConfig(userConfig)
+    : functionDefinitions(functionDefinitionsRef), commandsController(*this, userConfig), _listController(*this)
 {clearError();}
 
 
@@ -126,7 +126,7 @@ KeywordsMap KeywordsController::keywordsMap ={
     {QStringLiteral("TclFormat").toLower(), FormatTarget::TclFormat},
     {QStringLiteral("CaplFormat").toLower(), FormatTarget::CaplFormat},
     {QStringLiteral("ParametersStat").toLower(), FormatTarget::ProcedureParametersStat},
-    {QStringLiteral("Command").toLower(), FormatTarget::Command},
+    //{QStringLiteral("Command").toLower(), FormatTarget::Raw},
     {QStringLiteral("SnprintfFormat").toLower(), FormatTarget::SnprintfFormat},
 };
 
@@ -576,7 +576,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         {
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=0"
                         }
@@ -851,7 +851,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         {
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                             "",
                             "=-1"
                         }
@@ -959,7 +959,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                                    "( ",
                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                    ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                       ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                       ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                    "=-1",
                                    " )"
@@ -1066,7 +1066,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             {
                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                 ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                 "=-1"
                             }
@@ -1092,7 +1092,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             {
                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                 ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                 "=-2"
                             }
@@ -1115,7 +1115,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         {
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                              "=-2",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
@@ -1137,7 +1137,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         {
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=-2"
                         }
@@ -1161,7 +1161,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                                 "( ",
                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                 ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                 "=-1",
                                 " )"
@@ -1176,7 +1176,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         {
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                              "=-2"
                         }
@@ -1200,7 +1200,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         {
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=-3"
                         }
@@ -1232,7 +1232,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             "=",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
-                            + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                            + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ">0"
                         }
@@ -1255,10 +1255,11 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             },
                         },
                         {
-                           {    // Action 1: Change stat to Expression
-                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Expression))}
-                           }
+//                            Commented but required
+//                           {    // Action 1: Change stat to Expression
+//                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+//                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Expression))}
+//                           }
                         }
                     },
                     {   // Rule 2: On Ignore
@@ -1395,10 +1396,11 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             },
                         },
                         {
-                           {    // Action 1: Change stat to Exxpression
-                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Expression))}
-                           }
+//                            Commented but required
+//                           {    // Action 1: Change stat to Exxpression
+//                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+//                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Expression))}
+//                           }
                         }
                     },
                     {   // Rule 2: On Ignore
@@ -1559,7 +1561,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             "; ",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
-                            + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Command),
+                            + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=1",
                             "; ",
@@ -2063,51 +2065,41 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
     using Target = ProcedureDefinition::Format::Target;
 
     switch(target){
-    case Target::Command:
-//        Commented but required
-//        return command();
-
+    case Target::Raw:
+       return outputCommand();
     case Target::SnprintfFormat:
-    {
-        // Temporary
-        return QString("%s");
-        /*
+    {        
         switch(stat()){
-        case Stat::String:
+        case Stat::Word:
         case Stat::DoubleQuotes:
-        case Stat::PendingString:
-        case Stat::StringInQuotes:
-            return QString("\"") + command() + "\"";
-        case Stat::EndOfCodeBlock:
-            return QString("{\n") + command() + "\n}\n";
+        case Stat::ComplexWord:
+            return QString("\"") + outputCommand() + "\"";
+        case Stat::Script:
+            return QString("{\n") + outputCommand() + "\n}\n";
         case Stat::Braces:
-            return savedStat().listToCaplString();
+            //return savedStat().listToCaplString();
         default:
-            return command();
-        }*/
+            return outputCommand();
+        }
     }
     case Target::ProcedureParametersStat:
     {
         return QString::number(std::underlying_type_t<Stat>(stat()));
     }
-        break;
     case Target::CaplFormat:
     {
         switch(stat()){
-//        case Stat::String:
+        case Stat::Word:
         case Stat::DoubleQuotes:
-//        case Stat::PendingString:
-//        case Stat::StringInQuotes:
-//            Commented but required
-//            return QString("\"") + command() + "\"";
-//        case Stat::Script:
-//            return QString("{") + command() + "}";
+        case Stat::ComplexWord:
+           return QString("\"") + outputCommand() + "\"";
+        case Stat::Script:
+           return QString("{") + outputCommand() + "}";
         case Stat::Braces:
-//            Commented but required
+            return QString("{") + outputCommand() + "}";
 //            return savedStat().listToCaplString();
         default:
-//            Commented but required
-//            return command();
+           return outputCommand();
             break;
         }
     }
@@ -2118,19 +2110,16 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
         QString str;
         switch (stat()) {
         case Stat::VariableSubbing:
-//            Commented but required
-//            return QString("$") + command();
-//        case Stat::Braces:
+            return QString("$") + outputCommand();
+        case Stat::Braces:
+            return QString("{") + outputCommand() + "}";
 //            return QString("{") + savedStat().listToTclListString() + "}";
-//        case Stat::DoubleQuotes:
-//            return command();
-//        case Stat::StringInQuotes:
-//            return QString("\"") + command() + "\"";
+        case Stat::DoubleQuotes:
+            return outputCommand();
         case Stat::CommandSubbing:
         {
             str = QString("[");
-//            Commented but required
-//            for(Parameter parameter = rawParameterStats.begin(); parameter < rawParameterStats.end();  parameter++)
+//            for(Parameter parameter = .begin(); parameter < rawParameterStats.end();  parameter++)
 //                str += parameter->toString(target) + " ";
             str += QString("]");
             return str;
@@ -2145,28 +2134,27 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
 //            return str;
 //        }
 //            break;
-//        case Stat::PendingSnprintf:
-//        {
-//            for(Parameter parameter = rawParameterStats.begin() + 2; parameter < rawParameterStats.end();  parameter++)
-//                str += parameter->toString(target);
-//            return str;
-//        }
-//            break;
-        case Stat::Expression:
+        case Stat::ComplexWord:
         {
-            // Commented but required
-            //errorController.throwError("Expression to string for TclFormat not implemented");
-        }
-            break;
-        case Stat::Script:
-        {
-            // Commented but required
-            //errorController.throwError("CodeBlock to string for TclFormat not implemented");
+            //for(Parameter parameter = rawParameterStats.begin() + 2; parameter < rawParameterStats.end();  parameter++)
+              //  str += parameter->toString(target);
+            return str;
         }
             break;
 //            Commented but required
-//        default:
-//            return command();
+//        case Stat::Expression:
+//        {
+//            // Commented but required
+//            //errorController.throwError("Expression to string for TclFormat not implemented");
+//        }
+//            break;
+        case Stat::Script:
+        {
+            //throwError("CodeBlock to string for TclFormat not implemented");
+        }
+            break;
+        default:
+            return outputCommand();
         }
     }
         break;
@@ -2865,7 +2853,7 @@ Result KeywordsController::interpret(){
 
 
 void TclProcedureInterpreter::tryToActivateWriteOnlyProcedure(Call::Name& name){
-    if(writeOnlyProcedureActiveIndex == -1 and tclInterpreter.userConfig.proceduresSettings().isWriteOnlyProcedure(name)){
+    if(writeOnlyProcedureActiveIndex == -1 and userConfig.proceduresSettings().isWriteOnlyProcedure(name)){
         writeOnlyProcedureActiveIndex = procedureCalls.size() + 1;
         activateWriteOnlyProcedureMode();
     }
@@ -3299,13 +3287,14 @@ Error TCLInterpreter::interpreterProcedure_backslashSubbingSpecial(){
             return Error::Error;
     }else{
         _processingStat = Stat::Whitespace;
-        unknownStringProcessing = true;
+        savedKeyword = " ";
+        setSavedKeywordReadMode();
         if(callInterpretFunction() == Error::Error){
-            unknownStringProcessing = false;
+            setStandardReadKeywordMode();
             if(processError() == Error::Error)
                 return Error::Error;
         }
-        unknownStringProcessing = false;
+        setStandardReadKeywordMode();
 //        Commented but required
 //        commandsController.dynamicProcedureCheck();
         if(isError()){
@@ -3316,7 +3305,16 @@ Error TCLInterpreter::interpreterProcedure_backslashSubbingSpecial(){
 
     return Error::NoError;
 }
+Error TCLInterpreter::interpreterProcedure_commentSpecial(){
 
+    QString tempStr = textInterpreter().restOfString();
+
+    addExpressionToCodeBlock({"//" + tempStr + "\n"});
+    if(not tempStr.endsWith("\\")){
+        setStandardInterpreterMode();
+    }
+    return Error::NoError;
+}
 
 Error TCLInterpreter::processSavedStatsForError(){
     // Commented but required
@@ -3372,10 +3370,10 @@ void TCLInterpreter::printErrorReport(QString& errorReport){
 
     }
 }
-
+/*
 bool TCLInterpreter::isPredefinitionMode(){
     return userConfig.proceduresSettings().mode() == UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly;
-}
+}*/
 
 // PROCEDURE DEFINITION FUNCTIONS ==================================================================================
 QString TclProcedureInterpreter::toString(SavedStat &stat, ProcedureDefinition::Format::Target target){
@@ -3450,7 +3448,7 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                             case Target::CaplFormat:
                                 dest += lastProcedureName();
                                 break;
-                            case Target::Command:
+                            case Target::Raw:
                                 dest += command;
                                 break;
                             /*case Target::RAW:
@@ -3484,7 +3482,7 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                                     return false;
                                 dest += targetStr->at(index);
                                 break;*/
-                            case Target::Command:
+                            case Target::Raw:
 //                                Commented but required
 //                                dest += lastProcedureCall().parameters()[index].command();
                                 break;
@@ -3530,7 +3528,7 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
 
                         case Target::CaplFormat:
                         case Target::TclFormat:
-                        case Target::Command:
+                        case Target::Raw:
                         {
 
                             for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + index; responseArg < lastProcedureCall().parameters().end(); responseArg++){

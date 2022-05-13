@@ -18,13 +18,13 @@ FileConfigPanel::FileConfigPanel(PanelRef configEditor, QString filePath)
     filePathLineEdit.setReadOnly(true);
     openButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
     openButton.setToolTip("Otwórz");
-    openButton.installEventFilter(this);
+    //openButton.installEventFilter(this);
     saveButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
     saveButton.setToolTip("Zapisz");
-    saveButton.installEventFilter(this);
+    //saveButton.installEventFilter(this);
     saveAsButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxQuestion));
     saveAsButton.setToolTip("Zapisz jako");
-    saveAsButton.installEventFilter(this);
+    //saveAsButton.installEventFilter(this);
 
     layout.setSpacing(0);
     layout.setContentsMargins(0,0,0,0);

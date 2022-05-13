@@ -31,7 +31,7 @@ namespace Tcl{
         using Preexpressions = QStringList;
         using CommandsController = Command::Controller;
         // ----
-        using InterpretFunction = Error (TCLInterpreter::*)();
+        //using InterpretFunction = Error (TCLInterpreter::*)();
         // ----
         // Aliasses
         inline void clearError(){errorController.clearError();}
@@ -42,15 +42,15 @@ namespace Tcl{
         inline const QString& error(){return errorController.error();}
     private:
         //
-        bool unknownStringProcessing = false;
-        Stat _processingStat = Stat::Size;
+        using AddExpressionToCodeBlockFunction = void (TCLInterpreter::*)(OutputCommands, QString);
+        using RemoveProcedureCallFunction = Error (TCLInterpreter::*)();
         using ErrorMessage = ErrorController::ErrorMessage;
         using ErrorMessages = QVector<ErrorMessage>;
-        // ----
 
-        using AddExpressionToCodeBlockFunction = void (TCLInterpreter::*)(OutputCommands, QString);
         AddExpressionToCodeBlockFunction addExpressionToCodeBlockFunction = &TCLInterpreter::addExpressionToCodeBlock_standard;
-        using RemoveProcedureCallFunction = Error (TCLInterpreter::*)();
+        Stat _processingStat = Stat::Size;
+        bool unknownStringProcessing = false;
+        // ----
 
         inline Preexpressions& preexpressions(){return _preexpressions;}
 
@@ -67,7 +67,7 @@ namespace Tcl{
         //                                                               : (_savedStats.removeLast(), Error::NoError);
         //}
 
-        inline void prepareCodeBlockContent(){
+        inline void addPredefinitionsToScript(){    // CONFIRMED Add to script and to main scirpt
             QString predefinitions = predefinitionsController.getPredefinitionsGroupStr();
 //            if(not predefinitions.isEmpty())
 //                lastSavedStat().setCommand(predefinitions + lastSavedStat().command());
@@ -114,12 +114,26 @@ namespace Tcl{
             }
         }
 
-        inline QString readCurrentKeyword(){return (unknownStringProcessing)? textInterpreter().readUnknownString() : textInterpreter().readLastKeyword();}
-//        inline bool isCurrentKeywordProcessing()const{return proccessingStats.isEmpty();}
+ //         inline bool isCurrentKeywordProcessing()const{return proccessingStats.isEmpty();}
 //        inline bool isUnknownStringProcessing()const{return not isCurrentKeywordProcessing();}
+
+
+        inline QString readCurrentKeyword(){return callReadKeywordProcedure();}
+        using ReadKeywordFctPtr = QString (TCLInterpreter::*)();
+        ReadKeywordFctPtr readKeywordProcedure = &TCLInterpreter::readCurrentKeyword_standard;
+        QString savedKeyword;
+        inline void saveKeyword(QString str){savedKeyword = str;}
+
+        inline QString readCurrentKeyword_standard(){return (unknownStringProcessing)? textInterpreter().readUnknownString() : textInterpreter().readLastKeyword();}
+        inline QString readCurrentKeyword_savedKeyword(){return savedKeyword;}
+
+        inline QString callReadKeywordProcedure(){
+            return (this->*readKeywordProcedure)();
+        }
 
         Error interpreterProcedure_standard();
         Error interpreterProcedure_backslashSubbingSpecial();
+        Error interpreterProcedure_commentSpecial();
 
         using InterpreterProcedureFctPtr = Error (TCLInterpreter::*)();
         InterpreterProcedureFctPtr currentInterpreterProcedure = &TCLInterpreter::interpreterProcedure_standard;
@@ -154,7 +168,7 @@ namespace Tcl{
             //SavedStats _savedStats{{Stat::MainScript}};
             Preexpressions _preexpressions;
 
-            UserInputConfig& userConfig;
+            //UserInputConfig& userConfig;
 
             //Stats proccessingStats{};
             //Stats pendingProccessingStats{}; // Saved stats to use in next initialization
@@ -182,6 +196,7 @@ namespace Tcl{
                 }
                 if(textInterpreter().isUnknownString()){
                     unknownStringProcessing = true;
+                    setProcessingStat(Stat::Word);
                     error = callInterpretFunction();
                     unknownStringProcessing = false;
                 }
@@ -257,6 +272,7 @@ namespace Tcl{
             inline KeywordsController& textInterpreter(){return _textInterpreter;}
             inline ListController& listController(){return _listController;}
 
+            inline void setProcessingStat(const Stat stat){_processingStat = stat;}
             inline Stat processingStat()const{return _processingStat;}
 
             Error toCAPL(TclCommand&);
@@ -284,13 +300,21 @@ namespace Tcl{
             inline ErrorMessages::size_type getErrorsNumber()const{return ignoreMessages.size();}
             inline PredefinitionsController::Predefinitions& predefinitions(){return predefinitionsController.getPredefinitions();}
 
-            bool isPredefinitionMode();
-
             inline void setStandardInterpreterMode(){
                 currentInterpreterProcedure = &TCLInterpreter::interpreterProcedure_standard;
             }
             inline void setBackslashSubbingInterpreterMode(){
                 currentInterpreterProcedure = &TCLInterpreter::interpreterProcedure_backslashSubbingSpecial;
+            }
+            inline void setCommentInterpreterMode(){
+                currentInterpreterProcedure = &TCLInterpreter::interpreterProcedure_commentSpecial;
+            }
+
+            inline void setStandardReadKeywordMode(){
+                readKeywordProcedure = &TCLInterpreter::readCurrentKeyword_standard;
+            }
+            inline void setSavedKeywordReadMode(){
+                readKeywordProcedure = &TCLInterpreter::readCurrentKeyword_savedKeyword;
             }
         // End of Interface |||||||||||||||||||||||||||||||||||||||||||||
 

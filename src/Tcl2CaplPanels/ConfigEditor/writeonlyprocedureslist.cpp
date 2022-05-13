@@ -1,10 +1,13 @@
 #include"writeOnlyProceduresList.hpp"
+#include"ConfigTabsPanel/configTabsPanel.hpp"
 #include<QMouseEvent>
 #include<QApplication>
 #include<QMenu>
 #include<QMessageBox>
 
-WriteOnlyProceduresList::WriteOnlyProceduresList()
+using namespace Panels::Configuration;
+
+WriteOnlyProceduresList::WriteOnlyProceduresList(ConfigTabsPanel& configTabs)
 {
     layout.addWidget(&list);
 

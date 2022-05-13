@@ -173,21 +173,18 @@ namespace Tcl::Interpreter::Command{
             //Call& operator=(Call&& call){_name = call._name; _arguments = call._arguments;}
 
             inline Stat stat()const{return stat_;}
+            inline void changeStat(const Stat stat){stat_ = stat;}
             inline OutputCommand& outputCommand(){return outputCommand_;}
+            inline void setOutputCommand(OutputCommand outputCommand){outputCommand_ = outputCommand;}
+            inline void setRawCommand(OutputCommand rawCommmand){rawCommand_ = rawCommmand;}
             inline OutputCommand& rawCommand(){return rawCommand_;}
 
             //Error createCall(Stat, Call::Parameter&&);
             inline Error newParameter(OutputCommand command = OutputCommand()){
                 return newParameter(Stat::Word, command);
             }
-            Error newParameter(Stat stat, OutputCommand rawCommand){
-                _parameters.append({stat, rawCommand});
-                return Error::NoError;
-            }
-            Error newParameter(Stat stat,QString rawParameter, OutputCommand outputCommand){
-                _parameters.append({stat, outputCommand, rawParameter});
-                return Error::NoError;
-            }
+            Error newParameter(Stat stat,QString rawParameter, OutputCommand outputCommand = QString());
+
             Error replaceLastParameter(Stat stat,QString rawParameter, OutputCommand outputCommand){
                 _parameters.last() = Parameter(stat, outputCommand, rawParameter);
                 return Error::NoError;
@@ -243,7 +240,9 @@ namespace Tcl::Interpreter::Command{
                 using Parameter = Parameters::Iterator;
                 for(Parameter param = _parameters.begin(); param < _parameters.end(); param++)
                     param->clearMemory();
-            }/*
+            }
+
+            /*
                Commented but required
             QString tryToAddEndOfExpressionSign()const{
                 if(name() == "expr_parser")

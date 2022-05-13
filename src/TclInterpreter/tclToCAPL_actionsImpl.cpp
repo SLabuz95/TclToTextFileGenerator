@@ -150,7 +150,7 @@ TclProcedureCommand::Definition::Action::Executable::TclParse> (ExecutableAction
         return;
     }
 
-    TCLInterpreter newTclInterpreter(tclInterpreter.userConfig, tclInterpreter.functionDefinitions);
+    TCLInterpreter newTclInterpreter(userConfig, tclInterpreter.functionDefinitions);
     if(newTclInterpreter.toCAPL(str) == Error::Error or newTclInterpreter.anyErrors())
     {
         throwError(ERROR_PREFIX + "TclParsing Failed:" + " {Current Result: " + newTclInterpreter.error() +"}");

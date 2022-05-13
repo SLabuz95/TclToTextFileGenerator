@@ -5,6 +5,7 @@
 #include"TclInterpreter/SavedStatCont/savedStatCont.hpp"
 
 namespace Tcl::Interpreter::Command{
+
     class Settings{
    public:
         using CallDefinitionInterModeFctPtr =  Error (Controller::* const)(Call::Name);
@@ -76,10 +77,7 @@ namespace Tcl::Interpreter::Command{
         using FinalizeCallFunctionFctPtr = Error (Controller::*)();
         using ConstructorFctPtr = Error (Controller::*)();
         using DestructorFctPtr = Error (Controller::*)();
-        enum class NewParameterProcedureStat : bool{
-            FirstParameter,
-            OtherParameters
-        };
+
 
     public:
         class CommandCallControlFunctions{
@@ -97,6 +95,9 @@ namespace Tcl::Interpreter::Command{
         static CommandCallControlFunctions const* controlFunctionsForStat(const Stat stat){
             return &commandCallSpecialFunctions[Settings::specialCallStat2number(stat)];
         }
+        static const QString& parameterSeparators(const Stat stat){
+            return commandCallParameterSeparators[Settings::specialCallStat2number(stat)];
+        }
 
         static void setCommandSubbingNewParameter_procedureNameMode();
         static void setCommandSubbingNewParameter_parametersMode();
@@ -104,6 +105,7 @@ namespace Tcl::Interpreter::Command{
     private:
         //static const CommandCallSpecialInterpretFunction commandCallSpecialInterprets[];
         static CommandCallControlFunctions commandCallSpecialFunctions[];
+        static const QString commandCallParameterSeparators[];
 
             /*static inline CommandCallSpecialInterpretFunction interpretCallAt(const Stat stat){
                 return commandCallSpecialInterprets[Settings::specialCallStat2number(stat)];

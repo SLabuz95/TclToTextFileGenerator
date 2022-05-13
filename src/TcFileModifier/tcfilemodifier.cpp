@@ -2421,7 +2421,8 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 */
 
 void FSD_ByLine_TcFileModifierData::Data::writeTCInfo(FSD_ByLine_TcFileModifierData::DataModel& dataModel){
-    if(not tclToCaplInterpreter_.isPredefinitionMode()){
+    // Commented but required
+    //if(not tclToCaplInterpreter_.isPredefinitionMode()){
         QString tcInfo;
         tcInfo += "testcase " + tcData.name +"(){\n"
       "// " + tcData.name + "\n"
@@ -2458,7 +2459,7 @@ void FSD_ByLine_TcFileModifierData::Data::writeTCInfo(FSD_ByLine_TcFileModifierD
     "//  /*author    */  \"" + tcData.author + "\"\n"
     "//  );\n\n ";
         dataModel.write(tcInfo + tclToCaplInterpreter_.readCommand() + "\n}\n\n");
-    }
+    //}
 }
 
 

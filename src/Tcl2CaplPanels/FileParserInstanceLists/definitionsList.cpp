@@ -189,7 +189,7 @@ bool DefinitionsList::eventFilter(QObject* obj, QEvent* ev)
                     Q_ASSERT_X(index < actionFuncs.size(), "DefinitionsList Menu", "Index error for action functions");
                     (this->*(actionFuncs.at(index)))(item);
                 }
-                delete menu, menu = nullptr;
+                delete menu; menu = nullptr;
             }
         }
 

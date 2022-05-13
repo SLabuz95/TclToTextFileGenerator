@@ -67,6 +67,7 @@ namespace Tcl::Interpreter::Command{
 
         // Objects -------------------------------------------------------------------------------
         TCLInterpreter& tclInterpreter;
+        UserInputConfig& userConfig;
         CommandDefinitions& procedureDefinitions;
         Definition& unknownProcedureDefinition;
         static CommandDefinitions defaultProcedureDefinitions;
@@ -89,7 +90,7 @@ namespace Tcl::Interpreter::Command{
         static ConditionInterpretFunctions conditionalInterpreterFunctions;
         static ExecutableInterpretFunctions executableInterpretFunctions;
 
-        Call::SquareBracketLevel squareBracketsLevel = 0;
+        //Call::SquareBracketLevel squareBracketsLevel = 0;
 
         // End of Objects ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
         // Functions -----------------------------------------------------------------------------
@@ -140,22 +141,19 @@ namespace Tcl::Interpreter::Command{
         Error createCall(Stat, Call::Parameter&& = Call::Parameter());
         Error addNewParameter();
         Error addNewParameter(QString);
-        inline Error addNewParameter(Call& call){
-            if(lastProcedureCall().isLastParameterEmpty()){
-                return (lastProcedureCall().replaceLastParameter(call.stat(), call.rawCommand(), call.outputCommand()) == Error::NoError
-                        and newParameter() == Error::NoError)?
-                            Error::NoError : Error::Error;
-            }else{
-                return (lastProcedureCall().newParameter(call.stat(), call.rawCommand(), call.outputCommand()) == Error::NoError
-                        and newParameter() == Error::NoError)?
-                            Error::NoError : Error::Error;
-            }
-        }
-        Error addNewParameter(Stat, QString = QString(), OutputCommand = OutputCommand());
+        Error addNewParameter(Call& call);
+        Error addNewParameter(Stat);
+        Error addNewParameter(Stat, QString , OutputCommand = OutputCommand());
         Error addFinalizedCallParameter();
         Error startVariableSubbing();
+        inline bool isCompleteVariableSubbing(){
+            return lastProcedureCall().lastParameter().stat() == Stat::VariableSubbing
+                    and not lastProcedureCall().lastParameter().rawCommand().isEmpty()
+                    and lastProcedureCall().lastParameter().rawCommand().front() == '$';
+        }
         Error processVariableSubbing();
-        Error performVariableSubbingRecoveryProcedure(){};
+        bool isFirstSignOk(QString str);
+        //Error performVariableSubbingRecoveryProcedure(){};
         Error processBackslashSubbing();
         inline void activateBackslashSubbing(){backslashSubbingActive = true;}
         inline void deactivateBackslashSubbing(){backslashSubbingActive = false;}
@@ -172,7 +170,7 @@ namespace Tcl::Interpreter::Command{
         }
 
         inline bool isNotCommandSubbing()const{
-            return procedureCalls.isEmpty() or procedureCalls.last().stat() == Stat::Script;
+            return procedureCalls.size() == 1 or procedureCalls.last().stat() == Stat::Script;
         }
 
         inline bool isCommandSubbingCall()const{
@@ -180,7 +178,7 @@ namespace Tcl::Interpreter::Command{
         }
 
         inline void updateCurrentCallProcedures(){
-            currentCommandCallFunctions = CallConfig::controlFunctionsForStat((procedureCalls.isEmpty())? Stat::Size : procedureCalls.last().stat());
+            currentCommandCallFunctions = CallConfig::controlFunctionsForStat((procedureCalls.isEmpty())? Stat::Script : lastProcedureCall().stat());
         }
 
         inline void updateCurrentCallProcedures(Stat stat){
@@ -302,6 +300,8 @@ namespace Tcl::Interpreter::Command{
         static const Definition::Rule::ConditionalActions::value_type newCompareRule(const QStringList stringsToCompare, const QStringList format) ;
         // End of Interface |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
         static void addDefaultProcedureDefinitionsToUserProcedureDefintions(UserInputConfig& userDefinitions);
+
+        bool isPredefinitionMode();
 
     };
 };

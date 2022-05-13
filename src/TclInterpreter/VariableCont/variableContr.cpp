@@ -21,3 +21,10 @@ void VariableController::processVariableSubbingParameter(Call::Parameter& parame
         str = str.right(str.size() - firstNotAlphanumericCharacter);
     }
 }
+
+bool VariableController::isFirstSignOk(QString str){
+    const QRegularExpression regex = QRegularExpression("(?<!:):{1}(?!:)|[^a-zA-Z0-9_:]");
+    const qsizetype firstNotAlphanumericCharacter = str.indexOf(regex); // Alpha + sign '_'
+
+    return firstNotAlphanumericCharacter != 0;
+}

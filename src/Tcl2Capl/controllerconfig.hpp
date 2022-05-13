@@ -35,6 +35,13 @@ public:
     using RawRuleRefs = QList<RawRuleRef>;
     using RulesForArguments = QList<RulesForArgument>;
 
+    struct Attribute{
+        QString name;
+        QString value;
+    };
+
+    using Attributes = QList<Attribute>;
+
     class Procedure{    // For config only
         using Name = QString;
 
@@ -126,6 +133,7 @@ protected:
     // Dynamic Property (Not for File)
     Mode _mode = Mode::TestCase;
     // Properties For File
+    Attributes _attributes;
     Settings _settings;
     Procedures _userProcedures;
     Procedure _userDefaultProcedure;
@@ -136,6 +144,7 @@ public:
     inline Procedure& defaultProcedure(){return _userDefaultProcedure;}
     inline void setMode(Mode m){_mode = m;}
     inline Mode mode(){return _mode;}
+    inline Attributes& attributes(){return _attributes;}
     inline WriteOnlyProcedures& writeOnlyProcedures(){return _settings.writeOnlyProcedures();}
     inline Settings& settings(){return _settings;}
 
@@ -151,5 +160,5 @@ public:
 };
 
 bool operator==(const Tcl2CaplControllerConfig::Procedure& lhs, const Tcl2CaplControllerConfig::Procedure& rhs);
-
+bool operator==(const Tcl2CaplControllerConfig::Attribute& attribute, const QString& rhs);
 #endif // CONTROLLERCONFIG_H

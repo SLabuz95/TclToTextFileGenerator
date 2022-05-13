@@ -4,21 +4,24 @@
 #include<External/RegExpCore/regexprcore.hpp>
 #include"Tcl2Capl/controllerconfigmanager.hpp"
 #include"app.hpp"
+#include"ConfigTabsPanel/Panels/attributesPanel.hpp"
 
 using namespace Panels::Configuration;
 
 Panel::Panel(App& app)
     : app_(app),
-      fileConfigPanel(*this)
+      fileConfigPanel(*this),
+//      navigationList(*this),
+      configTabsPanel(*this)
 {
     const QString NO_SELECTED_PROCEDURE_PANEL_TEXT = QStringLiteral("Wybierz procedure");
-    noSelectedProcedurePanel.setText(NO_SELECTED_PROCEDURE_PANEL_TEXT);
-    noSelectedProcedurePanel.setAlignment(Qt::AlignCenter);
+//    noSelectedProcedurePanel.setText(NO_SELECTED_PROCEDURE_PANEL_TEXT);
+//    noSelectedProcedurePanel.setAlignment(Qt::AlignCenter);
 
     //toolBox.addItem(&writeOnlyProceduresList, "Procedury - tryb raportowy");
     //toolBox.addItem(&proceduresList, "Procedury");
-    splitter.addWidget(&toolBox);
-    splitter.addWidget(&rulesProcedurePanel);
+    //splitter.addWidget(&navigationList);
+    splitter.addWidget(&configTabsPanel);
 
     layout.setSpacing(0);
     layout.setContentsMargins(0, 0, 0, 0);
@@ -108,8 +111,10 @@ void Panel::loadConfigData(ConfigInfoPtr configInfo, LoadConfigSettings settings
     Q_ASSERT_X(configInfo != nullptr, "Panel::loadConfig", "ConfigInfo is null");
     if(configInfo != configInfoPtr){    // If
         configInfoPtr = configInfo;
-        writeOnlyProceduresList.loadProcedures(&configInfoPtr->controllerConfig().writeOnlyProcedures(), settings);
-        proceduresList.loadProcedures(&configInfoPtr->controllerConfig().userProcedures(), settings);
+        //writeOnlyProceduresList.loadProcedures(&configInfoPtr->controllerConfig().writeOnlyProcedures(), settings);
+        configTabsPanel.attributesList().loadAttributes(&configInfoPtr->controllerConfig().attributes(), settings);
+        configTabsPanel.writeOnlyProceduresList().loadProcedures(&configInfoPtr->controllerConfig().writeOnlyProcedures(), settings);
+        //proceduresList.loadProcedures(&configInfoPtr->controllerConfig().userProcedures(), settings);
         //clearProcedureRulesPanel();
         if(settings == LoadConfigSettings::LoadGui){
             // Load Gui
@@ -150,5 +155,5 @@ bool Panel::readConfig(QString path)
 }
 
 void Panel::clearProcedureRulesPanel(){
-    splitter.replaceWidget(1, &noSelectedProcedurePanel);
+//    splitter.replaceWidget(1, &noSelectedProcedurePanel);
 }

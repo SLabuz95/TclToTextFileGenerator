@@ -106,7 +106,7 @@ public:
     inline QString tabName(){return static_cast<QDockWidget*>(parentWidget())->windowTitle();}
 
 protected:
-    bool eventFilter(QObject*, QEvent*);
+    bool eventFilter(QObject*, QEvent*) override;
     Error readNewInputConfig(QFileInfo&);
     Error readNewInputConfig_dialog();
     Error readProceduresConfig(QFileInfo&);

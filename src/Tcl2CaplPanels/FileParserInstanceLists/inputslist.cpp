@@ -123,10 +123,12 @@ void InputsList::execRequest_ContextMenu<InputsList::Request_ContextMenu::EditFo
 }
 
 template<>
-void InputsList::execRequest_ContextMenu<InputsList::Request_ContextMenu::Remove>(InputsListElement* item_){delete item_;}
+void InputsList::execRequest_ContextMenu<InputsList::Request_ContextMenu::Remove>(InputsListElement* item_)
+{delete item_;}
 
 template<>
-void InputsList::execRequest_ContextMenu<InputsList::Request_ContextMenu::Clear>(InputsListElement* item_){list.clear();}
+void InputsList::execRequest_ContextMenu<InputsList::Request_ContextMenu::Clear>(InputsListElement* item_)
+{list.clear();}
 
 
 bool InputsList::eventFilter(QObject* obj, QEvent* ev)
@@ -184,7 +186,7 @@ bool InputsList::eventFilter(QObject* obj, QEvent* ev)
                     Q_ASSERT_X(index < actionFuncs.size(), "InputsList Menu", "Index error for action functions");
                     (this->*(actionFuncs.at(index)))(item);
                 }
-                delete menu, menu = nullptr;
+                delete menu; menu = nullptr;
             }
         }
 

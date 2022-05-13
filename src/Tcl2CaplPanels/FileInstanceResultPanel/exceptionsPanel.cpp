@@ -86,9 +86,10 @@ QString ExceptionsPanel::ExceptionsList::toString(FunctionDefinitions::Parameter
         case Stat::Script:
             retString += "Script";
             break;
-        case Stat::Expression:
-            retString += "Expression";
-            break;
+//        Commented but required
+//        case Stat::Expression:
+//            retString += "Expression";
+//            break;
         case Stat::BracesStart:
             retString += "Braces";
             break;

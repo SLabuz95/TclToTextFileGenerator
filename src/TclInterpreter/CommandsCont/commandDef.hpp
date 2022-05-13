@@ -131,7 +131,7 @@ namespace Tcl::Interpreter::Command{
                 TclFormat,
                 CaplFormat,
                 ProcedureParametersStat,    // Number
-                Command,
+                //Command,
                 SnprintfFormat,
                 None,
                 //ProcedureParameters,

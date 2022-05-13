@@ -88,6 +88,9 @@ namespace Tcl::Interpreter{
                 currentListLevel--;
                 return Error::NoError;
             }
+            inline bool isListDeactivated(){
+                return currentListLevel == DEACTIVATED_LIST_CONTROL;
+            }
             inline bool isListClosed(){
                 return currentListLevel == DEACTIVATED_LIST_CONTROL or
                         currentListLevel == LIST_EMPTY;

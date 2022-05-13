@@ -25,13 +25,17 @@
 #include"fileconfigpanel.hpp"
 #include"loadconfigsettings.hpp"
 #include"Tcl2Capl/controllerconfiginfo.hpp"
+#include"NavigationList/navigationList.hpp"
+#include"ConfigTabsPanel/configTabsPanel.hpp"
 
 class App;
 class ActionsView;
 
 namespace Panels::Configuration{
+    using namespace Navigation;
     class Panel : public QWidget{
     public:
+        using NavigationList = Navigation::List;
         using Config = Tcl2CaplControllerConfig;
         using ConfigRef = Config&;
         using ConfigPtr = Config*;
@@ -55,11 +59,13 @@ namespace Panels::Configuration{
         ConfigInfoPtr configInfoPtr = nullptr;
         // ---------------------
         Splitter splitter;
-        QToolBox toolBox;
-        WriteOnlyProceduresList writeOnlyProceduresList;
-        ProceduresList proceduresList;
-        RulesProcedurePanel rulesProcedurePanel;
-        NoSelectedProcedurePanel noSelectedProcedurePanel;
+        //QToolBox toolBox;
+        //NavigationList navigationList;
+        ConfigTabsPanel configTabsPanel;
+        //WriteOnlyProceduresList writeOnlyProceduresList;
+        //ProceduresList proceduresList;
+        //RulesProcedurePanel rulesProcedurePanel;
+        //NoSelectedProcedurePanel noSelectedProcedurePanel;
 
 
         bool newConfig();
@@ -78,19 +84,27 @@ namespace Panels::Configuration{
         inline bool request_readConfig(QString path){return readConfig(path);}
         inline bool request_saveConfig(QString path){return saveConfig(path);}
         inline bool anyChanges(){
-            return writeOnlyProceduresList.anyChanges() or
-                    proceduresList.anyChanges();
+            //return writeOnlyProceduresList.anyChanges() or
+              //      proceduresList.anyChanges();
         }
 
          bool isDefaultConfig();
 
         inline void reloadGuiForUpdatedConfig(){
-            writeOnlyProceduresList.reloadGui();
-            proceduresList.reloadGui();
-            reloadGui();
+            //writeOnlyProceduresList.reloadGui();
+            //proceduresList.reloadGui();
+            //reloadGui();
         }
 
         inline App& app()const{return app_;}
+
+        // Events
+        inline void navigationListAppeared(){
+            configTabsPanel.tabBar()->hide();
+        }
+        inline void navigationListDisappeared(){
+            configTabsPanel.tabBar()->show();
+        }
     };
 
 };
