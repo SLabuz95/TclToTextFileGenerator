@@ -31,7 +31,7 @@ TCLInterpreter::TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsR
 KeywordsMap KeywordsController::keywordsMap ={
     {
         {"#", Stat::Comment},
-        {"{", Stat::BracesStart, Keyword::UnknownStringRule::Forbidden},
+        {"{", Stat::BracesStart},
         {"}", Stat::Braces},
         {"[", Stat::CommandSubbingStart},
         {"]", Stat::CommandSubbingEnd},
@@ -258,7 +258,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         ProcedureDefinition::Action::Executable::Write,
                         {
                             "",
-                            "T4",
+                            "T0",
                             "",
                             "=0",
                             "",
@@ -475,7 +475,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
 
     },
     // End of Definition ================================================,
-    {
+    /*{
         "expr",
         {   // Dynamic Rules
 
@@ -567,29 +567,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
         {   // On Move Rules
 
         },
-        {   // On End of Call
-            {   // Rule 1: if(=0 == concat) -> write Result
-                {
-                    {
-                        TclProcedureInterpreter::newCompareRule(
-                        {"concat"},
-                        {
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=0"
-                        }
-                        ),
-                    },
-                },
-                {
-                    {
-                        ProcedureDefinition::Action::Executable::AddSnprintf,
-                        {}
-                    }
-                }
-            },
+        {   // On End of Call            
             {   // Rule: No condtions -> As Unspecified Procedure Definition
                 { // Conditions
 
@@ -615,7 +593,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                 }
             }
         }
-    },
+    },*/
     // End of Definition ================================================,
     {
         "file",
@@ -910,15 +888,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             {
                              ProcedureDefinition::Action::Conditional::IsLastSavedStat,
                              {
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BackslashSubbing)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Word)),
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing)),
-                                //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingSnprintf)),
-                                //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::PendingString))
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))
                                 }
                             },
                         }
@@ -2066,7 +2036,11 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
 
     switch(target){
     case Target::Raw:
-       return outputCommand();
+       return rawCommand();
+    case Target::ProcedureParametersStat:
+    {
+        return QString::number(std::underlying_type_t<Stat>(stat()));
+    }
     case Target::SnprintfFormat:
     {        
         switch(stat()){
@@ -2082,80 +2056,14 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
             return outputCommand();
         }
     }
-    case Target::ProcedureParametersStat:
-    {
-        return QString::number(std::underlying_type_t<Stat>(stat()));
-    }
     case Target::CaplFormat:
     {
-        switch(stat()){
-        case Stat::Word:
-        case Stat::DoubleQuotes:
-        case Stat::ComplexWord:
-           return QString("\"") + outputCommand() + "\"";
-        case Stat::Script:
-           return QString("{") + outputCommand() + "}";
-        case Stat::Braces:
-            return QString("{") + outputCommand() + "}";
-//            return savedStat().listToCaplString();
-        default:
-           return outputCommand();
-            break;
-        }
+        return outputCommand();
     }
-        break;
     case Target::TclFormat:
     {
         using Parameter = Parameters::Iterator;
-        QString str;
-        switch (stat()) {
-        case Stat::VariableSubbing:
-            return QString("$") + outputCommand();
-        case Stat::Braces:
-            return QString("{") + outputCommand() + "}";
-//            return QString("{") + savedStat().listToTclListString() + "}";
-        case Stat::DoubleQuotes:
-            return outputCommand();
-        case Stat::CommandSubbing:
-        {
-            str = QString("[");
-//            for(Parameter parameter = .begin(); parameter < rawParameterStats.end();  parameter++)
-//                str += parameter->toString(target) + " ";
-            str += QString("]");
-            return str;
-        }
-            break;
-//        case Stat::Snprintf:
-//        {
-//            str = QString("\"");
-//            for(Parameter parameter = rawParameterStats.begin() + 2; parameter < rawParameterStats.end();  parameter++)
-//                str += parameter->toString(target);
-//            str += QString("\"");
-//            return str;
-//        }
-//            break;
-        case Stat::ComplexWord:
-        {
-            //for(Parameter parameter = rawParameterStats.begin() + 2; parameter < rawParameterStats.end();  parameter++)
-              //  str += parameter->toString(target);
-            return str;
-        }
-            break;
-//            Commented but required
-//        case Stat::Expression:
-//        {
-//            // Commented but required
-//            //errorController.throwError("Expression to string for TclFormat not implemented");
-//        }
-//            break;
-        case Stat::Script:
-        {
-            //throwError("CodeBlock to string for TclFormat not implemented");
-        }
-            break;
-        default:
-            return outputCommand();
-        }
+        return rawCommand();
     }
         break;
     default:
@@ -2165,80 +2073,9 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
 }
 
 
-Error TCLInterpreter::newProcedureCall(TclCommand_NS::Call::Name name){
-    const QString ERROR_PREFIX = "TCLInterpreter::newProcedureCall: ";
-
-/* Commented but required
-    switch(lastSavedStat().stat()){
-    case Stat::CommandSubbingStart:
-        // Do not add predefinitions group
-        break;
-    case Stat::Script:
-        predefinitionsController.newGroup(savedStatsSize());
-        break;
-    default:
-        break;
-    }
-
-    if(commandsController.newProcedureCall(name) == Error::Error)
-        return throwError(ERROR_PREFIX + error());
-
-*/
-    return Error::NoError;
-}
-
 Error TCLInterpreter::removeProcedureCall_writeOnlyProcedure(){
     commandsController.tryToDeactivateWriteOnlyProcedure();
     return removeProcedureCall_standard();
-}
-
-Error TCLInterpreter::moveArgumentToFunctionCall(){
-    const QString ERROR_DESCRIPTION = QString("InternalCall: moveArgumentToFunctionCall() : ");
-/* Commented but required
-     if(!isPrelastSavedStat())
-        return throwError(ERROR_DESCRIPTION + "Empty Stats");
-    switch (prelastSavedStat().stat()) {
-//    case Stat::Snprintf:
-//    case Stat::PendingSnprintf:
-//        return throwError(ERROR_DESCRIPTION + "No Function Call (Snprintf or PendingSnprintf Found) " );
-//        break;
-    case Stat::CommandSubbing:
-        break;
-    default:
-        return throwError(ERROR_DESCRIPTION + "No Function Call" );
-    }
-
-    return (commandsController.nextArgument() == Error::Error or
-                commandsController.onArgumentProcedureCheck() == Error::Error)
-            ?
-                Error::Error :
-                Error::NoError;
-*/
-}
-
-Error TCLInterpreter::moveArgumentToSnprintf_priv(Stat stat){
-    using Parameter = TclCommand_NS::Call::Parameter;
-/*
-    const QString ERROR_DESCRIPTION = QString("InternalCall: TCLInterpreter::moveArgumentToSnprintf_priv(): ");
-    if(!isPrelastSavedStat())
-        return throwError("No Stats for snprintf processing");
-    switch(prelastSavedStat().stat()){
-//    case Stat::Snprintf:
-//    case Stat::PendingSnprintf:
-//    {
-//        if(commandsController.nextArgument() == Error::Error or
-//                commandsController.onArgumentProcedureCheck() == Error::Error)
-//            return throwError(ERROR_DESCRIPTION + error());
-//    }
-//        break;
-    default:
-    {
-        if(commandsController.nextArgumentForSnprintf_priv(stat) == Error::Error)
-            return throwError(ERROR_DESCRIPTION + error());
-    }
-    }
-*/
-    return Error::NoError;
 }
 
 void TclCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(UserInputConfig& userDefinitions){
@@ -2859,395 +2696,18 @@ void TclProcedureInterpreter::tryToActivateWriteOnlyProcedure(Call::Name& name){
     }
 }
 
-/*
-Error TclProcedureInterpreter::interpret(QString newArgument)
-{
-    using Parameter = Call::Parameter;
-    switch(tclInterpreter.lastSavedStat().stat()){
-    case Stat::CommandSubbing:
-//    case Stat::PendingSnprintf:
-//    case Stat::Snprintf:
-//    {
-//        if(procedureCalls.size() < 2){
-//            return throwError("No Procedure Calls for Function-like Argument passing");
-//        }
-//        Call procedureCall = procedureCalls.takeLast();
-//        Parameter parameter(tclInterpreter.takeLastSavedStat(), procedureCall);
-//        procedureCalls.last().nextArgument(parameter);
-//    }
-//        break;
-    case Stat::Script:
-    {
-        tclInterpreter.prepareCodeBlockContent();
-        Parameter parameter(tclInterpreter.takeLastSavedStat());
-        procedureCalls.last().nextArgument(parameter);
-    }
-        break;
-    default:
-    {
-        Parameter parameter(tclInterpreter.takeLastSavedStat());
-        procedureCalls.last().nextArgument(parameter);
-    }
-    }
-    return Error::NoError;
-}
-*/
-//Commented but required
-//Error TclProcedureInterpreter::nextArgumentForSnprintf_priv(Stat stat)
-//{
-//    const QString ERROR_DESCRIPTION = QString("InternalCall: TclProcedureInterpreter::nextArgumentForSnprintf_priv(): ");
-//    using Parameter = Call::Parameter;
-
-//    switch(tclInterpreter.lastSavedStat().stat()){
-////    case Stat::PendingSnprintf:
-////    case Stat::Snprintf:
-////    {
-////        return throwError(ERROR_DESCRIPTION + "Snprintf as argument for Snprintf");
-////    }
-//    case Stat::CommandSubbing:
-//    {
-//        Call procedureCall = procedureCalls.takeLast();
-//        Parameter parameter(tclInterpreter.takeLastSavedStat(), procedureCall);
-//        tclInterpreter.saveStat({stat, QString()});
-////        tclInterpreter.saveStat({Stat::String, QString("concat")});
-//        if(tclInterpreter.newProcedureCall("string") == Error::Error or
-//                nextArgument() == Error::Error or
-//                onArgumentProcedureCheck() == Error::Error or
-//             (procedureCalls.last().nextArgument(parameter),
-//                onArgumentProcedureCheck() == Error::Error))
-//            return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
-//    }
-//        break;
-//    default:
-//    {
-//        Parameter parameter(tclInterpreter.takeLastSavedStat());
-//        tclInterpreter.saveStat({stat, QString()});
-////        tclInterpreter.saveStat({Stat::String, QString("concat")});
-//        if(tclInterpreter.newProcedureCall("string") == Error::Error or
-//                nextArgument() == Error::Error or
-//                onArgumentProcedureCheck() == Error::Error)
-//            return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
-//        if(!parameter.command().isEmpty() and
-//                (procedureCalls.last().nextArgument(parameter),
-//                onArgumentProcedureCheck() == Error::Error))
-//            return throwError(ERROR_DESCRIPTION + tclInterpreter.error());
-//    }
-//    }
-
-//    return Error::NoError;
-//}
-
-
-Error TCLInterpreter::finalizeProcedureCall(){
-    const QString ERROR_DESCRIPTION = "TCL_Internal::finalizeProcedureCall";
-    const QString END_OF_EXPRESSION_SIGN = ";\n";
-// Commented but required
-//    if(!isPrelastSavedStat())
-//        return throwError(ERROR_DESCRIPTION + " No stats");
-//    if(lastSavedStat().stat() != Stat::CommandSubbing)
-//        return throwError(ERROR_DESCRIPTION + "Wrong stat to finalize procedure.");
-//    switch(prelastSavedStat().stat()){
-////    case Stat::Snprintf:
-////    case Stat::PendingSnprintf:
-//    case Stat::CommandSubbing:
-//    {
-//        if(commandsController.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
-//                removeProcedureCall() == Error::Error*/)
-//            return throwError(ERROR_DESCRIPTION + error());
-////       if(prelastSavedStat().stat() == Stat::Snprintf){
-////            if(moveArgumentToSnprintf() == Error::Error)
-////                return throwError(ERROR_DESCRIPTION + error());
-////        }
-//    }
-//        break;
-//    case Stat::Script:
-//    {
-//        SavedStat tempStat;
-//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-//                /*Preexpressions to Command */
-//                ( addPreexpressionsToCodeBlock(),
-//                  snprintfController.clear(),
-//                  addExpressionToCodeBlock({tempStat.command() + commandsController.lastProcedureCall().tryToAddEndOfExpressionSign()}),
-//                 false) or
-//                // Continue conditional expression
-//                removeProcedureCall() == Error::Error)
-//            return throwError(ERROR_DESCRIPTION + error());
-//    }
-//        break;
-//    case Stat::Expression:
-//    {
-//        SavedStat tempStat;
-//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-//                /*Preexpressions to Command */
-//                ( /*addPreexpressionsToCodeBlock(),
-//                  snprintfController().clear(),*/
-//                  addExpressionToCodeBlock({tempStat.command()}) ,
-//                 false) or
-//                // Continue conditional expression
-//                removeProcedureCall() == Error::Error)
-//            return throwError(ERROR_DESCRIPTION + error());
-//    }
-//        break;
-//    case Stat::MainScript:
-//    {
-//        SavedStat tempStat;
-//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-//                /*Preexpressions to Command */
-//                (   addPreexpressionsToMainCodeBlock(),
-//                    snprintfController.clear(),
-//                    addExpressionToMainCodeBlock({tempStat.command() + commandsController.lastProcedureCall().tryToAddEndOfExpressionSign()}) ,
-//                 false) or
-//                // Continue conditional expression
-//                ( commandsController.lastProcedureCall().clearMemory(),
-//                removeProcedureCall() == Error::Error))
-//            return throwError(ERROR_DESCRIPTION + error());
-//    }
-//        break;
-//    default:
-//        return throwError(ERROR_DESCRIPTION + "Wrong prestat to finalize procedure.");
-//    }
-    return Error::NoError;
-}
-
-Error TCLInterpreter::finalizeSnprintfCall(){
-    const QString ERROR_DESCRIPTION = "TCL_Internal::finalizeProcedureCall";
-// Commented but required
-//    if(!isPrelastSavedStat())
-//        return throwError(ERROR_DESCRIPTION + " No stats");
-////    if(not( lastSavedStat().stat() == Stat::Snprintf or lastSavedStat().stat() == Stat::PendingSnprintf))
-////        return throwError(ERROR_DESCRIPTION + "Wrong stat to finalize procedure.");
-//    switch(prelastSavedStat().stat()){
-////    case Stat::Snprintf:
-////    case Stat::PendingSnprintf:
-////    {
-////        return throwError(ERROR_DESCRIPTION + "Snprintf should not call other Snprintf");
-////    }
-////        break;
-//    case Stat::CommandSubbing:
-//    {
-//        if(commandsController.finalizeProcedureCall(lastSavedStat()) == Error::Error/* or
-//                removeProcedureCall() == Error::Error*/)
-//            return throwError(ERROR_DESCRIPTION + error());
-//    }
-//        break;
-//    /*case Stat::MainScript:
-//    {
-//        SavedStat tempStat;
-//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-//                // Preexpressions to Command
-//                (   addPreexpressionsToMainCodeBlock(),
-//                    addExpressionToMainCodeBlock( tempStat.command()) ,
-//                 false) or
-//                // Continue conditional expression
-//                removeProcedureCall() == Error::Error)
-//            return throwError(ERROR_DESCRIPTION + error());
-//    }
-//        break;
-//    case Stat::Script:
-//    {
-//        SavedStat tempStat;
-//        if(takeLastSavedStatWithParsingControl(tempStat) == Error::Error or
-//                commandsController.finalizeProcedureCall(tempStat) == Error::Error or
-//                //Preexpressions to Command
-//                (   addPreexpressionsToCodeBlock(),
-//                    addExpressionToCodeBlock(tempStat.command()) ,
-//                 false) or
-//                // Continue conditional expression
-//                removeProcedureCall() == Error::Error)
-//            return throwError(ERROR_DESCRIPTION + error());
-//    }
-//        break;*/
-//    default:
-//        return throwError(ERROR_DESCRIPTION + "Wrong prestat to finalize procedure.");
-//    }
-    return Error::NoError;
-}
-
-// Commented but required
-//Error TclProcedureInterpreter::dynamicProcedureArgumentCheck_priv(){
-//    using RulesForArguments = ProcedureDefinition::RulesForArguments;
-//    using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
-//    using Rules = ProcedureDefinition::Rules;
-//    using Rule = ProcedureDefinition::Rules::Iterator;
-//    Call& procedureCall = procedureCalls.last();
-//    RulesForArgument rulesForArgument = procedureCall.lastRulesForArgument_dynamicCheck();
-//    if(procedureCall.isRulesInRange(rulesForArgument) == Error::Error /*or
-//            rulesForArgument->status == RulesForArguments::Type::Status::Unspecified*/){
-//        rulesForArgument = procedureCall.rulesForUnspecifiedArgument();
-//    }
-//    bool ruleCondtionsPassed = false;
-//    using Actions = Rules::value_type::ExecutableActions;
-//    using Action = Actions::Iterator;
-//    for(Rule rule = rulesForArgument->rules.begin(); rule < rulesForArgument->rules.end(); rule++){
-//        using Conditions = Rules::value_type::ConditionalActions;
-//        using Condition = Conditions::Iterator;
-//        Condition condition;
-//        ConditionResult conditionResult = ConditionResult::Satisfied;
-//        for(condition = rule->conditions.begin(); condition < rule->conditions.end(); condition++){
-//            conditionResult = (this->*(conditionalInterpreterFunctions[static_cast<std::underlying_type_t<Conditions::value_type::ActionType>>(condition->type())]))(condition->parameters());
-//            if(tclInterpreter.isError()){
-//                return Error::Error;
-//            }
-//            if(conditionResult == ConditionResult::Unsatisfied){
-//                break;
-//            }
-//        }
-//        if(condition == rule->conditions.end()){
-//            ruleCondtionsPassed = true;
-//            for(Action action = rule->actions.begin(); action < rule->actions.end(); action++){
-//                (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Actions::value_type::ActionType>>(action->type())]))(action->parameters());
-//                if(tclInterpreter.isError()){
-//                    return Error::Error;
-//                }
-//            }
-//            switch(rule->controlFlag){
-//            //case Rules::value_type::Control::BreakRuleCheckDontExecOnEndActions:
-//                //return Error::NoError;
-//            case Rules::value_type::Control::BreakRuleCheck:
-//                rule = rulesForArgument->rules.end();
-//                break;
-//            case Rules::value_type::Control::NoBreakRuleCheck:
-//                ruleCondtionsPassed = false;
-//                break;
-//            default:
-//                break;
-//            }
-//        }
-//    }
-//    return Error::NoError;
-//}
-
-// Commented but required
-//Error TclProcedureInterpreter::dynamicProcedureCheck(){
-//    if(procedureCalls.isEmpty() or
-//            procedureCalls.last().isRulesEmpty() or
-//            procedureCalls.last().isUserInteractionRequired())
-//        return Error::NoError;
-//    return dynamicProcedureArgumentCheck_priv();
-//}
-
-// Commented but required
-//Error TclProcedureInterpreter::onArgumentProcedureCheck_priv(){
-//    using RulesForArguments = ProcedureDefinition::RulesForArguments;
-//    using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
-//    using Rules = ProcedureDefinition::Rules;
-//    using Rule = ProcedureDefinition::Rules::Iterator;
-//    Call& procedureCall = procedureCalls.last();
-//    ProcedureDefinition::RulesForArguments::Iterator rulesForArgument = procedureCall.lastRulesForArgument_onMoved();
-//    if(procedureCall.isRulesInRange(rulesForArgument) == Error::Error){
-//        rulesForArgument = procedureCall.rulesForUnspecifiedArgument();
-//    }
-//    bool ruleCondtionsPassed = false;
-//    using Actions = Rules::value_type::ExecutableActions;
-//    using Action = Actions::Iterator;
-//    for(Rule rule = rulesForArgument->rulesOnMoveArgument.begin(); rule < rulesForArgument->rulesOnMoveArgument.end(); rule++){
-//        using Conditions = Rules::value_type::ConditionalActions;
-//        using Condition = Conditions::Iterator;
-//        Condition condition;
-//        ConditionResult conditionResult = ConditionResult::Satisfied;
-//        for(condition = rule->conditions.begin(); condition < rule->conditions.end(); condition++){
-//            conditionResult = (this->*(conditionalInterpreterFunctions[static_cast<std::underlying_type_t<Conditions::value_type::ActionType>>(condition->type())]))(condition->parameters());
-//            if(tclInterpreter.isError()){
-//                return Error::Error;
-//            }
-//            if(conditionResult == ConditionResult::Unsatisfied){
-//                break;
-//            }
-//        }
-//        if(condition == rule->conditions.end()){
-//            ruleCondtionsPassed = true;
-//            for(Action action = rule->actions.begin(); action < rule->actions.end(); action++){
-//                (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Actions::value_type::ActionType>>(action->type())]))(action->parameters());
-//                if(tclInterpreter.isError()){
-//                    return Error::Error;
-//                }
-//            }
-//            switch(rule->controlFlag){
-//            //case Rules::value_type::Control::BreakRuleCheckDontExecOnEndActions:
-//              //  return Error::Error;
-//            case Rules::value_type::Control::BreakRuleCheck:
-//                rule = rulesForArgument->rulesOnMoveArgument.end();
-//                break;
-//            case Rules::value_type::Control::NoBreakRuleCheck:
-//                ruleCondtionsPassed = false;
-//                break;
-//            default:
-//                break;
-//            }
-//        }
-//    }
-//    return Error::NoError;
-//}
-
-// Commented but required
-//Error TclProcedureInterpreter::onArgumentProcedureCheck(){
-//    if(procedureCalls.isEmpty() or
-//            procedureCalls.last().isRulesEmpty() or
-//            procedureCalls.last().isUserInteractionRequired())
-//        return Error::NoError;
-//    return onArgumentProcedureCheck_priv();
-
-//}
 
 Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
     if(isError())
         return Error::Error;
     textInterpreter().initialize(tclCommand);
-//    proccessingStats = pendingProccessingStats;
-//    pendingProccessingStats = {};
-//    while(!proccessingStats.isEmpty()){
-//        Stat savedProccessingStat = proccessingStats.last();
+    setProcessingStat(Stat::None);
+//
+    while(processingStat() != Stat::EndOfString)
+        if(callCurrentInterpreterProcedure() == Error::Error)
+            return Error::Error;
 
-//        if(callInterpretFunction() == Error::Error){
-//            if(processError() == Error::Error)
-//                return Error::Error;
-//        }
-//        commandsController.dynamicProcedureCheck();
-//        if(isError()){
-//            if(processError() == Error::Error)
-//                return Error::Error;
-//        }
-//        if(savedProccessingStat == Stat::EndOfString){
-//            textInterpreter().deinitialize();
-//            return Error::NoError;
-//        }
-//    }
-//    pendingProccessingStats = {};
-    /*
-
-    while(textInterpreter().runSearchingMode() == Result::StatFound){
-
-        if(processUnknownString() == Error::Error){
-            if(processError() == Error::Error)
-                return Error::Error;
-        }
-
-        processingStat = textInterpreter().lastKeywordStat();
-
-//        while(!proccessingStats.isEmpty()){
-//            Stat savedProccessingStat = proccessingStats.last();
-        if(callInterpretFunction() == Error::Error){
-            if(processError() == Error::Error)
-                return Error::Error;
-        }
-//        Commented but required
-//        commandsController.dynamicProcedureCheck();
-        if(isError()){
-            if(processError() == Error::Error)
-                return Error::Error;
-        }
-        if(processingStat == Stat::EndOfString){
-            textInterpreter().deinitialize();
-            return Error::NoError;
-        }
-//        }
-    }
-*/
-    return callCurrentInterpreterProcedure();
+    return Error::NoError;
 }
 
 Error TCLInterpreter::interpreterProcedure_standard(){
@@ -3258,17 +2718,13 @@ Error TCLInterpreter::interpreterProcedure_standard(){
                 return Error::Error;
         }
 
-        _processingStat = textInterpreter().lastKeywordStat();
+        setProcessingStat(textInterpreter().lastKeywordStat());
 
-//        while(!proccessingStats.isEmpty()){
-//            Stat savedProccessingStat = proccessingStats.last();
         if(callInterpretFunction() == Error::Error){
             if(processError() == Error::Error)
                 return Error::Error;
         }
-//        Commented but required
-//        commandsController.dynamicProcedureCheck();
-        if(isError()){
+        if(commandsController.performDynamicRulesCheck() == Error::Error){
             if(processError() == Error::Error)
                 return Error::Error;
         }
@@ -3276,7 +2732,6 @@ Error TCLInterpreter::interpreterProcedure_standard(){
             textInterpreter().deinitialize();
             return Error::NoError;
         }
-//        }
     }
 
     return isError()? Error::Error : Error::NoError;
@@ -3295,8 +2750,8 @@ Error TCLInterpreter::interpreterProcedure_backslashSubbingSpecial(){
                 return Error::Error;
         }
         setStandardReadKeywordMode();
-//        Commented but required
-//        commandsController.dynamicProcedureCheck();
+        setStandardInterpreterMode();
+        commandsController.performDynamicRulesCheck();
         if(isError()){
             if(processError() == Error::Error)
                 return Error::Error;
@@ -3306,35 +2761,20 @@ Error TCLInterpreter::interpreterProcedure_backslashSubbingSpecial(){
     return Error::NoError;
 }
 Error TCLInterpreter::interpreterProcedure_commentSpecial(){
-
     QString tempStr = textInterpreter().restOfString();
 
-    addExpressionToCodeBlock({"//" + tempStr + "\n"});
-    if(not tempStr.endsWith("\\")){
+    if(tempStr.endsWith("\\")){
+        tempStr.chop(1);
+    }else{
         setStandardInterpreterMode();
     }
-    return Error::NoError;
-}
+    if(commandsController.isMainScript())
+        addExpressionToMainCodeBlock({"//" + tempStr + "\n"});
+    else
+        addExpressionToCodeBlock({"//" + tempStr + "\n"});
 
-Error TCLInterpreter::processSavedStatsForError(){
-    // Commented but required
-//    while(!isSavedStatsEmpty()){
-//        switch(lastSavedStat().stat()){
-//        case Stat::Script:
-//        case Stat::MainScript:
-//            saveStat({Stat::Ignore});
-//            return Error::NoError;
-//        case Stat::CommandSubbing:
-////        case Stat::Snprintf:
-////        case Stat::PendingSnprintf:
-////            if(removeProcedureCall() == Error::Error)
-////                return throwError("TCLInterpreter::processSavedStatsForError: " + error());
-//        default:
-//            if(removeLastSavedStatWithParsingControl() == Error::Error)
-//                return throwError("TCLInterpreter::processSavedStatsForError: " + error() );
-//        }
-//    }
-//    return throwError("TCLInterpreter::processSavedStatsForError: No stats");
+    setProcessingStat(Stat::EndOfString);
+    return Error::NoError;
 }
 
 
@@ -3370,13 +2810,10 @@ void TCLInterpreter::printErrorReport(QString& errorReport){
 
     }
 }
-/*
-bool TCLInterpreter::isPredefinitionMode(){
-    return userConfig.proceduresSettings().mode() == UserInputConfig::Settings::InterpreterMode::PredefinitionsOnly;
-}*/
+
 
 // PROCEDURE DEFINITION FUNCTIONS ==================================================================================
-QString TclProcedureInterpreter::toString(SavedStat &stat, ProcedureDefinition::Format::Target target){
+/*QString TclProcedureInterpreter::toString(SavedStat &stat, ProcedureDefinition::Format::Target target){
     using Target = ProcedureDefinition::Format::Target;
     QString str;
 
@@ -3407,9 +2844,9 @@ QString TclProcedureInterpreter::toString(SavedStat &stat, ProcedureDefinition::
         break;
     default:
         break;
-    }*/
+    }
     return QString();
-}
+}*/
 
 
 QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& dest, QStringList args){
@@ -3446,53 +2883,31 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                             switch(target){
                             case Target::TclFormat:
                             case Target::CaplFormat:
-                                dest += lastProcedureName();
+                                dest += lastProcedureCall()._name();
                                 break;
                             case Target::Raw:
                                 dest += command;
                                 break;
-                            /*case Target::RAW:
-                            //case Target::SSTR:
-                                if(!targetStr)
-                                    return false;
-                                dest += *targetStr;
-                                break;*/
                             default:
                                 return (arg - args.begin());
                             }
                             // FULL LINE ----------------
                         }else{
                             // ARGUMENT AT INDEX -------------------------------
-                            if((index = arg->toInt(&ok), !ok))
+                            index = arg->toInt(&ok);
+                            if(not ok)
                                 return (arg - args.begin());
                             if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
                                 index = lastProcedureCall().parametersLength() + index; // Index is negative
                             }
-                            if(index < 0 || index >= lastProcedureCall().parametersLength())
+                            if(index < 0 or index >= lastProcedureCall().parametersLength())
                                 return (arg - args.begin());
-                            switch(target){
-                            /*case Target::RAW:
-                            //case Target::SSTR:
-                                if(!targetStr)
-                                    return false;
-                                if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                                    index = targetStr->size() + index; // Index is negative
-                                }
-                                if(index < 0 || index >= targetStr->size())
-                                    return false;
-                                dest += targetStr->at(index);
-                                break;*/
+                            index++; // Ignore procedure name
+                            switch(target){                            
                             case Target::Raw:
-//                                Commented but required
-//                                dest += lastProcedureCall().parameters()[index].command();
-                                break;
                             case Target::ProcedureParametersStat:
-                                dest += QString::number(
-                                            std::underlying_type_t<Stat>(lastProcedureCall().parameters().at(index).stat()));
-                                break;
                             case Target::CaplFormat:
                             case Target::TclFormat:
-
                                 dest += lastProcedureCall().parameters()[index].toString(target);
                                 break;
                             default:
@@ -3505,32 +2920,20 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                     case Rule::ARGS_AFTER_INDEX:
                     {
                         // ALL ARGUMENTS AFTER INDEX -------------------------------
-                        if((index = arg->toInt(&ok), !ok))
+                        if((static_cast<void>(index = arg->toInt(&ok)), !ok))
                             return (arg - args.begin());
                         if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
                             index = lastProcedureCall().parametersLength() + index; // Index is negative
                         }
                         if(index < 0)
                             return (arg - args.begin());
+                        index++; // Ignore procedure name
                         switch(target){
-                        /*case Target::RAW:
-                        //case Target::SSTR:
-                        {
-                            if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                                index = targetStr->size() + index; // Index is negative
-                            }
-                            if(index < 0 || index >= targetStr->size())
-                                return false;
-                            dest += targetStr->sliced(index);
-                        }
-                            break;*/
                         case Target::SnprintfFormat:
-
                         case Target::CaplFormat:
                         case Target::TclFormat:
                         case Target::Raw:
                         {
-
                             for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + index; responseArg < lastProcedureCall().parameters().end(); responseArg++){
                                 dest += responseArg->toString(target) + seperator;
                                 separatorUsed = true;
@@ -3543,196 +2946,12 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                         // ALL ARGUMENTS AFTER INDEX -------------------------------
                     }
                         break;
-                    /*case Rule::ARG_IN_RANGE_P1:
-                    {
-                        switch((formatRule = static_cast<Rule>(arg->at(0).toLatin1()), *arg = arg->sliced(1), formatRule)){
-                        case Rule::ARG_IN_RANGE_P2:
-                        {
-                            // ALL ARGUMENTS IN RANGE -------------------------------
-                            int firstIndex = INT_MAX;
-                            int secondIndex = INT_MAX;
-                            QStringList indexes;
-                            if((indexes = arg->split(";"), indexes.size() != 2) ||
-                                    (firstIndex = indexes.at(0).toInt(&ok), !ok) ||
-                                    (secondIndex = indexes.at(1).toInt(&ok), !ok))
-                                return false;
-                            switch(target){
-                            case Target::RAW:
-                            case Target::SSTR:
-                            {
-                                if(!targetStr)
-                                    return false;
-                                if(firstIndex < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                                    firstIndex = targetStr->size() + firstIndex; // Index is negative
-                                }
-                                if(secondIndex < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                                    secondIndex = targetStr->size() + secondIndex; // Index is negative
-                                }
-                                if(firstIndex < 0 || firstIndex >= targetStr->size() ||
-                                        secondIndex < 0 || secondIndex >= targetStr->size() ||
-                                        firstIndex >= secondIndex)
-                                     return false;
-                                for(QString::Iterator responseArg = targetStr->begin() + firstIndex; responseArg < targetStr->begin() + secondIndex; responseArg++){
-                                    dest += *responseArg + seperator;
-                                    separatorUsed = true;
-                                }
-                            }
-                                break;
-                            case Target::SPLITTED_RAW:
-                            {
-                                if(firstIndex < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                                    firstIndex = lastActionResponse.size() + firstIndex; // Index is negative
-                                }
-                                if(secondIndex < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                                    secondIndex = lastActionResponse.size() + secondIndex; // Index is negative
-                                }
-                                if(firstIndex < 0 || firstIndex >= lastActionResponse.size() ||
-                                        secondIndex < 0 || secondIndex >= lastActionResponse.size() ||
-                                        firstIndex >= secondIndex)
-                                     return false;
-                                for(QStringList::Iterator responseArg = lastActionResponse.begin() + firstIndex; responseArg < lastActionResponse.begin() + secondIndex; responseArg++){
-                                    dest += *responseArg + seperator;
-                                    separatorUsed = true;
-                                }
-                            }
-                                break;
-                            default:
-                                return false;
-                            }
-                            // ALL ARGUMENTS IN RANGE -------------------------------
-                        }
-                            break;
-                        default:
-                            return false;
-                        }
-                    }
-                        break;
-                    case Rule::CUT_INDEX:
-                    {
-                        switch(target){
-                        case Target::RAW:
-                        case Target::SSTR:
-                        {
-                            return false;   // Not Implemented yet
-                        }
-                            break;
-                        case Target::SPLITTED_RAW:
-                        {
-                            int cutWidth = 0;
-                            QStringList indexes;
-                            if((indexes = arg->split(";"), indexes.size() != 2) ||
-                                    (index = indexes.at(0).toInt(&ok), !ok) || index < 0 || index >= lastActionResponse.size()||
-                                    (cutWidth = indexes.at(1).toInt(&ok), !ok) || cutWidth < 1 || cutWidth > lastActionResponse.at(index).size() )
-                                return false;
-                            int lastI = lastActionResponse.at(index).size() - cutWidth;
-                            for(int i = 0; i <= lastI; i+= cutWidth){
-                                dest += lastActionResponse.at(index).sliced(i, cutWidth) + seperator;
-                                separatorUsed = true;
-                            }
-                        }
-                            break;
-                        default:
-                            return false;
-                        }
-                    }
-                        break;
-                    case Rule::CUT_AFTER_INDEX:
-                    {
-                        switch(target){
-                        case Target::RAW:
-                        case Target::SSTR:
-                        {
-                            return false;   // Not Implemented yet
-                        }
-                            break;
-                        case Target::SPLITTED_RAW:
-                        {
-                            int cutWidth = 0;
-                            QStringList indexes;
-                            if((indexes = arg->split(";"), indexes.size() != 2) ||
-                                    (index = indexes.at(0).toInt(&ok), !ok) || index < 0 || index >= lastActionResponse.size()||
-                                    (cutWidth = indexes.at(1).toInt(&ok), !ok) || cutWidth < 1 || cutWidth > lastActionResponse.at(index).size() )
-                                return false;
-                            for(QStringList::Iterator responseArg = lastActionResponse.begin() + index + 1; responseArg < lastActionResponse.end(); responseArg++){
-                                int lastI = responseArg->size() - cutWidth;
-                                for(int i = 0; i <= lastI; i+= cutWidth){
-                                    dest += responseArg->sliced(i, cutWidth) + seperator;
-                                    separatorUsed = true;
-                                }
-                            }
-                        }
-                            break;
-                        default:
-                            return false;
-                        }
-                    }
-                        break;
-                        */
                     case Rule::TARGET:
                     {
-                        if((target = static_cast<Target>(arg->toUInt(&ok)), !ok))
+                        if((static_cast<void>(target = static_cast<Target>(arg->toUInt(&ok))), !ok))
                            return (arg - args.begin());
-
                     }
-                        break;
-                    /*case Rule::SPLIT:
-                    {
-                        switch (target) {
-                        case Target::RAW:
-                        case Target::SSTR:
-                            if(!targetStr)
-                                return false;
-                            lastActionResponse = targetStr->split(QRegularExpression(*arg), Qt::SkipEmptyParts);
-                            break;
-                        case Target::SPLITTED_RAW:
-                        default:
-                            return false;
-                        }
-                    }
-                        break;
-                    case Rule::SLICED:
-                    {
-                        switch (target) {
-                        case Target::RAW:
-                        case Target::SSTR:
-                        {
-                            if(!targetStr)
-                                return false;
-                            if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                                index = targetStr->size() + index; // Index is negative
-                            }
-                            if(index < 0 || index >= targetStr->size())
-                                return false;
-                            *targetStr = targetStr->sliced(index);
-                        }
-                            break;
-                        case Target::SPLITTED_RAW:
-                        {
-                            int firstIndex = INT_MAX;
-                            int secondIndex = INT_MAX;
-                            QStringList indexes;
-                            if((indexes = arg->split(";"), indexes.size() != 2) ||
-                                    (firstIndex = indexes.at(0).toInt(&ok), !ok) ||
-                                    (secondIndex = indexes.at(1).toInt(&ok), !ok))
-                                return false;
-                            if(firstIndex < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                                firstIndex = lastActionResponse.size() + firstIndex; // Index is negative
-                            }
-                            if(firstIndex < 0 || firstIndex >= lastActionResponse.size())
-                                return false;
-                            if(secondIndex < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                                secondIndex = lastActionResponse.at(firstIndex).size() + secondIndex; // Index is negative
-                            }
-                            if(secondIndex < 0 || secondIndex >= lastActionResponse.at(firstIndex).size())
-                                return false;
-                            lastActionResponse[firstIndex] = lastActionResponse.at(firstIndex).sliced(secondIndex);
-                        }
-                            break;
-                        default:
-                            return false;
-                        }
-                    }
-                        break;*/
+                        break;                    
                     default:
                         return (arg - args.begin());
                     }

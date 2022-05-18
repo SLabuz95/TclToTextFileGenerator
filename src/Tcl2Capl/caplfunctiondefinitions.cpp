@@ -7,12 +7,10 @@ using namespace Tcl::Analysis;
 void FunctionDefinitions::addDefinitionNoRules(Call& procedureCall)
 {
     Definitions::Iterator caplDefinition;
-    if((caplDefinition = definitionsOnNoRules.find(procedureCall.name())) != definitionsOnNoRules.end()){
+    if((caplDefinition = definitionsOnNoRules.find(procedureCall._name())) != definitionsOnNoRules.end()){
         DefinitionInfo::Iterator caplDefinitionInfo;
         if((caplDefinitionInfo = caplDefinition->find(procedureCall.parametersLength())) != caplDefinition->end()){
             // Search parameters
-            if(procedureCall.name() == "test_result" and procedureCall.parametersLength() == 2)
-                qDebug() << "Test";
             ProcedureInfos::Iterator procedureInfo;
             Parameters parameters = procedureCall.parametersStats();
             if((procedureInfo = caplDefinitionInfo->find(parameters)) != caplDefinitionInfo->end()){
@@ -36,17 +34,17 @@ void FunctionDefinitions::addDefinitionNoRules(Call& procedureCall)
         Examples examples{procedureCall.generateFunctionDefinitionExample()};
         procedureInfos.insert(procedureCall.parametersStats(), examples);
         info.insert(procedureCall.parametersLength(), procedureInfos);
-        definitionsOnNoRules.insert(procedureCall.name(), info);
+        definitionsOnNoRules.insert(procedureCall._name(), info);
     }
 }
 
 void FunctionDefinitions::addDefinitionNotSatisfiedRules(Call& procedureCall)
 {
     Definitions::Iterator caplDefinition;
-    if((caplDefinition = definitionsOnNotSatisfiedRules.find(procedureCall.name())) != definitionsOnNotSatisfiedRules.end()){
+    if((caplDefinition = definitionsOnNotSatisfiedRules.find(procedureCall._name())) != definitionsOnNotSatisfiedRules.end()){
         DefinitionInfo::Iterator caplDefinitionInfo;
         if((caplDefinitionInfo = caplDefinition->find(procedureCall.parametersLength())) != caplDefinition->end()){
-            if(procedureCall.name() == "test_result" and procedureCall.parametersLength() == 2)
+            if(procedureCall._name() == "test_result" and procedureCall.parametersLength() == 2)
                 qDebug() << "Test";
             // Search parameters
             ProcedureInfos::Iterator procedureInfo;
@@ -72,7 +70,7 @@ void FunctionDefinitions::addDefinitionNotSatisfiedRules(Call& procedureCall)
         Examples examples{procedureCall.generateFunctionDefinitionExample()};
         procedureInfos.insert(procedureCall.parametersStats(), examples);
         info.insert(procedureCall.parametersLength(), procedureInfos);
-        definitionsOnNotSatisfiedRules.insert(procedureCall.name(), info);
+        definitionsOnNotSatisfiedRules.insert(procedureCall._name(), info);
     }
 }
 

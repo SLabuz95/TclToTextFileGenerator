@@ -57,6 +57,7 @@ namespace Tcl::Interpreter{
         using Value = VariableInfo::Value;
         using Variables_priv = QMap<VarName, VariableInfo>;
         //Variables_priv variables;
+        bool justActivated_ = false;
 
     public:
         using Variable = VariableInfo;
@@ -66,6 +67,10 @@ namespace Tcl::Interpreter{
             // Jezeli sie zmienia
             //if()
         }*/
+        inline bool isJustActivated(){return justActivated_;}
+        inline void setJustActivated(bool value){
+            justActivated_ = value;
+        }
         void processVariableSubbingParameter(Call::Parameter&, QString&);
         bool isFirstSignOk(QString);
     };

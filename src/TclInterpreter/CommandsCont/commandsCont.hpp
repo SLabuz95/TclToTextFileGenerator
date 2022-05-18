@@ -130,13 +130,13 @@ namespace Tcl::Interpreter::Command{
         Error createCallAndMoveLastParameterToOne(Stat);
         Error performRulesCheckForNewParameter();
         Error onArgumentProcedureCheck();
-
+        Error dynamicRulesCheck();
         Stat processingStat()const;//{return tclInterpreter.processingStat();}
-
-
-
         bool backslashSubbingActive = true;
+
     public:
+        Error processCallsForError();
+        Error performDynamicRulesCheck();
         //Error createCall(Stat, Call::Parameter&&);
         Error createCall(Stat, Call::Parameter&& = Call::Parameter());
         Error addNewParameter();
@@ -146,14 +146,11 @@ namespace Tcl::Interpreter::Command{
         Error addNewParameter(Stat, QString , OutputCommand = OutputCommand());
         Error addFinalizedCallParameter();
         Error startVariableSubbing();
-        inline bool isCompleteVariableSubbing(){
-            return lastProcedureCall().lastParameter().stat() == Stat::VariableSubbing
-                    and not lastProcedureCall().lastParameter().rawCommand().isEmpty()
-                    and lastProcedureCall().lastParameter().rawCommand().front() == '$';
-        }
+        bool isVariableSubbingProcessingJustActivated();
         Error processVariableSubbing();
         bool isFirstSignOk(QString str);
         //Error performVariableSubbingRecoveryProcedure(){};
+        Error prepareSnprintf();
         Error processBackslashSubbing();
         inline void activateBackslashSubbing(){backslashSubbingActive = true;}
         inline void deactivateBackslashSubbing(){backslashSubbingActive = false;}
@@ -163,14 +160,23 @@ namespace Tcl::Interpreter::Command{
 
         Controller(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig);
 
-
-
         inline bool isMainScript()const{
             return procedureCalls.isEmpty();
         }
 
+        inline bool isNotCommandSubbingMainScriptOnly()const{
+            Q_ASSERT_X(not procedureCalls.isEmpty(), "isNotCommandSubbingMainScriptOnly", "Method called for empty procedure calls list");
+            return procedureCalls.size() == 1; // prelast call is Script
+        }
+
+        inline bool isNotCommandSubbingInComplexWord()const{
+            Q_ASSERT_X(not procedureCalls.isEmpty(), "isNotCommandSubbingInComplexWord", "Method called for empty procedure calls list");
+            return procedureCalls.size() == 2 or (procedureCalls.rbegin() + 2)->stat() == Stat::Script; // prex2last call is Script
+        }
+
         inline bool isNotCommandSubbing()const{
-            return procedureCalls.size() == 1 or procedureCalls.last().stat() == Stat::Script;
+            Q_ASSERT_X(not procedureCalls.isEmpty(), "isNotCommandSubbing", "Method called for empty procedure calls list");
+            return procedureCalls.size() == 1 or (procedureCalls.rbegin() + 1)->stat() == Stat::Script; // prelast call is Script
         }
 
         inline bool isCommandSubbingCall()const{
@@ -186,7 +192,6 @@ namespace Tcl::Interpreter::Command{
         }
 
         // WriteOnlyProcedures
-
         void tryToActivateWriteOnlyProcedure(Call::Name& name);
         //inline bool isWriteOnlyProcedureActive()const{return writeOnlyProcedureActiveIndex != -1;}
         inline void tryToDeactivateWriteOnlyProcedure(){
@@ -197,66 +202,36 @@ namespace Tcl::Interpreter::Command{
         }
         // ---------------------------
         void activateWriteOnlyProcedureMode();
-    //    {
-    //        finalizeCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCase);
-    //        tclInterpreter.activateWriteOnlyProcedureMode();
-    //    }
-
         void deactivateWriteOnlyProcedureMode();
-    //   {
-    //        finalizeCallFunction = ProcedureCallFunctions::finalizeCallAt(ProdecuresSettings::InterpreterMode::TestCaseReport);
-    //        tclInterpreter.deactivateWriteOnlyProcedureMode();
-    //    }
-/*
-*/
+
         template<Settings::InterpreterMode>
         Error callDefinition_mode(Call::Name name);
         template<Settings::InterpreterMode>
         Error finalizeCall_mode();
-/*
-        inline Error removeProcedureCall(){return procedureCalls.isEmpty()? throwError("TclProcedureInterpreter_Internal: No procedure to remove") :
-                                                                     (procedureCalls.removeLast(), Error::NoError);}
-        // -- !!!        
 
-
-        // ---
-        Error nextArgument(){}
-        Error nextArgumentForSnprintf_priv(Stat stat);
-
-
-
-*/
         inline Error callDefinition(Call::Name name){return (this->*callDefinitionFunction)(name);}
         inline Error finalizeProcedureCall(){return (this->*finalizeCallFunction)();}
         inline Error interpret(){
             return (this->*(currentCommandCallFunctions->interpretCall))();
         }
-
         inline Error newParameterProcessing(){
             return (this->*(currentCommandCallFunctions->newParameterProcessing))();
         }
-
         inline Error newCallProcessing(){
             return (this->*(currentCommandCallFunctions->newCall))();
         }
-
         inline Error finalizeCallProcessing(){
             return (this->*(currentCommandCallFunctions->finalizeCall))();
         }
-
         inline Error constructor(){
             return (this->*(currentCommandCallFunctions->constructor))();
         }
-
         inline Error newParameter(){
             return (this->*(currentCommandCallFunctions->newParameter))();
         }
-
         inline Error destructor(){
             return (this->*(currentCommandCallFunctions->destructor))();
         }
-
-
         template<Stat>  // Special Command Call Stat
         Error interpret_mode();
         template<Stat>  // New Parameter Processing Call Stat
@@ -275,21 +250,9 @@ namespace Tcl::Interpreter::Command{
         Error interpretSpecialCommandCall_throwErrorForWrongStat(){
             return throwError("TclProcedureInterpreter_Internal: Wrong stat used for command call interpet methods");
         }
-/*
-        static FinalizeCallInterModeFctPtr finalizeProcedureCalls[
-        std::underlying_type_t<Controller::ProdecuresSettings::InterpreterMode>
-        (Controller::ProdecuresSettings::InterpreterMode::NumbOfModes)];
 
-       // Error finalizeSnprintfCall(ProcedureCall::Parameter&);
-        Error dynamicProcedureCheck();
-        Error onArgumentProcedureCheck();
-        Error dynamicProcedureArgumentCheck_priv();
-        Error onArgumentProcedureCheck_priv();
-*/
-        const QString lastProcedureName(){return ((procedureCalls.isEmpty())? QString() : procedureCalls.last().name());}
         inline Calls::size_type numberOfProcedureCalls()const{return procedureCalls.size();}
         inline Call& lastProcedureCall(){return procedureCalls.last();}
-        inline Call& prelastProcedureCall(){return *(procedureCalls.end() - 2);}
 
         // Action Functions
         QStringList::size_type createAndAssignString(QString&, QStringList);

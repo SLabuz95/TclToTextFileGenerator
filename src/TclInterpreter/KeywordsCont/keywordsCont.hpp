@@ -102,7 +102,7 @@ namespace Tcl::Interpreter{
 
         inline Result runSearchingMode(){return interpret();}
 
-        inline QString readLastKeyword(){return QString(savedFirstKeywordCharPos, currentChar - savedFirstKeywordCharPos);}
+        inline QString readLastKeyword(){return lastKeyword->keyword/*QString(savedFirstKeywordCharPos, currentChar - savedFirstKeywordCharPos)*/;}
         inline bool isUnknownString(){return savedFirstKeywordCharPos - savedChar > 0;}
         inline QString readUnknownString(){return QString(savedChar, savedFirstKeywordCharPos - savedChar);}
         inline Error throwErrorIfUnknownStringForForbiddenRule(){
@@ -112,7 +112,7 @@ namespace Tcl::Interpreter{
         inline QString restOfString()const{return QString(currentChar, endOfString - currentChar);}
         inline QString readTclCommand()const{return QString(beginOfString, endOfString - beginOfString);}
         inline bool isCurrentChar(){return currentChar < endOfString;}
-        inline CharPosition currentCharForSpecialSign(){return currentChar;}
+        inline QChar currentCharForSpecialSign(){return QChar(*currentChar);}
         inline void incrementCurrentCharDueToSpecialSign(){currentChar++;}
         // End of Interface |||||||||||||||||||||||||||||||||||||||||||||
 

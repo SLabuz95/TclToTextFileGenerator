@@ -12,4 +12,6 @@ ListController::ListController(TCLInterpreter& tclInterpreter) :
 
 Error ListController::throwError(){return tclInterpreter.throwError();}
 
-Error ListController::throwError(const QString str){return tclInterpreter.throwError(str);}
+Error ListController::throwError(const QString str){
+    return tclInterpreter.throwError(str);
+}

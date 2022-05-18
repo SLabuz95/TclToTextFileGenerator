@@ -216,7 +216,6 @@ namespace Tcl{
             Error moveArgumentToFunctionCall();
             Error moveArgumentToSnprintf_priv(const Stat);
         // End of Functions |||||||||||||||||||||||||||||||||||||||||||
-//            inline bool isLastProcedureCallExpr(){return commandsController.numberOfProcedureCalls() > 0 and commandsController.lastProcedureName() == "expr";}
 
             inline Error moveArgumentToSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::Snprintf);*/}
             inline Error moveArgumentToPendingSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::PendingSnprintf);*/}
@@ -224,7 +223,10 @@ namespace Tcl{
 //            inline bool isPrelastSavedStat()const{return savedStatsBegin() <= savedStatsEnd() - 2;}
 //            inline SavedStat& prelastSavedStat(){return *(savedStats().end() - 2);}
 
-            void addIgnoreMessage(ErrorMessage message){ignoreMessages.append(message);}
+            void addIgnoreMessage(ErrorMessage message){
+                ignoreMessages.append(message);
+                qDebug() << ignoreMessages.last().toString();
+            }
             Error removeIgnore(){
 //                return (isSavedStatsEmpty())?
 //                                throwError("TCLInterpreter::removeIgnore: No stats") :
@@ -250,13 +252,15 @@ namespace Tcl{
             Error finalizeSnprintfCall();
 
             Error processError(){
+                if(error().isEmpty())
+                    qDebug() << "test";
                 addIgnoreMessage(ErrorMessage(error(), textInterpreter().readTclCommand(), textInterpreter().restOfString()));
-                 if(processSavedStatsForError() == Error::Error)
+                 if(commandsController.processCallsForError() == Error::Error)
                      return Error::Error;
                  clearError();
                 return Error::NoError;
             }
-            Error processSavedStatsForError();
+            Error processCallsForError();
             Error saveStatWithParsingControl(SavedStat);
             Error removeLastSavedStatWithParsingControl();
             Error takeLastSavedStatWithParsingControl(SavedStat&);
@@ -271,6 +275,9 @@ namespace Tcl{
             inline VariableController& variableController(){return _variableController;}
             inline KeywordsController& textInterpreter(){return _textInterpreter;}
             inline ListController& listController(){return _listController;}
+            inline bool isPredefinitionMode(){
+                return commandsController.isPredefinitionMode();
+            }
 
             inline void setProcessingStat(const Stat stat){_processingStat = stat;}
             inline Stat processingStat()const{return _processingStat;}

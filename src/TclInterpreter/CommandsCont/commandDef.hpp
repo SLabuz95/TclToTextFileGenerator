@@ -63,7 +63,7 @@ namespace Tcl::Interpreter::Command{
                 AddUserInteraction,
                 FCT_End,// VVVVVVVV Privates factory products not required
                 FinalizeForEach = FCT_End,
-                AddSnprintf,
+                //AddSnprintf,
                 AddPredefinition,
 
                 Size,

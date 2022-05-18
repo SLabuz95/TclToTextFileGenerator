@@ -40,9 +40,8 @@ TclProcedureInterpreter::executeConditionalAction
             throwError(ERROR_PREFIX + "Action Argument: " + *parameter + " cant be parsed as integer.");
             return ConditionResult::Satisfied;
         }
-//        Commented but required
-//        if(lastProcedureCall().parametersLength() == size)
-//            return ConditionResult::Satisfied;
+        if(lastProcedureCall().parametersLength() == size)
+            return ConditionResult::Satisfied;
     }
     return ConditionResult::Unsatisfied;
 }
@@ -69,13 +68,11 @@ TCLCommandsController::executeConditionalAction
             return ConditionResult::Satisfied;
         }
         if(stat >= Stat::Size){
-//            Commented but required
-//            throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)) + " Current size: " + QString::number(tclInterpreter.savedStatsSize()));
+            throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)));
             return ConditionResult::Satisfied;
         }
-//        Commented but required
-//        if(tclInterpreter.lastSavedStat().stat() == stat)
-//            return ConditionResult::Satisfied;
+       if(processingStat() == stat)
+            return ConditionResult::Satisfied;
     }
     return ConditionResult::Unsatisfied;
 }
@@ -131,10 +128,9 @@ void TCLCommandsController::executeAction
         return;
     }
     if(finalizeOn){ // Used for procedure
-        command = str;
+        lastProcedureCall().setOutputCommand(str);
     }else{  // For last argument
-//        Commented but required
-//        lastProcedureCall().lastParameter().setCommand( str);
+       lastProcedureCall().lastParameter().setOutputCommand(str);
     }
 }
 
@@ -157,10 +153,9 @@ TclProcedureCommand::Definition::Action::Executable::TclParse> (ExecutableAction
         return;
     }
     if(finalizeOn){ // Used for procedure
-        command = newTclInterpreter.readCommand().remove("\n");
+        lastProcedureCall().setOutputCommand(newTclInterpreter.readCommand().remove("\n"));
     }else{  // For last argument
-//        Commented but required
-//        lastProcedureCall().lastParameter().setCommand(newTclInterpreter.readCommand().remove("\n"));
+        lastProcedureCall().lastParameter().setOutputCommand(newTclInterpreter.readCommand().remove("\n"));
     }
 }
 
@@ -188,18 +183,17 @@ void TCLCommandsController::executeAction
     TCLCommandsController::Definition::Action::Executable::ChangeLastSavedStat>: ";
 
     // IMPORTANT - You cant change FunctionCall, Snprintf or PendingSnprintf stat
-//            COmmented but Required
-//    switch(tclInterpreter.lastSavedStat().stat()){
-//        case Stat::CommandSubbing:
-        //case Stat::Snprintf:
-        //case Stat::PendingSnprintf:
-//        {
-//            throwError(ERROR_PREFIX + "Its impossible to change CommandCall, Snprintf or PendingSnprintf");
-//            return ;
-//        }
-//        default:
-//            break;
-//    }
+    switch(lastProcedureCall().stat()){
+        case Stat::CommandSubbing:
+        case Stat::DoubleQuotes:
+        case Stat::ComplexWord:
+        {
+            throwError(ERROR_PREFIX + "Its impossible to change CommandCall, Snprintf or PendingSnprintf");
+            return ;
+        }
+        default:
+            break;
+    }
 
     if(parameters.size() != 1){
         throwError(ERROR_PREFIX + "Number of action arguments dont match. Expected: 1.");
@@ -212,16 +206,15 @@ void TCLCommandsController::executeAction
         throwError(ERROR_PREFIX + "Action Argument: " + parameters.first() + " cant be parsed as integer.");
         return ;
     }
-//    Commented but required
-//    if(stat >= Stat::Size or stat == Stat::None){
-//        throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)) + " Current size: " + QString::number(tclInterpreter.savedStatsSize()));
-//        return ;
-//    }
+    if(stat >= Stat::Size or stat == Stat::None){
+        throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)));
+        return ;
+    }
     //if(lastProcedureCall().name() == "foreach")
       //  qDebug() << "Test";
+    lastProcedureCall().changeStat(stat);
+   updateCurrentCallProcedures();
 
-//    Commented but required
-//    tclInterpreter.lastSavedStat().setStat(stat);
 }
 
 template <>
@@ -229,8 +222,7 @@ void TCLCommandsController::executeAction
 <TclProcedureCommand::Definition::Action::Executable::AddFunctionDefinition>
 (ExecutableActionsParameters parameters)
 {
-//    Commented but required
-//    tclInterpreter.functionDefinitions.addDefinitionNoRules(lastProcedureCall());
+   tclInterpreter.functionDefinitions.addDefinitionNoRules(lastProcedureCall());
 }
 
 template <>
@@ -462,56 +454,6 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction
-<TclProcedureCommand::Definition::Action::Executable::AddSnprintf>
-(ExecutableActionsParameters parameters)
-{
-    const QString ERROR_PREFIX = "executeAction<\
-    TCLCommandsController::Definition::Action::Executable::AddSnprintf>: ";
-
-    const QString snprintfVarName = tclInterpreter.snprintfController.getNextSnprintfVarName();
-    ExecutableActionsParameters preexpressionParameters = {
-        QStringLiteral("snprintf(") + snprintfVarName + ", elcount(" + snprintfVarName + "), \"",
-
-        Definition::Format::FORMAT_RULE_CALL(),
-        Definition::Format::cast_format_rule_str(Definition::Format::Rule::TARGET) +
-            Definition::Format::cast_target_str(Definition::Format::Target::SnprintfFormat),
-
-        Definition::Format::FORMAT_RULE_CALL(),
-        Definition::Format::cast_format_rule_str(Definition::Format::Rule::ARGS_AFTER_INDEX) +
-            "1",   // Ignore argument 0 == concat
-
-        "\", ",
-        Definition::Format::FORMAT_RULE_CALL(),
-        Definition::Format::cast_format_rule_str(Definition::Format::Rule::TARGET) +
-            Definition::Format::cast_target_str(Definition::Format::Target::CaplFormat),
-
-        Definition::Format::FORMAT_RULE_CALL(),
-        Definition::Format::cast_format_rule_str(Definition::Format::Rule::SEPARATOR) +
-            ", ",
-
-        Definition::Format::FORMAT_RULE_CALL(),
-        Definition::Format::cast_format_rule_str(Definition::Format::Rule::ARGS_AFTER_INDEX) +
-            "1",   // Ignore argument 0 == concat
-        ")"
-    };
-
-
-    (this->*executableInterpretFunctions[
-            static_cast<std::underlying_type_t<Definition::Action::Executable>>(
-                Definition::Action::Executable::AddPreExpression)])(preexpressionParameters);
-    QString CHAR_TYPE = "char";
-    tclInterpreter.predefinitionsController.newVariable(CHAR_TYPE, snprintfVarName, {128});
-
-    if(tclInterpreter.isError()){
-        throwError(ERROR_PREFIX + tclInterpreter.error());
-        return;
-    }
-
-    command = (snprintfVarName);
-}
-
-template <>
-void TCLCommandsController::executeAction
 <TclProcedureCommand::Definition::Action::Executable::AddPredefinition>
 (ExecutableActionsParameters parameters)
 {
@@ -542,8 +484,8 @@ void TCLCommandsController::executeAction
     ArrayRanks arrayRanks = {0};
 //TODO: Zabezpieczyc obsuge wszystkich stanow - powod: konfiguracja uzytkownika
     // If Procedure Name == "set"
-    if(procedureCalls.last().name() == "set"){
-        if(procedureCalls.last().parametersLength() == 2){
+    if(lastProcedureCall()._name() == "set"){
+        if(lastProcedureCall().parametersLength() == 2){
             // Init
 //            Commented but required
 //            procedureCalls.last().parameters()[0].setCommand(procedureCalls.last().parameters().at(0).command().replace(":", ""));
@@ -578,20 +520,20 @@ void TCLCommandsController::executeAction
                     case Stat::VariableSubbing:
                     {
                         Variable variable;
-//                        Commented but required
-//                        if(tclInterpreter.predefinitionsController.findVariable(variable, lastParameterRef->command()) or tclInterpreter.predefinitionsController.findVariableGlobally(tclInterpreter.userConfig.predefinitions(), variable, lastParameterRef->command())){
-//                            if(tclInterpreter.userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly or not variable.type.isEmpty()){
-//                                type = variable.type;
-//                                value = lastParameterRef->command();
-//                                arrayRanks = variable.arrayRanks;
-//                            }
-//                        }else{
-//                            if(tclInterpreter.userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly){
-//                                type = CHAR_TYPE;
-//                                arrayRanks = {128};
-//                                value = lastParameterRef->command();
-//                            }
-//                        }
+                        if(tclInterpreter.predefinitionsController.findVariable(variable, lastParameterRef->outputCommand())
+                                or tclInterpreter.predefinitionsController.findVariableGlobally(userConfig.predefinitions(), variable, lastParameterRef->outputCommand())){
+                            if(userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly or not variable.type.isEmpty()){
+                                type = variable.type;
+                                value = lastParameterRef->outputCommand();
+                                arrayRanks = variable.arrayRanks;
+                            }
+                        }else{
+                            if(userConfig.proceduresSettings().mode() != Mode::PredefinitionsOnly){
+                                type = CHAR_TYPE;
+                                arrayRanks = {128};
+                                value = lastParameterRef->outputCommand();
+                            }
+                        }
                         parameterRefs.clear();
                     }
                         break;
@@ -600,8 +542,7 @@ void TCLCommandsController::executeAction
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
-//                        Commented but required
-//                        value = lastParameterRef->command();
+                        value = lastParameterRef->outputCommand();
                         parameterRefs.clear();
                     }
                         break;
@@ -610,23 +551,21 @@ void TCLCommandsController::executeAction
                     {
                         type = CHAR_TYPE;
                         arrayRanks = {128};
-//                        Commented but required
-//                        value = lastParameterRef->command();
+                        value = lastParameterRef->outputCommand();
                         parameterRefs.clear();
                     }
                         break;
 
-//                    case Stat::String:
-//                    {
-//                        type = CHAR_TYPE;
-//                        arrayRanks = {128};
-//                        value = lastParameterRef->command();
-//                        parameterRefs.clear();
-//                    }
+                    case Stat::Word:
+                    {
+                        type = CHAR_TYPE;
+                        arrayRanks = {128};
+                        value = lastParameterRef->outputCommand();
+                        parameterRefs.clear();
+                    }
                         break;
                     case Stat::DoubleQuotes:
-//                    case Stat::StringInQuotes:
-//                    case Stat::PendingString: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
+                    case Stat::ComplexWord: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
                     {
 //                        Commented but required
 //                        if(tclInterpreter.isStringConstNumber(lastParameterRef->command())){ // For any new string, check if its number
@@ -668,9 +607,8 @@ void TCLCommandsController::executeAction
 
                     }
                 }else{
-//                    Commented but required
-//                    for(RawParameterRef rawParameter = lastParameterRef->rawParameters().constBegin();
-//                        rawParameter < lastParameterRef->rawParameters().constEnd(); rawParameter++)
+//                    for(RawParameterRef rawParameter = lastParameterRef->parameters().constBegin();
+//                        rawParameter < lastParameterRef->parameters().constEnd(); rawParameter++)
 //                    {
 //                        switch(rawParameter->stat()){
 ////                           case Stat::Const:    // If const that means const is float, check if its uinteger
@@ -706,25 +644,16 @@ void TCLCommandsController::executeAction
 //                        {
 //                            type = CHAR_TYPE;
 //                            arrayRanks = {128};
-//                            value = lastParameterRef->command();
+//                            value = lastParameterRef->outputCommand();
 //                            parameterRefs.clear();
 //                        }
 //                            break;
 //                        case Stat::DoubleQuotes:
-////                        case Stat::StringInQuotes:
-////                        case Stat::PendingString: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
+//                        case Stat::ComplexWord: //TODO: Dodajac argument w postaci Pending String jako argument procedury, sprawdz czy jest stala
 //                        {
 
 //                        }
 //                            break;
-
-////                        case Stat::Snprintf:
-////                        case Stat::PendingSnprintf:
-////                        {
-
-////                        }
-////                            break;
-
 //                        default:
 //                        {
 //                           throwError(ERROR_PREFIX + "Not implemented stat for initialized stat");
@@ -732,25 +661,24 @@ void TCLCommandsController::executeAction
 //                        }
 //                        }
 //                    }
-//                }
+                }
             }
-//        }else{
-//            type = CHAR_TYPE;
-//            arrayRanks = {128};
-//        }
-//    }else{
-//        type = CHAR_TYPE;
-//    }
+        }else{
+            type = CHAR_TYPE;
+            arrayRanks = {128};
+        }
+    }else{
+        type = CHAR_TYPE;
+    }
 
     // Otherwise
 
-    if(procedureCalls.last().parametersLength() == 0){
+    if(lastProcedureCall().parametersLength() == 0){
         throwError(ERROR_PREFIX + "Numb of arguments of procedure call is 0.");
         return;
     }
-//    Commented but required
 //    tclInterpreter.predefinitionsController.newVariable(type, procedureCalls.last().parameters().first().command());
-}}}
+
 }
 
 
@@ -780,8 +708,6 @@ TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::e
     TclProcedureCommand::Definition::Action::Executable::AddUserInteraction>,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::FinalizeForEach>,
-    &TCLCommandsController::executeAction<
-    TclProcedureCommand::Definition::Action::Executable::AddSnprintf>,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::AddPredefinition>,
 };

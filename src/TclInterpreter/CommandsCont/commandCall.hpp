@@ -18,7 +18,7 @@ namespace Tcl::Interpreter::Command{
         class Parameter;
         using Parameters = QVector<Parameter>;
         using ProcedureDefinitionIterator = Types::CommandDefinitionIterator;
-
+        using ParameterIndex = int;
         // End of Concepts ||||||||||||||||||||||||||||||||||||||||||||
         // Concept Definition ------------------------------------------
         // ----
@@ -121,6 +121,8 @@ namespace Tcl::Interpreter::Command{
             inline Stat stat()const{return stat_;}
             inline OutputCommand outputCommand()const{return outputCommand_;}
             inline OutputCommand rawCommand()const{return rawCommand_;}
+            inline void setOutputCommand(OutputCommand outputCommand){outputCommand_ = outputCommand;}
+            inline void setRawCommand(OutputCommand rawCommmand){rawCommand_ = rawCommmand;}
 
             //inline QString command()const{return _savedStat.command();}
             //inline const QString& commandRef()const{return _savedStat.command();}
@@ -128,7 +130,7 @@ namespace Tcl::Interpreter::Command{
             //inline void setStat(Stat stat){_savedStat.setStat(stat);}
             //inline void setCommand(OutputCommand command){_savedStat.setCommand(command);}
             inline void appendCommand(OutputCommand command){ rawCommand_.append(command); outputCommand_.append(command);}
-            inline void appendCommand(OutputCommand command, OutputCommand rawCommand){ rawCommand.append(rawCommand); outputCommand_.append(command);}
+            inline void appendCommand(OutputCommand command, OutputCommand rawCommand){ rawCommand_.append(rawCommand); outputCommand_.append(command);}
             //inline UserInteraction userIteraction(){return _userInteraction;}
             //inline SavedStat& savedStat(){return _savedStat;}
             //inline const Parameters& rawParameters()const{return rawParameterStats;}
@@ -156,6 +158,7 @@ namespace Tcl::Interpreter::Command{
             QString outputCommand_;
             QString rawCommand_;
             Stat stat_;
+            ParameterIndex currentParameterIndex = -1;
             //Name _name;
             //Parameters _rawParameters;
             //UserInteraction _userInteraction;
@@ -169,7 +172,7 @@ namespace Tcl::Interpreter::Command{
 
         public:
 
-            Call(Stat, Parameter&);
+            Call(Stat, Parameter&, ProcedureDefinitionIterator = nullptr, ParameterIndex = -1);
             //Call& operator=(Call&& call){_name = call._name; _arguments = call._arguments;}
 
             inline Stat stat()const{return stat_;}
@@ -178,49 +181,52 @@ namespace Tcl::Interpreter::Command{
             inline void setOutputCommand(OutputCommand outputCommand){outputCommand_ = outputCommand;}
             inline void setRawCommand(OutputCommand rawCommmand){rawCommand_ = rawCommmand;}
             inline OutputCommand& rawCommand(){return rawCommand_;}
+            inline ProcedureDefinitionIterator definition()const{return _procedureDefinition;}
+            inline void setDefinition(ProcedureDefinitionIterator definition){_procedureDefinition = definition;}
 
             //Error createCall(Stat, Call::Parameter&&);
             inline Error newParameter(OutputCommand command = OutputCommand()){
-                return newParameter(Stat::Word, command);
+                return newParameter(Stat::Word, command, command);
             }
             Error newParameter(Stat stat,QString rawParameter, OutputCommand outputCommand = QString());
 
             Error replaceLastParameter(Stat stat,QString rawParameter, OutputCommand outputCommand){
-                _parameters.last() = Parameter(stat, outputCommand, rawParameter);
+                _parameters.replace(_parameters.count() - 1, Parameter(stat, outputCommand, rawParameter));
                 return Error::NoError;
             }
             inline Parameters::size_type rawParametersLength()const{return _parameters.size();}
-            inline Parameters::size_type lastRawParameterIndex()const{return rawParametersLength();}
 
             // -----------------------------
             //nline void nextArgument(Parameter& arg){_parameters.append(arg); _parameters.append(arg);}
-            inline Parameters::size_type parametersLength()const{return _parameters.size();}
-            inline Parameters::size_type lastArgumentIndex()const{return parametersLength();}
-            inline QString name(){return parameters().at(0).rawCommand();}
+            inline Parameters::size_type lastArgumentIndex()const{return parametersLength() - 1;}
+            inline Parameters::size_type parametersLength()const{return (currentParameterIndex != -1)? currentParameterIndex + 1 : rawParametersLength() - 1;}
+            inline QString _name(){return parameters().at(0).outputCommand();}
+            //inline QString name(){return parameters().at(0).outputCommand();}
+            //inline QString rawName(){return parameters().at(0).rawCommand();}
             inline Definition::RulesForArguments::Iterator lastRulesForArgument_dynamicCheck()const{
-                return (lastArgumentIndex() < _procedureDefinition->rulesForArguments.size())?
-                            _procedureDefinition->rulesForArguments.begin() + lastArgumentIndex() :
-                            _procedureDefinition->rulesForArguments.end();}
+                return (lastArgumentIndex() < definition()->rulesForArguments.size())?
+                            definition()->rulesForArguments.begin() + lastArgumentIndex() :
+                            definition()->rulesForArguments.end();}
             inline Definition::RulesForArguments::Iterator lastRulesForArgument_onMoved()const{
-                return (lastArgumentIndex() - 1 < _procedureDefinition->rulesForArguments.size())?
-                            _procedureDefinition->rulesForArguments.begin() + lastArgumentIndex() - 1 :
-                            _procedureDefinition->rulesForArguments.end();}
+                return (lastArgumentIndex() < definition()->rulesForArguments.size())?
+                            definition()->rulesForArguments.begin() + lastArgumentIndex() :
+                            definition()->rulesForArguments.end();}
             inline Definition::RulesForArguments::Iterator rulesForUnspecifiedArgument()const{
-                return &_procedureDefinition->rulesForUnspecifiedArgument;}
+                return &definition()->rulesForUnspecifiedArgument;}
             inline Error isRulesInRange(Definition::RulesForArguments::Iterator rules)const{
-                return (rules < _procedureDefinition->rulesForArguments.constEnd())?
+                return (rules < definition()->rulesForArguments.constEnd())?
                             Error::NoError :
                             Error::Error;}
             inline Definition::RulesOnEndOfCall& rulesOnEndOfCall()const{
-                return _procedureDefinition->rulesOnEndOfProcedureCall;
+                return definition()->rulesOnEndOfProcedureCall;
             }
 
-            inline bool isRulesForArgumentsEmpty()const{return _procedureDefinition->isRulesForArgumentsEmpty();}
-            inline bool isRulesEmpty()const{return _procedureDefinition->isRulesEmpty();}
+            inline bool isRulesForArgumentsEmpty()const{return definition()->isRulesForArgumentsEmpty();}
+            inline bool isRulesEmpty()const{return definition()->isRulesEmpty();}
             inline Call::Parameters::reference lastParameter(){return _parameters.last();}
             inline Parameters& parameters(){return _parameters;}
             //inline QString generateFunctionDefinitionExample(){return QString("// ") + name() + "(" + generatFunctionDefinitionExampleParameters() + ")";}
-            inline QString generateFunctionDefinitionExample(){return QString("") + name() + " " + generateFunctionDefinitionExampleParameters() + "";}
+            inline QString generateFunctionDefinitionExample(){return QString("") + _name() + " " + generateFunctionDefinitionExampleParameters() + "";}
             inline QString generateFunctionDefinitionExampleParameters(){
                 QString str;
                 for(Parameters::Iterator parameter = parameters().begin(); parameter < _parameters.end(); parameter++)
@@ -234,31 +240,19 @@ namespace Tcl::Interpreter::Command{
                     stats[parameter - parameters().begin()] = parameter->stat();
                 return stats;//QList<Stat>(stats.begin(), stats.end());
             }
-            inline Parameters& rawParameters(){return _parameters;}
-            inline bool isUserInteractionRequired()const{return /*_userInteraction == UserInteraction::Required;*/ _procedureDefinition->userInteraction == UserInteractionStatus::Required;}
+            inline Parameters&  rawParameters(){return _parameters;}
+            inline bool isUserInteractionRequired()const{return /*_userInteraction == UserInteraction::Required;*/ definition()->userInteraction == UserInteractionStatus::Required;}
             inline void clearMemory(){
                 using Parameter = Parameters::Iterator;
                 for(Parameter param = _parameters.begin(); param < _parameters.end(); param++)
                     param->clearMemory();
             }
 
-            /*
-               Commented but required
-            QString tryToAddEndOfExpressionSign()const{
-                if(name() == "expr_parser")
-                    return QString();
-                if( not _parameters.isEmpty()){
-                    switch(_parameters.last().stat()){
-                    case Stat::Script:
-                        return QString("\n");
-                    }
-                }
-                return QString(";\n");
-            }*/
-            bool isLastParameterEmpty()const // If no parameters return true
+
+            bool isLastParameterEmpty() // If no parameters return true
             {
                 return rawParametersLength() and /* if 0 (impossible case), returns false (no parameters to check)*/
-                        _parameters.last().isEmpty();
+                        rawParameters().last().isEmpty();
             }
 
 

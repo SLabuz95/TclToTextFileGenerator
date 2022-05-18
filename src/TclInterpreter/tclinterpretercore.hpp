@@ -40,10 +40,11 @@ namespace Tcl::Interpreter::Core {
         //MainScript,  // {Parent, Pending} SAVEABLE // Previous name: MainCodeBlock
         //Ignore, // {Parent, Prodromic, Pending} SAVEABLE
         CommandSubbing,       // {Parent, Child, Pending} //  Old name - FunctionCall
+        //Expression, // {Parent, Child} SAVEABLE
+        //CommandExpression, // {Parent, Child} SAVEABLE
         BracesStart,   // {    /// {Parent, Child, Processing, Pending} Everything is a string // SAVEABLE
         DoubleQuotes, // "  {Parent, Child, Processing, Pending}  // SAVEABLE
         ComplexWord, // {Parent, Child, Pending} If VariableSubbing,BackslashSubbing or CommandSubbing occured with anther string (without whitespace)
-        //Expression, // {Parent, Child} SAVEABLE
         Script,  // {Parent, Child, Pending} SAVEABLE // Old Name: CodeBLock
         //ExprCommand, // {Parent, Child} SAVEABLE
         Ignore, // {Parent, Prodromic, Pending} SAVEABLE

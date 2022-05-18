@@ -3,7 +3,6 @@
 
 #include<QListWidgetItem>
 #include<QComboBox>
-#include"TclInterpreter/tclToCAPL.hpp"
 #include<QVBoxLayout>
 #include<QFormLayout>
 #include<QLineEdit>
