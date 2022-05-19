@@ -21,15 +21,15 @@ namespace Panels::Configuration{
         class ListItem : public QTreeWidgetItem{
         public:
             inline ListItem(QString name = QString(), QString value = QString()) : QTreeWidgetItem({name, value}){
-                 setFlags(flags() | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
+                 setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
+
 
             }
         };
         using Request_ContextMenu_Func = void (AttributesPanel::*)(ListItem*);
         enum class Request_ContextMenu{
             AddAttribute,
-            EditAttributeName,
-            EditAttributeValue,
+            EditAttribute,
             RemoveAttribute,
             ClearAttributes,
             Size

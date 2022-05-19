@@ -13,9 +13,10 @@ AttributesPanel::AttributesPanel(ConfigTabsPanel& tabsPanel)
     setHeaderLabels({"Nazwa", "Wartość"});
     setIndentation(0);
     //setMovement(Snap);
-    setDefaultDropAction(Qt::DropAction::MoveAction);
     setDragDropMode(QAbstractItemView::InternalMove);
+    setDefaultDropAction(Qt::DropAction::MoveAction);
     setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+    setDragDropOverwriteMode(true);
 
     viewport()->installEventFilter(this);
 }
@@ -36,7 +37,7 @@ void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMe
 }
 
 template<>
-void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMenu::EditAttributeName>(ListItem* item)
+void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMenu::EditAttribute>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editProcedure", "Item is null");
     if(curEditItemInfo.item){
@@ -46,19 +47,6 @@ void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMe
 
     curEditItemInfo = {item, item->text(0), 0};
     editItem(item, 0);
-}
-
-template<>
-void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMenu::EditAttributeValue>(ListItem* item)
-{
-    Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editProcedure", "Item is null");
-    if(curEditItemInfo.item){
-        closePersistentEditor(curEditItemInfo.item);
-        qApp->processEvents();
-    }
-
-    curEditItemInfo = {item, item->text(1), 1};
-    editItem(item, 1);
 }
 
 template<>
@@ -148,58 +136,57 @@ bool AttributesPanel::tryToManageAttributesValue(QString name, QString oldValue,
 
 bool AttributesPanel::eventFilter(QObject* obj, QEvent* ev){
     if(ev->type() ==  QEvent::ContextMenu)
-        {
-            QContextMenuEvent* cev = static_cast<QContextMenuEvent*>(ev);
+    {
+        QContextMenuEvent* cev = static_cast<QContextMenuEvent*>(ev);
 
-            ListItem* item = itemAt(cev->pos());
+        ListItem* item = itemAt(cev->pos());
 
-            // Specify file and error checking
+        // Specify file and error checking
 
-            using Actions = QList<QAction*>;
-            using ActionFuncs = QList<AttributesPanel::Request_ContextMenu_Func>;
-            using Request = AttributesPanel::Request_ContextMenu;
-            Actions actions;
-            ActionFuncs actionFuncs;
-            QMenu* menu = nullptr;
+        using Actions = QList<QAction*>;
+        using ActionFuncs = QList<AttributesPanel::Request_ContextMenu_Func>;
+        using Request = AttributesPanel::Request_ContextMenu;
+        Actions actions;
+        ActionFuncs actionFuncs;
+        QMenu* menu = nullptr;
 
-            menu = new QMenu;
-            if(item){
-                actions = {
-                  new QAction("Dodaj atrybut"),
-                  new QAction("Edytuj nazwę atrybutu"),
-                  new QAction("Edytuj wartość atrybutu"),
-                  new QAction("Usuń atrybut"),
-                    new QAction("Usuń wszystkie atrybuty")
-                };
-                actionFuncs = {
-                    &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::EditAttributeName>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::EditAttributeValue>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::RemoveAttribute>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
-                };
-            }else{
-                actions = {
-                    new QAction("Dodaj atrybut"),
-                    new QAction("Usuń wszystkie atrybuty")
-                };
-                actionFuncs = {
-                    &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
-                };
-            }
-
-            // After configuration
-            if(menu){
-                menu->addActions(actions);
-                int index = actions.indexOf( menu->exec(cev->globalPos()));
-                if(index >= 0){
-                    Q_ASSERT_X(index < actionFuncs.size(), "AttributesPanel Menu", "Index error for action functions");
-                    (this->*(actionFuncs.at(index)))(item);
-                }
-                delete menu, menu = nullptr;
-            }
+        menu = new QMenu;
+        if(item){
+            actions = {
+              new QAction("Dodaj atrybut"),
+              new QAction("Edytuj nazwę atrybutu"),
+              new QAction("Edytuj wartość atrybutu"),
+              new QAction("Usuń atrybut"),
+              new QAction("Usuń wszystkie atrybuty")
+            };
+            actionFuncs = {
+                &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
+                &AttributesPanel::execRequest_ContextMenu<Request::EditAttribute>,
+                &AttributesPanel::execRequest_ContextMenu<Request::RemoveAttribute>,
+                &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
+            };
+        }else{
+            actions = {
+                new QAction("Dodaj atrybut"),
+                new QAction("Usuń wszystkie atrybuty")
+            };
+            actionFuncs = {
+                &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
+                &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
+            };
         }
+
+        // After configuration
+        if(menu){
+            menu->addActions(actions);
+            int index = actions.indexOf( menu->exec(cev->globalPos()));
+            if(index >= 0){
+                Q_ASSERT_X(index < actionFuncs.size(), "AttributesPanel Menu", "Index error for action functions");
+                (this->*(actionFuncs.at(index)))(item);
+            }
+            delete menu, menu = nullptr;
+        }
+    }
 
     if(ev->type() == QEvent::MouseButtonDblClick and obj == viewport()){
         QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
@@ -207,6 +194,9 @@ bool AttributesPanel::eventFilter(QObject* obj, QEvent* ev){
             curEditItemInfo.oldStr = curEditItemInfo.item->text(0);
             curEditItemInfo.column = currentColumn();
             editItem(curEditItemInfo.item, curEditItemInfo.column);
+        }else{
+            using Request = AttributesPanel::Request_ContextMenu;
+            execRequest_ContextMenu<Request::AddAttribute>(nullptr);
         }
     }
 
