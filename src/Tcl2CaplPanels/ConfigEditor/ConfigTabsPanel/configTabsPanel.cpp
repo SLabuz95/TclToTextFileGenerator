@@ -1,17 +1,19 @@
 #include"configTabsPanel.hpp"
-#include "Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/ConfigViewPanel/configViewPanel.hpp"
 #include "Panels/attributesPanel.hpp"
 #include "Tcl2CaplPanels/ConfigEditor/writeOnlyProceduresList.hpp"
 
 using namespace Panels::Configuration;
-using ConfigPanel = List::ConfigPanel;
+using ConfigViewPanel = Panels::Configuration::View::ConfigViewPanel;
 
-ConfigTabsPanel::ConfigTabsPanel(ConfigPanel& parent)
+
+ConfigTabsPanel::ConfigTabsPanel(ConfigViewPanel& parent)
     : Super(&parent), configPanel(parent)
 {
     panels[0] = new AttributesPanel(*this);
     panels[1] =   new WriteOnlyProceduresList(*this);
     panels[2] =    new QWidget();
+    panels[3] =    new QWidget();
 
     for(int panelNameIndex = 0; panelNameIndex < panelType2number(PanelType::Size) ; panelNameIndex++){
         addTab(panels[panelNameIndex], Navigation::List::navigationPanelNames[panelNameIndex]);
@@ -25,10 +27,10 @@ bool ConfigTabsPanel::eventFilter(QObject* obj, QEvent* ev){
     return Super::eventFilter(obj, ev);
 }
 
-AttributesPanel& ConfigTabsPanel::attributesList(){
-    return *static_cast<AttributesPanel*>(panels[panelType2number(PanelType::AttributesList)]);
-}
 
+AttributesPanel& ConfigTabsPanel::attributesList(){
+    return *static_cast<AttributesPanel*>(panels[0]);
+}
 WriteOnlyProceduresList& ConfigTabsPanel::writeOnlyProceduresList(){
-    return *static_cast<WriteOnlyProceduresList*>(panels[panelType2number(PanelType::WriteOnlyProceduresList)]);
+    return *static_cast<WriteOnlyProceduresList*>(panels[1]);
 }

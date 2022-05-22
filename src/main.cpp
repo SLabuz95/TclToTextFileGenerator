@@ -5,8 +5,6 @@
 #include<QLibrary>
 
 int main(int argc, char** argv){
-
-    //qDebug() << QStringList({"abc:cc"}).replaceInStrings(QRegularExpression(str), "\\1");
     App a(argc, argv);
     //if(!a.startupErrorChecking<>()) //
       //  return 0;

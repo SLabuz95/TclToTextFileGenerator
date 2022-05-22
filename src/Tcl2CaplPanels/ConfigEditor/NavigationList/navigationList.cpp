@@ -1,22 +1,24 @@
 #include "navigationList.hpp"
-#include "Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
+#include "Tcl2CaplPanels/ConfigEditor/ConfigViewPanel/configViewPanel.hpp"
+#include "Tcl2CaplPanels/ConfigEditor/ConfigTabsPanel/configTabsPanel.hpp"
 #include<QMouseEvent>
 #include<QMessageBox>
 #include<QResizeEvent>
 
 using namespace Panels::Configuration::Navigation;
-using ConfigPanel = List::ConfigPanel;
+using ConfigViewPanel = Panels::Configuration::View::ConfigViewPanel;
 
 const QString List::navigationPanelNames[panelType2number(PanelType::Size)]{
             QString("Atrybuty"),
             QString("Procedury - tryb raportowy"),
             QString("Procedury"),
+            QString("Procedura domyślna")
             //QString("Priorytety"),
             //QString("Reguły szybkie"),
             //QString("Reguły zaawansowane"),
 };
 
-List::List(ConfigPanel& parent)
+List::List(View::ConfigViewPanel& parent)
     : QTreeWidget(&parent), configPanel(parent)
 {
     setHeaderHidden(true);
@@ -38,12 +40,12 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
         QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
         NavigationElement* item = itemAt(mev->pos());
         if(item){
-            int indexOfMainNavigationElement = indexOf(item);
+            const int indexOfMainNavigationElement = indexOf(item);
             if(indexOfMainNavigationElement == -1){ // Not found -> Item is child of main navigation element
-                int& indexOfMainNavigationElementChild = indexOfMainNavigationElement;
+                const int& indexOfMainNavigationElementChild = indexOfMainNavigationElement;
 
             }else{
-                callNavigationElementFct(number2panelType(indexOfMainNavigationElement));
+                navigateMainPanel(number2panelType(indexOfMainNavigationElement));
             }
         }
     }
@@ -54,10 +56,15 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
         if(obj == this){
             QResizeEvent& resizeEvent = *static_cast<QResizeEvent*>(ev);
 
-            if(resizeEvent.size().width() == 0)
-                configPanel.navigationListDisappeared();
-            else
-                configPanel.navigationListAppeared();
+            if(resizeEvent.oldSize().width() == 0){
+                if( resizeEvent.size().width() != 0){   // Appear Condition
+                    configPanel.navigationListAppeared();
+                }
+            }else{
+                if(resizeEvent.size().width() == 0){ // Disappear Condition
+                    configPanel.navigationListDisappeared();
+                }
+            }
         }
     }
         break;
@@ -68,21 +75,10 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
     return Super::eventFilter(obj, ev);
 }
 
-template<>
-void List::navigationElementFct<PanelType::AttributesList>(){
-
+void List::navigateMainPanel(const PanelType tabPanel){
+    View::ConfigTabs& configTabsPanel = configPanel.Panels::Super::ViewPanel::Super::get();
+    configTabsPanel.setCurrentIndex(panelType2number(tabPanel));
 }
-
-template<>
-void List::navigationElementFct<PanelType::WriteOnlyProceduresList>(){
-
-}
-
-template<>
-void List::navigationElementFct<PanelType::Procedures>(){
-
-}
-
 
 template<>
 void List::navigationElementChildFct<PanelType::AttributesList>(NavigationElement* const element){
@@ -99,12 +95,6 @@ void List::navigationElementChildFct<PanelType::Procedures>(NavigationElement* c
 
 }
 
-List::NavigationElementFctPtr List::navigationElementFcts[panelType2number(PanelType::Size)]
-{
-    &List::navigationElementFct<PanelType::AttributesList>,
-    &List::navigationElementFct<PanelType::WriteOnlyProceduresList>,
-    &List::navigationElementFct<PanelType::Procedures>,
-};
 
 List::NavigationElementChildFctPtr List::navigationElementChildFcts[panelType2number(PanelType::Size)]
 {

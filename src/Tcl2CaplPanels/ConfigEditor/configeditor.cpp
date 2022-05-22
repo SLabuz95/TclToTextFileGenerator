@@ -5,28 +5,25 @@
 #include"Tcl2Capl/controllerconfigmanager.hpp"
 #include"app.hpp"
 #include"ConfigTabsPanel/Panels/attributesPanel.hpp"
+#include<QSplitterHandle>
+#include<QPainter>
+#include<QEnterEvent>
 
 using namespace Panels::Configuration;
 
 Panel::Panel(App& app)
     : app_(app),
       fileConfigPanel(*this),
-//      navigationList(*this),
-      configTabsPanel(*this)
+      configViewPanel(*this)
 {
     const QString NO_SELECTED_PROCEDURE_PANEL_TEXT = QStringLiteral("Wybierz procedure");
 //    noSelectedProcedurePanel.setText(NO_SELECTED_PROCEDURE_PANEL_TEXT);
 //    noSelectedProcedurePanel.setAlignment(Qt::AlignCenter);
 
-    //toolBox.addItem(&writeOnlyProceduresList, "Procedury - tryb raportowy");
-    //toolBox.addItem(&proceduresList, "Procedury");
-    //splitter.addWidget(&navigationList);
-    splitter.addWidget(&configTabsPanel);
-
     layout.setSpacing(0);
     layout.setContentsMargins(0, 0, 0, 0);
     layout.addWidget(&fileConfigPanel, 1, Qt::AlignTop);
-    layout.addWidget(&splitter, Qt::AlignTop);
+    layout.addWidget(&configViewPanel, Qt::AlignTop);
     installEventFilter(this);
 
     setLayout(&layout);
@@ -111,11 +108,7 @@ void Panel::loadConfigData(ConfigInfoPtr configInfo, LoadConfigSettings settings
     Q_ASSERT_X(configInfo != nullptr, "Panel::loadConfig", "ConfigInfo is null");
     if(configInfo != configInfoPtr){    // If
         configInfoPtr = configInfo;
-        //writeOnlyProceduresList.loadProcedures(&configInfoPtr->controllerConfig().writeOnlyProcedures(), settings);
-        configTabsPanel.attributesList().loadAttributes(&configInfoPtr->controllerConfig().attributes(), settings);
-        configTabsPanel.writeOnlyProceduresList().loadProcedures(&configInfoPtr->controllerConfig().writeOnlyProcedures(), settings);
-        //proceduresList.loadProcedures(&configInfoPtr->controllerConfig().userProcedures(), settings);
-        //clearProcedureRulesPanel();
+        configViewPanel.loadConfigData(settings);
         if(settings == LoadConfigSettings::LoadGui){
             // Load Gui
             reloadGuiForUpdatedConfig();

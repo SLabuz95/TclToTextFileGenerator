@@ -4,9 +4,11 @@
 #include<QTabWidget>
 #include"Tcl2CaplPanels/ConfigEditor/NavigationList/navigationList.hpp"
 
-namespace Panels::Configuration{
 
-    class Panel;
+namespace Panels::Configuration{
+namespace View{
+    class ConfigViewPanel;
+}
     class AttributesPanel;
     class WriteOnlyProceduresList;
 
@@ -14,11 +16,10 @@ namespace Panels::Configuration{
 
         using Super = QTabWidget;
     public:
-        using ConfigPanel = Configuration::Panel;
-        ConfigTabsPanel(ConfigPanel& parent);
+        ConfigTabsPanel(View::ConfigViewPanel& parent);
         virtual ~ConfigTabsPanel() override{}
 
-        ConfigPanel& configPanel;
+        View::ConfigViewPanel& configPanel;
 
         QWidget* panels[Navigation::panelType2number(Navigation::PanelType::Size)];
 

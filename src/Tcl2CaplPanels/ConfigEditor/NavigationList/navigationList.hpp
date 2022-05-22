@@ -3,9 +3,10 @@
 
 #include<QTreeWidget>
 #include"External/Utils/class.hpp"
+#include"any"
 
-namespace  Panels::Configuration{
-    class Panel;
+namespace  Panels::Configuration::View{
+    class ConfigViewPanel;
 }
 
 namespace Panels::Configuration::Navigation{
@@ -14,9 +15,22 @@ namespace Panels::Configuration::Navigation{
         AttributesList,
         WriteOnlyProceduresList,
         Procedures,
+        DefaultProcedure,
         Size,
         Invalid = Size
     };
+
+    enum class EventType{
+        Added,
+        Changed,
+        Removed,
+        Cleared,
+        Loaded,
+        Moved,
+        Size,
+        Invalid = Size
+    };
+
 
     constexpr static std::underlying_type_t<PanelType> panelType2number(PanelType mode){
         return static_cast<std::underlying_type_t<PanelType>>(mode);
@@ -29,7 +43,8 @@ namespace Panels::Configuration::Navigation{
     class NavigationElement : public QTreeWidgetItem{
     public:
         inline NavigationElement(QTreeWidget *parent, const QStringList &strings, int type = Type)
-            : QTreeWidgetItem(parent, strings, type){}
+            : QTreeWidgetItem(parent, strings, type)
+        {}
 
     };
 
@@ -37,21 +52,15 @@ namespace Panels::Configuration::Navigation{
 
     public:
         static const QString navigationPanelNames[panelType2number(PanelType::Size)];
-        using NavigationElementFctPtr = void (List::*)();
         using NavigationElementChildFctPtr = void (List::*)(NavigationElement* const);
     private:
         using Super = QTreeWidget;
-        static NavigationElementFctPtr navigationElementFcts[];
         static NavigationElementChildFctPtr navigationElementChildFcts[];
 
-        template<PanelType>
-        void navigationElementFct();
+        void navigateMainPanel(const PanelType);
         template<PanelType>
         void navigationElementChildFct(NavigationElement* const);
 
-        inline void callNavigationElementFct(PanelType const type) {
-            (this->*navigationElementFcts[panelType2number(type)])();
-        }
         inline void callNavigationElementChildFct(PanelType const type, NavigationElement* const element){
             (this->*navigationElementChildFcts[panelType2number(type)])(element);
         }
@@ -63,11 +72,10 @@ namespace Panels::Configuration::Navigation{
             return static_cast<NavigationElement*>(QTreeWidget::itemAt(p));
         }
     public:
-        using ConfigPanel = Configuration::Panel;
-        List(ConfigPanel& parent);
+        List(View::ConfigViewPanel& parent);
         virtual ~List() override{}
 
-        ConfigPanel& configPanel;
+        View::ConfigViewPanel& configPanel;
 
 
         WIDGET_ADD_EVENT_FILTER

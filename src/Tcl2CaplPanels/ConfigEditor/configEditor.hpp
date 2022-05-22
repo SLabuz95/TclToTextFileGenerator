@@ -25,11 +25,9 @@
 #include"fileconfigpanel.hpp"
 #include"loadconfigsettings.hpp"
 #include"Tcl2Capl/controllerconfiginfo.hpp"
-#include"NavigationList/navigationList.hpp"
-#include"ConfigTabsPanel/configTabsPanel.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/ConfigViewPanel/configViewPanel.hpp"
 
 class App;
-class ActionsView;
 
 namespace Panels::Configuration{
     using namespace Navigation;
@@ -46,7 +44,6 @@ namespace Panels::Configuration{
 
     protected:
         using Layout = QVBoxLayout;
-        using Splitter = QSplitter;
 
         using RulesView = QTreeWidget;
         using NoSelectedProcedurePanel =  QLabel;
@@ -55,13 +52,11 @@ namespace Panels::Configuration{
 
         Layout layout;
         FileConfigPanel fileConfigPanel;
+        View::ConfigViewPanel configViewPanel;
         // NO GUI ELEMENT
         ConfigInfoPtr configInfoPtr = nullptr;
         // ---------------------
-        Splitter splitter;
         //QToolBox toolBox;
-        //NavigationList navigationList;
-        ConfigTabsPanel configTabsPanel;
         //WriteOnlyProceduresList writeOnlyProceduresList;
         //ProceduresList proceduresList;
         //RulesProcedurePanel rulesProcedurePanel;
@@ -80,6 +75,7 @@ namespace Panels::Configuration{
         bool eventFilter(QObject*, QEvent*) override;
 
     public:
+        inline ConfigInfoPtr getConfigInfoPtr()const{return configInfoPtr;}
         inline bool request_newConfig(){return newConfig();}
         inline bool request_readConfig(QString path){return readConfig(path);}
         inline bool request_saveConfig(QString path){return saveConfig(path);}
@@ -98,13 +94,7 @@ namespace Panels::Configuration{
 
         inline App& app()const{return app_;}
 
-        // Events
-        inline void navigationListAppeared(){
-            configTabsPanel.tabBar()->hide();
-        }
-        inline void navigationListDisappeared(){
-            configTabsPanel.tabBar()->show();
-        }
+
     };
 
 };
