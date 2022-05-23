@@ -18,8 +18,8 @@ namespace Rules {
     enum class Type : uint{
         FCT_Begin,
 
-        QuickRule = FCT_Begin, // To generate raw rule
-        RawRule,    // Like in Interpreter
+        //QuickRule = FCT_Begin, // To generate raw rule
+        RawRule  = FCT_Begin,   // Like in Interpreter
         RulesForArgument, // Raw Rule but for specific argument index only
 
         FCT_End,

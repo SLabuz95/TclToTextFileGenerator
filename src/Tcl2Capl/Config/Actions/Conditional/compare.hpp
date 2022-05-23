@@ -28,6 +28,8 @@ template<>
 class ConditionalsProducts::InterfaceData<ConditionalsTypes::Compare>::Methods
 : public ConditionalsProducts::Implementation<ConditionalsTypes::Compare>
 {
+
+
 };
 
 

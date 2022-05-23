@@ -40,6 +40,7 @@
         using ProductDefinition = typename  ProductDefinition<ProductsList>::Definition;
 
         public:
+        using ProductTypeEnum = ProductsList;
         using ProductBase = ProductDefinition;
 
         protected:
@@ -47,11 +48,14 @@
         Factory(const Factory& ) = delete;
 public:
         template<ProductsList ProductType>
-        class Product : public ProductsConfiguration<ProductsList>::template Interface<ProductType>{};
+        class Product : public ProductsConfiguration<ProductsList>::template Interface<ProductType>{
+            template<class ...Arg>
+            Product(Arg ...args) : ProductsConfiguration<ProductsList>::template Interface<ProductType>(args...){}
+        };
 
         using ProductBasePtr = ProductBase*;
         using ProductBaseRef = ProductBase&;
-        //using ListOfBases = QList<ProductBase>;
+        using ListOfBases = QList<ProductBase* const>;
 
   private:
         inline static constexpr std::underlying_type_t<ProductsList> toUnderlyng(ProductsList value){
@@ -59,15 +63,18 @@ public:
         }
 
         inline static constexpr std::underlying_type_t<ProductsList> numbOfProducts(){return toUnderlyng(ProductsList::FCT_End) - toUnderlyng(ProductsList::FCT_Begin);}
-        using CreateFunction =  ProductBase*const (Factory::*)();
+        using CreateFunction =  ProductBase*const (*)();
         using CreateFunctionTable = CreateFunction[numbOfProducts()];
 
         public:
-        template<ProductsList productType>
-        static ProductBase* create(){
-            return new Product<productType>();
+        template<ProductsList productType, class ...Args>
+        static Product<productType>* create(Args ...args){
+            return new Product<productType>(args...);
         }
 
+        static ProductBase* const create(ProductsList productType){
+            return (productType < ProductsList::FCT_End)? (Factory::createFunctionTable[productType])() : nullptr;
+        }
 
         private:
         static constexpr CreateFunction initCreateFunctionTable(){

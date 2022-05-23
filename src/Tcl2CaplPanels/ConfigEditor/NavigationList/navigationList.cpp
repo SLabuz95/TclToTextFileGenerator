@@ -30,6 +30,7 @@ List::List(View::ConfigViewPanel& parent)
         (*item)->setFirstColumnSpanned(true);
     }
 
+
     addTopLevelItems(items);
     viewport()->installEventFilter(this);
     installEventFilter(this);

@@ -2,6 +2,7 @@
 #include"Tcl2CaplPanels/ConfigEditor/ConfigViewPanel/configViewPanel.hpp"
 #include "Panels/attributesPanel.hpp"
 #include "Tcl2CaplPanels/ConfigEditor/writeOnlyProceduresList.hpp"
+#include "Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
 
 using namespace Panels::Configuration;
 using ConfigViewPanel = Panels::Configuration::View::ConfigViewPanel;
@@ -11,9 +12,9 @@ ConfigTabsPanel::ConfigTabsPanel(ConfigViewPanel& parent)
     : Super(&parent), configPanel(parent)
 {
     panels[0] = new AttributesPanel(*this);
-    panels[1] =   new WriteOnlyProceduresList(*this);
-    panels[2] =    new QWidget();
-    panels[3] =    new QWidget();
+    panels[1] = new WriteOnlyProceduresList(*this);
+    panels[2] = new RulesProcedurePanel();
+    panels[3] = new RulesProcedurePanel();
 
     for(int panelNameIndex = 0; panelNameIndex < panelType2number(PanelType::Size) ; panelNameIndex++){
         addTab(panels[panelNameIndex], Navigation::List::navigationPanelNames[panelNameIndex]);

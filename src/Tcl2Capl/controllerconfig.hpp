@@ -27,7 +27,7 @@ public:
 public:    
 
     using RawRule = RulesFactory::ProductBase;
-    using QuickRule = RulesFactory::Product<RulesTypes::QuickRule>;
+    //using QuickRule = RulesFactory::Product<RulesTypes::QuickRule>;
     using AdvancedRule = RulesFactory::Product<RulesTypes::RawRule>;
     using RulesForArgument = RulesFactory::Product<RulesTypes::RulesForArgument>;
 
@@ -71,15 +71,6 @@ public:
 
         inline QString name()const{return name_;}
 
-        inline bool allQuickRules(){
-            for(RawRuleRefs::Iterator rule = rulesOnEndOfCall_.begin();
-                rule != rulesOnEndOfCall_.end(); rule++)
-            {
-                //if(not ((*rule)->type() == RulesType::QuickRule))
-                  //  return false;
-            }
-            return true;
-        }
         inline RulesView rules(){
             return RulesView{rulesOnEndOfCall_, rulesForArguments_};
         }
