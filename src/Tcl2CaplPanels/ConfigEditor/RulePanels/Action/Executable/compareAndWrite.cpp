@@ -7,7 +7,7 @@
 #include<QSpinBox>
 #include<QWidget>
 
-using namespace Panels::Configuration::View::Action;
+using namespace Panels::Configuration::View::Actions;
 
 CompareAndWriteActionView::ExpectedArgumentsList::ExpectedArgumentsList(){
     ItemDelegate* itemDelegateObj = new ItemDelegate(*this);
@@ -738,7 +738,7 @@ CompareAndWriteActionView::CompareAndWriteActionView(ListItem& item)
     setLayout(&centralLayout);
 
     // Rule available
-    if(rule){   // Exists
+    //if(rule){   // Exists
         /*QuickRule& quickRule = *static_cast<QuickRule*>(rule);
         // NumbOfArguments
         if(quickRule.getNumbOfArguments() != -1){
@@ -748,7 +748,7 @@ CompareAndWriteActionView::CompareAndWriteActionView(ListItem& item)
         ruleControlComboBox.setCurrentIndex(static_cast<std::underlying_type_t<ControlFlag>>(quickRule.controlFlag()));
         // Expected Arguments
         expectedArgumentsList.loadExpectedArguments(quickRule);*/
-    }
+    //}
 }
 
 CompareAndWriteActionView::CompareAndWriteActionView(CompareAndWriteActionView* itemF)

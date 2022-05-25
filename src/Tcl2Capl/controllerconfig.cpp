@@ -30,7 +30,7 @@ Tcl2CaplControllerConfig::UserProcedure Tcl2CaplControllerConfig::Procedure::toP
 
     // Rules on end of call
     rulesOnEndOfCall = Rules(this->rulesOnEndOfCall().size());
-    using RawRuleRef = RawRuleRefs::Iterator;
+    using RawRuleRef = RawRules::Iterator;
     RawRuleRef rawRuleRef = this->rulesOnEndOfCall().begin();
     Rules::Iterator newRule = rulesOnEndOfCall.begin();
     for(; rawRuleRef < this->rulesOnEndOfCall().end(); rawRuleRef++, newRule++)
@@ -216,7 +216,7 @@ void Tcl2CaplControllerConfig::Procedure::toXmlContent(QXmlStreamWriter& xmlWrit
         xmlWriter.writeAttribute("userInteraction", userInteractionStr);
     }
     // Rules
-    for(RawRuleRefs::Iterator ruleOnEndOfCall = rulesOnEndOfCall_.begin(); ruleOnEndOfCall != rulesOnEndOfCall_.end(); ruleOnEndOfCall++){
+    for(RawRules::Iterator ruleOnEndOfCall = rulesOnEndOfCall_.begin(); ruleOnEndOfCall != rulesOnEndOfCall_.end(); ruleOnEndOfCall++){
        // (*ruleOnEndOfCall)->toXmlContent(xmlWriter);
     }
     for(RulesForArguments::Iterator ruleForArgument = rulesForArguments().begin(); ruleForArgument != rulesForArguments().end(); ruleForArgument++){

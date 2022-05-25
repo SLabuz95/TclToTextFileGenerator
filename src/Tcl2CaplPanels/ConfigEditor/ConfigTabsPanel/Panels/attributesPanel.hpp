@@ -23,7 +23,6 @@ namespace Panels::Configuration{
             inline ListItem(QString name = QString(), QString value = QString()) : QTreeWidgetItem({name, value}){
                  setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
 
-
             }
         };
         using Request_ContextMenu_Func = void (AttributesPanel::*)(ListItem*);

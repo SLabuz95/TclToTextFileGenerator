@@ -51,11 +51,15 @@ public:
         class Product : public ProductsConfiguration<ProductsList>::template Interface<ProductType>{
             template<class ...Arg>
             Product(Arg ...args) : ProductsConfiguration<ProductsList>::template Interface<ProductType>(args...){}
+
+            constexpr ProductsList type()const override{return ProductType;}
         };
 
         using ProductBasePtr = ProductBase*;
         using ProductBaseRef = ProductBase&;
-        using ListOfBases = QList<ProductBase* const>;
+        using ListOfBases = QList<ProductBase*>;
+        template<ProductsList ProductType>
+        using List = QList<Product<ProductType>>;
 
   private:
         inline static constexpr std::underlying_type_t<ProductsList> toUnderlyng(ProductsList value){

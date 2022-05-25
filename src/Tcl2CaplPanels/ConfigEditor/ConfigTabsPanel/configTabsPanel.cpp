@@ -5,6 +5,7 @@
 #include "Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
 
 using namespace Panels::Configuration;
+using RulesProcedurePanel = View::Rules::RulesProcedurePanel::Panel;
 using ConfigViewPanel = Panels::Configuration::View::ConfigViewPanel;
 
 

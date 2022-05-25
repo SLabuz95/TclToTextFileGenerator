@@ -17,15 +17,16 @@
 #include<QItemDelegate>
 #include"Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
 
-namespace Panels::Configuration::View::Action{
+namespace Panels::Configuration::View::Actions{
 
-    using ListItem = ::RulesProcedurePanel::RawRulesList::RulesList::ListItem;
+    using ListItem = Rules::RulesProcedurePanel::ListItem;
 
     class CompareAndWriteActionView : public QWidget{
         using RawRule = Tcl2CaplControllerConfig::RawRule;
 
         class ExpectedArgumentsList : public QTreeWidget{
         private:
+            using Super = QTreeWidget;
             class ItemDelegate : public QItemDelegate{
                 ItemDelegate() = delete;
             public:
@@ -328,6 +329,13 @@ namespace Panels::Configuration::View::Action{
 
         };
 
+        class RuleControlComboBox : public QComboBox{
+        public:
+            RuleControlComboBox(){
+                addItems(Tcl::Command::Definition::Rule::getRuleControlFlagNames());
+            }
+        };
+
         ListItem& item_;
         QVBoxLayout centralLayout;
         QPushButton closeButton;
@@ -346,7 +354,6 @@ namespace Panels::Configuration::View::Action{
         bool eventFilter(QObject* obj, QEvent* ev)override;
         inline ListItem& item()const{return item_;}
 
-    };
     };
 
 }

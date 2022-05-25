@@ -1,5 +1,5 @@
-#ifndef RULESPROCEDUREPANEL_HPP
-#define RULESPROCEDUREPANEL_HPP
+#ifndef PANEL_ACTIONS_HPP
+#define PANEL_ACTIONS_HPP
 
 #include<QListWidgetItem>
 #include<QComboBox>
@@ -15,53 +15,58 @@
 #include<QApplication>
 #include"Tcl2Capl/controllerconfig.hpp"
 #include<QItemDelegate>
-#include"RulePanels/rawRule.hpp"
 
-namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
-    class RulesList;
+namespace Panels::Configuration::View::ActionsList{
 
+    template<class Actions, class ActionView>
+    class ActionsList;
+
+    template<class Actions, class ActionView>
     class ListItem : public QListWidgetItem{
-        using RawRuleView = Rules::RawRuleView;
-        using RulesRef = Tcl2CaplControllerConfig::RawRules&;
-        using RuleRef = Tcl2CaplControllerConfig::RawRule&;
-        using Rule = Tcl2CaplControllerConfig::RawRule;
+        using View = ActionView;
+        using ViewPtr = ActionView*;
+        using Action = typename Actions::Type;
+        using ActionsList = ActionsList<Actions, ActionView>;
     public:
         ListItem() = delete;
-        ListItem(RulesList& list);
-        ListItem(RulesList& list, RuleRef rule);
-        ListItem(const ListItem& item) : ListItem(item.rulesList()){
-            //itemContent = new ItemContent(item.widget());
-        }
+        ListItem(ActionsList& list);
+        ListItem(ActionsList& list, Action action);
+        ListItem(const ListItem& item)
+            : ListItem(item.actionsList())
+        {}
         ~ListItem()override{
-            qDebug() << "Test";
+
         }
 
-        RawRuleView rawRuleView_;
+        ViewPtr view_ = nullptr;
 
     public:
-        RulesList &rulesList() const; //{ return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }
-        inline RawRuleView& rawRuleView(){return rawRuleView_;}
+        ActionsList &actionsList() const; //{ return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }
+        inline ViewPtr view(){return view_;}
     };
-    class RulesList : public QListWidget{
-        using RulesRef = Tcl2CaplControllerConfig::RawRules&;
-        using RuleRef = Tcl2CaplControllerConfig::RawRule&;
-        using Rule = Tcl2CaplControllerConfig::RawRule;
+
+    template<class Actions, class ActionView>
+    class ActionsList : public QListWidget{
+        using ActionsRef = Actions&;
+        using ActionPtr = typename Actions::Type;
     public:
-        using Request_ContextMenu_Func = void (RulesList::*)(ListItem*);
+        using ListItem = ListItem<Actions, ActionView>;
+        using Request_ContextMenu_Func = void (ActionsList::*)(ListItem*);
         enum class Request_ContextMenu{
-            AddRule,
-            CloneRule,
-            RemoveRule,
-            ClearRules,
+            Add,
+            Clone,
+            Remove,
+            Clear,
             Size
         };
         template<Request_ContextMenu>
         void execRequest_ContextMenu(ListItem*);
 
-        RulesList();
-        ~RulesList()override{
-            for(int i = 0; i < count(); i++)
-                itemWidget(item(i))->setParent(nullptr);
+        ActionsList();
+        ~ActionsList()override{
+            /*for(int i = 0; i < count(); i++)
+                itemWidget(item(i))->setParent(nullptr);*/
+            // Dynamic objects - Remove as child - do not set null parent (In RawRules List, static objects are used)
         }
 
     protected:
@@ -74,7 +79,7 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         inline ListItem* item(int index)const{return static_cast<ListItem*>(QListWidget::item(index));}
         inline ListItem* lastItem()const{return item(count() - 1);}
 
-        void loadRules(RulesRef);
+        void loadActions(ActionsRef);
 
         inline void addNewItem(){
             //ListItem* newItem = nullptr;
@@ -82,9 +87,9 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
             //newItem->init();
         }
 
-        inline void addNewItem(RuleRef rule){
+        inline void addNewItem(ActionPtr action){
             //ListItem* newItem = nullptr;
-            new ListItem(*this, rule);
+            new ListItem(*this, action);
             //newItem->init();
         }
 
@@ -118,9 +123,6 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         }
     };
 
-    using Panel = RulesList;
-
-
 }
 
-#endif // RULESPROCEDUREPANEL_HPP
+#endif // PANEL_ACTIONS_HPP

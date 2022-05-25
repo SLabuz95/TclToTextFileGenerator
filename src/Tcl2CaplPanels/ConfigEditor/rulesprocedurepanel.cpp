@@ -5,45 +5,25 @@
 #include<QAbstractItemView>
 #include<QSpinBox>
 
-RulesProcedurePanel::RulesProcedurePanel(){
-    layout.addWidget(&quickRulesList);
-    layout.setContentsMargins(0,0,0,0);
-    layout.setSpacing(0);
-    setLayout(&layout);
-}
+using namespace Panels::Configuration::View::Rules::RulesProcedurePanel;
 
-void RulesProcedurePanel::loadProcedure(ProcedureRef procedureRef){
-    quickRulesList.loadRules(procedureRef.rulesOnEndOfCall());
-}
-
-
-void RulesProcedurePanel::RawRulesList::RulesList::loadRules(QuickRulesRef rules)
+void RulesList::loadRules(RulesRef rules)
 {
-    using QuickRule = std::decay_t<QuickRulesRef>::Iterator;
+    using RawRule = std::decay_t<RulesRef>::Iterator;
     setUpdatesEnabled(false);
-    for(QuickRule rule = rules.begin(); rule < rules.end(); rule++)
+    for(RawRule rule = rules.begin(); rule < rules.end(); rule++)
         addNewItem(*rule);
 }
 
 
-RulesProcedurePanel::RawRulesList::RawRulesList(){
-    layout.addWidget(&list);
-    layout.setSpacing(0);
-    layout.setContentsMargins(0,0,0,0);
-
-    setLayout(&layout);
-
-    installEventFilter(this);
-}
-
 template<>
-void RulesProcedurePanel::RawRulesList::execRequest_ContextMenu<RulesProcedurePanel::RawRulesList::Request_ContextMenu::AddRule>(ListItem*)
+void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::AddRule>(ListItem*)
 {
-   list.addNewItem();
+   addNewItem();
 }
 
 template<>
-void RulesProcedurePanel::RawRulesList::execRequest_ContextMenu<RulesProcedurePanel::RawRulesList::Request_ContextMenu::CloneRule>(ListItem* item)
+void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::CloneRule>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     //item->clone();
@@ -51,28 +31,26 @@ void RulesProcedurePanel::RawRulesList::execRequest_ContextMenu<RulesProcedurePa
 }
 
 template<>
-void RulesProcedurePanel::RawRulesList::execRequest_ContextMenu<RulesProcedurePanel::RawRulesList::Request_ContextMenu::RemoveRule>(ListItem* item)
+void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::RemoveRule>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     delete item;
 }
 
 template<>
-void RulesProcedurePanel::RawRulesList::execRequest_ContextMenu<RulesProcedurePanel::RawRulesList::Request_ContextMenu::ClearRules>(ListItem*)
+void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::ClearRules>(ListItem*)
 {
-    list.clear();
+    clear();
 }
 
-void RulesProcedurePanel::RawRulesList::contextMenuEvent(QContextMenuEvent *ev){
+void RulesList::contextMenuEvent(QContextMenuEvent *ev){
     QContextMenuEvent* cev = static_cast<QContextMenuEvent*>(ev);
-
     ListItem* item = itemAt(cev->pos());
 
     // Specify file and error checking
-
     using Actions = QList<QAction*>;
-    using ActionFuncs = QList<RawRulesList::Request_ContextMenu_Func>;
-    using Request = RawRulesList::Request_ContextMenu;
+    using ActionFuncs = QList<RulesList::Request_ContextMenu_Func>;
+    using Request = RulesList::Request_ContextMenu;
     Actions actions;
     ActionFuncs actionFuncs;
     QMenu* menu = nullptr;
@@ -86,10 +64,10 @@ void RulesProcedurePanel::RawRulesList::contextMenuEvent(QContextMenuEvent *ev){
           new QAction("Usuń wszystkie reguły")
         };
         actionFuncs = {
-            &RawRulesList::execRequest_ContextMenu<Request::AddRule>,
-            &RawRulesList::execRequest_ContextMenu<Request::CloneRule>,
-            &RawRulesList::execRequest_ContextMenu<Request::RemoveRule>,
-            &RawRulesList::execRequest_ContextMenu<Request::ClearRules>,
+            &RulesList::execRequest_ContextMenu<Request::AddRule>,
+            &RulesList::execRequest_ContextMenu<Request::CloneRule>,
+            &RulesList::execRequest_ContextMenu<Request::RemoveRule>,
+            &RulesList::execRequest_ContextMenu<Request::ClearRules>,
         };
     }else{
         actions = {
@@ -97,26 +75,26 @@ void RulesProcedurePanel::RawRulesList::contextMenuEvent(QContextMenuEvent *ev){
             new QAction("Usuń wszystkie reguły")
         };
         actionFuncs = {
-            &RawRulesList::execRequest_ContextMenu<Request::AddRule>,
-            &RawRulesList::execRequest_ContextMenu<Request::ClearRules>,
+            &RulesList::execRequest_ContextMenu<Request::AddRule>,
+            &RulesList::execRequest_ContextMenu<Request::ClearRules>,
         };
     }
 
     // After configuration
     if(menu){
         menu->addActions(actions);
-        int index = actions.indexOf( menu->exec(cev->globalPos()));
+        qsizetype&& index = actions.indexOf( menu->exec(cev->globalPos()));
         if(index >= 0){
-            Q_ASSERT_X(index < actionFuncs.size(), "RawRulesList Menu", "Index error for action functions");
+            Q_ASSERT_X(index < actionFuncs.size(), "RulesList Menu", "Index error for action functions");
             (this->*(actionFuncs.at(index)))(item);
         }
-        delete menu, menu = nullptr;
+        static_cast<void>(delete menu), menu = nullptr;
     }
     return;
 }
 
 
-RulesProcedurePanel::RawRulesList::RulesList::RulesList(){
+RulesList::RulesList(){
     // Initiailzie
     /*setStyleSheet("QListView::item{"
     "border: 2px solid #6a6ea9;"
@@ -127,3 +105,22 @@ RulesProcedurePanel::RawRulesList::RulesList::RulesList(){
     setDragDropMode(QAbstractItemView::InternalMove);
 
 }
+
+ListItem::ListItem(RulesList& list)
+    : rawRuleView_(*this)
+{
+    list.addItem(this);
+    list.setItemWidget(this, &rawRuleView());
+    setSizeHint(rawRuleView().sizeHint());
+}
+
+ListItem::ListItem(RulesList& list, RuleRef rule)
+    : rawRuleView_(*this, rule)
+{
+    list.addItem(this);
+    list.setItemWidget(this, &rawRuleView());
+    setSizeHint(rawRuleView().sizeHint());
+};
+
+RulesList &ListItem::rulesList() const
+{ return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }

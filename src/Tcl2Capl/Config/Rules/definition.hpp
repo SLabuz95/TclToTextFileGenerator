@@ -51,6 +51,7 @@ class RulesProductDefinition::InterfaceData::Methods : public RulesProductDefini
 
     inline void changeControlFlag(ControlFlag cf){controlFlag_ = cf;}
     inline ControlFlag controlFlag()const{return controlFlag_;}
+
    // virtual void toRule(UserProcedureRule&) = 0;
     //virtual void toXmlContent(QXmlStreamWriter& xmlWriter);
 };

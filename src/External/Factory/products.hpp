@@ -31,7 +31,7 @@ class ProductsConfiguration{
     requires (ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End)
     class ImplementationData{
         public:
-        static constexpr ProductsList productType(){return ProductType;}
+        static constexpr ProductsList type(){return ProductType;}
         struct Properties;
         class Methods;
     };

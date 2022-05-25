@@ -26,14 +26,11 @@ public:
 
 public:    
 
-    using RawRule = RulesFactory::ProductBase;
-    //using QuickRule = RulesFactory::Product<RulesTypes::QuickRule>;
-    using AdvancedRule = RulesFactory::Product<RulesTypes::RawRule>;
+    using RawRule = RulesFactory::Product<RulesTypes::RawRule>;
     using RulesForArgument = RulesFactory::Product<RulesTypes::RulesForArgument>;
 
-    using RawRuleRef = RawRule*;
-    using RawRuleRefs = QList<RawRuleRef>;
-    using RulesForArguments = QList<RulesForArgument>;
+    using RawRules = RulesFactory::List<RulesTypes::RawRule>;
+    using RulesForArguments = RulesFactory::List<RulesTypes::RulesForArgument>;
 
     struct Attribute{
         QString name;
@@ -47,12 +44,12 @@ public:
 
         Name name_;
         UserInteractionStatus userInteraction = UserInteraction::defaultStatus();
-        RawRuleRefs rulesOnEndOfCall_;
+        RawRules rulesOnEndOfCall_;
         RulesForArguments rulesForArguments_;
 
     public:
         struct RulesView{
-            RawRuleRefs const& rulesOnEndOfCall;
+            RawRules const& rulesOnEndOfCall;
             RulesForArguments const& rulesForArguments;
         };
 
@@ -63,7 +60,7 @@ public:
 
         UserProcedure toProcedureWithRawRules();
         inline RulesForArguments& rulesForArguments(){return rulesForArguments_;}
-        inline RawRuleRefs& rulesOnEndOfCall(){return rulesOnEndOfCall_;}
+        inline RawRules& rulesOnEndOfCall(){return rulesOnEndOfCall_;}
 
         inline bool operator==(const Procedure& rhs){
             return name_ == rhs.name_;
