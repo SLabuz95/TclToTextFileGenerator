@@ -72,7 +72,9 @@ namespace Tcl::Interpreter::Command{
             };
             inline static Conditional fromStr_conditional(QString& str){return conditionalMap.value(str.toLower(), Conditional::None);}
             inline static Executable fromStr_executable(QString& str){return executableMap.value(str.toLower(), Executable::None);}
-         private:
+            inline static QList<const QString> conditionalsNames(){return conditionalMap.keys();}
+            inline static QList<const QString> executablesNames(){return conditionalMap.keys();}
+        private:
             static  QMap<const QString, Conditional> conditionalMap;
             static  QMap<const QString, Executable> executableMap;
             // End of Concept Definition

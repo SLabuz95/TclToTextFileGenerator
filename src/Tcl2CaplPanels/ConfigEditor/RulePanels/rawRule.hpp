@@ -10,9 +10,9 @@
 #include<QPushButton>
 namespace Panels::Configuration::View::Rules{
 
-    namespace RulesProcedurePanel{
-        class ListItem;
-    }
+namespace RulesProcedurePanel{
+    class ListItem;
+}
 
     class RawRuleView : public QWidget{
 

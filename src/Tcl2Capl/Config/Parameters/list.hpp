@@ -11,7 +11,8 @@ struct ParametersProducts::ImplementationData<ParametersType::List>::Properties
 : protected ParametersProductDefinition::Definition
 {
 protected:
-   // ListOfBases params;
+    using ParametersList = ListOfBases; // Accept integers only
+    ListOfBases parameters; // Lis
 
 };
 

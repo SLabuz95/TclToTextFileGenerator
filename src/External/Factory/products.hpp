@@ -22,6 +22,7 @@ class ProductsConfiguration{
 
     public:
     using ProductBase = ProductDefinition;
+    using ListOfBases = QList<ProductBase*>;
 
     protected:
     ProductsConfiguration() = delete;

@@ -2,11 +2,26 @@
 #define ACTION_HPP
 #include<QString>
 #include<QWidget>
+#include<QVBoxLayout>
+#include<QComboBox>
+#include"Tcl2Capl/controllerconfig.hpp"
 
 namespace Panels::Configuration::View::Actions{
 
     template<class Action>
     class ActionViewBase : public QWidget{
+        using MainLayout = QVBoxLayout;
+
+        class ActionTypeComboBox : public QComboBox{
+        public:
+            ActionTypeComboBox(){
+                if constexpr (std::is_same_v<typename Action::ProductsList, Tcl::Command::Definition::Action::Conditional>)
+                    addItems(Tcl::Command::Definition::Action::conditionalsNames());
+                else
+                    addItems(Tcl::Command::Definition::Action::executablesNames());
+            }
+        };
+
     public:
         using Error = QString;
         using ActionRef = const Action* ;
