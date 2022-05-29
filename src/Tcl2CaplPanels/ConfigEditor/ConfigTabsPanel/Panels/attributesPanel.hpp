@@ -47,7 +47,7 @@ namespace Panels::Configuration{
         using NewAttributes = Attributes;
         using RemovedAttributes = Attributes;
 
-        Layout layout;
+        //Layout layout;
         //QListWidget list;
 
         struct CurEditItemInfo{

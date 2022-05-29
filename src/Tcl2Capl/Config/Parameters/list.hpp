@@ -11,8 +11,8 @@ struct ParametersProducts::ImplementationData<ParametersType::List>::Properties
 : protected ParametersProductDefinition::Definition
 {
 protected:
-    using ParametersList = ListOfBases; // Accept integers only
-    ListOfBases parameters; // Lis
+    using ParametersList = ListOfBases;
+    ListOfBases parameters_;
 
 };
 
@@ -31,6 +31,7 @@ class ParametersProducts::InterfaceData<ParametersType::List>::Methods
 : public ParametersProducts::Implementation<ParametersType::List>
 {
 public:
+    ListOfBases& parameters(){return parameters_;}
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
 
 };

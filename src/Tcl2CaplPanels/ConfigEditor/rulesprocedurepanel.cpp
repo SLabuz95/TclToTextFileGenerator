@@ -17,13 +17,13 @@ void RulesList::loadRules(RulesRef rules)
 
 
 template<>
-void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::AddRule>(ListItem*)
+void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::Add>(ListItem*)
 {
    addNewItem();
 }
 
 template<>
-void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::CloneRule>(ListItem* item)
+void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::Clone>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     //item->clone();
@@ -31,68 +31,72 @@ void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::CloneRul
 }
 
 template<>
-void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::RemoveRule>(ListItem* item)
+void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::Remove>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     delete item;
 }
 
 template<>
-void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::ClearRules>(ListItem*)
+void RulesList::execRequest_ContextMenu<RulesList::Request_ContextMenu::Clear>(ListItem*)
 {
     clear();
 }
 
-void RulesList::contextMenuEvent(QContextMenuEvent *ev){
-    QContextMenuEvent* cev = static_cast<QContextMenuEvent*>(ev);
+void RulesList::contextMenuEvent(QContextMenuEvent *cev){
     ListItem* item = itemAt(cev->pos());
 
     // Specify file and error checking
-    using Actions = QList<QAction*>;
-    using ActionFuncs = QList<RulesList::Request_ContextMenu_Func>;
+
+    using ActionFuncs = RulesList::Request_ContextMenu_Func[];
     using Request = RulesList::Request_ContextMenu;
-    Actions actions;
-    ActionFuncs actionFuncs;
-    QMenu* menu = nullptr;
-
-    menu = new QMenu;
+    constexpr ActionFuncs actionFunc = {
+        &RulesList::execRequest_ContextMenu<Request::Add>,
+        &RulesList::execRequest_ContextMenu<Request::Clear>,
+    };
+    constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
+    ContextMenuConfig contextMenuConfig;
     if(item){
-        actions = {
-          new QAction("Dodaj regułe"),
-          new QAction("Klonuj regułe"),
-          new QAction("Usuń regułe"),
-          new QAction("Usuń wszystkie reguły")
-        };
-        actionFuncs = {
-            &RulesList::execRequest_ContextMenu<Request::AddRule>,
-            &RulesList::execRequest_ContextMenu<Request::CloneRule>,
-            &RulesList::execRequest_ContextMenu<Request::RemoveRule>,
-            &RulesList::execRequest_ContextMenu<Request::ClearRules>,
-        };
+        contextMenuConfig.addActions(
+                    {
+                          new QAction("Dodaj regułe"),
+                          new QAction("Klonuj regułe"),
+                          new QAction("Usuń regułe"),
+                          new QAction("Usuń wszystkie reguły")
+                    });
     }else{
-        actions = {
-            new QAction("Dodaj regułe"),
-            new QAction("Usuń wszystkie reguły")
-        };
-        actionFuncs = {
-            &RulesList::execRequest_ContextMenu<Request::AddRule>,
-            &RulesList::execRequest_ContextMenu<Request::ClearRules>,
-        };
+        contextMenuConfig.addActions(
+                    {
+                        new QAction("Dodaj regułe"),
+                        new QAction("Usuń wszystkie reguły")
+                    });
     }
-
-    // After configuration
-    if(menu){
-        menu->addActions(actions);
-        qsizetype&& index = actions.indexOf( menu->exec(cev->globalPos()));
-        if(index >= 0){
-            Q_ASSERT_X(index < actionFuncs.size(), "RulesList Menu", "Index error for action functions");
-            (this->*(actionFuncs.at(index)))(item);
+    qsizetype&& index = contextMenuConfig.exec(cev);
+    if(index >= 0){
+        if(item){
+            interpretContextMenuResponse(index, cev);
+        }else{
+            if(index < functionsSize)
+                (this->*(actionFunc[index]))(item);
         }
-        static_cast<void>(delete menu), menu = nullptr;
     }
-    return;
 }
 
+void RulesList::interpretContextMenuResponse(ContextMenuConfig::ActionIndex index, QContextMenuEvent* cev){
+    using ActionFuncs = RulesList::Request_ContextMenu_Func[];
+    using Request = RulesList::Request_ContextMenu;
+    constexpr ActionFuncs actionFunc = {
+        &RulesList::execRequest_ContextMenu<Request::Add>,
+        &RulesList::execRequest_ContextMenu<Request::Clone>,
+        &RulesList::execRequest_ContextMenu<Request::Remove>,
+        &RulesList::execRequest_ContextMenu<Request::Clear>,
+    };
+    constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
+    if(index < functionsSize){
+        ListItem* item = itemAt(cev->pos());
+        (this->*(actionFunc[index]))(item);
+    }
+}
 
 RulesList::RulesList(){
     // Initiailzie
@@ -100,10 +104,21 @@ RulesList::RulesList(){
     "border: 2px solid #6a6ea9;"
     "border-radius: 6px;"
     "}");*/
+    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setMovement(QListView::Snap);
     setDefaultDropAction(Qt::DropAction::MoveAction);
     setDragDropMode(QAbstractItemView::InternalMove);
 
+}
+
+
+void RulesList::extendContextMenu(ContextMenuConfig& config){
+    config.addMenu("Reguły",{
+                       new QAction("Dodaj"),
+                       new QAction("Klonuj"),
+                       new QAction("Usuń"),
+                       new QAction("Usuń wszystkie")
+                     });
 }
 
 ListItem::ListItem(RulesList& list)

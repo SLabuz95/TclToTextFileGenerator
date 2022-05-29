@@ -29,7 +29,6 @@ void CompareAndWriteActionView::ExpectedArgumentsList::addIndex()
     addTopLevelItem(curEditItem);
     editItem(curEditItem);
 
-    qDebug() << isPersistentEditorOpen(curEditItem);
 }
 
 void CompareAndWriteActionView::ExpectedArgumentsList::loadExpectedArguments(RawRule& rule)
@@ -120,7 +119,6 @@ void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::addArgument()
     if(not isExpanded()) setExpanded(true);
     treeWidget()->addEditItem(newItem);
 
-    qDebug() << treeWidget()->isPersistentEditorOpen(newItem);
 }
 
 void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::addEmptyStringArgument()
@@ -142,7 +140,6 @@ void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::addEmptyStringA
         if(not isExpanded()) setExpanded(true);
         treeWidget()->addEditItem(newItem);
 
-        qDebug() << treeWidget()->isPersistentEditorOpen(newItem);
     }
 }
 
@@ -704,7 +701,6 @@ void CompareAndWriteActionView::OutputsList::contextMenuEvent(QContextMenuEvent 
             delete menu;
             menu = nullptr;
         }
-    return;
 }
 
 

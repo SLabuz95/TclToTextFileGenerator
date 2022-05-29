@@ -11,6 +11,7 @@ WriteOnlyProceduresList::WriteOnlyProceduresList(ConfigTabsPanel& configTabs)
 {
     layout.addWidget(&list);
 
+    list.setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     list.viewport()->installEventFilter(this);
     list.setSortingEnabled(true);
     list.setMovement(QListView::Snap);

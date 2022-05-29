@@ -16,6 +16,7 @@
 #include"Tcl2Capl/controllerconfig.hpp"
 #include<QItemDelegate>
 #include"RulePanels/rawRule.hpp"
+#include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
 
 namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
     class RulesList;
@@ -26,6 +27,7 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         using RuleRef = Tcl2CaplControllerConfig::RawRule&;
         using Rule = Tcl2CaplControllerConfig::RawRule;
     public:
+        using List = RulesList;
         ListItem() = delete;
         ListItem(RulesList& list);
         ListItem(RulesList& list, RuleRef rule);
@@ -33,7 +35,7 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
             //itemContent = new ItemContent(item.widget());
         }
         ~ListItem()override{
-            qDebug() << "Test";
+
         }
 
         RawRuleView rawRuleView_;
@@ -43,16 +45,17 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         inline RawRuleView& rawRuleView(){return rawRuleView_;}
     };
     class RulesList : public QListWidget{
+        using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
         using RulesRef = Tcl2CaplControllerConfig::RawRules&;
         using RuleRef = Tcl2CaplControllerConfig::RawRule&;
         using Rule = Tcl2CaplControllerConfig::RawRule;
     public:
         using Request_ContextMenu_Func = void (RulesList::*)(ListItem*);
         enum class Request_ContextMenu{
-            AddRule,
-            CloneRule,
-            RemoveRule,
-            ClearRules,
+            Add,
+            Clone,
+            Remove,
+            Clear,
             Size
         };
         template<Request_ContextMenu>
@@ -116,6 +119,8 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
 
             QListWidget::dropEvent(ev);
         }
+        void extendContextMenu(ContextMenuConfig&);
+        void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*);
     };
 
     using Panel = RulesList;

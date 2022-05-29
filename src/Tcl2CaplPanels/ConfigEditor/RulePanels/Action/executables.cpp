@@ -6,12 +6,32 @@
 #include<QSpinBox>
 #include"Tcl2Capl/Config/Actions/Executable/executables.hpp"
 #include"action.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
 
 using namespace Panels::Configuration::View;
 using Executables = ExecutablesFactory::ListOfBases;
-using ExecutablesList = ActionsList::ActionsList<Executables,
-                        Actions::ActionViewBase<ExecutablesFactory::ProductBase>>;
+using ExecutablesList = ActionsList::List<Executables>;
 using ListItem = ExecutablesList::ListItem;
+using ActionView = ListItem::View;
+using List = ListItem::List;
+using RawRuleView = List::RawRuleView;
+
+template<>
+ActionView::ActionView(ListItem& item)
+{
+    mainLayout.addWidget(&actionTypeComboBox);
+
+}
+
+template<>
+List& ActionView::parentWidget()const{
+    return *static_cast<List*>(Super::parentWidget()->parentWidget()); // Viewport (1 parent) -> List (2 parent)
+}
+
+template<>
+RawRuleView& ExecutablesList::parentWidget()const{
+    return *static_cast<RawRuleView*>(Super::parentWidget()->parentWidget()); //Splitter -> RuleView
+}
 
 template<>
 void ExecutablesList::loadActions(ActionsRef actions)
@@ -55,92 +75,126 @@ void ExecutablesList::execRequest_ContextMenu<ExecutablesList::Request_ContextMe
 }
 
 template<>
-void ExecutablesList::contextMenuEvent(QContextMenuEvent *ev){
-    QContextMenuEvent* cev = static_cast<QContextMenuEvent*>(ev);
+void ExecutablesList::extendContextMenu(ContextMenuConfig& config){
+    config.addMenu("Akcje",{
+                                     new QAction("Dodaj"),
+                                     new QAction("Klonuj"),
+                                     new QAction("Usuń"),
+                                     new QAction("Usuń wszystkie")
+                                   });
+    parentWidget().parentWidget().extendContextMenu(config);
+}
+
+template<>
+void ExecutablesList::interpretContextMenuResponse(ContextMenuConfig::ActionIndex index, QContextMenuEvent* cev){
+    using ActionFuncs = ExecutablesList::Request_ContextMenu_Func[];
+    using Request = ExecutablesList::Request_ContextMenu;
+    constexpr ActionFuncs actionFunc = {
+        &ExecutablesList::execRequest_ContextMenu<Request::Add>,
+        &ExecutablesList::execRequest_ContextMenu<Request::Clone>,
+        &ExecutablesList::execRequest_ContextMenu<Request::Remove>,
+        &ExecutablesList::execRequest_ContextMenu<Request::Clear>,
+    };
+    constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
+    if(index >= functionsSize){
+        parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+    }else{
+        ListItem* item = itemAt(cev->pos());
+        (this->*(actionFunc[index]))(item);
+    }
+}
+
+template<>
+void ExecutablesList::contextMenuEvent(QContextMenuEvent *cev){
     ListItem* item = itemAt(cev->pos());
 
     // Specify file and error checking
-    using Actions = QList<QAction*>;
-    using ActionFuncs = QList<ExecutablesList::Request_ContextMenu_Func>;
+    using ActionFuncs = ExecutablesList::Request_ContextMenu_Func[];
     using Request = ExecutablesList::Request_ContextMenu;
-    Actions actions;
-    ActionFuncs actionFuncs;
-    QMenu* menu = nullptr;
-
-    menu = new QMenu;
+    constexpr ActionFuncs actionFunc = {
+        &ExecutablesList::execRequest_ContextMenu<Request::Add>,
+        &ExecutablesList::execRequest_ContextMenu<Request::Clear>,
+    };
+    constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
+    ContextMenuConfig contextMenuConfig;
     if(item){
-        actions = {
-          new QAction("Dodaj regułe"),
-          new QAction("Klonuj regułe"),
-          new QAction("Usuń regułe"),
-          new QAction("Usuń wszystkie reguły")
-        };
-        actionFuncs = {
-            &ExecutablesList::execRequest_ContextMenu<Request::Add>,
-            &ExecutablesList::execRequest_ContextMenu<Request::Clone>,
-            &ExecutablesList::execRequest_ContextMenu<Request::Remove>,
-            &ExecutablesList::execRequest_ContextMenu<Request::Clear>,
-        };
+        contextMenuConfig.addActions(
+                    {
+                          new QAction("Dodaj akcje"),
+                          new QAction("Klonuj akcje"),
+                          new QAction("Usuń akcje"),
+                          new QAction("Usuń wszystkie akcje")
+                    });
     }else{
-        actions = {
-            new QAction("Dodaj regułe"),
-            new QAction("Usuń wszystkie reguły")
-        };
-        actionFuncs = {
-            &ExecutablesList::execRequest_ContextMenu<Request::Add>,
-            &ExecutablesList::execRequest_ContextMenu<Request::Clear>,
-        };
+        contextMenuConfig.addActions(
+                    {
+                        new QAction("Dodaj akcje"),
+                        new QAction("Usuń wszystkie akcje")
+                    });
     }
-
-    // After configuration
-    if(menu){
-        menu->addActions(actions);
-        qsizetype&& index = actions.indexOf( menu->exec(cev->globalPos()));
-        if(index >= 0){
-            Q_ASSERT_X(index < actionFuncs.size(), "ExecutablesList Menu", "Index error for action functions");
-            (this->*(actionFuncs.at(index)))(item);
+    parentWidget().parentWidget().extendContextMenu(contextMenuConfig);
+    qsizetype&& index = contextMenuConfig.exec(cev);
+    if(index >= 0){
+        if(item){
+            interpretContextMenuResponse(index, cev);
+        }else{
+            if(index >= functionsSize){
+                parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+            }else{
+                (this->*(actionFunc[index]))(item);
+            }
         }
-        static_cast<void>(delete menu), menu = nullptr;
     }
-    return;
 }
 
 
 template<>
 ExecutablesList
-::ActionsList(){
+::List(){
     // Initiailzie
     /*setStyleSheet("QListView::item{"
     "border: 2px solid #6a6ea9;"
     "border-radius: 6px;"
     "}");*/
-    setMovement(QListView::Snap);
-    setDefaultDropAction(Qt::DropAction::MoveAction);
+    //setMovement(QListView::Snap);
+    //setHeaderLabels({"Akcje wykonywalne"});
+    //setIndentation(0);
+    //setMovement(Snap);
+    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setDragDropMode(QAbstractItemView::InternalMove);
+    setDefaultDropAction(Qt::DropAction::MoveAction);
+    setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+    setDragDropOverwriteMode(true);
+
+    viewport()->installEventFilter(this);
 
 }
 
 
 template<>
 ListItem::ListItem(ExecutablesList& list)
-    : view_(View::create(nullptr))
+    : view_(*this)
 {
-    list.addItem(this);
-    list.setItemWidget(this, view_);
+    setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
+    //list.addItem(this);
+    //list.setItemWidget(this, view_);
     //setSizeHint(view()->sizeHint());
 }
 
 
 template<>
-ListItem::ListItem(ExecutablesList& list, Action action)
-    : view_(View::create(action))
+ListItem::ListItem(ExecutablesList& list, ActionPtr action)
+    : view_(*this)
 {
-    list.addItem(this);
+    setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
+    //list.addItem(this);
     //list.setItemWidget(this, view());
     //setSizeHint(view()->sizeHint());
 };
 
 
 template<>
-ExecutablesList &ListItem::actionsList() const
-{ return *static_cast<ExecutablesList*>(QListWidgetItem::listWidget()); }
+ExecutablesList &ListItem::list() const
+{
+    return *static_cast<ExecutablesList*>(QListWidgetItem::listWidget());
+}

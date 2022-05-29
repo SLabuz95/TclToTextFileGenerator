@@ -210,8 +210,6 @@ void TCLCommandsController::executeAction
         throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)));
         return ;
     }
-    //if(lastProcedureCall().name() == "foreach")
-      //  qDebug() << "Test";
     lastProcedureCall().changeStat(stat);
    updateCurrentCallProcedures();
 

@@ -13,6 +13,7 @@ AttributesPanel::AttributesPanel(ConfigTabsPanel& tabsPanel)
     setHeaderLabels({"Nazwa", "Wartość"});
     setIndentation(0);
     //setMovement(Snap);
+    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setDragDropMode(QAbstractItemView::InternalMove);
     setDefaultDropAction(Qt::DropAction::MoveAction);
     setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);

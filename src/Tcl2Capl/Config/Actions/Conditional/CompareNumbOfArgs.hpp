@@ -4,14 +4,18 @@
 
 #include"External/Factory/factory.hpp"
 #include"Tcl2Capl/Config/Actions/Conditional/definition.hpp"
+#include"Tcl2Capl/Config/Parameters/FCT_products.hpp"
 
 template<>
 template<>
 struct ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareNumbOfArguments>::Properties
 : public ConditionalsProductDefinition::Definition
 {
+public:
+    using ParameterType = ParametersFactory::ProductTypeEnum;
+    using NumbOfArgumentsList = ParametersFactory::Product<ParameterType::List>;
 protected:
-    //IntegerParam numbOfArgs;
+    NumbOfArgumentsList numbOfArgs_;
 
 };
 
@@ -28,7 +32,8 @@ template<>
 class ConditionalsProducts::InterfaceData<ConditionalsTypes::CompareNumbOfArguments>::Methods
 : protected ConditionalsProducts::Implementation<ConditionalsTypes::CompareNumbOfArguments>
 {
-
+public:
+    NumbOfArgumentsList& numbOfArgs(){return numbOfArgs_;}
 };
 
 

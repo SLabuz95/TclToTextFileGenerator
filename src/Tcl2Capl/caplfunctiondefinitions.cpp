@@ -44,8 +44,6 @@ void FunctionDefinitions::addDefinitionNotSatisfiedRules(Call& procedureCall)
     if((caplDefinition = definitionsOnNotSatisfiedRules.find(procedureCall._name())) != definitionsOnNotSatisfiedRules.end()){
         DefinitionInfo::Iterator caplDefinitionInfo;
         if((caplDefinitionInfo = caplDefinition->find(procedureCall.parametersLength())) != caplDefinition->end()){
-            if(procedureCall._name() == "test_result" and procedureCall.parametersLength() == 2)
-                qDebug() << "Test";
             // Search parameters
             ProcedureInfos::Iterator procedureInfo;
             Parameters parameters = procedureCall.parametersStats();

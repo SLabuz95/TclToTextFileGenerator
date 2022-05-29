@@ -3,18 +3,16 @@
 
 #include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
 #include"../actions.hpp"
-#include"../action.hpp"
 
 
-namespace Panels::Configuration::View::Actions{
+namespace Panels::Configuration::View::ActionsList{
 
 
     class CompareActionView
-            : public ActionViewBase<ConditionalsFactory::Product<ConditionalsTypes::Compare>>
+            : public ActionDataView<ConditionalsFactory::Product<ConditionalsTypes::Compare>>
     {
         using Conditionals = ConditionalsFactory::ListOfBases;
-        using ConditionalsList = ActionsList::ActionsList<Conditionals,
-                                Actions::ActionViewBase<ConditionalsFactory::ProductBase>>;
+        using ConditionalsList = List<Conditionals>;
         using ListItem = ConditionalsList::ListItem;
 
 

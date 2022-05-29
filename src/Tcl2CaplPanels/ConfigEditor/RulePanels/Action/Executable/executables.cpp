@@ -1,22 +1,21 @@
 #include"Tcl2Capl/Config/Actions/Executable/executables.hpp"
-#include"../action.hpp"
+#include"../actions.hpp"
 
 // List of all views for Executables
-
 // ---------------------------
 
-using namespace Panels::Configuration::View::Actions;
-using Executable = ExecutablesFactory::ProductBase;
-using ActionView = ActionViewBase<Executable>;
+using namespace Panels::Configuration::View::ActionsList;
+using Executables = ExecutablesFactory::ListOfBases;
+using View = ActionDataView<Executables>;
 
 
 
 template<>
-ActionView::CreateFunctionTable ActionView::createFunctionTable = {
+View::CreateFunctionTable View::createFunctionTable = {
 
 };
 
 template<>
-ActionView* ActionView::create(ActionRef action){
-    return (createFunctionTable[FCT_toUnderlying((action)? action->type() : ActionType())])(action);
+View* View::create(ActionView& view, ActionRef action){
+    return (createFunctionTable[FCT_toUnderlying((action)? action->type() : ActionType())])(view, action);
 }

@@ -92,14 +92,14 @@ KeywordsMap KeywordsController::keywordsMap ={
     //{QStringLiteral("BreakRuleCheckDontExecOnEndActions").toLower(), RuleControlFlag::BreakRuleCheckDontExecOnEndActions}
 };
 
- QMap<const QString, Action::Conditional> Action::conditionalMap
+QMap<QString, Action::Conditional> Action::conditionalMap
 {
     {QStringLiteral("CompareNumbOfArguments").toLower(), Action::Conditional::CompareNumbOfArguments},
     {QStringLiteral("IsLastSavedStat").toLower(), Action::Conditional::IsLastSavedStat},
     {QStringLiteral("Compare").toLower(), Action::Conditional::Compare}
 };
 
- QMap<const QString,  Action::Executable> Action::executableMap
+ QMap<QString,  Action::Executable> Action::executableMap
 {
     {QStringLiteral("Write").toLower(), Action::Executable::Write},
     {QStringLiteral("TclParse").toLower(), Action::Executable::TclParse},

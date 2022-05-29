@@ -246,7 +246,6 @@ namespace Panels::Configuration::View::Actions{
                     if(listWidget()){
                         listWidget()->setItemWidget(this, itemContent);
                         setSizeHint(itemContent->sizeHint());
-                        //qDebug() << itemContent->parentWidget();
                     }
                 }
 

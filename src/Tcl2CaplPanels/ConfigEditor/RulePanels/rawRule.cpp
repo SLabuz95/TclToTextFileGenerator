@@ -4,6 +4,7 @@
 
 using namespace Panels::Configuration::View::Rules;
 using ListItemType = RulesProcedurePanel::ListItem;
+using List = RulesProcedurePanel::RulesList;
 
 RawRuleView::RawRuleView(ListItemType& item)
 : item_(item){
@@ -16,6 +17,10 @@ RawRuleView::RawRuleView(ListItemType& item)
 
     settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
     centralLayout.addLayout(&settingsLayout, Qt::AlignTop);
+
+    actionsPanel.addWidget(&conditionalsList);
+    actionsPanel.addWidget(&executablesList);
+    centralLayout.addWidget(&actionsPanel);
 
     setLayout(&centralLayout);
 
@@ -38,6 +43,7 @@ RawRuleView::RawRuleView(ListItemType& item, RawRuleRef rule)
 : item_(item)
 {
     // Setup layout
+
     centralLayout.setSpacing(0);
 
     closeButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCloseButton));
@@ -100,4 +106,8 @@ bool RawRuleView::eventFilter(QObject *obj, QEvent *ev){
         return true;
     }
     return QWidget::eventFilter(obj, ev);
+}
+
+List& RawRuleView::parentWidget()const{
+    return *static_cast<List*>(Super::parentWidget()->parentWidget());// Viewport -> List
 }

@@ -70,14 +70,15 @@ namespace Tcl::Interpreter::Command{
                 End = Size,
                 None,
             };
+        private:
+            static QMap<QString, Conditional> conditionalMap;
+            static QMap<QString, Executable> executableMap;
+            // End of Concept Definition
+        public:
             inline static Conditional fromStr_conditional(QString& str){return conditionalMap.value(str.toLower(), Conditional::None);}
             inline static Executable fromStr_executable(QString& str){return executableMap.value(str.toLower(), Executable::None);}
-            inline static QList<const QString> conditionalsNames(){return conditionalMap.keys();}
-            inline static QList<const QString> executablesNames(){return conditionalMap.keys();}
-        private:
-            static  QMap<const QString, Conditional> conditionalMap;
-            static  QMap<const QString, Executable> executableMap;
-            // End of Concept Definition
+            inline static decltype(conditionalMap.keys()) conditionalsNames(){return conditionalMap.keys();}
+            inline static decltype(executableMap.keys()) executablesNames(){return executableMap.keys();}
         };
     /*
         enum class ConditionalAction : uint{

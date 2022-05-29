@@ -1,21 +1,16 @@
-#include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
-#include"../action.hpp"
+#include"conditionals.hpp"
 
-// List of all views for Executables
-
-// ---------------------------
-
-using namespace Panels::Configuration::View::Actions;
-using Executable = ConditionalsFactory::ProductBase;
-using ActionView = ActionViewBase<Executable>;
+using namespace Panels::Configuration::View::ActionsList;
+using Conditionals = ConditionalsFactory::ListOfBases;
+using View = ActionDataView<Conditionals>;
 
 
 template<>
-ActionView::CreateFunctionTable ActionView::createFunctionTable = {
-
+View::CreateFunctionTable View::createFunctionTable = {
+    &CompareNumbOfArgsActionView::create
 };
 
 template<>
-ActionView* ActionView::create(ActionRef action){
-    return (createFunctionTable[FCT_toUnderlying((action)? action->type() : ActionType())])(action);
+View* View::create(ActionView& view,ActionRef action){
+    return (createFunctionTable[FCT_toUnderlying((action)? action->type() : ActionType())])(view, action);
 }
