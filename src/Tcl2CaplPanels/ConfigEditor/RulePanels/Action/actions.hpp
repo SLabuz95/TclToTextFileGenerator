@@ -81,6 +81,7 @@ namespace Panels::Configuration::View::ActionsList{
         class ActionTypeComboBox : public QComboBox{
         public:
             ActionTypeComboBox(){
+
                 if constexpr (std::is_same_v<typename Action::ProductsList, Tcl::Command::Definition::Action::Conditional>)
                     addItems(Tcl::Command::Definition::Action::conditionalsNames());
                 else

@@ -28,9 +28,9 @@ namespace Tcl::Interpreter::Command{
         // Concept Definition ------------------------------------------------------------------
 
     public:
-        inline static UserInteractionStatus fromStr(QString& str){return userInteractionMap.value(str.toLower(), UserInteractionStatus::None);}
+        inline static UserInteractionStatus fromStr(QString& str){return static_cast<UserInteractionStatus>(userInteractionMap.indexOf(str.toLower()));}
         inline static QString toStr(UserInteractionStatus userInteraction){
-            return userInteractionMap.key(userInteraction); // Empty String == Not found
+            return userInteractionMap.at(userInteraction); // Empty String == Not found
         }
      private:
         // Aliases
@@ -39,7 +39,7 @@ namespace Tcl::Interpreter::Command{
         const QString& error();
         // ---------
 
-        static QMap<const QString,  UserInteractionStatus> userInteractionMap;
+        static const QList<QString> userInteractionMap;
 
         // ----
 

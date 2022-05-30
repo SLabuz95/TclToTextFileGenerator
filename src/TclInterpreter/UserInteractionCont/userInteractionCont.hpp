@@ -15,7 +15,7 @@ namespace Tcl::Interpreter{
         using Infos = QList<Info>;
         Infos infos;
     public:
-        enum Status : quint8{None, NotRequired, Required};
+        enum Status : qint8{ NotRequired, Required, None = -1};
         static constexpr Status defaultStatus(){return Status::NotRequired;}
         inline Infos::size_type nextUserInteractionNumber(){return infos.size() + 1;}
         inline void addNewInfo(){infos.append(Info());}

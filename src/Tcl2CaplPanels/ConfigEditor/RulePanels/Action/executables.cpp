@@ -19,8 +19,11 @@ using RawRuleView = List::RawRuleView;
 template<>
 ActionView::ActionView(ListItem& item)
 {
-    mainLayout.addWidget(&actionTypeComboBox);
-
+    mainLayout.setSpacing(0);
+    mainLayout.setContentsMargins(0,0,0,0);
+    mainLayout.addRow(&actionTypeComboBox);
+    mainLayout.addRow(dataView_);
+    setLayout(&mainLayout);
 }
 
 template<>
@@ -175,10 +178,11 @@ template<>
 ListItem::ListItem(ExecutablesList& list)
     : view_(*this)
 {
-    setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
-    //list.addItem(this);
-    //list.setItemWidget(this, view_);
-    //setSizeHint(view()->sizeHint());
+    //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
+    list.addItem(this);
+    list.setItemWidget(this, &view_);
+    qApp->processEvents();
+    setSizeHint(view().minimumSizeHint());
 }
 
 

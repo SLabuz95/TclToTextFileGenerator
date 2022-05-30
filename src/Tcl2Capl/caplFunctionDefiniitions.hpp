@@ -1,6 +1,7 @@
 #ifndef CAPLFUNCTIONDEFINIITIONS_HPP
 #define CAPLFUNCTIONDEFINIITIONS_HPP
 #include"TclInterpreter/CommandsCont/commandCall.hpp"
+#include<QMap>
 
 class QFile;
 namespace Tcl::Analysis{

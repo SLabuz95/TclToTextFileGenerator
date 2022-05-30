@@ -3,7 +3,7 @@
 
 #include"TclInterpreter/tclinterpretercore.hpp"
 #include"TclInterpreter/UserInteractionCont/userInteractionCont.hpp"
-#include<QMap>
+#include<QList>
 
 namespace Tcl::Interpreter::Command{
     using namespace Tcl::Interpreter::Core;
@@ -34,12 +34,12 @@ namespace Tcl::Interpreter::Command{
         class Action{
         public:
             // Concept ----------------------------------------------------------------------
-            enum class Conditional : uint;
-            enum class Executable : uint;
+            enum class Conditional : int;
+            enum class Executable : int;
 
             // End of Concept |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
             // Concept Definition ------------------------------------------------------------------
-            enum class Conditional : uint{
+            enum class Conditional : int{
                 CompareNumbOfArguments, // Current numb of Arguments for last procedure call (current definition)
                 FCT_Begin = CompareNumbOfArguments,
                 IsLastSavedStat,    // Check Stat for specified SavedStat (Arguments pattern: 1- savedStat number)
@@ -49,10 +49,10 @@ namespace Tcl::Interpreter::Command{
                 Size,
                 End = Size,
                 FCT_End = End,
-                None,
+                None = -1,
             };
 
-            enum class Executable : uint{
+            enum class Executable : int{
                  Write,
                 FCT_Begin = Write,
                 TclParse,
@@ -68,17 +68,19 @@ namespace Tcl::Interpreter::Command{
 
                 Size,
                 End = Size,
-                None,
+                None = -1,
             };
+
         private:
-            static QMap<QString, Conditional> conditionalMap;
-            static QMap<QString, Executable> executableMap;
+
+            static const QList<QString> conditionalMap;
+            static const QList<QString> executableMap;
             // End of Concept Definition
         public:
-            inline static Conditional fromStr_conditional(QString& str){return conditionalMap.value(str.toLower(), Conditional::None);}
-            inline static Executable fromStr_executable(QString& str){return executableMap.value(str.toLower(), Executable::None);}
-            inline static decltype(conditionalMap.keys()) conditionalsNames(){return conditionalMap.keys();}
-            inline static decltype(executableMap.keys()) executablesNames(){return executableMap.keys();}
+            inline static Conditional fromStr_conditional(QString& str){return static_cast<Conditional>(conditionalMap.indexOf(str));}
+            inline static Executable fromStr_executable(QString& str){return static_cast<Executable>(executableMap.indexOf(str));}
+            inline static const decltype(conditionalMap)& conditionalsNames(){return conditionalMap;}
+            inline static const decltype(executableMap)& executablesNames(){return executableMap;}
         };
     /*
         enum class ConditionalAction : uint{
@@ -112,7 +114,7 @@ namespace Tcl::Interpreter::Command{
         public:
             // Concept ----------------------------------------------------------------------
             enum class Rule : char;
-            enum class Target : quint8;
+            enum class Target : qint8;
 
             // End Of Concept ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
             // Concept Definition -------------------------------------------------------------
@@ -125,18 +127,19 @@ namespace Tcl::Interpreter::Command{
                //CUT_AFTER_INDEX = 'C',
                SEPARATOR = '@',
                TARGET = 'T',
-                None = '\0',
+                None = -1,
                //SPLIT = 'S',
                //SLICED = '\\'
             };
-            enum class Target : quint8{
+            enum class Target : qint8{
                 Raw,    // Orginal Interpreter Read
                 TclFormat,
                 CaplFormat,
                 ProcedureParametersStat,    // Number
                 //Command,
                 SnprintfFormat,
-                None,
+                Size,
+                None = -1,
                 //ProcedureParameters,
                 //OriginalProcedureParameters,
             };
@@ -148,11 +151,11 @@ namespace Tcl::Interpreter::Command{
 
             // End of Functions ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
             // Interface ---------------------------------------------------------------------
-            inline static Rule fromStr_rule(QString& str){return ruleMap.value(str.toLower(), Rule::None);}
-            inline static Target fromStr_target(QString& str){return targetMap.value(str.toLower(), Target::None);}
+            inline static Rule fromStr_rule(QString& str){return static_cast<Rule>(ruleMap.indexOf(str.toLower()));}
+            inline static Target fromStr_target(QString& str){return static_cast<Target>(targetMap.indexOf(str.toLower()));}
          private:
-            static  QMap<const QString,  Rule> ruleMap;
-            static  QMap<const QString,  Target> targetMap;
+            static const QList<QString> ruleMap;
+            static const QList<QString> targetMap;
         public:
             static inline std::underlying_type_t<Target> cast_target(const Target t){return static_cast<std::underlying_type_t<Target>>(t);}
             static const QString cast_target_str(const Target t){return QString::number(cast_target(t));}
@@ -196,23 +199,24 @@ namespace Tcl::Interpreter::Command{
             using ConditionalActions =  QVector< ActionCall<Action::Conditional>>;
             using ExecutableActions =  QVector< ActionCall<Action::Executable>>;
 
-            enum class Control : quint8;
+            enum class Control : qint8;
             // End of Concepts |||||||||||||||||||||||||||||||||||||||||||||
             // Concept Definition ------------------------------------------
-            enum class Control : quint8{
+            enum class Control : qint8{
                 BreakRuleCheck,
                 NoBreakRuleCheck,
                 //BreakRuleCheckDontExecOnEndActions,
-                None,
+                Size,
+                None = -1,
                 _default = BreakRuleCheck
             };
         private:
-            static QMap<QString,  Control> controlMap;
+            static const QList<QString> controlMap;
         public:
-            inline static Control fromStr(QString& str){return controlMap.value(str.toLower(), Control::None);}
-            inline static QString toStr(Control flag){return controlMap.key(flag);}
-            inline static decltype (controlMap.keys()) getRuleControlFlagNames(){
-                return controlMap.keys();
+            inline static Control fromStr(QString& str){return static_cast<Control>(controlMap.indexOf(str.toLower()));}
+            inline static QString toStr(Control flag){return controlMap.at(static_cast<std::underlying_type_t<Control>>(flag));}
+            inline static decltype (controlMap)& getRuleControlFlagNames(){
+                return controlMap;
             }
             static constexpr Control defaultControlFlag(){return Control::_default;}
             // End of Concept Definitiom |||||||||||||||||||||||||||||||||||||
