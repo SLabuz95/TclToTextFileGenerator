@@ -1,12 +1,12 @@
 #ifndef DEFINITION_PARAMETERS_FORMATTED_HPP
 #define DEFINITION_PARAMETERS_FORMATTED_HPP
 
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include"External/Factory/factory.hpp"
 
-using TclProcedureInterpreter = TCLCommandsController;
+using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
 using Settings = Tcl::Interpreter::Command::Settings;
-using UserProcedure = TclProcedureInterpreter::ProcedureDefinition;
+using UserProcedure = Tcl::Interpreter::Command::Definition;
 using UserProcedureRule = UserProcedure::Rule;
 using UserProcedureRules = QList<UserProcedureRule>;
 using Mode = Settings::InterpreterMode;
