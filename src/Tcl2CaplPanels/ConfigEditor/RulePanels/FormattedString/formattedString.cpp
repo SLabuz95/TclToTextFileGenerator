@@ -4,43 +4,33 @@
 #include<QAction>
 #include<QAbstractItemView>
 #include<QSpinBox>
-#include"Conditional/conditionals.hpp"
-#include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
-#include"Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
+#include"formattedString.hpp"
 
+using namespace Panels::Configuration::View::FormattedString;
 
-#include"action.hpp"
-
-using namespace Panels::Configuration::View;
-using Conditionals = ConditionalsFactory::ListOfBases;
-using ConditionalsList = ActionsList::List<Conditionals>;
-using ListItem = ConditionalsList::ListItem;
-using ActionView = ListItem::View;
-using List = ListItem::List;
-using RawRuleView = List::RawRuleView;
-
-template<>
-ActionView::ActionView(ListItem& item)
-    : dataView_(ActionDataView::createView(*this))
+ItemView::ItemView(ListItem& item)
+    : dataView_(ItemDataView::createView(*this))
 {
     mainLayout.setSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
-    mainLayout.addRow(&actionTypeComboBox);
+    mainLayout.addRow(&titleComboBox);
     mainLayout.addRow(dataView_);
     setLayout(&mainLayout);
 }
 
-template<>
-List& ActionView::parentWidget()const{
-    return *static_cast<List*>(Super::parentWidget()->parentWidget()); // Viewport (1 parent) -> List (2 parent)
+ItemView& ItemDataView::parentWidget()const
+{
+    return *static_cast<ItemView*>(QFormLayout::parentWidget());
 }
 
-template<>
+List& ItemView::parentWidget()const{
+    return *static_cast<List*>(Super::parentWidget()->parentWidget()); // Viewport (1 parent) -> List (2 parent)
+}
+/*
 RawRuleView& ConditionalsList::parentWidget()const{
     return *static_cast<RawRuleView*>(Super::parentWidget()->parentWidget()); //Splitter -> RuleView
 }
 
-template<>
 void ConditionalsList::loadActions(ActionsRef actions)
 {
     using Action = std::decay_t<ActionsRef>::Iterator;
@@ -48,18 +38,16 @@ void ConditionalsList::loadActions(ActionsRef actions)
     for(Action action = actions.begin(); action < actions.end(); action++)
         addNewItem(*action);
 }
-
+*/
 
 template<>
-template<>
-void ConditionalsList::execRequest_ContextMenu<ConditionalsList::Request_ContextMenu::Add>(ListItem*)
+void List::execRequest_ContextMenu<List::Request_ContextMenu::Add>(ListItem*)
 {
    addNewItem();
 }
 
 template<>
-template<>
-void ConditionalsList::execRequest_ContextMenu<ConditionalsList::Request_ContextMenu::Clone>(ListItem* item)
+void List::execRequest_ContextMenu<List::Request_ContextMenu::Clone>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     //item->clone();
@@ -67,61 +55,56 @@ void ConditionalsList::execRequest_ContextMenu<ConditionalsList::Request_Context
 }
 
 template<>
-template<>
-void ConditionalsList::execRequest_ContextMenu<ConditionalsList::Request_ContextMenu::Remove>(ListItem* item)
+void List::execRequest_ContextMenu<List::Request_ContextMenu::Remove>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     delete item;
 }
 
 template<>
-template<>
-void ConditionalsList::execRequest_ContextMenu<ConditionalsList::Request_ContextMenu::Clear>(ListItem*)
+void List::execRequest_ContextMenu<List::Request_ContextMenu::Clear>(ListItem*)
 {
     clear();
 }
 
 
-template<>
-void ConditionalsList::extendContextMenu(ContextMenuConfig& config){
+void List::extendContextMenu(ContextMenuConfig& config){
     config.addMenu("Akcje warunkowe",{
                                      new QAction("Dodaj"),
                                      new QAction("Klonuj"),
                                      new QAction("Usuń"),
                                      new QAction("Usuń wszystkie")
                                    });
-    parentWidget().parentWidget().extendContextMenu(config);
+    //parentWidget().parentWidget().extendContextMenu(config);
 }
 
-template<>
-void ConditionalsList::interpretContextMenuResponse(ContextMenuConfig::ActionIndex index, QContextMenuEvent* cev){
-    using ActionFuncs = ConditionalsList::Request_ContextMenu_Func[];
-    using Request = ConditionalsList::Request_ContextMenu;
+void List::interpretContextMenuResponse(ContextMenuConfig::ActionIndex index, QContextMenuEvent* cev){
+    using ActionFuncs = List::Request_ContextMenu_Func[];
+    using Request = List::Request_ContextMenu;
     constexpr ActionFuncs actionFunc = {
-        &ConditionalsList::execRequest_ContextMenu<Request::Add>,
-        &ConditionalsList::execRequest_ContextMenu<Request::Clone>,
-        &ConditionalsList::execRequest_ContextMenu<Request::Remove>,
-        &ConditionalsList::execRequest_ContextMenu<Request::Clear>,
+        &List::execRequest_ContextMenu<Request::Add>,
+        &List::execRequest_ContextMenu<Request::Clone>,
+        &List::execRequest_ContextMenu<Request::Remove>,
+        &List::execRequest_ContextMenu<Request::Clear>,
     };
     constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
     if(index >= functionsSize){
-        parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+        //parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
     }else{
         ListItem* item = itemAt(cev->pos());
         (this->*(actionFunc[index]))(item);
     }
 }
 
-template<>
-void ConditionalsList::contextMenuEvent(QContextMenuEvent *cev){
+void List::contextMenuEvent(QContextMenuEvent *cev){
     ListItem* item = itemAt(cev->pos());
 
     // Specify file and error checking
-    using ActionFuncs = ConditionalsList::Request_ContextMenu_Func[];
-    using Request = ConditionalsList::Request_ContextMenu;
+    using ActionFuncs = List::Request_ContextMenu_Func[];
+    using Request = List::Request_ContextMenu;
     constexpr ActionFuncs actionFunc = {
-        &ConditionalsList::execRequest_ContextMenu<Request::Add>,
-        &ConditionalsList::execRequest_ContextMenu<Request::Clear>,
+        &List::execRequest_ContextMenu<Request::Add>,
+        &List::execRequest_ContextMenu<Request::Clear>,
     };
     constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
     ContextMenuConfig contextMenuConfig;
@@ -140,14 +123,14 @@ void ConditionalsList::contextMenuEvent(QContextMenuEvent *cev){
                         new QAction("Usuń wszystkie akcje")
                     });
     }
-    parentWidget().parentWidget().extendContextMenu(contextMenuConfig);
+    //parentWidget().parentWidget().extendContextMenu(contextMenuConfig);
     qsizetype&& index = contextMenuConfig.exec(cev);
     if(index >= 0){
         if(item){
             interpretContextMenuResponse(index, cev);
         }else{
             if(index >= functionsSize){
-                parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+                //parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
             }else{
                 (this->*(actionFunc[index]))(item);
             }
@@ -155,8 +138,7 @@ void ConditionalsList::contextMenuEvent(QContextMenuEvent *cev){
     }
 }
 
-template<>
-ConditionalsList
+List
 ::List(){
     // Initiailzie
     /*setStyleSheet("QListView::item{"
@@ -178,8 +160,7 @@ ConditionalsList
 }
 
 
-template<>
-ListItem::ListItem(ConditionalsList& list)
+ListItem::ListItem(List& list)
     : view_(*this)
 {
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
@@ -189,19 +170,17 @@ ListItem::ListItem(ConditionalsList& list)
     setSizeHint(view().minimumSizeHint());
 }
 
-
-template<>
-ListItem::ListItem(ConditionalsList& list, ActionPtr action)
+/*
+ListItem::ListItem(List& list, ActionPtr action)
     : view_(*this)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     //list.addItem(this);
     //list.setItemWidget(this, view_);
     //setSizeHint(view()->sizeHint());
-};
+};*/
 
 
-template<>
-ConditionalsList &ListItem::list() const
-{ return *static_cast<ConditionalsList*>(QListWidgetItem::listWidget()); }
+List &ListItem::list() const
+{ return *static_cast<List*>(QListWidgetItem::listWidget()); }
 

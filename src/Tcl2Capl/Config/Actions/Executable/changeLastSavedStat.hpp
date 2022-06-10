@@ -3,7 +3,7 @@
 
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
-
+/*
 template<>
 template<>
 struct ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastSavedStat>::Properties
@@ -28,6 +28,6 @@ class ExecutablesProducts::InterfaceData<ExecutablesTypes::ChangeLastSavedStat>:
 : protected ExecutablesProducts::Implementation<ExecutablesTypes::ChangeLastSavedStat>
 {
 
-};
+};*/
 
 #endif // CHANGELASTSAVEDSTAT_HPP

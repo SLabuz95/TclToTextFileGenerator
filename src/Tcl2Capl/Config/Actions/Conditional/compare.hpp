@@ -1,5 +1,5 @@
-#ifndef COMPARE_HPP
-#define COMPARE_HPP
+#ifndef CONFIG_CONDITIONALS_COMPARE_HPP
+#define CONFIG_CONDITIONALS_COMPARE_HPP
 
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Conditional/definition.hpp"
@@ -33,4 +33,4 @@ class ConditionalsProducts::InterfaceData<ConditionalsTypes::Compare>::Methods
 };
 
 
-#endif // COMPARE_HPP
+#endif // CONFIG_CONDITIONALS_COMPARE_HPP

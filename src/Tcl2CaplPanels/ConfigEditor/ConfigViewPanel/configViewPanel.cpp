@@ -4,7 +4,7 @@
 #include<QPainter>
 #include<QEnterEvent>
 #include"Tcl2CaplPanels/ConfigEditor/ConfigTabsPanel/Panels/attributesPanel.hpp"
-#include"Tcl2CaplPanels/ConfigEditor/writeOnlyProceduresList.hpp""
+#include"Tcl2CaplPanels/ConfigEditor/writeOnlyProceduresList.hpp"
 
 using namespace Panels::Configuration::View;
 

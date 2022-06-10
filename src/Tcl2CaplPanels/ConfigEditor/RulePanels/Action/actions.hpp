@@ -62,7 +62,7 @@ namespace Panels::Configuration::View::ActionsList{
 
         static CreateFunctionTable createFunctionTable;
     public:
-        static ActionDataView* create(ActionView& view, ActionRef = nullptr);
+        static ActionDataView* createView(ActionView& view, ActionRef = nullptr);
 
         //virtual Action toAction() = 0;
         virtual constexpr ActionType type()const = 0;

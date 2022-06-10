@@ -3,7 +3,7 @@
 
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Executable/definition.hpp"
-
+/*
 template<>
 template<>
 struct ExecutablesProducts::ImplementationData<ExecutablesTypes::AddFunctionDefinition>::Properties
@@ -27,6 +27,6 @@ class ExecutablesProducts::InterfaceData<ExecutablesTypes::AddFunctionDefinition
 {
 
 };
-
+*/
 
 #endif // ADDFUNCTIONDEFINITION_HPP

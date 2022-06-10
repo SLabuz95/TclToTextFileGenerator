@@ -108,6 +108,7 @@ const QList<QString> Action::conditionalMap
     QStringLiteral("AddFunctionDefinition").toLower(),
     QStringLiteral("AddPreExpression").toLower(),
     QStringLiteral("AddUserInteraction").toLower(),
+    QStringLiteral("CompareAndWrite").toLower(),
     //{QStringLiteral("FinalizeForEach"), Action::Executable::FinalizeForEach},  // private
     //{QStringLiteral("AddSnprintf"), Action::Executable::AddSnprintf},// private
 };

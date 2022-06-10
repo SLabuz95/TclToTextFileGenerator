@@ -1,12 +1,12 @@
-#ifndef SEPARATOR_HPP
-#define SEPARATOR_HPP
+#ifndef FormatItem_HPP
+#define FormatItem_HPP
 
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/Formatted/definition.hpp"
 
 template<>
 template<>
-struct FormatParametersProducts::ImplementationData<FormatParametersType::SEPARATOR>::Properties
+struct FormatParametersProducts::ImplementationData<FormatParametersType::FormatItem>::Properties
 : protected FormatParametersProductDefinition::Definition
 {
 protected:
@@ -16,22 +16,22 @@ protected:
 
 template<>
 template<>
-class FormatParametersProducts::ImplementationData<FormatParametersType::SEPARATOR>::Methods
-: protected FormatParametersProducts::ImplementationData<FormatParametersType::SEPARATOR>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::FormatItem>::Methods
+: protected FormatParametersProducts::ImplementationData<FormatParametersType::FormatItem>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersProducts::InterfaceData<FormatParametersType::SEPARATOR>::Methods
-: public FormatParametersProducts::Implementation<FormatParametersType::SEPARATOR>
+class FormatParametersProducts::InterfaceData<FormatParametersType::FormatItem>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::FormatItem>
 {
 public:
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
-    //inline RawFormatType rawFormatType()const override final{return RawFormatType::SEPARATOR;}
+    //inline RawFormatType rawFormatType()const override final{return RawFormatType::FormatItem;}
 
 };
 
 
-#endif // SEPARATOR_HPP
+#endif // FormatItem_HPP

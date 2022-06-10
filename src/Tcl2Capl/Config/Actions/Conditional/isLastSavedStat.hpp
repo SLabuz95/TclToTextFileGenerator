@@ -1,5 +1,5 @@
-#ifndef ISLASTSAVEDSTAT_HPP
-#define ISLASTSAVEDSTAT_HPP
+#ifndef CONFIG_CONDITIONALS_ISLASTSAVEDSTAT_HPP
+#define CONFIG_CONDITIONALS_ISLASTSAVEDSTAT_HPP
 
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Conditional/definition.hpp"
@@ -30,4 +30,4 @@ class ConditionalsProducts::InterfaceData<ConditionalsTypes::IsLastSavedStat>::M
 
 };
 
-#endif // ISLASTSAVEDSTAT_HPP
+#endif // CONFIG_CONDITIONALS_ISLASTSAVEDSTAT_HPP

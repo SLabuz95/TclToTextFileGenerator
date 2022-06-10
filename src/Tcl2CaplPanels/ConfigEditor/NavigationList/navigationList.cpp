@@ -1,12 +1,15 @@
 #include "navigationList.hpp"
 #include "Tcl2CaplPanels/ConfigEditor/ConfigViewPanel/configViewPanel.hpp"
 #include "Tcl2CaplPanels/ConfigEditor/ConfigTabsPanel/configTabsPanel.hpp"
+#include "Elements/procedureElement.hpp"
 #include<QMouseEvent>
 #include<QMessageBox>
 #include<QResizeEvent>
 
 using namespace Panels::Configuration::Navigation;
 using ConfigViewPanel = Panels::Configuration::View::ConfigViewPanel;
+using ProcedureElement = Procedure::ProcedureElement;
+using DefaultProcedureElement = Procedure::DefaultProcedureElement;
 
 const QString List::navigationPanelNames[panelType2number(PanelType::Size)]{
             QString("Atrybuty"),
@@ -22,14 +25,22 @@ List::List(View::ConfigViewPanel& parent)
     : QTreeWidget(&parent), configPanel(parent)
 {
     setHeaderHidden(true);
-    setIndentation(0);
+    //setIndentation(0);
 
     QList<QTreeWidgetItem*> items(panelType2number(PanelType::Size), nullptr);
     for(decltype(items)::Iterator item = items.begin(); item < items.end(); item++){
-        *item = new NavigationElement(this, {navigationPanelNames[item - items.begin()]});
+        if(number2panelType(item - items.begin()) == PanelType::DefaultProcedure)
+            *item = new DefaultProcedureElement(this, {navigationPanelNames[item - items.begin()]});
+        else{
+            *item = new NavigationElement(this, {navigationPanelNames[item - items.begin()]});
+        }
         (*item)->setFirstColumnSpanned(true);
+
     }
 
+    // Add procedures children
+
+    // A
 
     addTopLevelItems(items);
     viewport()->installEventFilter(this);
@@ -44,6 +55,7 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
             const int indexOfMainNavigationElement = indexOf(item);
             if(indexOfMainNavigationElement == -1){ // Not found -> Item is child of main navigation element
                 const int& indexOfMainNavigationElementChild = indexOfMainNavigationElement;
+                DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(topLevelItem(indexOfMainNavigationElement));
 
             }else{
                 navigateMainPanel(number2panelType(indexOfMainNavigationElement));
@@ -67,6 +79,24 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
                 }
             }
         }
+    }
+        break;
+    case QEvent::ContextMenu:
+    {
+            QContextMenuEvent* cev = static_cast<QContextMenuEvent*>(ev);
+            NavigationElement* item = itemAt(cev->pos());
+            if(item){
+                const int indexOfMainNavigationElement = indexOf(item);
+                if(indexOfMainNavigationElement == -1){ // Not found -> Item is child of main navigation element
+                    const int& indexOfMainNavigationElementChild = indexOfMainNavigationElement;
+
+                }else{
+                    DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(topLevelItem(indexOfMainNavigationElement));
+                    dPE.menuControl(cev, static_cast<DefaultProcedureElement::ListItem*>(item));
+                    //navigateMainPanel(number2panelType(indexOfMainNavigationElement));
+                }
+            }
+
     }
         break;
     default:

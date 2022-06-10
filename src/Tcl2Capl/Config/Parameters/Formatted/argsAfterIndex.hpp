@@ -6,7 +6,7 @@
 
 template<>
 template<>
-struct FormatParametersProducts::ImplementationData<FormatParametersType::ARGS_AFTER_INDEX>::Properties
+struct FormatParametersProducts::ImplementationData<FormatParametersType::ArgumentsFromItem>::Properties
 : protected FormatParametersProductDefinition::Definition
 {
 protected:
@@ -16,20 +16,20 @@ protected:
 
 template<>
 template<>
-class FormatParametersProducts::ImplementationData<FormatParametersType::ARGS_AFTER_INDEX>::Methods
-: protected FormatParametersProducts::ImplementationData<FormatParametersType::ARGS_AFTER_INDEX>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::ArgumentsFromItem>::Methods
+: protected FormatParametersProducts::ImplementationData<FormatParametersType::ArgumentsFromItem>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersProducts::InterfaceData<FormatParametersType::ARGS_AFTER_INDEX>::Methods
-: public FormatParametersProducts::Implementation<FormatParametersType::ARGS_AFTER_INDEX>
+class FormatParametersProducts::InterfaceData<FormatParametersType::ArgumentsFromItem>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::ArgumentsFromItem>
 {
 public:
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
-   // inline RawFormatType rawFormatType()const override final{return RawFormatType::ARGS_AFTER_INDEX;}
+   // inline RawFormatType rawFormatType()const override final{return RawFormatType::ArgumentsFromItem;}
 
 };
 

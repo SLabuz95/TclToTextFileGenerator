@@ -19,7 +19,7 @@ UserInputConfig::UserInputConfig(UserInputConfigData& configData)
     for(;
         configProcedure != userConfigProcedures.end(); configProcedure++, userProcedure++)
     {
-        (*userProcedure) = configProcedure->toProcedureWithRawRules();
+        (*userProcedure) = (*configProcedure)->toProcedureWithRawRules();
     }
     Command::Controller::addDefaultProcedureDefinitionsToUserProcedureDefintions(*this);
 }

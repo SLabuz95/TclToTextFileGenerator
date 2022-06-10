@@ -1,10 +1,11 @@
 #ifndef ACTION_PANEL_COMPARE_HPP
 #define ACTION_PANEL_COMPARE_HPP
 
+#include"Tcl2CaplPanels/ConfigEditor/RulePanels/FormattedString/formattedString.hpp"
 #include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
 #include"../actions.hpp"
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
-
+namespace General = Panels::Configuration::View;
 namespace Panels::Configuration::View::ActionsList::CompareActionView{
 
     class CompareActionView
@@ -99,11 +100,13 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
         };
     protected:
         // GUI Layout
+        QSplitter splitter;
         ListOfIndexes listOfIndexes;
+        General::FormattedString::List formattedStringList;
 
     public:
        // Action toAction()override{}
-        constexpr ActionType type()const override{return ConditionalsTypes::CompareNumbOfArguments;}
+        constexpr ActionType type()const override{return ConditionalsTypes::Compare;}
 
     };
 

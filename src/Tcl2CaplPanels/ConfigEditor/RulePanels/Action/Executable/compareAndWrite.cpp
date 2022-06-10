@@ -7,7 +7,7 @@
 #include<QSpinBox>
 #include<QWidget>
 
-using namespace Panels::Configuration::View::Actions;
+using namespace Panels::Configuration::View::ActionsList;
 
 CompareAndWriteActionView::ExpectedArgumentsList::ExpectedArgumentsList(){
     ItemDelegate* itemDelegateObj = new ItemDelegate(*this);
@@ -422,7 +422,7 @@ bool CompareAndWriteActionView::ExpectedArgumentsList::eventFilter(QObject* obj,
     }
     return Super::eventFilter(obj, ev);
 }
-
+/*
 CompareAndWriteActionView::OutputsList::OutputsList(){
     setMovement(QListView::Snap);
     setDefaultDropAction(Qt::DropAction::MoveAction);
@@ -439,7 +439,7 @@ void CompareAndWriteActionView::OutputsList::loadOutputs(RawRule &rule){
 
         //curEditItem = new ListItem(ListItem::ItemType::IndexItem, QString::number(argumentsByIndexIter.key()), argumentsByIndexIter.value());
         //addTopLevelItem(curEditItem);
-    }*/
+    }
 }
 
 CompareAndWriteActionView::OutputsList::ListItem::ItemContent::ItemContent(Parent* parent)
@@ -702,10 +702,16 @@ void CompareAndWriteActionView::OutputsList::contextMenuEvent(QContextMenuEvent 
             menu = nullptr;
         }
 }
+*/
 
 
-CompareAndWriteActionView::CompareAndWriteActionView(ListItem& item)
-: item_(item){
+CompareAndWriteActionView::DataView* CompareAndWriteActionView::create(ActionView& view, ActionRef){
+    return new CompareAndWriteActionView(view);
+}
+
+CompareAndWriteActionView::CompareAndWriteActionView(ActionView& item)
+/*: item_(item)*/
+{
     // Setup layout
     centralLayout.setSpacing(0);
 
@@ -715,11 +721,11 @@ CompareAndWriteActionView::CompareAndWriteActionView(ListItem& item)
 
     numbOfArgumentCondition.setValidator(new QRegularExpressionValidator(QRegularExpression("(\\>[\\d]+|[\\d+]+)?")));
     settingsLayout.addRow("Liczba argumentów: ", &numbOfArgumentCondition);
-    ruleControlComboBox.setCurrentText(
+    /*ruleControlComboBox.setCurrentText(
                 Tcl::Command::Definition::Rule::toStr(
-                    Tcl::Command::Definition::Rule::Control::BreakRuleCheck));
+                    Tcl::Command::Definition::Rule::Control::BreakRuleCheck));*/
 
-    settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
+    //settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
 
     centralLayout.addLayout(&settingsLayout, Qt::AlignTop);
 
@@ -727,11 +733,11 @@ CompareAndWriteActionView::CompareAndWriteActionView(ListItem& item)
     expectedArgumentsList.setSortingEnabled(true);
     quickRuleInput.addWidget(&expectedArgumentsList);
     //outputsList.setHeaderLabels({"Format", "Zawartość"});
-    quickRuleInput.addWidget(&outputsList);
+    //quickRuleInput.addWidget(&outputsList);
 
     centralLayout.addWidget(&quickRuleInput);
 
-    setLayout(&centralLayout);
+    addItem(&centralLayout);
 
     // Rule available
     //if(rule){   // Exists
@@ -746,7 +752,7 @@ CompareAndWriteActionView::CompareAndWriteActionView(ListItem& item)
         expectedArgumentsList.loadExpectedArguments(quickRule);*/
     //}
 }
-
+/*
 CompareAndWriteActionView::CompareAndWriteActionView(CompareAndWriteActionView* itemF)
 : CompareAndWriteActionView(itemF->item()){
     centralLayout.setSpacing(0);
@@ -776,11 +782,11 @@ CompareAndWriteActionView::CompareAndWriteActionView(CompareAndWriteActionView* 
 
     setLayout(&centralLayout);
 }
-
+*//*
 bool CompareAndWriteActionView::eventFilter(QObject *obj, QEvent *ev){
     if(obj == &closeButton and ev->type() == QEvent::MouseButtonPress){
-        delete &item();
+        //delete &item();
         return true;
     }
-    return QWidget::eventFilter(obj, ev);
-}
+    //return QWidget::eventFilter(obj, ev);
+}*/

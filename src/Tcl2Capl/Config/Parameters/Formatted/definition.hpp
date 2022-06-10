@@ -17,12 +17,14 @@ namespace FormatParameters {
     enum Type : uint{
         FCT_Begin,
 
-        INDEX_OR_FULL_LINE = FCT_Begin,
-        ARGS_AFTER_INDEX,
-        SEPARATOR,
-        TARGET,
+        TextItem = FCT_Begin,
+        NameItem,
+        IndexItem,
+        ArgumentsFromItem,
+        FormatItem,
 
         FCT_End,
+        Size = FCT_End
 
     };
 

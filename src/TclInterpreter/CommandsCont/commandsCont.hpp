@@ -53,7 +53,7 @@ namespace Tcl::Interpreter::Command{
         using ConditionInterpretFunction = ConditionResult (Controller::*)(ConditionalActionsParameters);
         using ExecutableInterpretFunction = void (Controller::*)(ExecutableActionsParameters);
         using ConditionInterpretFunctions = ConditionInterpretFunction[static_cast<std::underlying_type_t<Definition::Action::Conditional>>(Definition::Action::Conditional::Size)];
-        using ExecutableInterpretFunctions = ExecutableInterpretFunction[static_cast<std::underlying_type_t<Definition::Action::Executable>>(Definition::Action::Executable::Size)];
+        using ExecutableInterpretFunctions = ExecutableInterpretFunction[static_cast<std::underlying_type_t<Definition::Action::Executable>>(Definition::Action::Executable::PrivateSize)];
 
         // ----
         using FunctionDefinitionInfo = QMap<uint, QStringList>; // <Numb of Parameters, Examples/ Occurencies>

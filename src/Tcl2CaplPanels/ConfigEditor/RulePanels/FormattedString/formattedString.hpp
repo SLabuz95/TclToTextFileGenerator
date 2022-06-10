@@ -1,5 +1,5 @@
-#ifndef FORMATTEDSTRING_HPP
-#define FORMATTEDSTRING_HPP
+#ifndef GENERAL_VIEW_FORMATTEDSTRING_HPP
+#define GENERAL_VIEW_FORMATTEDSTRING_HPP
 
 #include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
 #include<QListWidgetItem>
@@ -7,61 +7,55 @@
 #include<QComboBox>
 #include<QPushButton>
 #include<QMouseEvent>
+#include"Tcl2Capl/Config/Parameters/Formatted/FCT_products.hpp"
+#include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
 
-namespace Panels::Configuration::View::General::FormattedString{
+using FormatRules = FormatParametersFactory::ListOfBases;
+
+namespace Panels::Configuration::View::FormattedString{
 
     class ListItem;
     class List;
+    class ItemView;
 
-    class ItemDataView : public QLayout{
+    class ItemDataView : public QFormLayout{
+    protected:
         using Parent = ListItem;
         using Self = ItemDataView;
         using Super = QWidget;
-        enum class ItemType{
-            PlainTextItem,
-            NameItem,
-            IndexItem,
-            ArgumentsFromItem,
-           // SeparatorItem,
-            FormatItem,
-            Size
-        };
+        using DataRef = const FormatRules::Type ;
+        using DataViewType =  std::remove_pointer_t<DataRef>::ProductsList;
+
     public:
-        using OutputContent_CreateContent_Func = void (Self::*)();
-        inline constexpr static std::underlying_type_t<ItemType> toULying(ItemType type){
-            return static_cast<std::underlying_type_t<ItemType>>(type);
+        using ItemView = ItemView;
+        using CreateFunction =  ItemDataView* (*)(ItemView&, DataRef);
+        using CreateFunctionTable = CreateFunction[];
+       // using OutputContent_CreateContent_Func = void (Self::*)();
+        inline constexpr static std::underlying_type_t<DataViewType> toULying(DataViewType type){
+            return static_cast<std::underlying_type_t<DataViewType>>(type);
         }
-        inline constexpr static ItemType fromULying(std::underlying_type_t<ItemType> type){
-            return static_cast<ItemType>(type);
+        inline constexpr static DataViewType fromULying(std::underlying_type_t<DataViewType> type){
+            return static_cast<DataViewType>(type);
         }
-        inline constexpr static std::underlying_type_t<ItemType> numbOfItemTypes(){
-            return static_cast<std::underlying_type_t<ItemType>>(ItemType::Size);
+        inline constexpr static std::underlying_type_t<DataViewType> numbOfItemTypes(){
+            return static_cast<std::underlying_type_t<DataViewType>>(DataViewType::Size);
         }
 
-        template<ItemType itemToCheck, ItemType itemTypeCreatingLayout = ItemType::Size, ItemType ...itemTypesCreatingLayout>
+        template<DataViewType itemToCheck, DataViewType itemTypeCreatingLayout = DataViewType::Size, DataViewType ...itemTypesCreatingLayout>
         inline constexpr static bool isOutputContentLayoutCreatedForSpecifiedType(){
-            return (itemTypeCreatingLayout == ItemType::Size)? false : ((itemToCheck == itemTypeCreatingLayout)
+            return (itemTypeCreatingLayout == DataViewType::Size)? false : ((itemToCheck == itemTypeCreatingLayout)
                     || Self::isOutputContentLayoutCreatedForSpecifiedType<itemToCheck, itemTypesCreatingLayout...>());
 
         }
 
-    protected:
-        using MainLayout = QFormLayout;
-        using OutputTitleLayout = QHBoxLayout;
-        using OutputTitleComboBox = QComboBox;
-        using OutputTitleRemoveButton = QPushButton;
-        using OutputContentLayout = QLayout*;
+        //static const OutputContent_CreateContent_Func createOutputContentFunctions[];
+        //template<DataViewType type>
+        //void createOutputContentLayout();
+        //template<DataViewType>
+        //class OutputContent;
 
-        MainLayout mainLayout;
-        OutputTitleLayout outputTitleLayout;
-        OutputTitleComboBox outputTitleComboBox;
-        OutputTitleRemoveButton outputTitleRemoveButton;
-        OutputContentLayout outputContentLayout = nullptr;
-
-        ItemType curType = ItemType::Size;
-
-        inline void createOutputContentLayout_priv(ItemType type){
-            if(type != curType){
+        //void createOutputContentLayout_priv(DataViewType type);{
+        /*   if(type != curType){
                 if(outputContentLayout){
                     mainLayout.removeRow(mainLayout.rowCount() - 1);
                     outputContentLayout = nullptr;
@@ -71,46 +65,47 @@ namespace Panels::Configuration::View::General::FormattedString{
                 qApp->processEvents();
                 parent->setSizeHint(sizeHint());
             }
-        }
-
-        template<ItemType type>
-        void createOutputContentLayout();
-
-        static const OutputContent_CreateContent_Func createOutputContentFunctions[];
-
-        template<ItemType>
-        class OutputContent;
-
-        bool eventFilter(QObject* obj, QEvent* ev) override;
+        }*/
+        static CreateFunctionTable createFunctionTable;
+        static ItemDataView* createNoDataView(ItemView& view, DataRef = nullptr){return nullptr;}
+    public:
+        static ItemDataView* createView(ItemView& view, DataRef = nullptr);
 
     public:
-        ItemDataView(Parent*);
-        Parent* parent = nullptr;
+        ItemView& parentWidget()const;
+        ItemDataView() : QFormLayout(){}
 
     };
 
 
-    class ItemView
+    class ItemView : public QWidget
     {
-        ItemView(ActionView&);
     public:
-        static ActionDataView* create(ActionView&, ActionRef);
-        using ActionView = ActionView;
+        ItemView(ListItem&);
     protected:
         using Conditionals = ConditionalsFactory::ListOfBases;
-        using ConditionalsList = List<Conditionals>;
-        using ListItem = ConditionalsList::ListItem;
-
+        using Super = QWidget;
         // GUI Elements
         // List of Indexes definition
     public:
 
     protected:
         // GUI Layout
+        using MainLayout = QFormLayout;
+        using TitleLayout = QHBoxLayout;
+        using ComboBox = QComboBox;
+        using RemoveButton = QPushButton;
+
+        MainLayout mainLayout;
+        TitleLayout titleLayout;
+        ComboBox titleComboBox;
+        RemoveButton titleRemoveButton;
+        ItemDataView* dataView_ = nullptr;
+
 
     public:
        // Action toAction()override{}
-        constexpr ActionType type()const override{return ConditionalsTypes::CompareNumbOfArguments;}
+        List& parentWidget()const;
 
     };
     class ListItem : public QListWidgetItem{
@@ -120,49 +115,55 @@ namespace Panels::Configuration::View::General::FormattedString{
 
 
     public:
-        ListItem(Parent* parent) : Super(parent), itemContent(new ItemDataView(this)){
-            init();
+        ListItem() = delete;
+        ListItem(List& list);
+        ListItem(const ListItem& item)
+            : ListItem(item.list())
+        {
         }
-
+        ~ListItem()override{
+        }
     protected:
-        ItemDataView* itemContent = nullptr;
+        ItemView view_;
 
-        inline void init(){
+        void init();/*{
             if(listWidget()){
                 listWidget()->setItemWidget(this, itemContent);
                 setSizeHint(itemContent->sizeHint());
             }
-        }
+        }*/
 
-        inline ItemDataView* widget(){return static_cast<ItemDataView*>(itemContent);}
+        //ItemDataView* widget(){return static_cast<ItemDataView*>(itemContent);}
     public:
-        //inline ItemType type()const{return type_;}
-        inline Parent* listWidget()const{return static_cast<Parent*>(Super::listWidget());}
+        //inline DataViewType type()const{return type_;}
+        List &list() const; //{ return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }
+        //inline Parent* listWidget()const;//{return static_cast<Parent*>(Super::listWidget());}
+        inline ItemView& view(){return view_;}
 
     };
     class List : public QListWidget{
     public:
-
     protected:
         using Self = List;
         using Super = QListWidget;
-
 
         using ListItem = ListItem;
         using Request_ContextMenu_Func = void (Self::*)(ListItem*);
 
         enum class Request_ContextMenu{
-            New,
+            Add,
+            Clone,
             Remove,
-            RemoveAll,
+            Clear,
             Size
         };
 
         template<Request_ContextMenu>
         void execRequest_ContextMenu(ListItem*);
 
+        using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
         //using OutputOption2FormatRuleMap = const QMap<const QString, FormatParametersType>;
-        using OutputOption2FormatRuleMap = const QStringList;
+        /*using OutputOption2FormatRuleMap = const QStringList;
         OutputOption2FormatRuleMap outputOption2FormatRuleMap =
         {
             "Tekst",
@@ -171,10 +172,14 @@ namespace Panels::Configuration::View::General::FormattedString{
             "Wszystkie argumenty od wybranego indeksu",
             //"Separator",
             "Format"
-        };
+        };*/
 
     public:
         List();
+        ~List()override{
+            for(int i = 0; i < count(); i++)
+                itemWidget(item(i))->setParent(nullptr);
+        }
     protected:
         ListItem* lastPressedItem = nullptr;
 
@@ -186,11 +191,21 @@ namespace Panels::Configuration::View::General::FormattedString{
         // bool eventFilter(QObject* oj, QEvent* ev)override;
         //void mouseReleaseEvent(QMouseEvent* ev) override;
         void contextMenuEvent(QContextMenuEvent* ev)override;
-        inline void addNewOutput(){
-            addItem(new ListItem(this));
-        }
+        //void addNewOutput();/*{
+            //addItem(new ListItem(this));
+        //}
         //void loadOutputs(RawRule&);
-
+        inline void addNewItem(){
+            //ListItem* newItem = nullptr;
+            new ListItem(*this);
+            //newItem->init();
+        }
+/*
+        inline void addNewItem(ActionPtr action){
+            //ListItem* newItem = nullptr;
+            new ListItem(*this, action);
+            //newItem->init();
+        }*/
         void mousePressEvent(QMouseEvent* ev)override{
             lastPressedItem = itemAt(ev->pos());
             QListWidget::mousePressEvent(ev);
@@ -217,9 +232,11 @@ namespace Panels::Configuration::View::General::FormattedString{
 
              QListWidget::dropEvent(ev);
          }
+         void extendContextMenu(ContextMenuConfig&);
+         void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*);
 
     };
 
 }
 
-#endif // FORMATTEDSTRING_HPP
+#endif // GENERAL_VIEW_FORMATTEDSTRING_HPP

@@ -4,11 +4,12 @@
 #include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
 
 // List of all views for condtionals
+#include"compare.hpp"
 #include"compareNumbOfArgs.hpp"
 // ---------------------------
 
-using namespace Panels::Configuration::View;
-using Conditionals = ConditionalsFactory::ListOfBases;
-using View = ActionsList::ActionDataView<Conditionals>;
+//using namespace Panels::Configuration::View;
+//using Conditionals = ConditionalsFactory::ListOfBases;
+//using View = ActionsList::ActionDataView<Conditionals>;
 
 #endif // ACTION_VIEW_CONDITIONALS_HPP

@@ -6,7 +6,7 @@
 
 template<>
 template<>
-struct FormatParametersProducts::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Properties
+struct FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Properties
 : protected FormatParametersProductDefinition::Definition
 {
 
@@ -17,20 +17,20 @@ protected:
 
 template<>
 template<>
-class FormatParametersProducts::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Methods
-: protected FormatParametersProducts::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Methods
+: protected FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersProducts::InterfaceData<FormatParametersType::INDEX_OR_FULL_LINE>::Methods
-: public FormatParametersProducts::Implementation<FormatParametersType::INDEX_OR_FULL_LINE>
+class FormatParametersProducts::InterfaceData<FormatParametersType::IndexItem>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::IndexItem>
 {
 public:
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
-    //inline RawFormatType rawFormatType()const override final{return RawFormatType::INDEX_OR_FULL_LINE;}
+    //inline RawFormatType rawFormatType()const override final{return RawFormatType::IndexItem;}
 
 };
 

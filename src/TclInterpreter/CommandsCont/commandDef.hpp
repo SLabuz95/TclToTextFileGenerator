@@ -57,17 +57,19 @@ namespace Tcl::Interpreter::Command{
                 FCT_Begin = Write,
                 TclParse,
                 Error,
-                ChangeLastSavedStat,
-                AddFunctionDefinition,
                 AddPreExpression,
                 AddUserInteraction,
+                CompareAndWrite, // QuickRule
                 FCT_End,// VVVVVVVV Privates factory products not required
                 FinalizeForEach = FCT_End,
+                ChangeLastSavedStat,
+                AddFunctionDefinition,
                 //AddSnprintf,
                 AddPredefinition,
 
-                Size,
-                End = Size,
+                PrivateSize,
+                PublicSize = FCT_End,
+                End = PrivateSize,
                 None = -1,
             };
 

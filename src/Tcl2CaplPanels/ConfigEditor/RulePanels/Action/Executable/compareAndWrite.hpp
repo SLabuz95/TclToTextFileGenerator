@@ -16,12 +16,17 @@
 #include"Tcl2Capl/controllerconfig.hpp"
 #include<QItemDelegate>
 #include"Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
+#include"Tcl2Capl/Config/Actions/Executable/executables.hpp"
+#include"../actions.hpp"
+#include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/RulePanels/FormattedString/formattedString.hpp"
 
-namespace Panels::Configuration::View::Actions{
+namespace Panels::Configuration::View::ActionsList{
 
-    using ListItem = Rules::RulesProcedurePanel::ListItem;
-
-    class CompareAndWriteActionView : public QWidget{
+    class CompareAndWriteActionView
+            : public ActionDataView<ExecutablesFactory::ListOfBases>
+    {
+        using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
         using RawRule = Tcl2CaplControllerConfig::RawRule;
 
         class ExpectedArgumentsList : public QTreeWidget{
@@ -146,7 +151,7 @@ namespace Panels::Configuration::View::Actions{
             //void mouseReleaseEvent(QMouseEvent* ev)override;
             void contextMenuEvent(QContextMenuEvent* ev)override;
         };
-
+/*
         class OutputsList : public QListWidget{
         public:
 
@@ -327,31 +332,27 @@ namespace Panels::Configuration::View::Actions{
              }
 
         };
+*/
 
-        class RuleControlComboBox : public QComboBox{
-        public:
-            RuleControlComboBox(){
-                addItems(Tcl::Command::Definition::Rule::getRuleControlFlagNames());
-            }
-        };
-
-        ListItem& item_;
+       // ListItem& item_;
         QVBoxLayout centralLayout;
         QPushButton closeButton;
         QFormLayout settingsLayout;
         QLineEdit numbOfArgumentCondition;
-        RuleControlComboBox ruleControlComboBox;
+        //RuleControlComboBox ruleControlComboBox;
         QSplitter quickRuleInput;
         ExpectedArgumentsList expectedArgumentsList;
-        OutputsList outputsList;
+        //OutputsList outputsList;
 
     public:
-        CompareAndWriteActionView(ListItem& item);
-        CompareAndWriteActionView(CompareAndWriteActionView* item);
+        CompareAndWriteActionView(ActionView&);
+        //CompareAndWriteActionView(CompareAndWriteActionView* item);
         ~CompareAndWriteActionView(){}
 
-        bool eventFilter(QObject* obj, QEvent* ev)override;
-        inline ListItem& item()const{return item_;}
+        static ActionDataView* create(ActionView&, ActionRef);
+        //bool eventFilter(QObject* obj, QEvent* ev)override;
+        //inline ListItem& item()const{return item_;}
+        constexpr ActionType type()const override{return ExecutablesTypes::CompareAndWrite;}
 
     };
 

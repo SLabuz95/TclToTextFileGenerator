@@ -7,6 +7,7 @@
 
 namespace Utils::ContextMenuBuilder{
 
+
     class Configuration{
     public:
         using Actions = QList<QAction*>;

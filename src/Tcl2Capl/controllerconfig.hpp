@@ -80,10 +80,10 @@ public:
 
         void toXmlContent(QXmlStreamWriter& xmlWriter);
     };    
-
+    // For now created Dynamicly - saved static, new dynamic
 public:
-    class Procedures : protected QList<Procedure>{
-        using Super = QList<Procedure>;        
+    class Procedures : protected QList<Procedure*>{
+        using Super = QList<Procedure*>;
     public:
         using Super::size_type;
         using Super::size;
@@ -103,7 +103,7 @@ public:
             QStringList procedures(size());
             QStringList::Iterator procedureName = procedures.begin();
             for(Super::Iterator procedure = begin(); procedure != end(); procedure++, procedureName++)
-               (*procedureName) = (*procedure).name();
+               (*procedureName) = (*procedure)->name();
             return procedures;
         }
         inline void toXmlContent(QXmlStreamWriter& xmlWriter){

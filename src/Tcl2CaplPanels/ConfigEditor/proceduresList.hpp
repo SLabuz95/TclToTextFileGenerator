@@ -7,7 +7,7 @@
 #include<QVBoxLayout>
 #include"Tcl2Capl/controllerconfig.hpp"
 #include"loadconfigsettings.hpp"
-
+/*
 class ProceduresList : public QWidget{
     class ListItem : public QListWidgetItem{
     public:
@@ -77,5 +77,5 @@ public:
     void reloadGui();
 };
 
-
+*/
 #endif // PROCEDURESLIST_HPP
