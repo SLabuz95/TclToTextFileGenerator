@@ -2,7 +2,7 @@
 #include"External/FileReader/FilesSpecificData/XML/TclCaplParserConfig/FRI_FSD_XML_TCL_CAPL_Parser_Config.hpp"
 #include<QApplication>
 #include"corruptedconfiginfoevent.hpp"
-
+/* Ver 1 VVVVVVVVVVVVVVVVVVVVV
 using InfoPtr = ControllerConfigManager::InfoPtr;
 
 bool ControllerConfigManager::readConfig(QFileInfo& file, Info::ControllerConfigRef configRef){
@@ -53,7 +53,7 @@ bool ControllerConfigManager::readConfig(QFileInfo& file, Info::ControllerConfig
     }
     return QString();
 }*/
-
+/*
 InfoPtr ControllerConfigManager::loadConfig(EventHandlerPtr subsriber, Info::ConfigPath configPath){
     Q_ASSERT_X(subsriber != nullptr, "ControllerConfigManager::loadConfig", "Internal error: Subscriber is nullptr");
     using InfoIter = InfosBySubsribers::key_value_iterator;
@@ -173,7 +173,7 @@ InfoPtr ControllerConfigManager::registerConfig(EventHandlerPtr subsriber, Info:
             infosBySubsribers.insert(returnInfo = new Info(configPath, configFile.lastModified(), config), {subsriber});
 
         return returnInfo;
-    }*/
+    }*//*
     return nullptr;
 }
 
@@ -189,7 +189,7 @@ InfoPtr ControllerConfigManager::reregisterConfig(InfoPtr infoF, Info::ConfigPat
             if(readConfig(configFile, config) == true)
                 infoF->updateConfig(config);
          }
-    }*/
+    }*//*
     return  (_lastErrorMsg = "Internal Error", nullptr);
 }
 
@@ -292,3 +292,4 @@ void ControllerConfigManager::processCorupptedInfo( InfosBySubsribers::key_value
     infosBySubsribers.remove(info->first);
 
 }
+*/

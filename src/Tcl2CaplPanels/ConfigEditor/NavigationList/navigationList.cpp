@@ -25,6 +25,8 @@ List::List(View::ConfigViewPanel& parent)
     : QTreeWidget(&parent), configPanel(parent)
 {
     setHeaderHidden(true);
+    setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     //setIndentation(0);
 
     QList<QTreeWidgetItem*> items(panelType2number(PanelType::Size), nullptr);
@@ -83,10 +85,12 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
         break;
     case QEvent::ContextMenu:
     {
+        if(obj == viewport()){
             QContextMenuEvent* cev = static_cast<QContextMenuEvent*>(ev);
-            NavigationElement* item = itemAt(cev->pos());
+            QTreeWidgetItem* item = itemAt(cev->pos());
             if(item){
-                const int indexOfMainNavigationElement = indexOf(item);
+                NavigationElement* nitem = static_cast<NavigationElement*>(item);
+                const int indexOfMainNavigationElement = indexOf(nitem);
                 if(indexOfMainNavigationElement == -1){ // Not found -> Item is child of main navigation element
                     const int& indexOfMainNavigationElementChild = indexOfMainNavigationElement;
 
@@ -96,13 +100,18 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
                     //navigateMainPanel(number2panelType(indexOfMainNavigationElement));
                 }
             }
+        }
 
     }
         break;
+    case QEvent::ChildRemoved:
+    {
+
+    }
+    break;
     default:
         break;
     }
-
     return Super::eventFilter(obj, ev);
 }
 

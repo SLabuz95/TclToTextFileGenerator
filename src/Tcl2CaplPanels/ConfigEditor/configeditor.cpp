@@ -31,26 +31,26 @@ Panel::Panel(App& app)
     // Register temporary config (config manager - register without path)
     // if success, load new config info ptr
     // if failed, close editor
-    ConfigInfoPtr configInfoPtr = app.configManager().loadConfig(this);
+    /*ConfigInfoPtr configInfoPtr = app.configManager().loadConfig(this);
     if(configInfoPtr != nullptr){
         loadConfigData(configInfoPtr, LoadConfigSettings::LoadGui);
     }else{
         close();
-    }
+    }*/
 }
 
 bool Panel::isDefaultConfig(){
-   Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "Panel::isDefaultConfig", "Internal error: ConfingInfo is not registered");
-   return configInfoPtr->isDefaultConfig();
+   //Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "Panel::isDefaultConfig", "Internal error: ConfingInfo is not registered");
+   //return configInfoPtr->isDefaultConfig();
 }
 
 Panel::~Panel(){
-    if(configInfoPtr){
+    /*if(configInfoPtr){
         if(app().configManager().unloadConfig(configInfoPtr, this) == false){
             qDebug() << "ConfigManager::unregister Error: " + app().configManager().lastErrorMessage();
         }
     }
-    configInfoPtr = nullptr;
+    configInfoPtr = nullptr;*/
 }
 
 bool Panel::eventFilter(QObject* obj, QEvent* ev){
@@ -64,7 +64,7 @@ bool Panel::eventFilter(QObject* obj, QEvent* ev){
 
 bool Panel::newConfig(){
     // Check if configInfo still exists
-    Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "Panel::newConfig", "Internal error: ConfingInfo is not registered");
+    /*Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "Panel::newConfig", "Internal error: ConfingInfo is not registered");
 
     bool errorOccurred = false;
 
@@ -101,9 +101,9 @@ bool Panel::newConfig(){
         }
     }
 
-    return not errorOccurred;
+    return not errorOccurred;*/
 }
-
+/*
 void Panel::loadConfigData(ConfigInfoPtr configInfo, LoadConfigSettings settings){
     Q_ASSERT_X(configInfo != nullptr, "Panel::loadConfig", "ConfigInfo is null");
     if(configInfo != configInfoPtr){    // If
@@ -115,7 +115,7 @@ void Panel::loadConfigData(ConfigInfoPtr configInfo, LoadConfigSettings settings
         }
     }
 }
-
+*/
 void Panel::reloadGui(){
 
 }
@@ -123,9 +123,9 @@ void Panel::reloadGui(){
 bool Panel::saveConfig(QString path){
     bool errorOccurred = false;
 
-    if(app().configManager().saveConfig(configInfoPtr, path) == nullptr){    // Error
+    /*if(app().configManager().saveConfig(configInfoPtr, path) == nullptr){    // Error
         errorOccurred = true;
-    }
+    }*/
 
     return not errorOccurred;
 }
@@ -136,13 +136,13 @@ bool Panel::readConfig(QString path)
     bool errorOccurred = false;
 
     // If file exists, reregister
-    ConfigInfoPtr newConfigInfo = nullptr;
+    /*ConfigInfoPtr newConfigInfo = nullptr;
     newConfigInfo = app().configManager().changeConfig(configInfoPtr, path);
     if(newConfigInfo != nullptr){   // Register Success
         loadConfigData(newConfigInfo, LoadConfigSettings::LoadGui);
     }else{
         errorOccurred = true;
-    }
+    }*/
 
     return not errorOccurred;
 }

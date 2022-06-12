@@ -2,7 +2,7 @@
 #include<QMenu>
 #include<QContextMenuEvent>
 #include<QApplication>
-
+#include<QMessageBox>
 
 
 using namespace Panels::Configuration::Navigation::Procedure;
@@ -25,42 +25,42 @@ void DefaultProcedureElement::execRequest_ContextMenu<DefaultProcedureElement::R
 template<>
 void DefaultProcedureElement::execRequest_ContextMenu<DefaultProcedureElement::Request_ContextMenu::EditIndex>(ListItem* item)
 {
-    /*Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editProcedure", "Item is null");
+    Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editProcedure", "Item is null");
     if(curEditItemInfo.item){
-        closePersistentEditor(curEditItemInfo.item);
+        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
         qApp->processEvents();
     }
 
     curEditItemInfo = {item, item->text(0)};
-    editItem(item, 0);*/
+    static_cast<Navigation::List*>(treeWidget())->editItem(item, 0);
 }
 
 template<>
 void DefaultProcedureElement::execRequest_ContextMenu<DefaultProcedureElement::Request_ContextMenu::RemoveIndex>(ListItem* item)
 {
-    /*Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editProcedure", "Item is null");
+    Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editProcedure", "Item is null");
     if(curEditItemInfo.item){
-        closePersistentEditor(curEditItemInfo.item);
+        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
         curEditItemInfo = {};
         qApp->processEvents();
     }
-    tryToManageAttributesName(item->text(0));
-    delete item;*/
+    tryToManageIndex(item->text(0), QString());
+    delete item;
 }
 
 template<>
 void DefaultProcedureElement::execRequest_ContextMenu<DefaultProcedureElement::Request_ContextMenu::ClearIndexes>(ListItem*)
 {
-    /*if(curEditItemInfo.item)
+    if(curEditItemInfo.item)
     {
-        closePersistentEditor(curEditItemInfo.item);
+        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
         qApp->processEvents();
     }
     curEditItemInfo = {};
-    for(int i = 0; i < topLevelItemCount(); i++){
-        tryToManageAttributesName(topLevelItem(i)->text(0));
+    for(int i = 0; i < static_cast<Navigation::List*>(treeWidget())->topLevelItemCount(); i++){
+        tryToManageIndex(static_cast<Navigation::List*>(treeWidget())->topLevelItem(i)->text(0), QString());
     }
-    clear();*/
+    static_cast<Navigation::List*>(treeWidget())->clear();
 }
 bool DefaultProcedureElement::tryToManageIndex(QString oldIndex, QString newIndex){
 
@@ -75,7 +75,7 @@ bool DefaultProcedureElement::tryToManageIndex(QString oldIndex, QString newInde
             if(newIndexes.removeAll(oldIndex) == 0);
                 //removedAttributes.append({oldIndex});
         }else{  // NewName and oldIndex isnt empty - ChangedProcedure
-            bool savedAttributesContainsNewName = false;
+            //bool savedIndexesContainsNewName = false;
             if(newIndexes.contains(newIndex)/* or
                     ((savedAttributesContainsNewName = savedAttributes->contains(newIndex)) and removedAttributes.removeAll(newIndex) == 0)*/)
                         return false;   // DUPLICATED
@@ -83,7 +83,7 @@ bool DefaultProcedureElement::tryToManageIndex(QString oldIndex, QString newInde
            {    // Old name in savedAttributes
                //removedAttributes.append({oldIndex});
            }
-           if(not savedAttributesContainsNewName)
+           //if(not savedIndexesContainsNewName)
                newIndexes.append({newIndex});
         }
     }
@@ -103,11 +103,10 @@ void DefaultProcedureElement::menuControl(QContextMenuEvent* cev, ListItem* item
     menu = new QMenu;
     if(item){
         actions = {
-          new QAction("Dodaj atrybut"),
-          new QAction("Edytuj nazwę atrybutu"),
-          new QAction("Edytuj wartość atrybutu"),
-          new QAction("Usuń atrybut"),
-          new QAction("Usuń wszystkie atrybuty")
+          new QAction("Dodaj indeks"),
+          new QAction("Edytuj indeks"),
+          new QAction("Usuń indeks"),
+          new QAction("Usuń indeksy")
         };
         actionFuncs = {
             &DefaultProcedureElement::execRequest_ContextMenu<Request::AddIndex>,
@@ -117,8 +116,8 @@ void DefaultProcedureElement::menuControl(QContextMenuEvent* cev, ListItem* item
         };
     }else{
         actions = {
-            new QAction("Dodaj atrybut"),
-            new QAction("Usuń wszystkie atrybuty")
+            new QAction("Dodaj indeks"),
+            new QAction("Usuń indeksy")
         };
         actionFuncs = {
             &DefaultProcedureElement::execRequest_ContextMenu<Request::AddIndex>,
@@ -139,7 +138,30 @@ void DefaultProcedureElement::menuControl(QContextMenuEvent* cev, ListItem* item
 }
 
 
-
+void DefaultProcedureElement::edittingFinished(){
+    if(curEditItemInfo.item){
+        if(curEditItemInfo.item->text(0).isEmpty()){ // Remove Item
+            if(not curEditItemInfo.oldStr.isEmpty()) // old name isnt empty (removeProcedure)
+                tryToManageIndex(curEditItemInfo.oldStr, QString());
+            delete curEditItemInfo.item;
+        }else{  // Not empty (New Procedure or Change Procedure)
+            if(curEditItemInfo.item->text(0) != curEditItemInfo.oldStr){    // name changed
+                if(curEditItemInfo.oldStr.isEmpty()){  // New Procedure
+                    if(not tryToManageIndex(QString(), curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
+                        QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
+                        delete curEditItemInfo.item;
+                    }
+                }else{  // Change Procedure Name
+                    if(not tryToManageIndex(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
+                        QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
+                        curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+                    }
+                }
+            }
+        }
+        curEditItemInfo = {};
+    }
+}
 
 
 

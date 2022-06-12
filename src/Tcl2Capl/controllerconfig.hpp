@@ -40,18 +40,31 @@ public:
     using Attributes = QList<Attribute>;
 
     class Procedure{    // For config only
+    public:
+         enum RulesCategories : RawRules::size_type{   // TO control rules list
+            // OnEndOfCall = -2, Position is always 0 for that case other function will be created?
+            UndefinedArgument = -1,
+            //Dynamic = -1,
+            // 0 > - Argument index value
+
+        };
+    protected:
         using Name = QString;
 
         Name name_;
         UserInteractionStatus userInteraction = UserInteraction::defaultStatus();
-        RawRules rulesOnEndOfCall_;
-        RulesForArguments rulesForArguments_;
+        RawRules rules_;
+
+        QHash<RulesCategories, RawRules::size_type> mapWithRuleCategoriesPositions;
+
+        //RawRules rulesOnEndOfCall_;
+        //RulesForArguments rulesForArguments_;
 
     public:
-        struct RulesView{
+        /*struct RulesView{
             RawRules const& rulesOnEndOfCall;
             RulesForArguments const& rulesForArguments;
-        };
+        };*/
 
         Procedure(Name name = QString(), UserInteractionStatus userInteraction = UserInteraction::defaultStatus())
             : name_(name), userInteraction(userInteraction){}
@@ -59,15 +72,15 @@ public:
         Procedure(const Procedure& procedureRef, Name newName);
 
         UserProcedure toProcedureWithRawRules();
-        inline RulesForArguments& rulesForArguments(){return rulesForArguments_;}
-        inline RawRules& rulesOnEndOfCall(){return rulesOnEndOfCall_;}
+        //inline RulesForArguments& rulesForArguments(){return rulesForArguments_;}
+        //inline RawRules& rulesOnEndOfCall(){return rulesOnEndOfCall_;}
 
         inline bool operator==(const Procedure& rhs){
             return name_ == rhs.name_;
         }
 
         inline QString name()const{return name_;}
-
+/*
         inline RulesView rules(){
             return RulesView{rulesOnEndOfCall_, rulesForArguments_};
         }
@@ -77,7 +90,7 @@ public:
                     rulesOnEndOfCall_.isEmpty() and
                     rulesForArguments_.isEmpty();
         }
-
+*/
         void toXmlContent(QXmlStreamWriter& xmlWriter);
     };    
     // For now created Dynamicly - saved static, new dynamic
@@ -138,8 +151,8 @@ public:
 
     inline bool  isDefault(){
         return _settings.writeOnlyProcedures().isEmpty() and
-                _userProcedures.isEmpty() and
-                _userDefaultProcedure.isDefault();
+                _userProcedures.isEmpty() /*and
+                _userDefaultProcedure.isDefault();*/;
     }
 
     //bool writeToFile(QFile file);

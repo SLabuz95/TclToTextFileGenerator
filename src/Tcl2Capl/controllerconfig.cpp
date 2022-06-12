@@ -29,6 +29,7 @@ Tcl2CaplControllerConfig::UserProcedure Tcl2CaplControllerConfig::Procedure::toP
     // Not implemented yet
 
     // Rules on end of call
+/* Commented but required
     rulesOnEndOfCall = Rules(this->rulesOnEndOfCall().size());
     using RawRuleRef = RawRules::Iterator;
     RawRuleRef rawRuleRef = this->rulesOnEndOfCall().begin();
@@ -37,7 +38,7 @@ Tcl2CaplControllerConfig::UserProcedure Tcl2CaplControllerConfig::Procedure::toP
     {
         //(*rawRuleRef)->toRule((*newRule));
     }
-
+*/
     return UserProcedure(name(), rulesForArguments, rulesForArgument, rulesOnEndOfCall);
 }
 
@@ -215,6 +216,7 @@ void Tcl2CaplControllerConfig::Procedure::toXmlContent(QXmlStreamWriter& xmlWrit
         Q_ASSERT_X(userInteractionStr.length() != 0, "Procedure::toXmlContent", "Internal error: Unknown UserInteractionStatus");
         xmlWriter.writeAttribute("userInteraction", userInteractionStr);
     }
+    /* Commented but required
     // Rules
     for(RawRules::Iterator ruleOnEndOfCall = rulesOnEndOfCall_.begin(); ruleOnEndOfCall != rulesOnEndOfCall_.end(); ruleOnEndOfCall++){
        // (*ruleOnEndOfCall)->toXmlContent(xmlWriter);
@@ -223,6 +225,7 @@ void Tcl2CaplControllerConfig::Procedure::toXmlContent(QXmlStreamWriter& xmlWrit
        // ruleForArgument->toXmlContent(xmlWriter);
     }
     // End of Element
+    */
     xmlWriter.writeEndElement();
 
 }

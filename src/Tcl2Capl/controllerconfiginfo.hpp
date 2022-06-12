@@ -8,6 +8,9 @@
 
 
 class ControllerConfigInfo{
+    // Ver 2 VVVVVVVVVVVVVVVVV
+
+    /* Ver 1 VVVVVVVVVVVVVVVVV
 public:
     using ConfigPath = QString;
     using RegisterFileModificationTime = QDateTime;
@@ -36,7 +39,7 @@ public:
     inline ConfigPath path(){return configPath;}
     inline bool isDefaultConfig(){
         return _controllerConfig.isDefault();
-    }
+    }*/
 };
 
 #endif // CONTROLLERCONFIGINFO_HPP

@@ -4,7 +4,8 @@
 
 #include<QApplication>
 //#include"Tcl2Capl/Tcl2Capl.hpp"
-#include"appwindow.hpp"
+//#include"appwindow.hpp"
+#include"Tcl2CaplPanels/MainApp/mainApp.hpp"
 #include<QTableWidget>
 
 #include"External/StartUpError/startuperror.hpp"
@@ -14,6 +15,7 @@
 using namespace Panels::Configuration;
 class TestModule;
 class App : public QApplication{
+    using AppWindow = MainWindow;
 public:
     App(int argc, char** argv);
     ~App();

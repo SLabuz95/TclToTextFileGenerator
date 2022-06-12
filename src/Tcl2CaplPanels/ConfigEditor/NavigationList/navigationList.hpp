@@ -3,7 +3,6 @@
 
 #include<QTreeWidget>
 #include"External/Utils/class.hpp"
-#include"any"
 
 namespace  Panels::Configuration::View{
     class ConfigViewPanel;

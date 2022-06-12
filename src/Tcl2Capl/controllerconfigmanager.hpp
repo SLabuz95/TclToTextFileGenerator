@@ -6,6 +6,11 @@
 
 class CorruptedConfigInfoEvent;
 class ControllerConfigManager{
+    // Ver 2 VVVVVVVVVVVVVVVVVVV
+
+
+    // Ver 1 VVVVVVVVVVVVVVVVVVV
+    /*
 public:
     using EventHandlerPtr = QObject*;
     using EventHandlerPtrs = QList<EventHandlerPtr>;
@@ -41,6 +46,8 @@ public:
     inline ErrorMsg lastErrorMessage(){return _lastErrorMsg;}
     inline bool isInfoExist(InfoPtr info){return infosBySubsribers.keys().contains(info);}
     //static QString readRawConfig(QFileInfo, Info::ControllerConfigRef);
+    */
+
 };
 
 #endif // CONTROLLERCONFIGMANAGER_HPP

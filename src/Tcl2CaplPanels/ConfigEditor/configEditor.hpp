@@ -37,7 +37,7 @@ namespace Panels::Configuration{
         using Config = Tcl2CaplControllerConfig;
         using ConfigRef = Config&;
         using ConfigPtr = Config*;
-        using ConfigInfoPtr = ControllerConfigInfo::SelfPtr;
+        //using ConfigInfoPtr = ControllerConfigInfo::SelfPtr;
 
         Panel(App&);
         virtual ~Panel() override;
@@ -54,7 +54,7 @@ namespace Panels::Configuration{
         FileConfigPanel fileConfigPanel;
         View::ConfigViewPanel configViewPanel;
         // NO GUI ELEMENT
-        ConfigInfoPtr configInfoPtr = nullptr;
+        //ConfigInfoPtr configInfoPtr = nullptr;
         // ---------------------
         //QToolBox toolBox;
         //WriteOnlyProceduresList writeOnlyProceduresList;
@@ -66,7 +66,7 @@ namespace Panels::Configuration{
         bool newConfig();
         bool readConfig(QString);
         bool saveConfig(QString);
-        void loadConfigData(ConfigInfoPtr, LoadConfigSettings);
+        //void loadConfigData(ConfigInfoPtr, LoadConfigSettings);
         void reloadGui();
 
         void loadProcedureRulesPanel();
@@ -75,7 +75,7 @@ namespace Panels::Configuration{
         bool eventFilter(QObject*, QEvent*) override;
 
     public:
-        inline ConfigInfoPtr getConfigInfoPtr()const{return configInfoPtr;}
+        //inline ConfigInfoPtr getConfigInfoPtr()const{return configInfoPtr;}
         inline bool request_newConfig(){return newConfig();}
         inline bool request_readConfig(QString path){return readConfig(path);}
         inline bool request_saveConfig(QString path){return saveConfig(path);}

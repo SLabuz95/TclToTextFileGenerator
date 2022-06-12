@@ -21,8 +21,8 @@ ConfigViewPanel::ConfigViewPanel(ConfigEditor& parent)
 void ConfigViewPanel::loadConfigData(LoadConfigSettings settings)
 {
     ConfigTabs& configTabsPanel = this->Panels::Super::ViewPanel::Super::get();
-    configTabsPanel.attributesList().loadAttributes(&configEditor.getConfigInfoPtr()->controllerConfig().attributes(), settings);
-    configTabsPanel.writeOnlyProceduresList().loadProcedures(&configEditor.getConfigInfoPtr()->controllerConfig().writeOnlyProcedures(), settings);
+    //configTabsPanel.attributesList().loadAttributes(&configEditor.getConfigInfoPtr()->controllerConfig().attributes(), settings);
+    //configTabsPanel.writeOnlyProceduresList().loadProcedures(&configEditor.getConfigInfoPtr()->controllerConfig().writeOnlyProcedures(), settings);
     //proceduresList.loadProcedures(&configInfoPtr->controllerConfig().userProcedures(), settings);
     //clearProcedureRulesPanel();
     if(settings == LoadConfigSettings::LoadGui){
