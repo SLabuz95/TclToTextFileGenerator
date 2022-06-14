@@ -5,8 +5,7 @@
 #include<QInputDialog>
 
 
-Tcl2CaplInstructionPanel::Tcl2CaplInstructionPanel(AppWindow& appWindow)
-    : appWindow(appWindow)
+Tcl2CaplInstructionPanel::Tcl2CaplInstructionPanel()
 {
     // ToolBar Setup
     using ToolButton = ToolButton*;

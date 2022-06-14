@@ -29,7 +29,7 @@ protected:
     };
     using ToolButtons =  ToolButton[numbOfToolOptions];
 
-    AppWindow& appWindow;
+    //AppWindow& appWindow;
 
     QToolBar toolBar;
     ToolButtons toolButtons;
@@ -45,7 +45,7 @@ protected:
 
 
 public:
-    Tcl2CaplInstructionPanel(AppWindow&);
+    Tcl2CaplInstructionPanel();
 
     void newInstance();
 };

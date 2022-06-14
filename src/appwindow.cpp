@@ -55,7 +55,7 @@ void AppWindow::newInstance(){
     QString tabName;
     if(!(tabName = QInputDialog::getText(nullptr, QStringLiteral("Nowy projekt"), QStringLiteral("Type tab name:"))).isNull() or !tabName.isEmpty()){
         QDockWidget* newInstance = new QDockWidget(tabName);
-        Tcl2CaplFileParserInstance* instanceWidget = new Tcl2CaplFileParserInstance(*this);
+        Tcl2CaplFileParserInstance* instanceWidget = new Tcl2CaplFileParserInstance();
         newInstance->setAttribute(Qt::WA_DeleteOnClose);
         newInstance->setWidget(instanceWidget);
         addDockWidget(Qt::TopDockWidgetArea, newInstance);
@@ -96,7 +96,7 @@ void AppWindow::toolButtonPressed
 <PanelToolOption::RuntimeInterpreter>()
 {
     if(instructionPanel == nullptr){ // No Interpreter
-        instructionPanel = new Tcl2CaplInstructionPanel(*this);
+        instructionPanel = new Tcl2CaplInstructionPanel();
         instructionPanel->show();
     }
 }

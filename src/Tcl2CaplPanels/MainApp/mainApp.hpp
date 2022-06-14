@@ -46,6 +46,9 @@ public:
     MainWindow(App&);
     ~MainWindow()override{}
 
+    void insertSubWindow(InstanceList::SubWindowPositionInfo&&, QWidget*);
+
+
 protected:
     App& app;
     using View = QMdiArea;

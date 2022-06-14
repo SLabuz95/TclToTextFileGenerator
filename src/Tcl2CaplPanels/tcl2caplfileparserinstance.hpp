@@ -55,7 +55,7 @@ class Tcl2CaplFileParserInstance : public QSplitter{
 
 
     //Tcl2CaplFileParserPanel& panel;
-    AppWindow& panel;
+    //AppWindow& panel;
     FilesList filesList;
     ConfigSplitter configSplitter;
     InputConfig inputConfig;
@@ -85,7 +85,7 @@ public:
     using Request_FileInfoRef_Func = void (Tcl2CaplFileParserInstance::*)(QFileInfo&);
 
     using Error = QString;
-    Tcl2CaplFileParserInstance(AppWindow& panel);
+    Tcl2CaplFileParserInstance();
     ~Tcl2CaplFileParserInstance();
 
     void generateCapl();

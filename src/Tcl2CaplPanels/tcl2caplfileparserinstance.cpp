@@ -12,9 +12,9 @@
 #include"External/FileReader/FilesSpecificData/XML/TclCaplParserConfig/FRI_FSD_XML_TCL_CAPL_Parser_Config.hpp"
 #include<QContextMenuEvent>
 
-Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance(AppWindow & panel)
+Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance()
     : QSplitter(Qt::Horizontal),
-      panel(panel),
+      //panel(panel),
       filesList(*this),
       configSplitter(Qt::Vertical),
       inputConfig(INPUT_CONFIG_BOX_TITLE),

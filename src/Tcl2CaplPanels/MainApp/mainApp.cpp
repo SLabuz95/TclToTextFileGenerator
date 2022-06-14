@@ -14,6 +14,17 @@ MainWindow::MainWindow(App& app)
     show();
 }
 
+void MainWindow::insertSubWindow(InstanceList::SubWindowPositionInfo&& positionInfo, QWidget* internalWidget){
+    int subWindowListIndex = 0;
+    for(int instanceIndex = 0 ; instanceIndex < positionInfo.indexOfInstance; instanceIndex++){
+        subWindowListIndex += instanceList.topLevelItem(instanceIndex)->childCount();
+    }
+    subWindowListIndex += positionInfo.indexOfInterpreter;
+    QMdiSubWindow* subWindow = new QMdiSubWindow(&view);
+    subWindow->setWidget(internalWidget);
+    subWindows.insert(subWindowListIndex, subWindow);
+}
+
 void MainWindow::Splitter::Handle::paintEvent(QPaintEvent *event)
 {
     if(not isNotActive())
