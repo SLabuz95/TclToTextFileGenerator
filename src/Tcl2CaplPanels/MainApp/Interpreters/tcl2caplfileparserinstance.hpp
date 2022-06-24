@@ -111,6 +111,7 @@ protected:
     Error readNewInputConfig_dialog();
     Error readProceduresConfig(QFileInfo&);
 
+
 };
 
 #endif // TCL2CAPLFILEPARSERINSTANCE_HPP

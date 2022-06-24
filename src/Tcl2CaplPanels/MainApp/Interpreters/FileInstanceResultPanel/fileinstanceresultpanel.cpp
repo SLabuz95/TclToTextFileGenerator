@@ -4,7 +4,7 @@
 #include<QDirIterator>
 #include"Tcl2Capl/tcl2caplprogressevent.hpp"
 #include<QMessageBox>
-#include"Tcl2CaplPanels/tcl2caplfileparserinstance.hpp"
+#include"Tcl2CaplPanels/MainApp/Interpreters/tcl2caplfileparserinstance.hpp"
 
 FileInstanceResultPanel::FileInstanceResultPanel
 (Tcl2CaplFileParserInstance& instance,

@@ -5,7 +5,7 @@
 #include<QUrl>
 #include<QFileDialog>
 #include<QDockWidget>
-#include"Tcl2CaplPanels/FileInstanceResultPanel/fileinstanceresultpanel.hpp"
+#include"FileInstanceResultPanel/fileinstanceresultpanel.hpp"
 #include"External/FileReader/FilesSpecificData/XML/TclCaplParserConfig/FRI_FSD_XML_TCL_CAPL_Parser_Config.hpp"
 #include"TcFileModifier/tcfilemodifier.hpp"
 #include<QStringListModel>

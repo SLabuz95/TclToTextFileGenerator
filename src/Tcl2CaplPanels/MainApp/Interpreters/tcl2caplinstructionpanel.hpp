@@ -48,6 +48,7 @@ public:
     Tcl2CaplInstructionPanel();
 
     void newInstance();
+
 };
 
 using InstPanelToolOption = Tcl2CaplInstructionPanel::ToolOptions;

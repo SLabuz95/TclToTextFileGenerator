@@ -16,11 +16,19 @@ protected:
 
 };
 
+class InstanceListElementInterpreter : public QTreeWidgetItem{
+public:
+    inline InstanceListElementInterpreter(QString name = QString()) : QTreeWidgetItem({name}){
+         setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
+    }
+protected:
+
+};
+
 class InstanceListElement : public QTreeWidgetItem{
 public:
     inline InstanceListElement(QString name = QString()) : QTreeWidgetItem({name}){
         setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
-        addChild(new InstanceListElementConfig("Konfiguracja"));
     }
 };
 
@@ -74,18 +82,19 @@ private:
         return static_cast<InstanceListElement*>(QTreeWidget::itemAt(p));
     }
 
-    SubWindowPositionInfo getSubWindowPositionInfo(InstanceListElement* item){
+    SubWindowPositionInfo getSubWindowPositionInfo(QTreeWidgetItem* item){
         return SubWindowPositionInfo{
             item->treeWidget()->indexOfTopLevelItem(item->parent()),
             item->parent()->indexOfChild(item)};
     }
+
+    void contextMenuEvent(QContextMenuEvent *e) override;
 
 public:
     InstanceList(MainWindow& parent);
     virtual ~InstanceList() override{}
 
     MainWindow& mainApp;
-
 
     WIDGET_ADD_EVENT_FILTER
 

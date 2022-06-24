@@ -28,7 +28,7 @@ public:
     //Panel configEditor;
     ControllerConfigManager configManager_;
     //Tcl2CaplControllerConfig config;
-    Panel* p = nullptr;
+    //Panel* p = nullptr;
 
     void clearMemory();
 

@@ -1,5 +1,5 @@
 #include"fileWatcher.hpp"
-#include"Tcl2CaplPanels/FileParserInstanceLists/filesList.hpp"
+#include"Tcl2CaplPanels/MainApp/Interpreters/FileParserInstanceLists/filesList.hpp"
 FileWatcher::Instance::Instance(Tcl2CaplFileParserInstance* instance, QFileInfo& rootFile)
     : instance_(instance)
 {    

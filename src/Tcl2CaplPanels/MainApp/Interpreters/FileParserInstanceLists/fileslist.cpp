@@ -1,6 +1,6 @@
 #include"filesList.hpp"
 #include"filesListElement.hpp"
-#include"Tcl2CaplPanels/tcl2caplfileparserinstance.hpp"
+#include"Tcl2CaplPanels/MainApp/Interpreters/tcl2caplfileparserinstance.hpp"
 
 #include<QMouseEvent>
 #include<QContextMenuEvent>

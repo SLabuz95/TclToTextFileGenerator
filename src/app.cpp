@@ -16,8 +16,7 @@ App::App(int argc, char** argv)
 {
     setApplicationName("Tcl2Capl Parser");
 
-    p = new Panel(*this);
-     p->show();
+
 
 }
 

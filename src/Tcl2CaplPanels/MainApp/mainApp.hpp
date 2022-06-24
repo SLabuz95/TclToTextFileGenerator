@@ -6,6 +6,7 @@
 #include<QMdiArea>
 #include<QMdiSubWindow>
 #include"InstanceList/instanceList.hpp"
+#include<QEvent>
 
 class App;
 class MainWindow : public QMainWindow{
@@ -42,23 +43,54 @@ class MainWindow : public QMainWindow{
         }
 
     };
+
 public:
+    /*class InterpreterInterface : public QMdiSubWindow{
+    public:
+        enum class Type{
+            FileInterpreter,
+            TextInterpreter
+        };
+        InterpreterInterface(Type type, QMdiArea* area) : QMdiSubWindow(area), type(type){}
+
+        const Type type;
+    };*/
+    class SubWindow : public QMdiSubWindow{
+    public:
+        using QMdiSubWindow::QMdiSubWindow;
+
+        void closeEvent(QCloseEvent *) override{
+            hide();
+        }
+    };
+
+    //using SubWindow = QMdiSubWindow;
+    using SubWindowsList = QList<SubWindow*>;
+    using SubWindowsRange = QPair<SubWindowsList::Iterator, SubWindowsList::Iterator>;
+
     MainWindow(App&);
     ~MainWindow()override{}
 
     void insertSubWindow(InstanceList::SubWindowPositionInfo&&, QWidget*);
+    void removeSubWindow(InstanceList::SubWindowPositionInfo&&);
+    void removeInstance(InstanceListElement*);
+    void activateInterpreter(InstanceList::SubWindowPositionInfo&&);
 
+    void interpreterNameChanged(InstanceList::SubWindowPositionInfo&&);
+    void instanceNameChanged(InstanceListElement*);
 
+    SubWindowsRange allInterpretersOfInstance(InstanceListElement*);
 protected:
-    App& app;
+    App& app_;
     using View = QMdiArea;
     using Splitter = MainWindowSplitter;
     Splitter splitter;    // Central Widget
     InstanceList instanceList;
     View view;
-    QList<QMdiSubWindow*> subWindows;
+    SubWindowsList subWindows;
 
-
+public:
+    App& app(){return app_;}
 };
 
 #endif // MAINAPP_HPP

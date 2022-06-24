@@ -5,8 +5,62 @@
 #include<QDateTime>
 #include"Tcl2Capl/controllerconfig.hpp"
 #include<QFileInfo>
+#include<QBitArray>
+#include<QMultiMap>
 
+// Move to other file ControllerConfigInfo
+class ControllerConfigInfo;
+class Rule;
+class ControllerConfigInfo2{
+public:
+    ControllerConfigInfo2(ControllerConfigInfo&);
 
+    ControllerConfigInfo& configInfo;
+
+    class DefaultProcedureLocalChanges{
+    protected:
+        enum RulesCategories : qsizetype{   // TO control rules list
+           // OnEndOfCall = -2, Position is always 0 for that case other function will be created?
+           UndefinedArgument = -1,
+           //Dynamic = -1,
+           // 0 > - Argument index value
+
+       };
+        // Removed Rules mask
+        // Created based on number of rules from configuration - it will never change til change of configuration
+        using RemovedProcedures = QBitArray; // Maybe int to control number of removed rules
+        using UserInterationProcedures = QBitArray;
+        using RemovedRules = QBitArray; // Maybe int to control number of removed rules
+        //using NewIndexes = QList<uint>; // Only information about new indexes - there are sorted
+        //using NewRules = QList<Rule*>;
+        // Probably i can calculate position of rules even for new indexes
+        // New Index > Old Index -> Right position
+
+        struct ProcedureRuleCategoryKey : private QPair<QString, RulesCategories>{
+        public:
+            using QPair<QString, RulesCategories>::QPair;
+            friend bool operator<(const ProcedureRuleCategoryKey& lhs, const ProcedureRuleCategoryKey& rhs){
+                return (lhs.second < rhs.second and rhs.first == lhs.first)
+                        or lhs.first < rhs.first;
+            }
+        };
+
+        // Local changes
+        RemovedProcedures removedProcedures;
+        RemovedRules removedRules;
+        UserInterationProcedures userInterationProceduresChanged;
+        QMap<RulesCategories, QPair<qsizetype, qsizetype>> mapWithNewRules;// Pos/Size Pair
+        //NewIndexes newIndexes;
+
+        // Const config infos - in config
+        //int numbOfProcedures; - Can be derived from userInteractionProcedures size
+        QMap<RulesCategories, qsizetype> mapWithRuleCategoriesPositions;// Pos/Size Pair
+
+    };
+
+};
+
+// Change to ControllerConfigFileInfo
 class ControllerConfigInfo{
     // Ver 2 VVVVVVVVVVVVVVVVV
 

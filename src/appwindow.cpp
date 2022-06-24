@@ -4,8 +4,8 @@
 #include<QTabBar>
 #include<QEvent>
 #include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
-#include"Tcl2CaplPanels/tcl2caplfileparserinstance.hpp"
-#include"Tcl2CaplPanels/tcl2caplinstructionpanel.hpp"
+#include"Tcl2CaplPanels/MainApp/Interpreters/tcl2caplfileparserinstance.hpp"
+#include"Tcl2CaplPanels/MainApp/Interpreters/tcl2caplinstructionpanel.hpp"
 
 #include<QEvent>
 #include<QInputDialog>

@@ -6,7 +6,7 @@
 #include<QFileInfoList>
 #include<QTimer>
 #include<QEvent>
-#include"Tcl2CaplPanels/tcl2caplfileparserinstance.hpp"
+#include"Tcl2CaplPanels/MainApp/Interpreters//tcl2caplfileparserinstance.hpp"
 
 class FileWatcher : public QThread{
 public:
