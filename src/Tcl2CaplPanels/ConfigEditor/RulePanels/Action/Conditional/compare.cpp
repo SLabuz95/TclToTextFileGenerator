@@ -3,11 +3,15 @@
 #include<QApplication>
 #include<QMenu>
 #include<QMessageBox>
+#include<QInputDialog>
+#include"Tcl2CaplPanels/ConfigEditor/RulePanels/rawRule.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
 
 namespace ActionsList_NS = Panels::Configuration::View::ActionsList;
 using CompareActionView = ActionsList_NS::CompareActionView::CompareActionView;
 using ListOfIndexes = CompareActionView::ListOfIndexes;
 using ActionView = CompareActionView::ActionView;
+using ParentContextMenu = CompareActionView::ParentContextMenu;
 
 // CompareNumbOfArgs Action View Definitions -----------------------------------
 
@@ -16,7 +20,7 @@ CompareActionView::CompareActionView(ActionView& view)
 {
     splitter.addWidget(&listOfIndexes);
     splitter.addWidget(&formattedStringList);
-    addRow(&splitter);
+    addWidget(&splitter);
 }
 
 CompareActionView::DataView* CompareActionView::create(ActionView& view, ActionRef){
@@ -31,15 +35,14 @@ CompareActionView::DataView* CompareActionView::create(ActionView& view, ActionR
 template<>
 void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::Add>(ListItem* )
 {
-
     if(curEditItemInfo.item){
         closePersistentEditor(curEditItemInfo.item);
         qApp->processEvents();
     }
-
-    curEditItemInfo = {new ListItem, QString()};
-    addItem(curEditItemInfo.item);
-    editItem(curEditItemInfo.item);
+    ListItem* item = new ListItem;
+    addItem(item);
+    scrollToItem(item);
+    editItem(item);
 }
 
 template<>
@@ -50,8 +53,20 @@ void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::
         closePersistentEditor(curEditItemInfo.item);
         qApp->processEvents();
     }
+    scrollToItem(item);
+    editItem(item);
+}
 
-    curEditItemInfo = {item, item->text()};
+template<>
+void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::MultiLineEdit>(ListItem* item)
+{
+    Q_ASSERT_X(item != nullptr, "ListOfIndexes::ContextMenu::editProcedure", "Item is null");
+    if(curEditItemInfo.item){
+        closePersistentEditor(curEditItemInfo.item);
+        qApp->processEvents();
+    }
+    scrollToItem(item);
+    item->multiLineItem = true;
     editItem(item);
 }
 
@@ -61,10 +76,8 @@ void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::
     Q_ASSERT_X(item != nullptr, "ListOfIndexes::ContextMenu::editProcedure", "Item is null");
     if(curEditItemInfo.item){
         closePersistentEditor(curEditItemInfo.item);
-        curEditItemInfo = {};
         qApp->processEvents();
     }
-    ChangeAction changeAction = tryToManageIndexes(item->text(), QString());
     // Notify about Change
     delete item;
 }
@@ -77,7 +90,6 @@ void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::
         closePersistentEditor(curEditItemInfo.item);
         qApp->processEvents();
     }
-    curEditItemInfo = {};
     // Maybe clear NewProcedures and replace Removed with savedProcedures?
     for(int i = 0; i < count(); i++){
         tryToManageIndexes(item(i)->text(), QString());
@@ -94,51 +106,145 @@ ListOfIndexes::ChangeAction ListOfIndexes::tryToManageIndexes(QString oldIndex, 
 
 bool ListOfIndexes::eventFilter(QObject* obj, QEvent* ev){
 
-    if(ev->type() == QEvent::MouseButtonDblClick and obj == viewport()){
-        QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
-        if((curEditItemInfo.item = itemAt(mev->pos()))){
+    return Super::eventFilter(obj, ev);
+
+}
+
+void ListOfIndexes::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end){
+    ListItem *pItem = item(start);
+    if(not pItem->text().isEmpty())
+        tryToManageIndexes(pItem->text(), QString());
+    Super::rowsAboutToBeRemoved(parent, start, end);
+    using ActionsList = decltype(parentWidget().parentWidget());
+    ActionsList& actionsList = parentWidget().parentWidget();
+    QListWidgetItem* item = actionsList.itemAt(actionsList.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    item->setSizeHint(actionsList.itemWidget(item)->sizeHint());
+
+    //qDebug() << "List" << minimumSizeHint() << sizeHint();
+    //qDebug() << "Viewport" << viewportSizeHint();
+    //qDebug() << "Parent" << Super::parentWidget()->parentWidget()->minimumSizeHint() << Super::parentWidget()->parentWidget()->sizeHint();
+}
+
+void ListOfIndexes::rowsInserted(const QModelIndex &parent, int start, int end){
+    //qDebug() << "List" << minimumSizeHint() << sizeHint();
+    //qDebug() << "Viewport" << viewportSizeHint();
+    //qDebug() << "Parent" << Super::parentWidget()->parentWidget()->minimumSizeHint() << Super::parentWidget()->parentWidget()->sizeHint();
+    //parentWidget().parentWidget().updateGeometry();
+    //parentWidget().parentWidget().parentWidget().parentWidget().updateGeometry();
+    using ActionsList = decltype(parentWidget().parentWidget());
+    ActionsList& actionsList = parentWidget().parentWidget();
+    QListWidgetItem* item = actionsList.itemAt(actionsList.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    item->setSizeHint(actionsList.itemWidget(item)->sizeHint());
+    Super::rowsInserted(parent, start, end);
+
+}
+
+
+bool ListOfIndexes::edit(const QModelIndex &index, QAbstractItemView::EditTrigger trigger, QEvent *event){
+    using Trigger = QAbstractItemView::EditTrigger;
+    //CurEditItemInfo tempEditItem = curEditItemInfo;
+    switch(trigger){
+    case Trigger::AllEditTriggers:
+    case Trigger::DoubleClicked:
+        if(index.isValid()){
+            curEditItemInfo.item = itemFromIndex(index);
             curEditItemInfo.oldIndex = curEditItemInfo.item->text();
-            editItem(curEditItemInfo.item);
+            if(curEditItemInfo.item->multiLineItem){
+                MultiLineEditor editor(curEditItemInfo.oldIndex);
+                switch(editor.exec()){
+                case QDialog::Accepted:
+                    curEditItemInfo.item->setText(editor.text());
+                    processEditData(curEditItemInfo);
+                    break;
+                case QDialog::Rejected:
+                    break;
+                }
+                return false;
+            }
         }
+    break;
+    default:
+        break;
     }
 
-    if(ev->type() == QEvent::ChildRemoved and obj == viewport()){
-        if(curEditItemInfo.item){
-            if(curEditItemInfo.item->text().isEmpty()){ // Remove Item
-                if(not curEditItemInfo.oldIndex.isEmpty()){ // old index isnt empty (removeIndex)
-                    ChangeAction changeAction = tryToManageIndexes(curEditItemInfo.oldIndex, QString());
-                    // Notify about Change
-                }
-                delete curEditItemInfo.item;
-            }else{  // Not empty (New Index or Change Index)
-                if(curEditItemInfo.item->text() != curEditItemInfo.oldIndex){    // index changed
-                    if(curEditItemInfo.oldIndex.isEmpty()){  // New index
-                        ChangeAction changeAction = tryToManageIndexes(QString(), curEditItemInfo.item->text());
-                        if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Index)
-                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Index"), QStringLiteral("Index \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
-                            delete curEditItemInfo.item;
-                        }else{
-                            // Notify about change
+    return Super::edit(index, trigger, event);
+}
 
-                        }
-                    }else{  // Change Index
-                        ChangeAction changeAction = tryToManageIndexes(curEditItemInfo.oldIndex, curEditItemInfo.item->text());
-                        if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Index)
-                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Index"), QStringLiteral("Index \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
-                            curEditItemInfo.item->setText(curEditItemInfo.oldIndex);
-                        }else{
-                            // Notify about change
-                        }
+void ListOfIndexes::closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint){
+    using Hint = QAbstractItemDelegate::EndEditHint;
+    CurEditItemInfo tempInfo = curEditItemInfo;
+    Super::closeEditor(editor, hint);
+    switch(hint){
+    case Hint::EditNextItem:
+    case Hint::EditPreviousItem:
+    {
+        if(curEditItemInfo.item != tempInfo.item){
+            processEditData(tempInfo);
+        }
+    }
+        break;
+    default:
+        processEditData(curEditItemInfo);
+
+    }
+}
+
+void ListOfIndexes::processEditData(CurEditItemInfo& curEditItemInfo)
+{
+    if(curEditItemInfo.item){
+        if(curEditItemInfo.item->text().isEmpty()){ // Remove Item
+            if(not curEditItemInfo.oldIndex.isEmpty()){ // Removed Existing item
+                ChangeAction changeAction = tryToManageIndexes(curEditItemInfo.oldIndex, QString());
+                // Notify about Change
+            }
+            delete curEditItemInfo.item;
+        }else{ // Not empty (New Index or Change Index)
+            if(curEditItemInfo.item->text() != curEditItemInfo.oldIndex){    // index changed
+                if(curEditItemInfo.oldIndex.isEmpty()){  // New index
+                    ChangeAction changeAction = tryToManageIndexes(QString(), curEditItemInfo.item->text());
+                    if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Index)
+                        QMessageBox::warning(nullptr, QStringLiteral("Duplicated Index"), QStringLiteral("Index \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
+                        delete curEditItemInfo.item;
+                    }else{
+                        // Notify about change
+                        curEditItemInfo.item->multiLineItem = curEditItemInfo.item->text().contains("\n");
+
+                        //curEditItemInfo.item->setToolTip(curEditItemInfo.item->text());
+                    }
+                }else{  // Change Index
+                    ChangeAction changeAction = tryToManageIndexes(curEditItemInfo.oldIndex, curEditItemInfo.item->text());
+                    if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Index)
+                        QMessageBox::warning(nullptr, QStringLiteral("Duplicated Index"), QStringLiteral("Index \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
+                        curEditItemInfo.item->setText(curEditItemInfo.oldIndex);
+                    }else{
+                        // Notify about change
+                        curEditItemInfo.item->multiLineItem = curEditItemInfo.item->text().contains("\n");
+                        //curEditItemInfo.item->setToolTip(curEditItemInfo.item->text());
                     }
                 }
             }
-            curEditItemInfo = {};
         }
     }
+    curEditItemInfo = {};
+}
 
+bool ListOfIndexes::MultiLineEditor::eventFilter(QObject* obj, QEvent* ev){
+    switch(ev->type()){
+    case QEvent::MouseButtonRelease:
+    {
+        if(obj == &ok){
+            done(QDialog::Accepted);
+        }
+        if(obj == &cancel){
+            done(QDialog::Rejected);
+        }
+    }
+        break;
+    default:
+        break;
+    }
 
-    return Super::eventFilter(obj, ev);
-
+    return QDialog::eventFilter(obj, ev);
 }
 
 void ListOfIndexes::contextMenuEvent(QContextMenuEvent *cev){
@@ -158,26 +264,27 @@ void ListOfIndexes::contextMenuEvent(QContextMenuEvent *cev){
     if(item){
         contextMenuConfig.addActions(
                     {
-                          new QAction("Dodaj indeks"),
-                          new QAction("Edytuj indeks"),
-                          new QAction("Usuń indeks"),
-                          new QAction("Usuń wszystkie indeksy")
+                          new QAction("Dodaj napis"),
+                          new QAction("Edytuj napis"),
+                          new QAction("Edytuj napis (edytor)"),
+                          new QAction("Usuń napis"),
+                          new QAction("Usuń wszystkie napisy")
                     });
     }else{
         contextMenuConfig.addActions(
                     {
-                        new QAction("Dodaj indeks"),
-                        new QAction("Usuń wszystkie indeksy")
+                        new QAction("Dodaj napis"),
+                        new QAction("Usuń wszystkie napisy")
                     });
     }
-    parentWidget().parentWidget().extendContextMenu(contextMenuConfig);
+    parentContextMenu().extendContextMenu(contextMenuConfig);
     qsizetype&& index = contextMenuConfig.exec(cev);
     if(index >= 0){
         if(item){
             interpretContextMenuResponse(index, cev);
         }else{
             if(index >= functionsSize){
-                parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+                parentContextMenu().interpretContextMenuResponse(index - functionsSize, cev);
             }else{
                 (this->*(actionFunc[index]))(item);
             }
@@ -187,19 +294,25 @@ void ListOfIndexes::contextMenuEvent(QContextMenuEvent *cev){
 }
 
 ActionView& ListOfIndexes::parentWidget()const{
-    return *static_cast<ActionView*>(Super::parentWidget());
+    return *static_cast<ActionView*>(Super::parentWidget()->parentWidget()->parentWidget()); // Splitter -> Widget of ActionDataView layout -> ActionView
 }
+
+
 
 void ListOfIndexes::loadIndexes(){
     clearChanges();
-
 }
 
 void ListOfIndexes::reloadGui(){
 
 }
 
-//void ListOfIndexes::extendContextMenu(ContextMenuConfig& config);
+ParentContextMenu& ListOfIndexes::parentContextMenu()const
+{
+    return *static_cast<ParentContextMenu*>(&parentWidget().parentWidget()); // ActionView -> ActionList
+}
+
+void ListOfIndexes::extendContextMenu(ContextMenuConfig&)const{}
 
 
 void ListOfIndexes::interpretContextMenuResponse(ContextMenuConfig::ActionIndex index, QContextMenuEvent* cev){
@@ -208,12 +321,13 @@ void ListOfIndexes::interpretContextMenuResponse(ContextMenuConfig::ActionIndex 
     constexpr ActionFuncs actionFunc = {
         &ListOfIndexes::execRequest_ContextMenu<Request::Add>,
         &ListOfIndexes::execRequest_ContextMenu<Request::Edit>,
+        &ListOfIndexes::execRequest_ContextMenu<Request::MultiLineEdit>,
         &ListOfIndexes::execRequest_ContextMenu<Request::Remove>,
         &ListOfIndexes::execRequest_ContextMenu<Request::Clear>,
     };
     constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
     if(index >= functionsSize){
-        parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+        parentContextMenu().interpretContextMenuResponse(index - functionsSize, cev);
     }else{
         ListItem* item = itemAt(cev->pos());
         (this->*(actionFunc[index]))(item);

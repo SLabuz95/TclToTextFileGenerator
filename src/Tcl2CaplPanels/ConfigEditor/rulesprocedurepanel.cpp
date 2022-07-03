@@ -107,12 +107,13 @@ RulesList::RulesList(){
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setMovement(QListView::Snap);
     setDefaultDropAction(Qt::DropAction::MoveAction);
+    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setDragDropMode(QAbstractItemView::InternalMove);
 
 }
 
 
-void RulesList::extendContextMenu(ContextMenuConfig& config){
+void RulesList::extendContextMenu(ContextMenuConfig& config)const{
     config.addMenu("Reguły",{
                        new QAction("Dodaj"),
                        new QAction("Klonuj"),
@@ -126,7 +127,7 @@ ListItem::ListItem(RulesList& list)
 {
     list.addItem(this);
     list.setItemWidget(this, &rawRuleView());
-    setSizeHint(rawRuleView().sizeHint());
+    setSizeHint(rawRuleView().minimumSizeHint());
 }
 
 ListItem::ListItem(RulesList& list, RuleRef rule)
@@ -134,7 +135,7 @@ ListItem::ListItem(RulesList& list, RuleRef rule)
 {
     list.addItem(this);
     list.setItemWidget(this, &rawRuleView());
-    setSizeHint(rawRuleView().sizeHint());
+    setSizeHint(rawRuleView().minimumSizeHint());
 };
 
 RulesList &ListItem::rulesList() const

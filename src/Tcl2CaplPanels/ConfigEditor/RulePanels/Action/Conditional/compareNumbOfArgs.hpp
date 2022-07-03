@@ -11,9 +11,11 @@ namespace Panels::Configuration::View::ActionsList{
             : public ActionDataView<ConditionalsFactory::ListOfBases>
     {
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
+        using ContextMenuInterface = Utils::ContextMenuBuilder::InterfaceExtended<QListWidget>;
 
         CompareNumbOfArgsActionView(ActionView&);
     public:
+        using ParentContextMenu = ContextMenuInterface::Interface;
         static ActionDataView* create(ActionView&, ActionRef);
         using ActionView = ActionView;
     protected:
@@ -24,7 +26,22 @@ namespace Panels::Configuration::View::ActionsList{
         // GUI Elements
         // List of Indexes definition
     public:
-        class ListOfIndexes : public QListWidget{
+        class ListOfIndexes : public ContextMenuInterface{
+        public:
+            using Super = ContextMenuInterface;
+            class ItemDelegate : public QItemDelegate{
+                ItemDelegate() = delete;
+            public:
+                explicit ItemDelegate(ListOfIndexes& list, QObject* parent = nullptr) : QItemDelegate(parent), list(list){}
+
+            protected:
+                ListOfIndexes& list;
+
+                QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+                void setEditorData(QWidget* editor, const QModelIndex& index) const;
+                void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
+                void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+            };
             class ListItem : public QListWidgetItem{
             public:
                 inline ListItem(QString str = QString()) : QListWidgetItem(str){
@@ -56,13 +73,17 @@ namespace Panels::Configuration::View::ActionsList{
 
             using Config = Tcl2CaplControllerConfig;
         public:
-            ListOfIndexes(){
+            ListOfIndexes(){                
+                ItemDelegate* itemDelegateObj = new ItemDelegate(*this);
+                setItemDelegate(itemDelegateObj);
+                setSortingEnabled(true);
+                setEditTriggers(QAbstractItemView::DoubleClicked);
+                setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
                 setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+                setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
                 viewport()->installEventFilter(this);
             }
-            using Super = QListWidget;
         protected:
-            ActionView& parentWidget()const;
             using Layout = QVBoxLayout;
 
             struct CurEditItemInfo{
@@ -81,6 +102,8 @@ namespace Panels::Configuration::View::ActionsList{
             inline bool anyChanges()const{
                 //return not (newProcedures.isEmpty() and removedProcedures.isEmpty());
             }
+            QWidget& itemView()const; // Splitter -> Widget (Widget with Layout of ActionDataView) -> ActionView (Any - Conditional or Executable)
+            QListWidget& itemListView()const; // ActionView -> Viewport -> List
 
             inline void restoreSavedData(){
 
@@ -94,9 +117,10 @@ namespace Panels::Configuration::View::ActionsList{
             }
 
             void reloadGui();
-            void extendContextMenu(ContextMenuConfig&);
-            void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*);
-        };
+            ParentContextMenu& parentContextMenu()const override;
+            void extendContextMenu(ContextMenuConfig&)const override;
+            void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*)override;
+         };
     protected:
         // GUI Layout
         ListOfIndexes listOfIndexes;

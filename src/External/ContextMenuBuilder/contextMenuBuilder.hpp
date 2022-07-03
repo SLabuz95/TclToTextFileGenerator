@@ -7,7 +7,6 @@
 
 namespace Utils::ContextMenuBuilder{
 
-
     class Configuration{
     public:
         using Actions = QList<QAction*>;
@@ -39,6 +38,22 @@ namespace Utils::ContextMenuBuilder{
         }
     };
 
+    template<class Base>
+    class Interface : public Base{
+    public:
+        using Base::Base;
+        virtual void extendContextMenu(Configuration&)const = 0;
+        virtual void interpretContextMenuResponse(Configuration::ActionIndex, QContextMenuEvent*) = 0;
+    };
+
+    template<class Base, class ParentBase = Base>
+    class InterfaceExtended : public Interface<Base>{
+    public:
+        using ParentInterface = Interface<ParentBase>;
+        using Interface = Interface<Base>;
+        using Interface::Interface;
+        virtual ParentInterface& parentContextMenu()const = 0;
+    };
 }
 
 #endif // CONTEXTMENUBUILDER_HPP

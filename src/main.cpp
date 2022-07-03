@@ -30,13 +30,8 @@ int main(int argc, char** argv){
     map.insert({"puts", -1}, 5);
     map.insert({"puts", 0}, 5);
     map.insert({"puts", 2}, 6);
-
-
-    Map::const_iterator i;
-     for (i = map.constBegin(); i != map.constEnd(); ++i)
-         qDebug() << i.key();
-
-    qDebug() << "Test 1";
+*/
+    /*qDebug() << "Test 1";
     {
         auto temp = (map.equal_range({"set", 2}));
         if(temp.first == map.end()){
@@ -77,8 +72,9 @@ int main(int argc, char** argv){
         }else{
             qDebug() << temp.second.key();
         }
-    }
-*/
+    }*/
+
+
     App a(argc, argv);
     //if(!a.startupErrorChecking<>()) //
       //  return 0;

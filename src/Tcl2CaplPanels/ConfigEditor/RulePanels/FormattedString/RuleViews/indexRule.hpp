@@ -16,8 +16,9 @@ namespace Panels::Configuration::View::FormattedString{
         }
         ~IndexItemDataView(){}
 
-        using ItemDataView::DataRef;
-        static ItemDataView* create(ItemView& view, DataRef = nullptr);
+        using ItemDataView::FormatRuleRef;
+        static ItemDataView* create(ItemView& view, FormatRuleRef);
+        constexpr FormatRuleType type()const override{return FormatRuleType::IndexItem;}
     protected:
         //QSpinBox* indexSpinBox = nullptr;
         QSpinBox indexSpinBox;// = nullptr;

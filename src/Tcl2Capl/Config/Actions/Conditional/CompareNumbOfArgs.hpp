@@ -22,7 +22,7 @@ protected:
 template<>
 template<>
 class ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareNumbOfArguments>::Methods
-: protected ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareNumbOfArguments>::Properties
+: public ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareNumbOfArguments>::Properties
 {
 
 };
@@ -30,7 +30,7 @@ class ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareNumbOfA
 template<>
 template<>
 class ConditionalsProducts::InterfaceData<ConditionalsTypes::CompareNumbOfArguments>::Methods
-: protected ConditionalsProducts::Implementation<ConditionalsTypes::CompareNumbOfArguments>
+: public ConditionalsProducts::Implementation<ConditionalsTypes::CompareNumbOfArguments>
 {
 public:
     NumbOfArgumentsList& numbOfArgs(){return numbOfArgs_;}

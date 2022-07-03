@@ -7,7 +7,7 @@
 template<>
 template<>
 struct ParametersProducts::ImplementationData<ParametersType::Integer>::Properties
-: protected ParametersProductDefinition::Definition
+: public ParametersProductDefinition::Definition
 {
 public:
     inline static constexpr int NO_VALUE = INT32_MIN;
@@ -18,7 +18,7 @@ protected:
 template<>
 template<>
 class ParametersProducts::ImplementationData<ParametersType::Integer>::Methods
-: protected ParametersProducts::ImplementationData<ParametersType::Integer>::Properties
+: public ParametersProducts::ImplementationData<ParametersType::Integer>::Properties
 {
 protected:
 

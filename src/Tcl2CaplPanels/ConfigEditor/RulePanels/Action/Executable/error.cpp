@@ -13,7 +13,7 @@ using ActionView = ErrorActionView::ActionView;
 ErrorActionView::ErrorActionView(ActionView& view)
 {
     splitter.addWidget(&formattedStringList);
-    addRow(&splitter);
+    addWidget(&splitter);
 }
 
 ErrorActionView::DataView* ErrorActionView::create(ActionView& view, ActionRef){

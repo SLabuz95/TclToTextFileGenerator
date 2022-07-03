@@ -47,6 +47,9 @@ class ProductDefinition {
     class Definition : public Interface{
     public:
         using ProductsList = ProductsList_;
+        inline static constexpr ProductsList fromUnderlying(std::underlying_type_t<ProductsList> value){
+            return static_cast<ProductsList>(value);
+        }
         inline static constexpr std::underlying_type_t<ProductsList> toUnderlyng(ProductsList value){
             return static_cast<std::underlying_type_t<ProductsList>>(value);
         }

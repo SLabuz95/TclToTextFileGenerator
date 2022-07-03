@@ -38,12 +38,13 @@ namespace Panels::Configuration::View::Rules{
         RawRuleView(const RawRuleView&);
         ~RawRuleView()override{
 
-        }
+        }        
 
         List& parentWidget()const;
     protected:
         using MainLayout = QVBoxLayout;
-        using SettingsLayout = QFormLayout;
+        using ControlPanel = QHBoxLayout;
+        using SettingsLayout = QGridLayout;
         using ActionsSplitter = QSplitter;
         using Conditionals = ConditionalsFactory::ListOfBases;
         using ConditionalsList = View::ActionsList::List<Conditionals>;
@@ -52,13 +53,15 @@ namespace Panels::Configuration::View::Rules{
 
         ListItem& item_;
         MainLayout centralLayout;
+        ControlPanel controlPanel;
         QPushButton closeButton;
-        QFormLayout settingsLayout;
+        SettingsLayout settingsLayout;
+        QLabel ruleCOntrolLabel;
         RuleControlComboBox ruleControlComboBox;
         ActionsSplitter actionsPanel;
         ConditionalsList conditionalsList;
         ExecutablesList executablesList;
-
+        void resizeEvent(QResizeEvent* ev)override;
         bool eventFilter(QObject* obj, QEvent* ev)override;
     };
 

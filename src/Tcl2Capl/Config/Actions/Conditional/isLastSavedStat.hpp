@@ -7,7 +7,7 @@
 template<>
 template<>
 struct ConditionalsProducts::ImplementationData<ConditionalsTypes::IsLastSavedStat>::Properties
-: protected ConditionalsProductDefinition::Definition
+: public ConditionalsProductDefinition::Definition
 {
 protected:
     //IntegerParam lastSavedStat;
@@ -17,7 +17,7 @@ protected:
 template<>
 template<>
 class ConditionalsProducts::ImplementationData<ConditionalsTypes::IsLastSavedStat>::Methods
-: protected ConditionalsProducts::ImplementationData<ConditionalsTypes::IsLastSavedStat>::Properties
+: public ConditionalsProducts::ImplementationData<ConditionalsTypes::IsLastSavedStat>::Properties
 {
 
 };
@@ -25,7 +25,7 @@ class ConditionalsProducts::ImplementationData<ConditionalsTypes::IsLastSavedSta
 template<>
 template<>
 class ConditionalsProducts::InterfaceData<ConditionalsTypes::IsLastSavedStat>::Methods
-: protected ConditionalsProducts::Implementation<ConditionalsTypes::IsLastSavedStat>
+: public ConditionalsProducts::Implementation<ConditionalsTypes::IsLastSavedStat>
 {
 
 };

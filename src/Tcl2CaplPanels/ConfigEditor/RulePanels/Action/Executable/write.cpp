@@ -13,7 +13,7 @@ using ActionView = WriteActionView::ActionView;
 WriteActionView::WriteActionView(ActionView& view)
 {
     splitter.addWidget(&formattedStringList);
-    addRow(&splitter);
+    addWidget(&splitter);
 }
 
 WriteActionView::DataView* WriteActionView::create(ActionView& view, ActionRef){

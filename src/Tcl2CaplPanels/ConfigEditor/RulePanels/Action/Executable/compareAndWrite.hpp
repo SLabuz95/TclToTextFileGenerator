@@ -21,15 +21,21 @@
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
 #include"Tcl2CaplPanels/ConfigEditor/RulePanels/FormattedString/formattedString.hpp"
 
+namespace General = Panels::Configuration::View;
 namespace Panels::Configuration::View::ActionsList{
 
     class CompareAndWriteActionView
             : public ActionDataView<ExecutablesFactory::ListOfBases>
     {
-        using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
-        using RawRule = Tcl2CaplControllerConfig::RawRule;
 
-        class ExpectedArgumentsList : public QTreeWidget{
+        using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
+        using ContextMenuInterface = Utils::ContextMenuBuilder::InterfaceExtended<QTreeWidget, QListWidget>;
+
+        using RawRule = Tcl2CaplControllerConfig::RawRule;
+    public:
+        using ParentContextMenu = ContextMenuInterface::ParentInterface;
+    private:
+        class ExpectedArgumentsList : public ContextMenuInterface{
         private:
             using Super = QTreeWidget;
             class ItemDelegate : public QItemDelegate{
@@ -58,8 +64,8 @@ namespace Panels::Configuration::View::ActionsList{
                 EAL_Item(ItemType type, QString value = QString()) : type_(type){
                     switch(type){
                     case ItemType::EmptyStringItem:
-                        setText(0, "<Brak argumentu>");
-                        setToolTip(0, "Brak argumentu");
+                        setText(2, "<Brak argumentu>");
+                        setToolTip(2, "Brak argumentu");
                         break;
                     default:
                         setFlags(flags() | Qt::ItemIsEditable);
@@ -67,8 +73,20 @@ namespace Panels::Configuration::View::ActionsList{
                     }
                     if(not value.isEmpty())
                     {
-                        setText(0, value);
-                        setToolTip(0, toolTipText());
+                        switch(type){
+                        case ItemType::IndexItem:{
+                            setText(0, value);
+                            setToolTip(0, toolTipText());
+                        }
+                            break;
+                        case ItemType::ArgumentItem:{
+                            setText(2, value);
+                            setToolTip(2, toolTipText());
+                        }
+                            break;
+                        default:
+                            break;
+                        }
                     }
                 }
 
@@ -132,7 +150,7 @@ namespace Panels::Configuration::View::ActionsList{
 
             inline void editItem(ListItem* item){
                 curEditItem = item;
-                QTreeWidget::editItem(item);
+                QTreeWidget::editItem(item, (item->type() == ListItem::ItemType::IndexItem)? 0 : 2);
                 checkData();
             }
         public:
@@ -140,7 +158,22 @@ namespace Panels::Configuration::View::ActionsList{
             void addIndex();
             void addEditItem(ListItem*);
             void loadExpectedArguments(RawRule& rule);
-            void clearEditItem();
+            void clearEditItem();            
+            ParentContextMenu& parentContextMenu()const override;
+            void extendContextMenu(ContextMenuConfig&)const override;
+            void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*)override;
+            QWidget& itemView()const; // Splitter -> Widget (Widget with Layout of ActionDataView) -> ActionView (Any - Conditional or Executable)
+            QListWidget& itemListView()const; // ActionView -> Viewport -> List
+
+            QSize sizeHint()const override{
+                QSize&& sH = Super::sizeHint();
+                QSize&& msH = minimumSizeHint();
+                if(sH.height() > msH.height()){
+                    return sH;
+                }else{
+                    return QSize(sH.width(), msH.height());
+                }
+            }
         protected:
 
             inline ListItem* currentItem()const{return static_cast<ListItem*>(QTreeWidget::currentItem());}
@@ -150,6 +183,7 @@ namespace Panels::Configuration::View::ActionsList{
             bool eventFilter(QObject* oj, QEvent* ev)override;
             //void mouseReleaseEvent(QMouseEvent* ev)override;
             void contextMenuEvent(QContextMenuEvent* ev)override;
+
         };
 /*
         class OutputsList : public QListWidget{
@@ -342,6 +376,7 @@ namespace Panels::Configuration::View::ActionsList{
         //RuleControlComboBox ruleControlComboBox;
         QSplitter quickRuleInput;
         ExpectedArgumentsList expectedArgumentsList;
+        General::FormattedString::List formattedStringList;
         //OutputsList outputsList;
 
     public:

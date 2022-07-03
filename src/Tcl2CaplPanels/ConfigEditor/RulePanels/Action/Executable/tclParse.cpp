@@ -13,7 +13,7 @@ using ActionView = TclParseActionView::ActionView;
 TclParseActionView::TclParseActionView(ActionView& view)
 {
     splitter.addWidget(&formattedStringList);
-    addRow(&splitter);
+    addWidget(&splitter);
 }
 
 TclParseActionView::DataView* TclParseActionView::create(ActionView& view, ActionRef){

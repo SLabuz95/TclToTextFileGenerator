@@ -15,20 +15,51 @@ using ListItem = ExecutablesList::ListItem;
 using ActionView = ListItem::View;
 using List = ListItem::List;
 using RawRuleView = List::RawRuleView;
+template<class Base>
+using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 
 template<>
 ActionView::ActionView(ListItem& item)
+    : action(ExecutablesFactory::create()),
+      dataView_(ActionDataView::createView(*this, action))
 {
-    mainLayout.setSpacing(0);
+    QWidget* widget = new QWidget();
+    mainLayout.setFormAlignment(Qt::AlignCenter);
+    mainLayout.setVerticalSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
-    mainLayout.addRow(&actionTypeComboBox);
-    mainLayout.addRow(dataView_);
+    mainLayout.addRow("Typ akcji:", &actionTypeComboBox);
+    dataView_->setSpacing(0);
+    dataView_->setContentsMargins(0,0,0,0);
+    actionTypeComboBox.installEventFilter(this);
+    actionTypeComboBox.view()->installEventFilter(this);
+    widget->setLayout(dataView_);
+    mainLayout.addRow(widget);
     setLayout(&mainLayout);
 }
 
 template<>
 List& ActionView::parentWidget()const{
     return *static_cast<List*>(Super::parentWidget()->parentWidget()); // Viewport (1 parent) -> List (2 parent)
+}
+
+template<>
+bool ActionView::createActionDataView(ActionType type){
+    if(dataView_->type() != type){
+        QWidget* widget = new QWidget();
+        delete action;
+        mainLayout.removeRow(mainLayout.rowCount() - 1);
+        action = ExecutablesFactory::create(type);
+        dataView_ = ActionDataView::createView(*this, action);
+        dataView_->setSpacing(0);
+        dataView_->setContentsMargins(0,0,0,0);
+        widget->setLayout(dataView_);
+        mainLayout.addRow(widget);
+        qApp->processEvents();
+        QListWidget& listWidget = parentWidget();
+        QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+        item->setSizeHint(listWidget.itemWidget(item)->minimumSizeHint());
+    }
+    return true;
 }
 
 template<>
@@ -68,6 +99,10 @@ void ExecutablesList::execRequest_ContextMenu<ExecutablesList::Request_ContextMe
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     delete item;
+    qApp->processEvents();
+    QListWidget& listWidget = parentWidget().parentWidget();
+    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 template<>
@@ -75,17 +110,28 @@ template<>
 void ExecutablesList::execRequest_ContextMenu<ExecutablesList::Request_ContextMenu::Clear>(ListItem*)
 {
     clear();
+
+    qApp->processEvents();
+    QListWidget& listWidget = parentWidget().parentWidget();
+    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 template<>
-void ExecutablesList::extendContextMenu(ContextMenuConfig& config){
+ContextMenuInterface<QListWidget>& ExecutablesList::parentContextMenu()const
+{
+    return *static_cast<ParentContextMenu*>(&parentWidget().parentWidget()); //Splitter -> RuleView
+}
+
+template<>
+void ExecutablesList::extendContextMenu(ContextMenuConfig& config)const{
     config.addMenu("Akcje",{
                                      new QAction("Dodaj"),
                                      new QAction("Klonuj"),
                                      new QAction("Usuń"),
                                      new QAction("Usuń wszystkie")
                                    });
-    parentWidget().parentWidget().extendContextMenu(config);
+    parentContextMenu().extendContextMenu(config);
 }
 
 template<>
@@ -100,7 +146,7 @@ void ExecutablesList::interpretContextMenuResponse(ContextMenuConfig::ActionInde
     };
     constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
     if(index >= functionsSize){
-        parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+        parentContextMenu().interpretContextMenuResponse(index - functionsSize, cev);
     }else{
         ListItem* item = itemAt(cev->pos());
         (this->*(actionFunc[index]))(item);
@@ -135,14 +181,14 @@ void ExecutablesList::contextMenuEvent(QContextMenuEvent *cev){
                         new QAction("Usuń wszystkie akcje")
                     });
     }
-    parentWidget().parentWidget().extendContextMenu(contextMenuConfig);
+    parentContextMenu().extendContextMenu(contextMenuConfig);
     qsizetype&& index = contextMenuConfig.exec(cev);
     if(index >= 0){
         if(item){
             interpretContextMenuResponse(index, cev);
         }else{
             if(index >= functionsSize){
-                parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+                parentContextMenu().interpretContextMenuResponse(index - functionsSize, cev);
             }else{
                 (this->*(actionFunc[index]))(item);
             }
@@ -151,6 +197,28 @@ void ExecutablesList::contextMenuEvent(QContextMenuEvent *cev){
 }
 
 
+template<>
+bool ActionView::eventFilter(QObject* obj, QEvent* ev){
+    switch(ev->type()){
+    case QEvent::ContextMenu:
+    {
+        if(obj == &actionTypeComboBox){
+            parentWidget().contextMenuEvent(static_cast<QContextMenuEvent*>(ev));
+        }
+    }
+        break;
+    case QEvent::Leave:
+    {
+        if(obj == actionTypeComboBox.view()){
+            createActionDataView(Action::fromUnderlying(actionTypeComboBox.currentIndex()));
+        }
+    }
+        break;
+    default:
+        break;
+    }
+    return Super::eventFilter(obj, ev);
+}
 template<>
 ExecutablesList
 ::List(){
@@ -165,6 +233,7 @@ ExecutablesList
     //setMovement(Snap);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setDragDropMode(QAbstractItemView::InternalMove);
+    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setDefaultDropAction(Qt::DropAction::MoveAction);
     setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
     setDragDropOverwriteMode(true);

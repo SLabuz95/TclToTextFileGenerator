@@ -32,8 +32,9 @@ namespace Panels::Configuration::View::FormattedString{
             }
         };
 
-        using ItemDataView::DataRef;
-        static ItemDataView* create(ItemView& view, DataRef = nullptr);
+        using ItemDataView::FormatRuleRef;
+        static ItemDataView* create(ItemView& view, FormatRuleRef = nullptr);
+        constexpr FormatRuleType type()const override{return FormatRuleType::TextItem;}
     protected:
         //LineEdit* textLineEdit = nullptr;
         LineEdit textLineEdit;// = nullptr;

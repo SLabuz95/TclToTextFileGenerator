@@ -1,4 +1,3 @@
-
 #include"executables.hpp"
 
 using namespace Panels::Configuration::View::ActionsList;

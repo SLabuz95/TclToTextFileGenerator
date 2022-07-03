@@ -3,7 +3,7 @@
 #include<QPainter>
 #include<QEnterEvent>
 #include"app.hpp"
-
+#include<QApplication>
 
 MainWindow::MainWindow(App& app)
     :  app_(app), instanceList(*this)
@@ -11,6 +11,14 @@ MainWindow::MainWindow(App& app)
     splitter.addWidget(&instanceList);
     splitter.addWidget(&view);
     setCentralWidget(&splitter);
+    setGeometry(
+       QStyle::alignedRect(
+           Qt::LeftToRight,
+           Qt::AlignCenter,
+           qApp->primaryScreen()->availableGeometry().size()*0.7,
+           qApp->primaryScreen()->availableGeometry()
+       )
+    );
     //view.setViewMode(View::TabbedView);
     show();
 }

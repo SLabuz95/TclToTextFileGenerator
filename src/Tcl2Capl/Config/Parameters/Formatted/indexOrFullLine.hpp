@@ -7,7 +7,7 @@
 template<>
 template<>
 struct FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Properties
-: protected FormatParametersProductDefinition::Definition
+: public FormatParametersProductDefinition::Definition
 {
 
 protected:
@@ -18,7 +18,7 @@ protected:
 template<>
 template<>
 class FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Methods
-: protected FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Properties
+: public FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Properties
 {
 
 };

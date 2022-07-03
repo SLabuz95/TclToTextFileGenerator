@@ -13,6 +13,6 @@ View::CreateFunctionTable View::createFunctionTable = {
     &FormatItemDataView::create,
 };
 
-View* View::createView(ItemView& view,DataRef data){
-    return (createFunctionTable[FCT_toUnderlying((data)? data->type() : DataViewType())])(view, data);
+View* View::createView(ItemView& view, FormatRuleRef data){
+    return (createFunctionTable[FCT_toUnderlying((data)? data->type() : FormatRuleType())])(view, data);
 }

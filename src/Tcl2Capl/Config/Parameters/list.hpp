@@ -8,7 +8,7 @@
 template<>
 template<>
 struct ParametersProducts::ImplementationData<ParametersType::List>::Properties
-: protected ParametersProductDefinition::Definition
+: public ParametersProductDefinition::Definition
 {
 protected:
     using ParametersList = ListOfBases;
@@ -19,7 +19,7 @@ protected:
 template<>
 template<>
 class ParametersProducts::ImplementationData<ParametersType::List>::Methods
-: protected ParametersProducts::ImplementationData<ParametersType::List>::Properties
+: public ParametersProducts::ImplementationData<ParametersType::List>::Properties
 {
 protected:
 

@@ -17,9 +17,14 @@
 #include<QItemDelegate>
 #include"RulePanels/rawRule.hpp"
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
+#include<QPainter>
 
 namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
     class RulesList;
+
+    using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
+    template<class Base>
+    using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 
     class ListItem : public QListWidgetItem{
         using RawRuleView = Rules::RawRuleView;
@@ -44,11 +49,11 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         RulesList &rulesList() const; //{ return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }
         inline RawRuleView& rawRuleView(){return rawRuleView_;}
     };
-    class RulesList : public QListWidget{
-        using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
+    class RulesList : public ContextMenuInterface<QListWidget> {
         using RulesRef = Tcl2CaplControllerConfig::RawRules&;
         using RuleRef = Tcl2CaplControllerConfig::RawRule&;
         using Rule = Tcl2CaplControllerConfig::RawRule;
+        using Super = ContextMenuInterface<QListWidget>;
     public:
         using Request_ContextMenu_Func = void (RulesList::*)(ListItem*);
         enum class Request_ContextMenu{
@@ -91,6 +96,8 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
             //newItem->init();
         }
 
+
+
        void contextMenuEvent(QContextMenuEvent *e) override;
 
        void mousePressEvent(QMouseEvent* ev)override{
@@ -119,8 +126,19 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
 
             QListWidget::dropEvent(ev);
         }
-        void extendContextMenu(ContextMenuConfig&);
-        void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*);
+
+        /*
+        QSize sizeHint()const override{
+            QSize&& sH = Super::sizeHint();
+            QSize&& msH = minimumSizeHint();
+            if(sH.height() > msH.height()){
+                return sH;
+            }else{
+                return QSize(sH.width(), msH.height());
+            }
+        }*/
+        void extendContextMenu(ContextMenuConfig&)const override;
+        void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*)override;
     };
 
     using Panel = RulesList;

@@ -8,12 +8,17 @@
 #include<QWidget>
 
 using namespace Panels::Configuration::View::ActionsList;
+using ParentContextMenu = CompareAndWriteActionView::ParentContextMenu;
 
 CompareAndWriteActionView::ExpectedArgumentsList::ExpectedArgumentsList(){
     ItemDelegate* itemDelegateObj = new ItemDelegate(*this);
     setItemDelegate(itemDelegateObj);
     setEditTriggers(QAbstractItemView::DoubleClicked);
+    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
+    setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
     setSortingEnabled(true);
+    sortByColumn(0, Qt::SortOrder::AscendingOrder);
     viewport()->installEventFilter(this);
 }
 
@@ -29,6 +34,17 @@ void CompareAndWriteActionView::ExpectedArgumentsList::addIndex()
     addTopLevelItem(curEditItem);
     editItem(curEditItem);
 
+}
+
+
+QWidget& CompareAndWriteActionView::ExpectedArgumentsList::itemView()const{
+    // Splitter -> Widget (Widget with Layout of DataView) -> ItemView (Any)
+    return *Super::parentWidget()->parentWidget()->parentWidget();
+}
+
+QListWidget& CompareAndWriteActionView::ExpectedArgumentsList::itemListView()const{
+    // itemView -> Viewport -> List
+    return *static_cast<QListWidget*>(itemView().parentWidget()->parentWidget());
 }
 
 void CompareAndWriteActionView::ExpectedArgumentsList::loadExpectedArguments(RawRule& rule)
@@ -57,12 +73,11 @@ void CompareAndWriteActionView::ExpectedArgumentsList::addEditItem(ListItem *ite
     clearEditItem();
 
     editItem(curEditItem = item);
-
 }
 
 QWidget* CompareAndWriteActionView::ExpectedArgumentsList::ItemDelegate::
 createEditor(QWidget* parent,
-             const QStyleOptionViewItem& option,
+             const QStyleOptionViewItem& ,
              const QModelIndex& index) const
 {
     // For List Item Type == EmptyStringItem dont edit
@@ -102,7 +117,7 @@ QString CompareAndWriteActionView::ExpectedArgumentsList::ListItem::
 toolTipText() const{
     switch(type()){
     case ItemType::IndexItem:       return QStringLiteral("Indeks: ") + text(0);
-    case ItemType::ArgumentItem:    return QStringLiteral("Argument: \"") + text(0) + QStringLiteral("\"");
+    case ItemType::ArgumentItem:    return QStringLiteral("Argument: \"") + text(2) + QStringLiteral("\"");
     default:
         break;
     }
@@ -139,7 +154,6 @@ void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::addEmptyStringA
         addChild(newItem);
         if(not isExpanded()) setExpanded(true);
         treeWidget()->addEditItem(newItem);
-
     }
 }
 
@@ -161,7 +175,7 @@ void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::loadArgument(QS
 
 template<>
 void CompareAndWriteActionView::ExpectedArgumentsList::execRequest_ContextMenu
-<CompareAndWriteActionView::ExpectedArgumentsList::Request_ContextMenu::NewIndex>(ListItem* item){
+<CompareAndWriteActionView::ExpectedArgumentsList::Request_ContextMenu::NewIndex>(ListItem* ){
     addIndex();
 }
 
@@ -204,6 +218,10 @@ void CompareAndWriteActionView::ExpectedArgumentsList::execRequest_ContextMenu
 
     if(curEditItem == item) clearEditItem();
     delete item;
+    qApp->processEvents();
+    QListWidget& listWidget = itemListView();
+    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 template<>
@@ -228,6 +246,10 @@ void CompareAndWriteActionView::ExpectedArgumentsList::execRequest_ContextMenu
 
     if(curEditItem == item) clearEditItem();
     delete item;
+    qApp->processEvents();
+    QListWidget& listWidget = itemListView();
+    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 template<>
@@ -242,9 +264,13 @@ void CompareAndWriteActionView::ExpectedArgumentsList::execRequest_ContextMenu
 
 template<>
 void CompareAndWriteActionView::ExpectedArgumentsList::execRequest_ContextMenu
-<CompareAndWriteActionView::ExpectedArgumentsList::Request_ContextMenu::RemoveAllIndexes>(ListItem* item){
+<CompareAndWriteActionView::ExpectedArgumentsList::Request_ContextMenu::RemoveAllIndexes>(ListItem*){
     //clearEditItem();
     clear();
+    qApp->processEvents();
+    QListWidget& listWidget = itemListView();
+    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
 }
 
 template<>
@@ -264,27 +290,81 @@ void CompareAndWriteActionView::ExpectedArgumentsList::execRequest_ContextMenu
         if(curEditItem == (*child)) clearEditItem();
         delete (*child);
     }
+    qApp->processEvents();
+    QListWidget& listWidget = itemListView();
+    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
+}
+
+ParentContextMenu& CompareAndWriteActionView::ExpectedArgumentsList::parentContextMenu()const
+{
+    return *static_cast<ParentContextMenu*>(&itemListView()); //ItemListView
+}
+
+void CompareAndWriteActionView::ExpectedArgumentsList::extendContextMenu(ContextMenuConfig&)const{
+}
+
+void CompareAndWriteActionView::ExpectedArgumentsList::interpretContextMenuResponse(ContextMenuConfig::ActionIndex index, QContextMenuEvent* cev){
+    using ActionFuncs = Request_ContextMenu_Func[];
+    using Request = Request_ContextMenu;
+    constexpr ActionFuncs indexActionFunc = {
+        &Self::execRequest_ContextMenu<Request::NewIndex>,
+        &Self::execRequest_ContextMenu<Request::NewArgument>,
+        &Self::execRequest_ContextMenu<Request::AddEmptyStringArg>,
+        &Self::execRequest_ContextMenu<Request::EditIndex>,
+        &Self::execRequest_ContextMenu<Request::RemoveIndex>,
+        &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>,
+        &Self::execRequest_ContextMenu<Request::RemoveAllArguments>,
+    };
+    constexpr ActionFuncs argumentActionFunc = {
+        &Self::execRequest_ContextMenu<Request::NewIndex>,
+        &Self::execRequest_ContextMenu<Request::NewArgument>,
+        &Self::execRequest_ContextMenu<Request::AddEmptyStringArg>,
+        &Self::execRequest_ContextMenu<Request::EditIndex>,
+        &Self::execRequest_ContextMenu<Request::EditArgument>,
+        &Self::execRequest_ContextMenu<Request::RemoveIndex>,
+        &Self::execRequest_ContextMenu<Request::RemoveArgument>,
+        &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>,
+        &Self::execRequest_ContextMenu<Request::RemoveAllArguments>,
+    };
+    constexpr uint indexFunctionsSize = std::extent_v<decltype(indexActionFunc)>;
+    constexpr uint argumentFunctionsSize = std::extent_v<decltype(argumentActionFunc)>;
+    ListItem* item = itemAt(cev->pos());
+    if(item->type() == ListItem::ItemType::IndexItem){
+        if(index >= indexFunctionsSize){
+            parentContextMenu().interpretContextMenuResponse(index - indexFunctionsSize, cev);
+        }else{
+            (this->*(indexActionFunc[index]))(item);
+        }
+    }else{
+        if(index >= argumentFunctionsSize){
+            parentContextMenu().interpretContextMenuResponse(index - argumentFunctionsSize, cev);
+        }else{
+            (this->*(argumentActionFunc[index]))(item);
+        }
+    }
 }
 
 void CompareAndWriteActionView::ExpectedArgumentsList::contextMenuEvent(QContextMenuEvent *mev){
-
         ListItem* item = itemAt(mev->pos());
 
-        using Actions = QList<QAction*>;
-        using ActionFuncs = QList<Request_ContextMenu_Func>;
+        // Specify file and error checking
+        using ActionFuncs = Request_ContextMenu_Func[];
         using Request = Request_ContextMenu;
-
-        Actions actions;
-        ActionFuncs actionFuncs;
-        QMenu* menu = new QMenu;
+        constexpr ActionFuncs actionFunc = {
+            &Self::execRequest_ContextMenu<Request::NewIndex>,
+            &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>
+        };
+        constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
+        ContextMenuConfig contextMenuConfig;
 
         if(item){
             // Specify file and error checking
-
             switch(item->type()){
             case ListItem::ItemType::IndexItem:
             {
-                actions = {
+                contextMenuConfig.addActions(
+                            {
                     new QAction("Dodaj indeks"),
                     new QAction("Dodaj argument"),
                     new QAction("Dodaj pusty argument"),
@@ -292,7 +372,7 @@ void CompareAndWriteActionView::ExpectedArgumentsList::contextMenuEvent(QContext
                     new QAction("Usun indeks"),
                     new QAction("Usun wszystkie indeksy"),
                     new QAction("Usun wszystkie argumenty")
-                };
+                });/*
                 actionFuncs = {
                     &Self::execRequest_ContextMenu<Request::NewIndex>,
                     &Self::execRequest_ContextMenu<Request::NewArgument>,
@@ -301,14 +381,15 @@ void CompareAndWriteActionView::ExpectedArgumentsList::contextMenuEvent(QContext
                     &Self::execRequest_ContextMenu<Request::RemoveIndex>,
                     &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>,
                     &Self::execRequest_ContextMenu<Request::RemoveAllArguments>,
-                };
+                };*/
             }
                 break;
             case ListItem::ItemType::EmptyStringItem:
             case ListItem::ItemType::ArgumentItem:
             {
-                actions = {
-                    new QAction("Dodaj indeks"),
+                contextMenuConfig.addActions(
+                            {
+                   new QAction("Dodaj indeks"),
                     new QAction("Dodaj argument"),
                     new QAction("Dodaj pusty argument"),
                     new QAction("Edytuj indeks"),
@@ -317,7 +398,8 @@ void CompareAndWriteActionView::ExpectedArgumentsList::contextMenuEvent(QContext
                     new QAction("Usun argument"),
                     new QAction("Usun wszystkie indeksy"),
                     new QAction("Usun wszystkie argumenty ")
-                };
+                });
+                /*
                 actionFuncs = {
                     &Self::execRequest_ContextMenu<Request::NewIndex>,
                     &Self::execRequest_ContextMenu<Request::NewArgument>,
@@ -328,36 +410,30 @@ void CompareAndWriteActionView::ExpectedArgumentsList::contextMenuEvent(QContext
                     &Self::execRequest_ContextMenu<Request::RemoveArgument>,
                     &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>,
                     &Self::execRequest_ContextMenu<Request::RemoveAllArguments>,
-                };
+                };*/
             }
-                break;
-
-            default:
-                delete menu;
-                menu = nullptr;
+            break;
             }
         }else{
-            menu = new QMenu;
-            actions = {
+            contextMenuConfig.addActions(
+                        {
                 new QAction("Dodaj indeks"),
                 new QAction("Usun wszystkie indeksy")
-            };
-            actionFuncs = {
-                &Self::execRequest_ContextMenu<Request::NewIndex>,
-                &Self::execRequest_ContextMenu<Request::RemoveAllIndexes>
-            };
-
+            });
         }
         // After configuration
-        if(menu){
-            menu->addActions(actions);
-            int index = actions.indexOf( menu->exec(mev->globalPos()));
-            if(index >= 0){
-                Q_ASSERT_X(index < actionFuncs.size(), "ExpectedArgumentList Menu", "Index error for action functions");
-                (this->*(actionFuncs.at(index)))(item);
+        parentContextMenu().extendContextMenu(contextMenuConfig);
+        qsizetype&& index = contextMenuConfig.exec(mev);
+        if(index >= 0){
+            if(item){
+                interpretContextMenuResponse(index, mev);
+            }else{
+                if(index >= functionsSize){
+                    parentContextMenu().interpretContextMenuResponse(index - functionsSize, mev);
+                }else{
+                    (this->*(actionFunc[index]))(item);
+                }
             }
-            delete menu;
-            menu = nullptr;
         }
     return ;
 }
@@ -369,15 +445,21 @@ bool CompareAndWriteActionView::ExpectedArgumentsList::eventFilter(QObject* obj,
         curEditItem = itemAt(mev->pos());
     }
 
-    if(ev->type() == QEvent::LayoutRequest and obj == viewport()){  // Any change
-
+    if(ev->type() == QEvent::LayoutRequest and obj == viewport()){  // Any change        
+        QListWidget& listWidget = itemListView();
+        QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+        item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
     }
 
     if(ev->type() == QEvent::ChildRemoved and obj == viewport()){
         if(curEditItem){
             // Confirm that index or argument isnt duplicated
-            if(curEditItem->text(0).isEmpty()){
+            if(curEditItem->text((curEditItem->type() == ListItem::ItemType::IndexItem)? 0 : 2).isEmpty()){
                 delete curEditItem;
+                qApp->processEvents();
+                QListWidget& listWidget = itemListView();
+                QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
             }else{
                 // Confirm that index or argument isnt duplicated
                 // Remove if its
@@ -390,7 +472,7 @@ bool CompareAndWriteActionView::ExpectedArgumentsList::eventFilter(QObject* obj,
                     for(int itemIndex = 0 ; itemIndex < parentItem->childCount(); itemIndex++){
                         if(parentItem->child(itemIndex) != curEditItem and
                                 parentItem->child(itemIndex)->type() == ListItem::ItemType::ArgumentItem and
-                                 parentItem->child(itemIndex)->text(0) == textToCompare){
+                                 parentItem->child(itemIndex)->text(2) == textToCompare){
                             indexOrArgumentIsntDuplicated = false;
                             break;
                         }
@@ -408,12 +490,18 @@ bool CompareAndWriteActionView::ExpectedArgumentsList::eventFilter(QObject* obj,
                     }
                 }
                     break;
+                default:
+                    break;
                 }
 
                 if(indexOrArgumentIsntDuplicated){
-                    curEditItem->setToolTip(0, curEditItem->toolTipText());
+                    curEditItem->setToolTip((curEditItem->type() == ListItem::ItemType::IndexItem)? 0 : 2, curEditItem->toolTipText());
                 }else{
                     delete curEditItem;
+                    qApp->processEvents();
+                    QListWidget& listWidget = itemListView();
+                    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                    item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
                 }
 
             }
@@ -431,7 +519,7 @@ CompareAndWriteActionView::OutputsList::OutputsList(){
 }
 
 void CompareAndWriteActionView::OutputsList::loadOutputs(RawRule &rule){
-   /* using WriteActionsIter = QuickRule::WriteActions::Iterator;
+    using WriteActionsIter = QuickRule::WriteActions::Iterator;
     for(WriteActionsIter writeAction = rule.writeActions().begin();
         writeAction != rule.writeActions().end();
         writeAction++)
@@ -709,7 +797,7 @@ CompareAndWriteActionView::DataView* CompareAndWriteActionView::create(ActionVie
     return new CompareAndWriteActionView(view);
 }
 
-CompareAndWriteActionView::CompareAndWriteActionView(ActionView& item)
+CompareAndWriteActionView::CompareAndWriteActionView(ActionView& )
 /*: item_(item)*/
 {
     // Setup layout
@@ -732,12 +820,13 @@ CompareAndWriteActionView::CompareAndWriteActionView(ActionView& item)
     expectedArgumentsList.setHeaderLabels({"Indeksy", "Aktywne", "Spodziewane argumenty"});
     expectedArgumentsList.setSortingEnabled(true);
     quickRuleInput.addWidget(&expectedArgumentsList);
+    quickRuleInput.addWidget(&formattedStringList);
     //outputsList.setHeaderLabels({"Format", "Zawartość"});
     //quickRuleInput.addWidget(&outputsList);
 
     centralLayout.addWidget(&quickRuleInput);
 
-    addItem(&centralLayout);
+    addLayout(&centralLayout);
 
     // Rule available
     //if(rule){   // Exists

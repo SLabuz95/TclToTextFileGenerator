@@ -22,7 +22,6 @@ public:
 
     // Parser (Thread)
     //Tcl2Capl tcl2Capl;
-
     // GUI
     AppWindow appWindow;
     //Panel configEditor;

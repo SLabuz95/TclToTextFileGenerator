@@ -8,7 +8,7 @@
 template<>
 template<>
 struct ExecutablesProducts::ImplementationData<ExecutablesTypes::AddUserInteraction>::Properties
-: protected ExecutablesProductDefinition::Definition
+: public ExecutablesProductDefinition::Definition
 {
 protected:
     //ListParam outputParams;
@@ -18,7 +18,7 @@ protected:
 template<>
 template<>
 class ExecutablesProducts::ImplementationData<ExecutablesTypes::AddUserInteraction>::Methods
-: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::AddUserInteraction>::Properties
+: public ExecutablesProducts::ImplementationData<ExecutablesTypes::AddUserInteraction>::Properties
 {
 
 };
@@ -26,7 +26,7 @@ class ExecutablesProducts::ImplementationData<ExecutablesTypes::AddUserInteracti
 template<>
 template<>
 class ExecutablesProducts::InterfaceData<ExecutablesTypes::AddUserInteraction>::Methods
-: protected ExecutablesProducts::Implementation<ExecutablesTypes::AddUserInteraction>
+: public ExecutablesProducts::Implementation<ExecutablesTypes::AddUserInteraction>
 {
 
 };

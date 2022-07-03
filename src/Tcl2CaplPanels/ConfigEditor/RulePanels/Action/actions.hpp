@@ -16,12 +16,17 @@
 #include"Tcl2Capl/controllerconfig.hpp"
 #include<QItemDelegate>
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
+#include<QSizeGrip>
 
 namespace Panels::Configuration::View::Rules{
     class RawRuleView;
 }
 
 namespace Panels::Configuration::View::ActionsList{
+
+    using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
+    template<class Base>
+    using ContextMenuInterface = Utils::ContextMenuBuilder::InterfaceExtended<Base>;
 
     template<class Actions>
     class List;
@@ -31,7 +36,7 @@ namespace Panels::Configuration::View::ActionsList{
     class ActionView;
 
     template<class Actions>
-    class ActionDataView : public QFormLayout{
+    class ActionDataView : public QVBoxLayout{
     public:
         using ActionPtr = typename Actions::Type;
         using Action = std::remove_pointer_t<ActionPtr>;
@@ -46,7 +51,8 @@ namespace Panels::Configuration::View::ActionsList{
         using CreateFunctionTable = CreateFunction[];
      protected:
         ActionDataView()
-            : QFormLayout(){}
+            : QVBoxLayout(){}
+
         /*
         static constexpr CreateFunction initCreateFunctionTable(){
             for(ActionType productType = ActionType::FCT_Begin; productType < ActionType::FCT_End; productType++){
@@ -62,7 +68,9 @@ namespace Panels::Configuration::View::ActionsList{
 
         static CreateFunctionTable createFunctionTable;
     public:
-        static ActionDataView* createView(ActionView& view, ActionRef = nullptr);
+        ~ActionDataView()override{
+        }
+        static ActionDataView* createView(ActionView& view, ActionRef);
 
         //virtual Action toAction() = 0;
         virtual constexpr ActionType type()const = 0;
@@ -73,6 +81,7 @@ namespace Panels::Configuration::View::ActionsList{
     class ActionView : public QWidget{
         using ActionPtr = typename Actions::Type;
         using Action = std::remove_pointer_t<ActionPtr>;
+        using ActionType = typename Action::ProductsList;
         using ActionDataView = ActionDataView<Actions>;
         using MainLayout = QVBoxLayout;
         using ListItem = ListItem<Actions>;
@@ -82,7 +91,7 @@ namespace Panels::Configuration::View::ActionsList{
         public:
             ActionTypeComboBox(){
 
-                if constexpr (std::is_same_v<typename Action::ProductsList, Tcl::Command::Definition::Action::Conditional>)
+                if constexpr (std::is_same_v<ActionType, Tcl::Command::Definition::Action::Conditional>)
                     addItems(Tcl::Command::Definition::Action::conditionalsNames());
                 else
                     addItems(Tcl::Command::Definition::Action::executablesNames());
@@ -90,16 +99,27 @@ namespace Panels::Configuration::View::ActionsList{
         };
         public:
             ActionView(ListItem& );
-            ~ActionView(){
+            ~ActionView()override{
 
             }
             List& parentWidget()const;
+
         protected:
+            ActionPtr action = nullptr;
+            bool eventFilter(QObject* obj, QEvent* ev)override;
 
             QFormLayout mainLayout;
             ActionTypeComboBox actionTypeComboBox;
             ActionDataView* dataView_ = nullptr;
 
+            bool createActionDataView(ActionType);
+            void resizeEvent(QResizeEvent* ev)override{
+                Super::resizeEvent(ev);
+                qApp->processEvents();
+                QListWidget& listWidget = parentWidget().parentWidget().parentWidget();
+                QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                item->setSizeHint(parentWidget().parentWidget().sizeHint());
+            }
     };
 
     template<class Actions>
@@ -127,15 +147,15 @@ namespace Panels::Configuration::View::ActionsList{
     };
 
     template<class Actions>
-    class List : public QListWidget{
+    class List : public ContextMenuInterface<QListWidget>{
         using ActionsRef = Actions&;
         using ActionPtr = typename Actions::Type;
-        using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
     public:
         using ListItem = ListItem<Actions>;
         using RawRuleView = Rules::RawRuleView;
         using Request_ContextMenu_Func = void (List::*)(ListItem*);
-        using Super = QListWidget;
+        using Super = ContextMenuInterface<QListWidget>;
+        using ParentContextMenu = Utils::ContextMenuBuilder::Interface<QListWidget>;
         enum class Request_ContextMenu{
             Add,
             Clone,
@@ -158,10 +178,10 @@ namespace Panels::Configuration::View::ActionsList{
 
     public:
         RawRuleView& parentWidget()const;
-        inline ListItem* currentItem()const{return static_cast<ListItem*>(QListWidget::currentItem());}
-        inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(QListWidget::itemAt(p));}
+        inline ListItem* currentItem()const{return static_cast<ListItem*>(Super::currentItem());}
+        inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(Super::itemAt(p));}
 
-        inline ListItem* item(int index)const{return static_cast<ListItem*>(QListWidget::item(index));}
+        inline ListItem* item(int index)const{return static_cast<ListItem*>(Super::item(index));}
         inline ListItem* lastItem()const{return item(count() - 1);}
 
         void loadActions(ActionsRef);
@@ -181,7 +201,7 @@ namespace Panels::Configuration::View::ActionsList{
 
        void mousePressEvent(QMouseEvent* ev)override{
            lastPressedItem = itemAt(ev->pos());
-           QListWidget::mousePressEvent(ev);
+           Super::mousePressEvent(ev);
        }
 
         void dropEvent(QDropEvent* ev)override{
@@ -209,8 +229,32 @@ namespace Panels::Configuration::View::ActionsList{
             QListWidget::dropEvent(ev);
         }
 
-        void extendContextMenu(ContextMenuConfig&);
-        void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*);
+        /*void dataChanged(const QModelIndex &topLeft,
+                        const QModelIndex &bottomRight,
+                        const QList<int> &roles = QList<int>())override
+        {
+            qDebug() << "actions data changed" << topLeft << bottomRight << roles;
+            Super::dataChanged(topLeft, bottomRight, roles);
+            qApp->processEvents();
+            QListWidget& listWidget = parentWidget().parentWidget();
+            QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+            item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
+        }*/
+
+
+        /*
+        QSize sizeHint()const override{
+            QSize&& sH = Super::sizeHint();
+            QSize&& msH = minimumSizeHint();
+            if(sH.height() > msH.height()){
+                return sH;
+            }else{
+                return QSize(sH.width(), msH.height());
+            }
+        }*/
+        ParentContextMenu& parentContextMenu()const override;
+        void extendContextMenu(ContextMenuConfig&)const override;
+        void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*)override;
     };
 
 }

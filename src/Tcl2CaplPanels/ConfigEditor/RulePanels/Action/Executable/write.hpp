@@ -14,6 +14,9 @@ namespace Panels::Configuration::View::ActionsList{
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
 
         WriteActionView(ActionView&);
+        ~WriteActionView()override{
+            qDebug() << "Write Destroyed";
+        }
     public:
         static ActionDataView* create(ActionView&, ActionRef);
         using ActionView = ActionView;
@@ -24,6 +27,7 @@ namespace Panels::Configuration::View::ActionsList{
 
         // GUI Elements
         // List of Indexes definition
+
     public:
     protected:
         // GUI Layout

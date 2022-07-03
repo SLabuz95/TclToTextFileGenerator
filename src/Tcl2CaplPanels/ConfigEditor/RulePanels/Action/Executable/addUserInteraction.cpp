@@ -13,7 +13,7 @@ using ActionView = AddUserInteractionActionView::ActionView;
 AddUserInteractionActionView::AddUserInteractionActionView(ActionView& view)
 {
     splitter.addWidget(&formattedStringList);
-    addRow(&splitter);
+    addWidget(&splitter);
 }
 
 AddUserInteractionActionView::DataView* AddUserInteractionActionView::create(ActionView& view, ActionRef){

@@ -27,12 +27,13 @@ namespace Panels::Configuration::View::FormattedString{
         }
         ~FormatItemDataView(){}
 
-        using ItemDataView::DataRef;
-        static ItemDataView* create(ItemView& view, DataRef = nullptr);
+        using ItemDataView::FormatRuleRef;
+        static ItemDataView* create(ItemView& view, FormatRuleRef = nullptr);
     protected:
         //QComboBox* formatRule = nullptr;
         QComboBox formatRule;// = nullptr;
-
+    public:
+        constexpr FormatRuleType type()const override{return FormatRuleType::FormatItem;}
     };
 }
 

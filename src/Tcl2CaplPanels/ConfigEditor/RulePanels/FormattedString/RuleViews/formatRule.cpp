@@ -1,10 +1,10 @@
 #include"formatRule.hpp"
 
 namespace FormattedString_NS = Panels::Configuration::View::FormattedString;
-using FormatRuleView = FormattedString_NS::FormatItemDataView;
+using FormatRuleDataView = FormattedString_NS::FormatItemDataView;
 //using ListOfIndexes = CompareNumbOfArgsActionView::ListOfIndexes;
-using RuleView = FormatRuleView::ItemView;
+using RuleView = FormatRuleDataView::FormatRuleRef;
 
-FormatRuleView::ItemDataView* FormatRuleView::create(RuleView& view, DataRef){
-    return new FormatRuleView();
+FormatRuleDataView::ItemDataView* FormatRuleDataView::create(ItemView& view, FormatRuleRef){
+    return new FormatRuleDataView();
 }

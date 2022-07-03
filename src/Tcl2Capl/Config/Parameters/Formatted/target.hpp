@@ -1,13 +1,13 @@
-#ifndef NameItem_HPP
-#define NameItem_HPP
+#ifndef TARGET_HPP
+#define TARGET_HPP
 
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/Formatted/definition.hpp"
 
 template<>
 template<>
-struct FormatParametersProducts::ImplementationData<FormatParametersType::NameItem>::Properties
-: protected FormatParametersProductDefinition::Definition
+struct FormatParametersProducts::ImplementationData<FormatParametersType::FormatItem>::Properties
+: public FormatParametersProductDefinition::Definition
 {
 protected:
    // FormatParametersProducts::FactoryCommonInterface* data = nullptr;
@@ -16,16 +16,16 @@ protected:
 
 template<>
 template<>
-class FormatParametersProducts::ImplementationData<FormatParametersType::NameItem>::Methods
-: protected FormatParametersProducts::ImplementationData<FormatParametersType::NameItem>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::FormatItem>::Methods
+: public FormatParametersProducts::ImplementationData<FormatParametersType::FormatItem>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersProducts::InterfaceData<FormatParametersType::NameItem>::Methods
-: public FormatParametersProducts::Implementation<FormatParametersType::NameItem>
+class FormatParametersProducts::InterfaceData<FormatParametersType::FormatItem>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::FormatItem>
 {
 public:
    // void toXmlContent(QXmlStreamWriter& xmlWriter) override;
@@ -38,4 +38,4 @@ using IntegerParam = ParametersFactory::Product<ParametersType::Integer>;
 using ListParam = ParametersFactory::Product<ParametersType::List>;
 */
 
-#endif // NameItem_HPP
+#endif // TARGET_HPP

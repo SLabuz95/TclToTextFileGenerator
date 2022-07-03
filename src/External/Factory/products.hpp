@@ -62,7 +62,7 @@ class ProductsConfiguration{
     public:
 
     template<ProductsList ProductType>
-    class Interface : protected InterfaceData<ProductType>::Methods{};
+    class Interface : public InterfaceData<ProductType>::Methods{};
 
 };
 

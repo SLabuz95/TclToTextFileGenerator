@@ -7,7 +7,7 @@
 template<>
 template<>
 struct ExecutablesProducts::ImplementationData<ExecutablesTypes::TclParse>::Properties
-: protected ExecutablesProductDefinition::Definition
+: public ExecutablesProductDefinition::Definition
 {
 protected:
     //ListParam formattedStringToParse;
@@ -17,7 +17,7 @@ protected:
 template<>
 template<>
 class ExecutablesProducts::ImplementationData<ExecutablesTypes::TclParse>::Methods
-: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::TclParse>::Properties
+: public ExecutablesProducts::ImplementationData<ExecutablesTypes::TclParse>::Properties
 {
 
 };
@@ -25,7 +25,7 @@ class ExecutablesProducts::ImplementationData<ExecutablesTypes::TclParse>::Metho
 template<>
 template<>
 class ExecutablesProducts::InterfaceData<ExecutablesTypes::TclParse>::Methods
-: protected ExecutablesProducts::Implementation<ExecutablesTypes::TclParse>
+: public ExecutablesProducts::Implementation<ExecutablesTypes::TclParse>
 {
 
 };

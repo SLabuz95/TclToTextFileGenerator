@@ -8,12 +8,13 @@ namespace ActionsList_NS = Panels::Configuration::View::ActionsList;
 using CompareNumbOfArgsActionView = ActionsList_NS::CompareNumbOfArgsActionView;
 using ListOfIndexes = CompareNumbOfArgsActionView::ListOfIndexes;
 using ActionView = CompareNumbOfArgsActionView::ActionView;
+using ParentContextMenu = CompareNumbOfArgsActionView::ParentContextMenu;
 
 // CompareNumbOfArgs Action View Definitions -----------------------------------
 
 CompareNumbOfArgsActionView::CompareNumbOfArgsActionView(ActionView& view)
 {
-    addRow(&listOfIndexes);
+    addWidget(&listOfIndexes);
 }
 
 CompareNumbOfArgsActionView::DataView* CompareNumbOfArgsActionView::create(ActionView& view, ActionRef){
@@ -21,9 +22,54 @@ CompareNumbOfArgsActionView::DataView* CompareNumbOfArgsActionView::create(Actio
 }
 
 
+QWidget& ListOfIndexes::itemView()const{
+    // Splitter -> Widget (Widget with Layout of DataView) -> ItemView (Any)
+    return *Super::parentWidget()->parentWidget();
+}
+
+QListWidget& ListOfIndexes::itemListView()const{
+    // itemView -> Viewport -> List
+    return *static_cast<QListWidget*>(itemView().parentWidget()->parentWidget());
+}
 
 // List of Indexes Definitions ---------------------------------------------------
 
+QWidget* ListOfIndexes::ItemDelegate::
+createEditor(QWidget* parent,
+             const QStyleOptionViewItem& ,
+             const QModelIndex& index) const
+{
+    // For List Item Type == EmptyStringItem dont edit
+    QLineEdit* editor = nullptr;
+    editor = new QLineEdit(parent);
+    if(not index.parent().isValid())
+        editor->setValidator(new QRegularExpressionValidator(QRegularExpression(RegExpCore::regExprForIntRange_MinusNinetyNine2NinetyNine)));
+    return editor;
+}
+
+
+void ListOfIndexes::ItemDelegate::
+setEditorData(QWidget* editor,
+              const QModelIndex& index) const
+{
+   QItemDelegate::setEditorData(editor, index);
+}
+
+void ListOfIndexes::ItemDelegate::
+setModelData(QWidget* editor,
+             QAbstractItemModel* model,
+             const QModelIndex& index) const
+{
+   QItemDelegate::setModelData(editor, model, index);
+}
+
+void ListOfIndexes::ItemDelegate::
+updateEditorGeometry(QWidget* editor,
+                     const QStyleOptionViewItem& option,
+                     const QModelIndex& index) const
+{
+   QItemDelegate::updateEditorGeometry(editor, option, index);
+}
 
 template<>
 void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::Add>(ListItem* )
@@ -61,9 +107,12 @@ void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::
         curEditItemInfo = {};
         qApp->processEvents();
     }
-    ChangeAction changeAction = tryToManageIndexes(item->text(), QString());
     // Notify about Change
     delete item;
+    qApp->processEvents();
+    QListWidget& listWidget = itemListView();
+    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 template<>
@@ -75,68 +124,67 @@ void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::
         qApp->processEvents();
     }
     curEditItemInfo = {};
-    // Maybe clear NewProcedures and replace Removed with savedProcedures?
-    for(int i = 0; i < count(); i++){
-        tryToManageIndexes(item(i)->text(), QString());
-    }
+
     // Notify about Change::ClearedAll
     clear();
+    qApp->processEvents();
+    QListWidget& listWidget = itemListView();
+    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 ListOfIndexes::ChangeAction ListOfIndexes::tryToManageIndexes(QString oldIndex, QString newIndex){
-    Q_ASSERT_X(not (oldIndex.isEmpty() and newIndex.isEmpty()), "ListOfIndexes::tryToManageIndexes", "Only OldIndex or NewIndex can be empty ");
+    if(curEditItemInfo.item){
+        // Confirm that index or argument isnt duplicated
+        if(curEditItemInfo.item->text().isEmpty()){
+            delete curEditItemInfo.item;
+            qApp->processEvents();
+            QListWidget& listWidget = itemListView();
+            QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+            item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
+        }else{
+            // Confirm that index or argument isnt duplicated
+            // Remove if its
+            bool indexOrArgumentIsntDuplicated = true;
+            QString textToCompare = curEditItemInfo.item->text();
 
+            for(int itemIndex = 0 ; itemIndex < count(); itemIndex++){
+                if(item(itemIndex) != curEditItemInfo.item and
+                        item(itemIndex)->text() == textToCompare){
+                    indexOrArgumentIsntDuplicated = false;
+                    break;
+                }
+            }
+
+            if(indexOrArgumentIsntDuplicated){
+
+            }else{
+                delete curEditItemInfo.item;
+                qApp->processEvents();
+                QListWidget& listWidget = itemListView();
+                QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
+            }
+
+        }
+        curEditItemInfo = {};
+    }
 }
 
 
 bool ListOfIndexes::eventFilter(QObject* obj, QEvent* ev){    
 
-    if(ev->type() == QEvent::MouseButtonDblClick and obj == viewport()){
-        QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
-        if((curEditItemInfo.item = itemAt(mev->pos()))){
-            curEditItemInfo.oldIndex = curEditItemInfo.item->text();
-            editItem(curEditItemInfo.item);
-        }
-    }
-
     if(ev->type() == QEvent::ChildRemoved and obj == viewport()){
-        if(curEditItemInfo.item){
-            if(curEditItemInfo.item->text().isEmpty()){ // Remove Item
-                if(not curEditItemInfo.oldIndex.isEmpty()){ // old index isnt empty (removeIndex)
-                    ChangeAction changeAction = tryToManageIndexes(curEditItemInfo.oldIndex, QString());
-                    // Notify about Change
-                }
-                delete curEditItemInfo.item;
-            }else{  // Not empty (New Index or Change Index)
-                if(curEditItemInfo.item->text() != curEditItemInfo.oldIndex){    // index changed
-                    if(curEditItemInfo.oldIndex.isEmpty()){  // New index
-                        ChangeAction changeAction = tryToManageIndexes(QString(), curEditItemInfo.item->text());
-                        if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Index)
-                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Index"), QStringLiteral("Index \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
-                            delete curEditItemInfo.item;
-                        }else{
-                            // Notify about change
+        tryToManageIndexes(curEditItemInfo.oldIndex, QString());
 
-                        }
-                    }else{  // Change Index
-                        ChangeAction changeAction = tryToManageIndexes(curEditItemInfo.oldIndex, curEditItemInfo.item->text());
-                        if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Index)
-                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Index"), QStringLiteral("Index \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
-                            curEditItemInfo.item->setText(curEditItemInfo.oldIndex);
-                        }else{
-                            // Notify about change
-                        }
-                    }
-                }
-            }
-            curEditItemInfo = {};
-        }
     }
 
 
     return Super::eventFilter(obj, ev);
 
 }
+
+
 
 void ListOfIndexes::contextMenuEvent(QContextMenuEvent *cev){
 
@@ -167,14 +215,14 @@ void ListOfIndexes::contextMenuEvent(QContextMenuEvent *cev){
                         new QAction("Usuń wszystkie indeksy")
                     });
     }
-    parentWidget().parentWidget().extendContextMenu(contextMenuConfig);
+    parentContextMenu().extendContextMenu(contextMenuConfig);
     qsizetype&& index = contextMenuConfig.exec(cev);
     if(index >= 0){
         if(item){
             interpretContextMenuResponse(index, cev);
         }else{
             if(index >= functionsSize){
-                parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+                parentContextMenu().interpretContextMenuResponse(index - functionsSize, cev);
             }else{
                 (this->*(actionFunc[index]))(item);
             }
@@ -183,9 +231,6 @@ void ListOfIndexes::contextMenuEvent(QContextMenuEvent *cev){
 
 }
 
-ActionView& ListOfIndexes::parentWidget()const{
-    return *static_cast<ActionView*>(Super::parentWidget());
-}
 
 void ListOfIndexes::loadIndexes(){
     clearChanges();
@@ -196,8 +241,12 @@ void ListOfIndexes::reloadGui(){
 
 }
 
-//void ListOfIndexes::extendContextMenu(ContextMenuConfig& config);
+ParentContextMenu& ListOfIndexes::parentContextMenu()const
+{
+    return *static_cast<ParentContextMenu*>(&itemListView()); // ActionView -> ActionList
+}
 
+void ListOfIndexes::extendContextMenu(ContextMenuConfig&)const{}
 
 void ListOfIndexes::interpretContextMenuResponse(ContextMenuConfig::ActionIndex index, QContextMenuEvent* cev){
     using ActionFuncs = ListOfIndexes::Request_ContextMenu_Func[];
@@ -210,7 +259,7 @@ void ListOfIndexes::interpretContextMenuResponse(ContextMenuConfig::ActionIndex 
     };
     constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
     if(index >= functionsSize){
-        parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+        parentContextMenu().interpretContextMenuResponse(index - functionsSize, cev);
     }else{
         ListItem* item = itemAt(cev->pos());
         (this->*(actionFunc[index]))(item);

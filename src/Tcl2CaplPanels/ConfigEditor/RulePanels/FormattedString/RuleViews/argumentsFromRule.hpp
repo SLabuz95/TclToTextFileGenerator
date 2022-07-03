@@ -20,14 +20,15 @@ namespace Panels::Configuration::View::FormattedString{
         }
         ~ArgumentsFromItemDataView(){}
 
-        using ItemDataView::DataRef;
-        static ItemDataView* create(ItemView& view, DataRef = nullptr);
+        using ItemDataView::FormatRuleRef;
+        static ItemDataView* create(ItemView& view, FormatRuleRef = nullptr);
     protected:
         //QSpinBox* indexSpinBox = nullptr;
         //QLineEdit* separatorLineEdit = nullptr;
         QSpinBox indexSpinBox;// = nullptr;
         QLineEdit separatorLineEdit;// = nullptr;
-
+    public:
+        constexpr FormatRuleType type()const override{return FormatRuleType::ArgumentsFromItem;}
     };
 }
 

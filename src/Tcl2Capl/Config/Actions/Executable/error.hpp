@@ -7,7 +7,7 @@
 template<>
 template<>
 struct ExecutablesProducts::ImplementationData<ExecutablesTypes::Error>::Properties
-: protected ExecutablesProductDefinition::Definition
+: public ExecutablesProductDefinition::Definition
 {
 protected:
     //ListParam outputParams;
@@ -17,7 +17,7 @@ protected:
 template<>
 template<>
 class ExecutablesProducts::ImplementationData<ExecutablesTypes::Error>::Methods
-: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::Error>::Properties
+: public ExecutablesProducts::ImplementationData<ExecutablesTypes::Error>::Properties
 {
 
 };
@@ -25,7 +25,7 @@ class ExecutablesProducts::ImplementationData<ExecutablesTypes::Error>::Methods
 template<>
 template<>
 class ExecutablesProducts::InterfaceData<ExecutablesTypes::Error>::Methods
-: protected ExecutablesProducts::Implementation<ExecutablesTypes::Error>
+: public ExecutablesProducts::Implementation<ExecutablesTypes::Error>
 {
 
 };

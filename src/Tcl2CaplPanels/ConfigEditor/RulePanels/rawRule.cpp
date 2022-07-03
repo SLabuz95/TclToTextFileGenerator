@@ -10,19 +10,31 @@ RawRuleView::RawRuleView(ListItemType& item)
 : item_(item){
     // Setup layout
     centralLayout.setSpacing(0);
+    centralLayout.setContentsMargins(QMargins());
+    centralLayout.setSizeConstraint(QLayout::SetNoConstraint);
 
+    setLayout(&centralLayout);
     closeButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCloseButton));
     closeButton.installEventFilter(this);
-    centralLayout.addWidget(&closeButton, 1, Qt::AlignRight);
+    controlPanel.setContentsMargins(QMargins());
+    controlPanel.addWidget(&closeButton, 0, Qt::AlignRight);
+    centralLayout.addLayout(&controlPanel);
 
-    settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
-    centralLayout.addLayout(&settingsLayout, Qt::AlignTop);
+    settingsLayout.addWidget(&ruleCOntrolLabel, 0,0);
+    ruleCOntrolLabel.setText("Flaga reguły");
+    settingsLayout.addWidget(&ruleControlComboBox, 0,1);
+    settingsLayout.setColumnStretch(1, 1);
+    settingsLayout.setContentsMargins(QMargins());
+    //settingsLayout.setVerticalSpacing(0);
+    centralLayout.addLayout(&settingsLayout);
+
 
     actionsPanel.addWidget(&conditionalsList);
     actionsPanel.addWidget(&executablesList);
     centralLayout.addWidget(&actionsPanel);
 
-    setLayout(&centralLayout);
+
+
 
     // Rule available
     //if(rule){   // Exists
@@ -50,7 +62,7 @@ RawRuleView::RawRuleView(ListItemType& item, RawRuleRef rule)
     closeButton.installEventFilter(this);
     centralLayout.addWidget(&closeButton, 1, Qt::AlignRight);
 
-    settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
+   // settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
     centralLayout.addLayout(&settingsLayout, Qt::AlignTop);
 
 
@@ -68,6 +80,14 @@ RawRuleView::RawRuleView(ListItemType& item, RawRuleRef rule)
         // Expected Arguments
         expectedArgumentsList.loadExpectedArguments(quickRule);*/
     //}
+}
+
+void RawRuleView::resizeEvent(QResizeEvent* ev){
+    Super::resizeEvent(ev);
+    qApp->processEvents();
+    List& listWidget = parentWidget();
+    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    item->setSizeHint(sizeHint());
 }
 /*
 RawRuleView::RawRuleView(RawRuleView* itemF)

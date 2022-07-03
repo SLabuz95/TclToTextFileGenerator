@@ -13,7 +13,7 @@ using ActionView = AddPreexpressionActionView::ActionView;
 AddPreexpressionActionView::AddPreexpressionActionView(ActionView& view)
 {
     splitter.addWidget(&formattedStringList);
-    addRow(&splitter);
+    addWidget(&splitter);
 }
 
 AddPreexpressionActionView::DataView* AddPreexpressionActionView::create(ActionView& view, ActionRef){

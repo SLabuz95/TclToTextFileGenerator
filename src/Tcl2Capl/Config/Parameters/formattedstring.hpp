@@ -7,7 +7,7 @@
 template<>
 template<>
 struct ParametersProducts::ImplementationData<ParametersType::FormattedString>::Properties
-: protected ParametersProductDefinition::Definition
+: public ParametersProductDefinition::Definition
 {
 protected:
    // FormatParametersProducts::FactoryCommonInterface* data = nullptr;
@@ -17,7 +17,7 @@ protected:
 template<>
 template<>
 class ParametersProducts::ImplementationData<ParametersType::FormattedString>::Methods
-: protected ParametersProducts::ImplementationData<ParametersType::FormattedString>::Properties
+: public ParametersProducts::ImplementationData<ParametersType::FormattedString>::Properties
 {
 protected:
 };

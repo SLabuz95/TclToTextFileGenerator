@@ -7,7 +7,7 @@
 template<>
 template<>
 struct ExecutablesProducts::ImplementationData<ExecutablesTypes::Write>::Properties
-: protected ExecutablesProductDefinition::Definition
+: public ExecutablesProductDefinition::Definition
 {
 protected:
     //ListParam outputParamaters;
@@ -17,7 +17,7 @@ protected:
 template<>
 template<>
 class ExecutablesProducts::ImplementationData<ExecutablesTypes::Write>::Methods
-: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::Write>::Properties
+: public ExecutablesProducts::ImplementationData<ExecutablesTypes::Write>::Properties
 {
 
 };
@@ -25,7 +25,7 @@ class ExecutablesProducts::ImplementationData<ExecutablesTypes::Write>::Methods
 template<>
 template<>
 class ExecutablesProducts::InterfaceData<ExecutablesTypes::Write>::Methods
-: protected ExecutablesProducts::Implementation<ExecutablesTypes::Write>
+: public ExecutablesProducts::Implementation<ExecutablesTypes::Write>
 {
 
 };

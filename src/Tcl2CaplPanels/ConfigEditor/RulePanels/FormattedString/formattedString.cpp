@@ -9,27 +9,69 @@
 using namespace Panels::Configuration::View::FormattedString;
 
 ItemView::ItemView(ListItem& item)
-    : dataView_(ItemDataView::createView(*this))
+    : formatRule(FormatParametersFactory::create()),
+      dataView_(ItemDataView::createView(*this, formatRule))
 {
+    using OutputOption2FormatRuleMap = const QStringList;
+    OutputOption2FormatRuleMap outputOption2FormatRuleMap =
+    {
+        "Tekst",
+        "Nazwa procedury",
+        "Argument o indeksie",
+        "Wszystkie argumenty od wybranego indeksu",
+        //"Separator",
+        "Format"
+    };
+    QWidget* widget = new QWidget();
     mainLayout.setSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
-    mainLayout.addRow(&titleComboBox);
-    mainLayout.addRow(dataView_);
+    mainLayout.addRow("Typ akcji:", &titleComboBox);
+    titleComboBox.addItems(outputOption2FormatRuleMap);
+    dataView_->setSpacing(0);
+    dataView_->setContentsMargins(0,0,0,0);
+    titleComboBox.installEventFilter(this);
+    titleComboBox.view()->installEventFilter(this);
+    widget->setLayout(dataView_);
+    mainLayout.addRow(widget);
     setLayout(&mainLayout);
+    qApp->processEvents();
 }
 
-ItemView& ItemDataView::parentWidget()const
-{
-    return *static_cast<ItemView*>(QFormLayout::parentWidget());
-}
 
 List& ItemView::parentWidget()const{
     return *static_cast<List*>(Super::parentWidget()->parentWidget()); // Viewport (1 parent) -> List (2 parent)
 }
-/*
-RawRuleView& ConditionalsList::parentWidget()const{
-    return *static_cast<RawRuleView*>(Super::parentWidget()->parentWidget()); //Splitter -> RuleView
+
+
+bool ItemView::createFormatRuleDataView(FormatRuleType type){
+    if(not dataView_ or dataView_->type() != type){
+        delete formatRule;
+        if(dataView_){
+            mainLayout.removeRow(mainLayout.rowCount() - 1);
+        }
+        formatRule = FormatParametersFactory::create(type);
+        dataView_ = ItemDataView::createView(*this, formatRule);
+        if(dataView_){
+            QWidget* widget = new QWidget();
+            dataView_->setSpacing(0);
+            dataView_->setContentsMargins(0,0,0,0);
+            widget->setLayout(dataView_);
+            mainLayout.addRow(widget);
+        }else{
+            delete formatRule;
+            formatRule = nullptr;
+        }
+        qApp->processEvents();
+        QListWidget& listWidget = parentWidget();
+        QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+        item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
+        qApp->processEvents();
+        qDebug() << "Output Rule" << sizeHint();
+    }
+    return true;
 }
+
+/*
 
 void ConditionalsList::loadActions(ActionsRef actions)
 {
@@ -44,6 +86,8 @@ template<>
 void List::execRequest_ContextMenu<List::Request_ContextMenu::Add>(ListItem*)
 {
    addNewItem();
+   //pItem->setData(Qt::SizeHintRole ,QVariant(listWidget.itemWidget(pItem)->sizeHint()));
+
 }
 
 template<>
@@ -59,23 +103,38 @@ void List::execRequest_ContextMenu<List::Request_ContextMenu::Remove>(ListItem* 
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     delete item;
+    qApp->processEvents();
+    QListWidget& listWidget = actionListView();
+    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 template<>
 void List::execRequest_ContextMenu<List::Request_ContextMenu::Clear>(ListItem*)
 {
     clear();
+    qApp->processEvents();
+    QListWidget& listWidget = actionListView();
+    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
+QWidget& List::actionView()const{
+    // Splitter -> Widget (Widget with Layout of ActionDataView) -> ActionView (Any - Conditional or Executable)
+    return *Super::parentWidget()->parentWidget()->parentWidget();
+}
 
-void List::extendContextMenu(ContextMenuConfig& config){
-    config.addMenu("Akcje warunkowe",{
-                                     new QAction("Dodaj"),
-                                     new QAction("Klonuj"),
-                                     new QAction("Usuń"),
-                                     new QAction("Usuń wszystkie")
-                                   });
-    //parentWidget().parentWidget().extendContextMenu(config);
+QListWidget& List::actionListView()const{
+     // itemView -> Viewport -> List
+    return *static_cast<QListWidget*>(actionView().parentWidget()->parentWidget());
+}
+
+ParentContextMenu& List::parentContextMenu()const
+{
+    return *static_cast<ParentContextMenu*>(&actionListView()); //ActionsList
+}
+
+void List::extendContextMenu(ContextMenuConfig&)const{
 }
 
 void List::interpretContextMenuResponse(ContextMenuConfig::ActionIndex index, QContextMenuEvent* cev){
@@ -89,7 +148,7 @@ void List::interpretContextMenuResponse(ContextMenuConfig::ActionIndex index, QC
     };
     constexpr uint functionsSize = std::extent_v<decltype(actionFunc)>;
     if(index >= functionsSize){
-        //parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+        parentContextMenu().interpretContextMenuResponse(index - functionsSize, cev);
     }else{
         ListItem* item = itemAt(cev->pos());
         (this->*(actionFunc[index]))(item);
@@ -123,19 +182,42 @@ void List::contextMenuEvent(QContextMenuEvent *cev){
                         new QAction("Usuń wszystkie akcje")
                     });
     }
-    //parentWidget().parentWidget().extendContextMenu(contextMenuConfig);
+    parentContextMenu().extendContextMenu(contextMenuConfig);
     qsizetype&& index = contextMenuConfig.exec(cev);
     if(index >= 0){
         if(item){
             interpretContextMenuResponse(index, cev);
         }else{
             if(index >= functionsSize){
-                //parentWidget().parentWidget().interpretContextMenuResponse(index - functionsSize, cev);
+                parentContextMenu().interpretContextMenuResponse(index - functionsSize, cev);
             }else{
                 (this->*(actionFunc[index]))(item);
             }
         }
     }
+}
+
+
+bool ItemView::eventFilter(QObject* obj, QEvent* ev){
+    switch(ev->type()){
+    case QEvent::ContextMenu:
+    {
+        if(obj == &titleComboBox){
+            parentWidget().contextMenuEvent(static_cast<QContextMenuEvent*>(ev));
+        }
+    }
+        break;
+    case QEvent::Leave:
+    {
+        if(obj == titleComboBox.view()){
+            createFormatRuleDataView(FormatRule::fromUnderlying(titleComboBox.currentIndex()));
+        }
+    }
+        break;
+    default:
+        break;
+    }
+    return Super::eventFilter(obj, ev);
 }
 
 List
@@ -153,6 +235,8 @@ List
     setDragDropMode(QAbstractItemView::InternalMove);
     setDefaultDropAction(Qt::DropAction::MoveAction);
     setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
     setDragDropOverwriteMode(true);
 
     viewport()->installEventFilter(this);
@@ -167,7 +251,7 @@ ListItem::ListItem(List& list)
     list.addItem(this);
     list.setItemWidget(this, &view_);
     qApp->processEvents();
-    setSizeHint(view().minimumSizeHint());
+    setSizeHint(view().sizeHint());
 }
 
 /*

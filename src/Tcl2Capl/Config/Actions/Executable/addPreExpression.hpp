@@ -7,7 +7,7 @@
 template<>
 template<>
 struct ExecutablesProducts::ImplementationData<ExecutablesTypes::AddPreExpression>::Properties
-: protected ExecutablesProductDefinition::Definition
+: public ExecutablesProductDefinition::Definition
 {
 protected:
     //ListParam outputParams;
@@ -17,7 +17,7 @@ protected:
 template<>
 template<>
 class ExecutablesProducts::ImplementationData<ExecutablesTypes::AddPreExpression>::Methods
-: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::AddPreExpression>::Properties
+: public ExecutablesProducts::ImplementationData<ExecutablesTypes::AddPreExpression>::Properties
 {
 
 };
@@ -25,7 +25,7 @@ class ExecutablesProducts::ImplementationData<ExecutablesTypes::AddPreExpression
 template<>
 template<>
 class ExecutablesProducts::InterfaceData<ExecutablesTypes::AddPreExpression>::Methods
-: protected ExecutablesProducts::Implementation<ExecutablesTypes::AddPreExpression>
+: public ExecutablesProducts::Implementation<ExecutablesTypes::AddPreExpression>
 {
 
 };

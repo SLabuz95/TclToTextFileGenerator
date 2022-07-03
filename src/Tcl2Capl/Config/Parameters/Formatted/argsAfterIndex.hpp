@@ -7,7 +7,7 @@
 template<>
 template<>
 struct FormatParametersProducts::ImplementationData<FormatParametersType::ArgumentsFromItem>::Properties
-: protected FormatParametersProductDefinition::Definition
+: public FormatParametersProductDefinition::Definition
 {
 protected:
     //FormatParametersProducts::FactoryCommonInterface* data = nullptr;
@@ -17,7 +17,7 @@ protected:
 template<>
 template<>
 class FormatParametersProducts::ImplementationData<FormatParametersType::ArgumentsFromItem>::Methods
-: protected FormatParametersProducts::ImplementationData<FormatParametersType::ArgumentsFromItem>::Properties
+: public FormatParametersProducts::ImplementationData<FormatParametersType::ArgumentsFromItem>::Properties
 {
 
 };

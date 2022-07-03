@@ -5,6 +5,7 @@
 
 // List of all views for condtionals
 #include"compare.hpp"
+#include"isLastSavedStat.hpp"
 #include"compareNumbOfArgs.hpp"
 // ---------------------------
 

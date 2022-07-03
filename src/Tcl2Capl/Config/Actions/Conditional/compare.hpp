@@ -19,7 +19,7 @@ protected:
 template<>
 template<>
 class ConditionalsProducts::ImplementationData<ConditionalsTypes::Compare>::Methods
-: protected ConditionalsProducts::ImplementationData<ConditionalsTypes::Compare>::Properties
+: public ConditionalsProducts::ImplementationData<ConditionalsTypes::Compare>::Properties
 {
 };
 
