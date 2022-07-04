@@ -8,7 +8,7 @@
 
 using namespace Panels::Configuration::Navigation;
 using ConfigViewPanel = Panels::Configuration::View::ConfigViewPanel;
-using ProcedureElement = Procedure::ProcedureElement;
+using ProceduresElement = Procedure::ProceduresElement;
 using DefaultProcedureElement = Procedure::DefaultProcedureElement;
 
 const QString List::navigationPanelNames[panelType2number(PanelType::Size)]{
@@ -31,11 +31,21 @@ List::List(View::ConfigViewPanel& parent)
 
     QList<QTreeWidgetItem*> items(panelType2number(PanelType::Size), nullptr);
     for(decltype(items)::Iterator item = items.begin(); item < items.end(); item++){
-        if(number2panelType(item - items.begin()) == PanelType::DefaultProcedure)
+        switch(number2panelType(item - items.begin())){
+        case PanelType::Procedures:
+        {
+            *item = new ProceduresElement(this, {navigationPanelNames[item - items.begin()]});
+        }
+            break;
+        case PanelType::DefaultProcedure:
+        {
             *item = new DefaultProcedureElement(this, {navigationPanelNames[item - items.begin()]});
-        else{
+        }
+            break;
+        default:
             *item = new NavigationElement(this, {navigationPanelNames[item - items.begin()]});
         }
+
         (*item)->setFirstColumnSpanned(true);
 
     }
@@ -92,11 +102,26 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
                 NavigationElement* nitem = static_cast<NavigationElement*>(item);
                 const int indexOfMainNavigationElement = indexOf(nitem);
                 if(indexOfMainNavigationElement == -1){ // Not found -> Item is child of main navigation element
-                    const int& indexOfMainNavigationElementChild = indexOfMainNavigationElement;
+
 
                 }else{
-                    DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(topLevelItem(indexOfMainNavigationElement));
-                    dPE.menuControl(cev, static_cast<DefaultProcedureElement::ListItem*>(item));
+                    const PanelType& panelType = static_cast<PanelType>(indexOfMainNavigationElement);
+                    switch(panelType){
+                    case PanelType::Procedures:
+                    {
+                        ProceduresElement& dPE = *static_cast<ProceduresElement*>(topLevelItem(indexOfMainNavigationElement));
+                        dPE.menuControl(cev, nullptr); // Simulate no item choosed
+                    }
+                        break;
+                    case PanelType::DefaultProcedure:
+                    {
+                        DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(topLevelItem(indexOfMainNavigationElement));
+                        dPE.menuControl(cev, nullptr); // Simulate no item choosed
+                    }
+                        break;
+                    default:
+                        break;
+                    }
                     //navigateMainPanel(number2panelType(indexOfMainNavigationElement));
                 }
             }

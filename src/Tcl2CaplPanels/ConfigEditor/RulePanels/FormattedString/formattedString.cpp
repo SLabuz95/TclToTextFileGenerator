@@ -9,8 +9,7 @@
 using namespace Panels::Configuration::View::FormattedString;
 
 ItemView::ItemView(ListItem& item)
-    : formatRule(FormatParametersFactory::create()),
-      dataView_(ItemDataView::createView(*this, formatRule))
+    : dataView_(ItemDataView::createView(*this, nullptr))
 {
     using OutputOption2FormatRuleMap = const QStringList;
     OutputOption2FormatRuleMap outputOption2FormatRuleMap =
@@ -22,17 +21,19 @@ ItemView::ItemView(ListItem& item)
         //"Separator",
         "Format"
     };
-    QWidget* widget = new QWidget();
     mainLayout.setSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
     mainLayout.addRow("Typ akcji:", &titleComboBox);
     titleComboBox.addItems(outputOption2FormatRuleMap);
-    dataView_->setSpacing(0);
-    dataView_->setContentsMargins(0,0,0,0);
     titleComboBox.installEventFilter(this);
     titleComboBox.view()->installEventFilter(this);
-    widget->setLayout(dataView_);
-    mainLayout.addRow(widget);
+    if(dataView_){
+        QWidget* widget = new QWidget();
+        dataView_->setSpacing(0);
+        dataView_->setContentsMargins(0,0,0,0);
+        widget->setLayout(dataView_);
+        mainLayout.addRow(widget);
+    }
     setLayout(&mainLayout);
     qApp->processEvents();
 }
@@ -45,28 +46,22 @@ List& ItemView::parentWidget()const{
 
 bool ItemView::createFormatRuleDataView(FormatRuleType type){
     if(not dataView_ or dataView_->type() != type){
-        delete formatRule;
         if(dataView_){
             mainLayout.removeRow(mainLayout.rowCount() - 1);
         }
-        formatRule = FormatParametersFactory::create(type);
-        dataView_ = ItemDataView::createView(*this, formatRule);
+        dataView_ = ItemDataView::createView(*this, type);
         if(dataView_){
             QWidget* widget = new QWidget();
             dataView_->setSpacing(0);
             dataView_->setContentsMargins(0,0,0,0);
             widget->setLayout(dataView_);
             mainLayout.addRow(widget);
-        }else{
-            delete formatRule;
-            formatRule = nullptr;
         }
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
         item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
         qApp->processEvents();
-        qDebug() << "Output Rule" << sizeHint();
     }
     return true;
 }

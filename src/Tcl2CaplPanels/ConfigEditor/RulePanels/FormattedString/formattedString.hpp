@@ -83,6 +83,7 @@ namespace Panels::Configuration::View::FormattedString{
         static CreateFunctionTable createFunctionTable;
         static ItemDataView* createNoDataView(ItemView& view, FormatRuleRef = nullptr){return nullptr;}
     public:
+        static ItemDataView* createView(ItemView& view, FormatRuleType);
         static ItemDataView* createView(ItemView& view, FormatRuleRef);
 
     public:
@@ -116,7 +117,7 @@ namespace Panels::Configuration::View::FormattedString{
         using TitleLayout = QHBoxLayout;
         using ComboBox = QComboBox;
         using RemoveButton = QPushButton;
-        FormatRulePtr formatRule = nullptr;
+        //FormatRulePtr formatRule = nullptr;
 
         MainLayout mainLayout;
         TitleLayout titleLayout;

@@ -22,21 +22,21 @@ template<class Base>
 using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 
 template<>
-ActionView::ActionView(ListItem& item)
-    : action(ConditionalsFactory::create()),
-      dataView_(ActionDataView::createView(*this, action))
-{
-    QWidget* widget = new QWidget();
-
+ActionView::ActionView(ListItem& item)    : 
+      dataView_(ActionDataView::createView(*this, nullptr))
+{    
     mainLayout.setVerticalSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
     mainLayout.addRow("Typ akcji:",&actionTypeComboBox);
-    dataView_->setSpacing(0);
-    dataView_->setContentsMargins(0,0,0,0);
     actionTypeComboBox.installEventFilter(this);
     actionTypeComboBox.view()->installEventFilter(this);
-    widget->setLayout(dataView_);
-    mainLayout.addRow(widget);
+    if(dataView_){
+        QWidget* widget = new QWidget();
+        dataView_->setSpacing(0);
+        dataView_->setContentsMargins(0,0,0,0);
+        widget->setLayout(dataView_);
+        mainLayout.addRow(widget);
+    }
     setLayout(&mainLayout);
 
 }
@@ -54,20 +54,23 @@ RawRuleView& ConditionalsList::parentWidget()const{
 
 template<>
 bool ActionView::createActionDataView(ActionType type){
-    if(dataView_->type() != type){
-        QWidget* widget = new QWidget();
-        delete action;
-        mainLayout.removeRow(mainLayout.rowCount() - 1);
-        action = ConditionalsFactory::create(type);
-        dataView_ = ActionDataView::createView(*this, action);
-        dataView_->setSpacing(0);
-        dataView_->setContentsMargins(0,0,0,0);
-        widget->setLayout(dataView_);
-        mainLayout.addRow(widget);
+    if(not dataView_ or dataView_->type() != type){
+        if(dataView_){
+            mainLayout.removeRow(mainLayout.rowCount() - 1);
+        }
+        dataView_ = ActionDataView::createView(*this, type);
+        if(dataView_){
+            QWidget* widget = new QWidget();
+            dataView_->setSpacing(0);
+            dataView_->setContentsMargins(0,0,0,0);
+            widget->setLayout(dataView_);
+            mainLayout.addRow(widget);
+        }
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-        item->setSizeHint(listWidget.itemWidget(item)->minimumSizeHint());
+        item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
+        qApp->processEvents();
     }
     return true;
 }

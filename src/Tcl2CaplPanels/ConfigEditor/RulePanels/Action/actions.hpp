@@ -70,7 +70,9 @@ namespace Panels::Configuration::View::ActionsList{
     public:
         ~ActionDataView()override{
         }
+        static ActionDataView* createNoDataView(ActionView& view, ActionRef = nullptr){return nullptr;}
         static ActionDataView* createView(ActionView& view, ActionRef);
+        static ActionDataView* createView(ActionView& view, ActionType);
 
         //virtual Action toAction() = 0;
         virtual constexpr ActionType type()const = 0;
@@ -105,7 +107,6 @@ namespace Panels::Configuration::View::ActionsList{
             List& parentWidget()const;
 
         protected:
-            ActionPtr action = nullptr;
             bool eventFilter(QObject* obj, QEvent* ev)override;
 
             QFormLayout mainLayout;

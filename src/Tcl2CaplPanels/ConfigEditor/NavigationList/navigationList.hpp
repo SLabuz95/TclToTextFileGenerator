@@ -44,7 +44,9 @@ namespace Panels::Configuration::Navigation{
         inline NavigationElement(QTreeWidget *parent, const QStringList &strings, int type = Type)
             : QTreeWidgetItem(parent, strings, type)
         {}
-
+        inline NavigationElement(QTreeWidgetItem *parent, const QStringList &strings, int type = Type)
+            : QTreeWidgetItem(parent, strings, type)
+        {}
     };
 
     class List : public QTreeWidget{

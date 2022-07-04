@@ -9,11 +9,17 @@ using IsLastSavedStatDataView = IsLastSavedStatActionView::IsLastSavedStatAction
 template<>
 View::CreateFunctionTable View::createFunctionTable = {
     &CompareNumbOfArgsActionView::create,
-    &IsLastSavedStatDataView::create,
+    /*&IsLastSavedStatDataView::create, replaced by*/&createNoDataView,
+
     &CompareActionDataView::create
 };
 
 template<>
 View* View::createView(ActionView& view, ActionRef action){
     return (createFunctionTable[FCT_toUnderlying((action)? action->type() : ActionType())])(view, action);
+}
+
+template<>
+View* View::createView(ActionView& view, ActionType type){
+    return (createFunctionTable[FCT_toUnderlying(type)])(view, nullptr);
 }
