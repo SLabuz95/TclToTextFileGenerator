@@ -11,14 +11,16 @@ namespace Panels::Configuration::View::ActionsList{
     class WriteActionView
             : public ActionDataView<ExecutablesFactory::ListOfBases>
     {
+        static constexpr ActionType actionType = ExecutablesTypes::Write;
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
+        using Action = ExecutablesFactory::Product<actionType>;
 
-        WriteActionView(ActionView&);
+        WriteActionView(QWidget*);
+        WriteActionView(QWidget*, ActionPtr);
         ~WriteActionView()override{
-            qDebug() << "Write Destroyed";
         }
     public:
-        static ActionDataView* create(ActionView&, ActionRef);
+        static ActionDataView* create(QWidget*, ActionRef);
         using ActionView = ActionView;
     protected:
         using Executables = ExecutablesFactory::ListOfBases;
@@ -36,7 +38,8 @@ namespace Panels::Configuration::View::ActionsList{
 
     public:
        // Action toAction()override{}
-        constexpr ActionType type()const override{return ExecutablesTypes::Write;}
+        constexpr ActionType type()const override{return actionType;}
+        void readAction(ActionBase&) override;
 
     };
 

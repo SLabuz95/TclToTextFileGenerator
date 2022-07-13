@@ -34,9 +34,9 @@ namespace Panels::Configuration{
     class Panel : public QWidget{
     public:
         using NavigationList = Navigation::List;
-        using Config = Tcl2CaplControllerConfig;
-        using ConfigRef = Config&;
-        using ConfigPtr = Config*;
+        using ConfigInfo = ControllerConfigInfo;
+        //using ConfigRef = Config&;
+        //using ConfigPtr = Config*;
         //using ConfigInfoPtr = ControllerConfigInfo::SelfPtr;
 
         Panel(App&);
@@ -54,14 +54,8 @@ namespace Panels::Configuration{
         FileConfigPanel fileConfigPanel;
         View::ConfigViewPanel configViewPanel;
         // NO GUI ELEMENT
-        //ConfigInfoPtr configInfoPtr = nullptr;
+        ConfigInfo config_;
         // ---------------------
-        //QToolBox toolBox;
-        //WriteOnlyProceduresList writeOnlyProceduresList;
-        //ProceduresList proceduresList;
-        //RulesProcedurePanel rulesProcedurePanel;
-        //NoSelectedProcedurePanel noSelectedProcedurePanel;
-
 
         bool newConfig();
         bool readConfig(QString);
@@ -75,6 +69,22 @@ namespace Panels::Configuration{
         bool eventFilter(QObject*, QEvent*) override;
 
     public:
+        void syncConfig();
+        void loadRules(QString procedureName, QString rulesCategory);
+        void loadDefaultRules(QString rulesCategory);
+
+        bool editProcedure(QString, QString);
+        bool editIndex(qsizetype oldIndex, qsizetype newIndex);
+        bool editIndex(QString, qsizetype oldIndex, qsizetype newIndex);
+
+        void removeProcedure(QString);
+        void removeIndex(QString, qsizetype);
+        void removeIndex(qsizetype);
+
+        void clearProcedures();
+        void clearIndexes(QString);
+        void clearIndexes(); // DefaultProcedure
+
         //inline ConfigInfoPtr getConfigInfoPtr()const{return configInfoPtr;}
         inline bool request_newConfig(){return newConfig();}
         inline bool request_readConfig(QString path){return readConfig(path);}
@@ -93,7 +103,7 @@ namespace Panels::Configuration{
         }
 
         inline App& app()const{return app_;}
-
+        inline ConfigInfo& config(){return config_;}
 
     };
 

@@ -34,59 +34,44 @@ RawRuleView::RawRuleView(ListItemType& item)
     centralLayout.addWidget(&actionsPanel);
 
 
-
-
-    // Rule available
-    //if(rule){   // Exists
-        /*QuickRule& quickRule = *static_cast<QuickRule*>(rule);
-        // NumbOfArguments
-        if(quickRule.getNumbOfArguments() != -1){
-            numbOfArgumentCondition.setText(QString::number(quickRule.getNumbOfArguments()));
-        }
-        // ControlFlag
-        ruleControlComboBox.setCurrentIndex(static_cast<std::underlying_type_t<ControlFlag>>(quickRule.controlFlag()));
-        // Expected Arguments
-        expectedArgumentsList.loadExpectedArguments(quickRule);*/
-    //}
 }
 
 
 RawRuleView::RawRuleView(ListItemType& item, RawRuleRef rule)
-: item_(item)
-{
-    // Setup layout
-
-    centralLayout.setSpacing(0);
-
-    closeButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCloseButton));
-    closeButton.installEventFilter(this);
-    centralLayout.addWidget(&closeButton, 1, Qt::AlignRight);
-
-   // settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
-    centralLayout.addLayout(&settingsLayout, Qt::AlignTop);
-
-
-    setLayout(&centralLayout);
-
+: RawRuleView(item)
+{    
     // Rule available
-    //if(rule){   // Exists
-        /*QuickRule& quickRule = *static_cast<QuickRule*>(rule);
-        // NumbOfArguments
-        if(quickRule.getNumbOfArguments() != -1){
-            numbOfArgumentCondition.setText(QString::number(quickRule.getNumbOfArguments()));
-        }
+    if(rule){   // Exists
+        using RawRule = Tcl2CaplControllerConfig::RawRule;
+        using RawRuleRef = RawRule&;
+        RawRuleRef rawRule = *static_cast<RawRule*>(*rule);
         // ControlFlag
-        ruleControlComboBox.setCurrentIndex(static_cast<std::underlying_type_t<ControlFlag>>(quickRule.controlFlag()));
-        // Expected Arguments
-        expectedArgumentsList.loadExpectedArguments(quickRule);*/
-    //}
+        ruleControlComboBox.setCurrentIndex(static_cast<std::underlying_type_t<ControlFlag>>(rawRule.controlFlag()));
+        // Conditionals
+        conditionalsList.loadActions(rawRule.conditions());
+        // Executables
+        executablesList.loadActions(rawRule.executables());
+    }
 }
+
+void RawRuleView::readRule(RuleRef rule){
+    using RawRule = Tcl2CaplControllerConfig::RawRule;
+    using RawRuleRef = RawRule&;
+    RawRuleRef rawRule = *static_cast<RawRule*>(&rule);
+    rawRule.setControlFlag(static_cast<ControlFlag>(ruleControlComboBox.currentIndex()));
+    // Conditionals
+    conditionalsList.readActions(rawRule.conditions());
+    // Executables
+    executablesList.readActions(rawRule.executables());
+}
+
 
 void RawRuleView::resizeEvent(QResizeEvent* ev){
     Super::resizeEvent(ev);
     qApp->processEvents();
     List& listWidget = parentWidget();
     QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+
     item->setSizeHint(sizeHint());
 }
 /*

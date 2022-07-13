@@ -3,16 +3,18 @@
 
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Conditional/definition.hpp"
-
+#include"Tcl2Capl/Config/Parameters/FCT_products.hpp"
 
 template<>
 template<>
 struct ConditionalsProducts::ImplementationData<ConditionalsTypes::Compare>::Properties
 : public ConditionalsProductDefinition::Definition
 {
+public:
+    using FormattedString = ParametersFactory::Product<Parameters::FormattedString>;
 protected:
-    //ListParam stringsToCompare;
-    //ListParam inputFormattedString;
+     FormattedString inputFormattedString_;
+     QStringList stringsToCompare_;
 
 };
 
@@ -28,7 +30,21 @@ template<>
 class ConditionalsProducts::InterfaceData<ConditionalsTypes::Compare>::Methods
 : public ConditionalsProducts::Implementation<ConditionalsTypes::Compare>
 {
-
+public:
+    QStringList& stringsToCompare(){return stringsToCompare_;}
+    FormattedString& inputFormattedString(){return inputFormattedString_;}
+    void toAction(UserProcedureRule::ConditionalActions::Type& conditional)override{
+        using Action = UserProcedureRule::ConditionalActions::Type;
+        using Parameters = UserProcedureRule::ConditionalActions::Type::Parameters;
+        Parameters formattedStringParameters;
+        inputFormattedString().toActionParameters(formattedStringParameters);
+        conditional = Action(type(),
+                                            Parameters({QString::number(stringsToCompare_.size())})
+                                                <<  stringsToCompare_
+                                                << QStringList{QString::number(formattedStringParameters.size())}
+                                                << formattedStringParameters
+                                           );
+    }
 
 };
 

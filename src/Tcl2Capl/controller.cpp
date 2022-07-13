@@ -8,20 +8,11 @@
 
 
 UserInputConfig::UserInputConfig(UserInputConfigData& configData)
-    : userProcedures_(UserProcedures(configData.getNumbOfUserProcedures())),
-      userDefaultProcedure_(configData.defaultProcedure().toProcedureWithRawRules()),
+    : userProcedures_(UserProcedures(configData.getNumbOfExistingProcedures())),
+      userDefaultProcedure_(configData.readDefaultProcedure()),
       settings_(configData.settings())
 {
-    UserInputConfigData::Procedures& userConfigProcedures = configData.userProcedures();
-    UserInputConfigData::Procedures::Iterator configProcedure = userConfigProcedures.begin();
-    UserProcedures::Iterator userProcedure = userProcedures_.begin();
-    Q_ASSERT_X(userConfigProcedures.size() == userProcedureConfig().size(), "InputConfig Procedures Size have to be the same as InputConfigData Procedures size", "");
-    for(;
-        configProcedure != userConfigProcedures.end(); configProcedure++, userProcedure++)
-    {
-        (*userProcedure) = (*configProcedure)->toProcedureWithRawRules();
-    }
-    Command::Controller::addDefaultProcedureDefinitionsToUserProcedureDefintions(*this);
+    configData.readProcedures(userProcedures_);
 }
 
 Tcl2CaplController::~Tcl2CaplController(){

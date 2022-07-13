@@ -3,14 +3,17 @@
 
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Parameters/definition.hpp"
+#include"Formatted/FCT_products.hpp"
 
 template<>
 template<>
 struct ParametersProducts::ImplementationData<ParametersType::FormattedString>::Properties
 : public ParametersProductDefinition::Definition
 {
+public:
+    using Parameters = FormatParametersFactory::ListOfBases;
 protected:
-   // FormatParametersProducts::FactoryCommonInterface* data = nullptr;
+   Parameters parameters_;
 
 };
 
@@ -27,8 +30,15 @@ template<>
 class ParametersProducts::InterfaceData<ParametersType::FormattedString>::Methods
 : public ParametersProducts::Implementation<ParametersType::FormattedString>
 {
+
 public:
-    void toXmlContent(QXmlStreamWriter& xmlWriter) override;
+    Parameters& parameters(){return parameters_;}    
+    void toActionParameters(QStringList& actionParameters){
+        Parameters::Iterator parameter = parameters().begin();
+        for( ; parameter < parameters().end(); parameter++)
+            (*parameter)->toActionParameters(actionParameters);
+    }
+    //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
 
 };
 

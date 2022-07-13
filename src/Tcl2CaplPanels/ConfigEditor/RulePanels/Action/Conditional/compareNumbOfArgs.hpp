@@ -10,13 +10,16 @@ namespace Panels::Configuration::View::ActionsList{
     class CompareNumbOfArgsActionView
             : public ActionDataView<ConditionalsFactory::ListOfBases>
     {
+        static constexpr ActionType actionType = ConditionalsTypes::CompareNumbOfArguments;
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
         using ContextMenuInterface = Utils::ContextMenuBuilder::InterfaceExtended<QListWidget>;
+        using Action = ConditionalsFactory::Product<actionType>;
 
-        CompareNumbOfArgsActionView(ActionView&);
+        CompareNumbOfArgsActionView(QWidget*);
+        CompareNumbOfArgsActionView(QWidget*, ActionPtr);
     public:
         using ParentContextMenu = ContextMenuInterface::Interface;
-        static ActionDataView* create(ActionView&, ActionRef);
+        static ActionDataView* create(QWidget*, ActionRef);
         using ActionView = ActionView;
     protected:
         using Conditionals = ConditionalsFactory::ListOfBases;
@@ -44,7 +47,8 @@ namespace Panels::Configuration::View::ActionsList{
             };
             class ListItem : public QListWidgetItem{
             public:
-                inline ListItem(QString str = QString()) : QListWidgetItem(str){
+                ListItem() = delete;
+                inline ListItem(ListOfIndexes& list,QString str = QString()) : QListWidgetItem(str, &list){
                      setFlags(flags() | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
 
                 }
@@ -110,7 +114,13 @@ namespace Panels::Configuration::View::ActionsList{
             }
             void commitChanges(){}
 
-            void loadIndexes();
+            void loadIndexes(const Action::NumbOfArgumentsList&);
+            void readAll(QStringList& list){
+                list.resize(count());
+                int i = 0;
+                for(QStringList::Iterator index = list.begin(); index != list.end(); index++, i++)
+                    (*index) = item(i)->text();
+            }
 
             inline void clearChanges(){
 
@@ -127,7 +137,8 @@ namespace Panels::Configuration::View::ActionsList{
 
     public:
        // Action toAction()override{}
-        constexpr ActionType type()const override{return ConditionalsTypes::CompareNumbOfArguments;}
+        constexpr ActionType type()const override{return actionType;}
+        void readAction(ActionBase&) override;
 
     };
 

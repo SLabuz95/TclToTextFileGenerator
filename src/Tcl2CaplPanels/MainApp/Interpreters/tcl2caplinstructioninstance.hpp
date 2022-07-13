@@ -18,9 +18,10 @@
 #include<QResizeEvent>
 
 class Tcl2CaplInstructionPanel;
+class SubWindow;
+class MainWindow;
 
-
-class Tcl2CaplInstructionInstance : public QMainWindow{
+class Tcl2CaplInstructionInstance : public QWidget{
 
     class InputTextEdit : public QTextEdit{
         //TODO: Dodac notVisible, zsynhronizowac z rodzicem i completerem i sprawdzic czy completer dziala
@@ -55,13 +56,11 @@ class Tcl2CaplInstructionInstance : public QMainWindow{
 
     };
 
-    using Super = QMainWindow;
+    using Super = QWidget;
     using CentralWidget = QWidget;
 
     using InputTclConfigBox = QGroupBox;
     using InputTclConfig = InputTextEdit;
-    using InputConfigBox = QGroupBox;
-    using InputConfig = InputTextEdit;
 
     using GenerateButton = QPushButton;
     using GenerateRaportModeButton = QPushButton;
@@ -72,15 +71,13 @@ class Tcl2CaplInstructionInstance : public QMainWindow{
     using ErrorsText = QTextEdit;
 
     const QString INPUT_TCL_CONFIG_BOX_TEXT = QStringLiteral("Skrypt TCL");
-    const QString INPUT_CONFIG_BOX_TITLE = QStringLiteral("Skrypt konfiguracyjny");
     const QString GENERATE_CAPL_BUTTON_TEXT = QStringLiteral("Generuj skrypty CAPL");
     const QString GENERATE_CAPL_WRITE_ONLY_MODE_BUTTON_TEXT = QStringLiteral("Generuj skrypty CAPL - Tryb raportowy");
     const QString OUTPUT_BOX_TITLE = QStringLiteral("Skrypt CAPL");
     const QString ERRORS_BOX_TITLE = QStringLiteral("Błędy");
     bool active  = false;
-    Tcl2CaplInstructionPanel& panel;
+    //Tcl2CaplInstructionPanel& panel;
 
-    CentralWidget centralWidget;
     QVBoxLayout centralWidgetLayout;
     QSplitter mainSplitter;
     QHBoxLayout controlLayout;
@@ -91,8 +88,6 @@ class Tcl2CaplInstructionInstance : public QMainWindow{
     QVBoxLayout inputTclBoxLayout;
     OutputBox outputBox;
     QVBoxLayout outputBoxLayout;
-    InputConfigBox inputConfigBox;
-    QVBoxLayout inputConfigBoxLayout;
     ErrorsBox errorsBox;
     QVBoxLayout errorsBoxLayout;
 
@@ -100,7 +95,6 @@ class Tcl2CaplInstructionInstance : public QMainWindow{
     OutputText outputText;
     GenerateButton generateCaplButton;
     GenerateRaportModeButton generateCaplRaportModeButton;
-    InputConfig inputConfig;
     ErrorsText errorsText;
 
     QCompleter inputConfigCompleter;
@@ -108,16 +102,18 @@ class Tcl2CaplInstructionInstance : public QMainWindow{
 
     // Temp Data from ConfigFile
     using UserProceduresConfig = UserInputConfig::UserInputConfigData;
-    UserProceduresConfig tempUserProceduresConfig_;
+    //UserProceduresConfig tempUserProceduresConfig_;
 
 public:
     using Error = QString;
-    Tcl2CaplInstructionInstance(Tcl2CaplInstructionPanel& panel);
+    Tcl2CaplInstructionInstance();
 
     void generateCapl();
     void generateCaplRaportMode();
     void setDefaultOutput();
 
+    SubWindow& subWindow();
+    MainWindow& mainWindow();
 protected:
     bool eventFilter(QObject*, QEvent*);
     bool readInputConfig();

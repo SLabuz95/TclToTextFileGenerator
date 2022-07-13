@@ -6,6 +6,6 @@ template<>
 ConditionalsFactory::CreateFunctionTable ConditionalsFactory::createFunctionTable =
 {
     &ConditionalsFactory::create<Conditional::CompareNumbOfArguments>,
-    &ConditionalsFactory::create<Conditional::IsLastSavedStat>,
     &ConditionalsFactory::create<Conditional::Compare>,
+    //&ConditionalsFactory::create<Conditional::IsLastSavedStat>,
 };

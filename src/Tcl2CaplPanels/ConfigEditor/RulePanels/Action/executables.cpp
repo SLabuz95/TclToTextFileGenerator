@@ -19,22 +19,35 @@ template<class Base>
 using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 
 template<>
-ActionView::ActionView(ListItem& item)
-   :   dataView_(ActionDataView::createView(*this, nullptr))
+ActionView::ActionView(List& list, ActionPtr action)
+: Super(list.viewport())
 {
     mainLayout.setVerticalSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
     mainLayout.addRow("Typ akcji:",&actionTypeComboBox);
+    if(action)
+        actionTypeComboBox.setCurrentIndex( Action::toUnderlyng(action->type()) );
     actionTypeComboBox.installEventFilter(this);
     actionTypeComboBox.view()->installEventFilter(this);
+    QWidget* widget = new QWidget();
+    mainLayout.addRow(widget);
+    setLayout(&mainLayout);
+
+    dataView_ = ActionDataView::createView(widget, action);
     if(dataView_){
-        QWidget* widget = new QWidget();
         dataView_->setSpacing(0);
         dataView_->setContentsMargins(0,0,0,0);
         widget->setLayout(dataView_);
-        mainLayout.addRow(widget);
     }
-    setLayout(&mainLayout);
+}
+
+template<>
+void ActionView::readAction(ActionPtr& action){
+    action = ExecutablesFactory::create(Action::fromUnderlying(actionTypeComboBox.currentIndex()));
+
+    if(dataView_){
+        dataView_->readAction(*action);
+    }
 }
 
 template<>
@@ -45,16 +58,17 @@ List& ActionView::parentWidget()const{
 template<>
 bool ActionView::createActionDataView(ActionType type){
     if(not dataView_ or dataView_->type() != type){
+        QWidget* widget = new QWidget();
         if(dataView_){
             mainLayout.removeRow(mainLayout.rowCount() - 1);
         }
-        dataView_ = ActionDataView::createView(*this, type);
+        mainLayout.addRow(widget);
+        dataView_ = ActionDataView::createView(widget, type);
         if(dataView_){
-            QWidget* widget = new QWidget();
             dataView_->setSpacing(0);
             dataView_->setContentsMargins(0,0,0,0);
-            widget->setLayout(dataView_);
-            mainLayout.addRow(widget);
+        }else{
+            delete widget;
         }
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
@@ -77,8 +91,18 @@ void ExecutablesList::loadActions(ActionsRef actions)
     setUpdatesEnabled(false);
     for(Action action = actions.begin(); action < actions.end(); action++)
         addNewItem(*action);
+    setUpdatesEnabled(true);
 }
 
+template<>
+void ExecutablesList::readActions(ActionsRef actions)
+{
+    actions.resize(count());
+    using Action = std::decay_t<ActionsRef>::Iterator;
+    Action action = actions.begin();
+    for(int i = 0; i < actions.size(); i++, action++)
+        item(i)->readAction(*action);
+}
 
 template<>
 template<>
@@ -247,8 +271,8 @@ ExecutablesList
 
 
 template<>
-ListItem::ListItem(ExecutablesList& list)
-    : view_(*this)
+ListItem::ListItem(ExecutablesList& list, ActionPtr action)
+    : QListWidgetItem(&list), view_(list, action)
 {
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
@@ -256,17 +280,6 @@ ListItem::ListItem(ExecutablesList& list)
     qApp->processEvents();
     setSizeHint(view().minimumSizeHint());
 }
-
-
-template<>
-ListItem::ListItem(ExecutablesList& list, ActionPtr action)
-    : view_(*this)
-{
-    setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
-    //list.addItem(this);
-    //list.setItemWidget(this, view());
-    //setSizeHint(view()->sizeHint());
-};
 
 
 template<>

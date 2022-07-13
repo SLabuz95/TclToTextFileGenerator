@@ -13,7 +13,7 @@ struct ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareNumbOf
 {
 public:
     using ParameterType = ParametersFactory::ProductTypeEnum;
-    using NumbOfArgumentsList = ParametersFactory::Product<ParameterType::List>;
+    using NumbOfArgumentsList = QStringList;
 protected:
     NumbOfArgumentsList numbOfArgs_;
 
@@ -34,6 +34,12 @@ class ConditionalsProducts::InterfaceData<ConditionalsTypes::CompareNumbOfArgume
 {
 public:
     NumbOfArgumentsList& numbOfArgs(){return numbOfArgs_;}
+    const NumbOfArgumentsList& numbOfArgs()const{return numbOfArgs_;}
+    void toAction(UserProcedureRule::ConditionalActions::Type& conditional)override{
+        using Action = UserProcedureRule::ConditionalActions::Type;
+        using Parameters = UserProcedureRule::ConditionalActions::Type::Parameters;
+        conditional = Action(type(), numbOfArgs());
+    }
 };
 
 

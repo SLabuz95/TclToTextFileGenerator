@@ -2,6 +2,7 @@
 #define CONFIG_CONDITIONALS_ISLASTSAVEDSTAT_HPP
 
 #include"External/Factory/products.hpp"
+/*
 #include"Tcl2Capl/Config/Actions/Conditional/definition.hpp"
 
 template<>
@@ -28,6 +29,7 @@ class ConditionalsProducts::InterfaceData<ConditionalsTypes::IsLastSavedStat>::M
 : public ConditionalsProducts::Implementation<ConditionalsTypes::IsLastSavedStat>
 {
 
-};
+    void toAction(UserProcedureRule::ConditionalActions::Type& conditional)override{}
+};*/
 
 #endif // CONFIG_CONDITIONALS_ISLASTSAVEDSTAT_HPP

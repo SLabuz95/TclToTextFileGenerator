@@ -29,7 +29,8 @@ public:
     using RawRule = RulesFactory::Product<RulesTypes::RawRule>;
     using RulesForArgument = RulesFactory::Product<RulesTypes::RulesForArgument>;
 
-    using RawRules = RulesFactory::List<RulesTypes::RawRule>;
+    using RawRules = RulesFactory::List<RulesTypes::RawRule>; // Stack oriented
+    using DynamicRawRules = RulesFactory::ListOfBases; // Heap oriented
     using RulesForArguments = RulesFactory::List<RulesTypes::RulesForArgument>;
 
     struct Attribute{
@@ -41,21 +42,13 @@ public:
 
     class Procedure{    // For config only
     public:
-         enum RulesCategories : RawRules::size_type{   // TO control rules list
-            // OnEndOfCall = -2, Position is always 0 for that case other function will be created?
-            UndefinedArgument = -1,
-            //Dynamic = -1,
-            // 0 > - Argument index value
 
-        };
     protected:
         using Name = QString;
 
         Name name_;
         UserInteractionStatus userInteraction = UserInteraction::defaultStatus();
-        RawRules rules_;
-
-        QHash<RulesCategories, RawRules::size_type> mapWithRuleCategoriesPositions;
+        DynamicRawRules rules_;
 
         //RawRules rulesOnEndOfCall_;
         //RulesForArguments rulesForArguments_;

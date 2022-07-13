@@ -818,7 +818,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
     {
         "stc_section",
         {   // Rules for Arguments
-            {   // Argument 1
+            {
+                0,
                 {   // Dynamic Rules
 
                 },
@@ -882,7 +883,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
     {   // Definition --------------------------------------------------------
         "if",
         {   // Rules for Arguments
-            {   // Argument 1
+            {
+                0,
                 {   // Dynamic Rules
                     {   // Rule 1: If lastSavedStat stat == List or EndOfList or FunctionCall or Whitespace -> Do nothing (Break)
                         {
@@ -949,7 +951,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     }
                 }
             },
-            {   // Argument 2
+            {
+                1,
                 {   // Dynamic Rules
                     {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
                         {   // Conditions:  If SavedStat stat == List
@@ -1024,6 +1027,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
             }
         },
         {   // Rules for Unspecified Argument
+            0,
             {   // Dynamic Rules
                 {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
                     {
@@ -1216,7 +1220,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
     {
         "for",
         {   // Rules for Arguments
-            {   // Argument 1
+            {
+                0,
                 {   // Dynamic Rules
                     {   // Rule 1: On lastSavedStat == List -> Change to Expression
                         {   // Conditions:  If SavedStat stat == List
@@ -1290,7 +1295,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     }
                 }
             },
-            {   // Argument 2
+            {
+                1,
                 {   // Dynamic Rules
                     {   // Rule 1: If lastSavedStat stat == List or EndOfList or FunctionCall or Whitespace -> Do nothing (Break)
                         {
@@ -1357,7 +1363,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     }
                 },
             },
-            {   // Argument 3
+            {
+                2,
                 {   // Dynamic Rules
                     {   // Rule 1: On lastSavedStat == List -> Change to Expression
                         {   // Conditions:  If SavedStat stat == List
@@ -1433,7 +1440,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     }
                 }
             },
-            {   // Argument 4
+            {
+                3,
                 {   // Dynamic Rules
                     {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
                         {   // Conditions:  If SavedStat stat == List

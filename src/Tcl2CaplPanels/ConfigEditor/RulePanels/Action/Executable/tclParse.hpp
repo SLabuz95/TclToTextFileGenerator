@@ -11,11 +11,14 @@ namespace Panels::Configuration::View::ActionsList{
     class TclParseActionView
             : public ActionDataView<ExecutablesFactory::ListOfBases>
     {
+        static constexpr ActionType actionType = ExecutablesTypes::TclParse;
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
+        using Action = ExecutablesFactory::Product<actionType>;
 
-        TclParseActionView(ActionView&);
+        TclParseActionView(QWidget*);
+        TclParseActionView(QWidget*, ActionPtr);
     public:
-        static ActionDataView* create(ActionView&, ActionRef);
+        static ActionDataView* create(QWidget*, ActionRef);
         using ActionView = ActionView;
     protected:
         using Executables = ExecutablesFactory::ListOfBases;
@@ -32,7 +35,8 @@ namespace Panels::Configuration::View::ActionsList{
 
     public:
        // Action toAction()override{}
-        constexpr ActionType type()const override{return ExecutablesTypes::TclParse;}
+        constexpr ActionType type()const override{return actionType;}
+        void readAction(ActionBase&) override;
 
     };
 

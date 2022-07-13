@@ -10,14 +10,29 @@ using ActionView = AddPreexpressionActionView::ActionView;
 
 // AddPreexpressionActionView Action View Definitions -----------------------------------
 
-AddPreexpressionActionView::AddPreexpressionActionView(ActionView& view)
+AddPreexpressionActionView::AddPreexpressionActionView(QWidget* parent)
+    : ActionDataView(parent)
 {
     splitter.addWidget(&formattedStringList);
     addWidget(&splitter);
 }
 
-AddPreexpressionActionView::DataView* AddPreexpressionActionView::create(ActionView& view, ActionRef){
-    return new AddPreexpressionActionView(view);
+AddPreexpressionActionView::AddPreexpressionActionView(QWidget* parent, ActionPtr pAction)
+ : AddPreexpressionActionView(parent)
+{
+    if(pAction){
+        Action& action = *static_cast<Action*>(pAction);
+        formattedStringList.loadRules(action.inputFormattedString().parameters());
+    }
+}
+
+void AddPreexpressionActionView::readAction(ActionBase& fAction){
+    Action& action = *static_cast<Action*>(&fAction);
+    formattedStringList.readRules(action.inputFormattedString().parameters());
+}
+
+AddPreexpressionActionView::DataView* AddPreexpressionActionView::create(QWidget* parent, ActionRef action){
+    return new AddPreexpressionActionView(parent, action);
 }
 
 

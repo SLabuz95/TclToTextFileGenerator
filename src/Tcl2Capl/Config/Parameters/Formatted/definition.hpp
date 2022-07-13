@@ -35,7 +35,6 @@ using FormatParametersProductDefinition = ProductDefinition<FormatParametersType
 
 template <>
 struct FormatParametersProductDefinition::ImplementationData::Properties{
-
 };
 
 template <>
@@ -45,8 +44,9 @@ class FormatParametersProductDefinition::ImplementationData::Methods{
 
 template <>
 class FormatParametersProductDefinition::InterfaceData::Methods{
-
-    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){};
+public:
+    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){}
+    virtual void toActionParameters(QStringList& parameters) = 0;
     //inline virtual RawFormatType rawFormatType() const = 0;
 };
 

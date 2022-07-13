@@ -10,14 +10,28 @@ using ActionView = AddUserInteractionActionView::ActionView;
 
 // AddUserInteractionActionView Action View Definitions -----------------------------------
 
-AddUserInteractionActionView::AddUserInteractionActionView(ActionView& view)
+AddUserInteractionActionView::AddUserInteractionActionView(QWidget* parent)
+    : ActionDataView(parent)
 {
     splitter.addWidget(&formattedStringList);
     addWidget(&splitter);
 }
 
-AddUserInteractionActionView::DataView* AddUserInteractionActionView::create(ActionView& view, ActionRef){
-    return new AddUserInteractionActionView(view);
+AddUserInteractionActionView::AddUserInteractionActionView(QWidget* parent, ActionPtr pAction)
+    : AddUserInteractionActionView(parent)
+{
+    if(pAction){
+        Action& action = *static_cast<Action*>(pAction);
+        formattedStringList.loadRules(action.inputFormattedString().parameters());
+    }
+}
+
+void AddUserInteractionActionView::readAction(ActionBase& fAction){
+    Action& action = *static_cast<Action*>(&fAction);
+    formattedStringList.readRules(action.inputFormattedString().parameters());
+}
+AddUserInteractionActionView::DataView* AddUserInteractionActionView::create(QWidget* parent, ActionRef action){
+    return new AddUserInteractionActionView(parent, action);
 }
 
 

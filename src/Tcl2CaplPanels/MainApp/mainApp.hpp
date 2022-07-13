@@ -7,8 +7,28 @@
 #include<QMdiSubWindow>
 #include"InstanceList/instanceList.hpp"
 #include<QEvent>
+#include"Tcl2Capl/controllerconfiginfo.hpp"
 
 class App;
+class MainWindow;
+namespace Panels::Configuration{
+    class Panel;
+}
+
+class SubWindow : public QMdiSubWindow{
+public:
+    using View = QMdiArea;
+    using QMdiSubWindow::QMdiSubWindow;
+
+    void closeEvent(QCloseEvent *) override{
+        hide();
+    }
+
+    View& view();//{return *static_cast<View*>(parentWidget()->parentWidget());} // Viewport -> View (QMdiArea)
+    MainWindow& mainWindow();//{return *static_cast<MainWindow*>(view().parentWidget()->parentWidget());} // View (QMdiArea) -> Splitter -> QMainWindow
+
+};
+
 class MainWindow : public QMainWindow{
     class MainWindowSplitter : public QSplitter{
         using Splitter = MainWindowSplitter;
@@ -44,7 +64,12 @@ class MainWindow : public QMainWindow{
 
     };
 
+
 public:
+    using View = QMdiArea;
+    using Splitter = MainWindowSplitter;
+    using Config = ControllerConfigInfo;
+    using ConfigEditor = Panels::Configuration::Panel;
     /*class InterpreterInterface : public QMdiSubWindow{
     public:
         enum class Type{
@@ -55,14 +80,7 @@ public:
 
         const Type type;
     };*/
-    class SubWindow : public QMdiSubWindow{
-    public:
-        using QMdiSubWindow::QMdiSubWindow;
 
-        void closeEvent(QCloseEvent *) override{
-            hide();
-        }
-    };
 
     //using SubWindow = QMdiSubWindow;
     using SubWindowsList = QList<SubWindow*>;
@@ -79,11 +97,12 @@ public:
     void interpreterNameChanged(InstanceList::SubWindowPositionInfo&&);
     void instanceNameChanged(InstanceListElement*);
 
+    Config& getConfig(SubWindow* subWindow);
+    ConfigEditor& getConfigEditor(SubWindow* subWindow);
+
     SubWindowsRange allInterpretersOfInstance(InstanceListElement*);
 protected:
     App& app_;
-    using View = QMdiArea;
-    using Splitter = MainWindowSplitter;
     Splitter splitter;    // Central Widget
     InstanceList instanceList;
     View view;

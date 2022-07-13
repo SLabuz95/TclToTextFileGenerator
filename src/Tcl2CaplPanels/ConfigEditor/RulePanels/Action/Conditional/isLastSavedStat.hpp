@@ -11,11 +11,14 @@ namespace Panels::Configuration::View::ActionsList::IsLastSavedStatActionView{
     class IsLastSavedStatActionView
             : public ActionDataView<ConditionalsFactory::ListOfBases>
     {
+        static constexpr ActionType actionType = ConditionalsTypes::IsLastSavedStat;
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
+        using Action = ConditionalsFactory::Product<actionType>;
 
-        IsLastSavedStatActionView(ActionView&);
+        IsLastSavedStatActionView(QWidget*);
+        IsLastSavedStatActionView(QWidget*, ActionPtr);
     public:
-        static ActionDataView* create(ActionView&, ActionRef);
+        static ActionDataView* create(QWidget*, ActionRef);
         using ActionView = ActionView;
     protected:
         using Conditionals = ConditionalsFactory::ListOfBases;
@@ -31,7 +34,8 @@ namespace Panels::Configuration::View::ActionsList::IsLastSavedStatActionView{
 
     public:
        // Action toAction()override{}
-        constexpr ActionType type()const override{return ConditionalsTypes::IsLastSavedStat;}
+        constexpr ActionType type()const override{return actionType;}
+        void readAction(ActionBase&) override;
 
     };
 

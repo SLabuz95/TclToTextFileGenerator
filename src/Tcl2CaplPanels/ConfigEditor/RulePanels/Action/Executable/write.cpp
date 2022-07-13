@@ -10,14 +10,30 @@ using ActionView = WriteActionView::ActionView;
 
 // WriteActionView Action View Definitions -----------------------------------
 
-WriteActionView::WriteActionView(ActionView& view)
+WriteActionView::WriteActionView(QWidget* parent)
+    : ActionDataView(parent)
 {
     splitter.addWidget(&formattedStringList);
     addWidget(&splitter);
 }
 
-WriteActionView::DataView* WriteActionView::create(ActionView& view, ActionRef){
-    return new WriteActionView(view);
+WriteActionView::WriteActionView(QWidget* parent, ActionPtr pAction)
+    : WriteActionView(parent)
+{
+    if(pAction){
+        Action& action = *static_cast<Action*>(pAction);
+        formattedStringList.loadRules(action.inputFormattedString().parameters());
+    }
+}
+
+
+void WriteActionView::readAction(ActionBase& fAction){
+    Action& action = *static_cast<Action*>(&fAction);
+    formattedStringList.readRules(action.inputFormattedString().parameters());
+}
+
+WriteActionView::DataView* WriteActionView::create(QWidget* parent, ActionRef action){
+    return new WriteActionView(parent, action);
 }
 
 

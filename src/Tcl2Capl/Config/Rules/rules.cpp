@@ -1,4 +1,17 @@
 //#include"../controllerconfig.hpp"
+
+#include"FCT_products.hpp"
+
+using RuleType = RulesFactory::ProductTypeEnum;
+
+template<>
+RulesFactory::CreateFunctionTable RulesFactory::createFunctionTable =
+{
+    &RulesFactory::create<RuleType::RawRule>,
+   // &RulesFactory::create<RuleType::RulesForArgument>
+};
+
+
 /*
 
 void FactoryProductDefinition<RulesType>::ProductInterface::toXmlContent(QXmlStreamWriter& xmlWriter){

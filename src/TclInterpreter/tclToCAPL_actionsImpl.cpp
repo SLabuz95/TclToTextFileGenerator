@@ -697,15 +697,18 @@ TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::e
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::Error>,
     &TCLCommandsController::executeAction<
-    TclProcedureCommand::Definition::Action::Executable::ChangeLastSavedStat>,
-    &TCLCommandsController::executeAction<
-    TclProcedureCommand::Definition::Action::Executable::AddFunctionDefinition>,
-    &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::AddPreExpression>,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::AddUserInteraction>,
+    /*&TCLCommandsController::executeAction<
+    TclProcedureCommand::Definition::Action::Executable::CompareAndWrite>,*/
+    nullptr,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::FinalizeForEach>,
+    &TCLCommandsController::executeAction<
+    TclProcedureCommand::Definition::Action::Executable::ChangeLastSavedStat>,
+    &TCLCommandsController::executeAction<
+    TclProcedureCommand::Definition::Action::Executable::AddFunctionDefinition>,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::AddPredefinition>,
 };

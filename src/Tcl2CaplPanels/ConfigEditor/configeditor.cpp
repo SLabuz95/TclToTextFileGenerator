@@ -28,6 +28,10 @@ Panel::Panel(App& app)
 
     setLayout(&layout);
 
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    configTabsPanel.rulesProcedureList().setEnabled(false);
+    configTabsPanel.rulesDefaultProcedureList().setEnabled(false);
+
     // Register temporary config (config manager - register without path)
     // if success, load new config info ptr
     // if failed, close editor
@@ -60,7 +64,150 @@ bool Panel::eventFilter(QObject* obj, QEvent* ev){
     }
     return QWidget::eventFilter(obj, ev);
 }
+void Panel::syncConfig(){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    if(configTabsPanel.rulesProcedureList().initialized()){
+        ConfigInfo::Config::DynamicRawRules newRules;
+        configTabsPanel.rulesProcedureList().readRules(newRules);
+        config().loadNewRules(configTabsPanel.rulesProcedureList().procedureName, configTabsPanel.rulesProcedureList().rulesCategory, newRules);
+    }
+    if(configTabsPanel.rulesDefaultProcedureList().initialized()){
+        ConfigInfo::Config::DynamicRawRules newRules;
+        configTabsPanel.rulesDefaultProcedureList().readRules(newRules);
+        config().loadNewRules(configTabsPanel.rulesDefaultProcedureList().rulesCategory, newRules);
+    }
+}
+void Panel::loadRules(QString procedureName, QString rulesCategory){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    ConfigInfo::RulesCategories category = static_cast<ConfigInfo::RulesCategories>(rulesCategory.toLongLong());
+    if(configTabsPanel.rulesProcedureList().procedureName != procedureName or configTabsPanel.rulesProcedureList().rulesCategory != category){
+        if(configTabsPanel.rulesProcedureList().initialized()){
+            ConfigInfo::Config::DynamicRawRules newRules;
+            configTabsPanel.rulesProcedureList().readRules(newRules);
+            config().loadNewRules(configTabsPanel.rulesProcedureList().procedureName, configTabsPanel.rulesProcedureList().rulesCategory, newRules);
+        }
+        ConfigInfo::RulesView rulesView = config().readRules(procedureName, category);
+        configTabsPanel.rulesProcedureList().setEnabled(true);
+        configTabsPanel.rulesProcedureList().procedureName = procedureName;
+        configTabsPanel.rulesProcedureList().rulesCategory = category;
+        configTabsPanel.rulesProcedureList().loadRules(rulesView);
+    }
 
+}
+
+void Panel::loadDefaultRules(QString rulesCategory){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    ConfigInfo::RulesCategories category = static_cast<ConfigInfo::RulesCategories>(rulesCategory.toLongLong());
+    if(configTabsPanel.rulesDefaultProcedureList().rulesCategory != category){
+        if(configTabsPanel.rulesDefaultProcedureList().initialized()){
+            ConfigInfo::Config::DynamicRawRules newRules;
+            configTabsPanel.rulesDefaultProcedureList().readRules(newRules);
+            config().loadNewRules(configTabsPanel.rulesDefaultProcedureList().rulesCategory, newRules);
+        }
+        ConfigInfo::RulesView rulesView = config().readRules(category);
+        configTabsPanel.rulesDefaultProcedureList().setEnabled(true);
+        configTabsPanel.rulesDefaultProcedureList().rulesCategory = category;
+        configTabsPanel.rulesDefaultProcedureList().loadRules(rulesView);
+    }
+}
+
+bool Panel::editProcedure(QString oldName, QString newName){
+    if(config().editProcedureName(oldName, newName) == true){
+        View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+        if(configTabsPanel.rulesProcedureList().procedureName == oldName)
+            configTabsPanel.rulesProcedureList().procedureName = newName;
+        return true;
+    }
+    return false;
+}
+
+bool Panel::editIndex(qsizetype oldIndex, qsizetype newIndex){
+    ConfigInfo::RulesCategories oldCategory = static_cast<ConfigInfo::RulesCategories>(oldIndex);
+    ConfigInfo::RulesCategories newCategory = static_cast<ConfigInfo::RulesCategories>(newIndex);
+    if(config().editIndex(oldIndex, newIndex) == true){
+        View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+        if(configTabsPanel.rulesDefaultProcedureList().rulesCategory == oldCategory)
+            configTabsPanel.rulesDefaultProcedureList().rulesCategory = newCategory;
+        return true;
+    }
+    return false;
+}
+bool Panel::editIndex(QString procedureName, qsizetype oldIndex, qsizetype newIndex){
+    ConfigInfo::RulesCategories oldCategory = static_cast<ConfigInfo::RulesCategories>(oldIndex);
+    ConfigInfo::RulesCategories newCategory = static_cast<ConfigInfo::RulesCategories>(newIndex);
+    if(config().editIndex(procedureName, oldIndex, newIndex) == true){
+        View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+        if(configTabsPanel.rulesProcedureList().procedureName == procedureName
+                and configTabsPanel.rulesProcedureList().rulesCategory == oldCategory)
+        {
+            configTabsPanel.rulesProcedureList().rulesCategory = newCategory;
+        }
+        return true;
+    }
+    return false;
+}
+
+void Panel::removeProcedure(QString procedureName){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    config().removeProcedure(procedureName);
+    if(configTabsPanel.rulesProcedureList().procedureName == procedureName){
+        configTabsPanel.rulesProcedureList().setNonInitialized();
+        configTabsPanel.rulesProcedureList().clear();
+        configTabsPanel.rulesProcedureList().setEnabled(false);
+    }
+}
+
+void Panel::removeIndex(QString procedureName, qsizetype index){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    config().removeIndex(procedureName, index);
+    ConfigInfo::RulesCategories category = static_cast<ConfigInfo::RulesCategories>(index);
+    if(configTabsPanel.rulesProcedureList().procedureName == procedureName
+            and configTabsPanel.rulesProcedureList().rulesCategory == category)
+    {
+        configTabsPanel.rulesProcedureList().setNonInitialized();
+        configTabsPanel.rulesProcedureList().clear();
+        configTabsPanel.rulesProcedureList().setEnabled(false);
+    }
+}
+
+void Panel::removeIndex(qsizetype index){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    config().removeIndex(index);
+    ConfigInfo::RulesCategories category = static_cast<ConfigInfo::RulesCategories>(index);
+    if(configTabsPanel.rulesDefaultProcedureList().rulesCategory == category)
+    {
+        configTabsPanel.rulesDefaultProcedureList().setNonInitialized();
+        configTabsPanel.rulesDefaultProcedureList().clear();
+        configTabsPanel.rulesDefaultProcedureList().setEnabled(false);
+    }
+}
+
+void Panel::clearProcedures(){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    config().clearProcedures();
+    configTabsPanel.rulesProcedureList().setNonInitialized();
+    configTabsPanel.rulesProcedureList().clear();
+    configTabsPanel.rulesProcedureList().setEnabled(false);
+}
+
+void Panel::clearIndexes(QString procedureName){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    config().clearIndexes(procedureName);
+    if(configTabsPanel.rulesProcedureList().procedureName == procedureName)
+    {
+        configTabsPanel.rulesProcedureList().setNonInitialized();
+        configTabsPanel.rulesProcedureList().clear();
+        configTabsPanel.rulesProcedureList().setEnabled(false);
+    }
+}
+
+void Panel::clearIndexes(){ // DefaultProcedure
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    config().clearIndexes();
+    configTabsPanel.rulesDefaultProcedureList().setNonInitialized();
+    configTabsPanel.rulesDefaultProcedureList().clear();
+    configTabsPanel.rulesDefaultProcedureList().setEnabled(false);
+}
 
 bool Panel::newConfig(){
     // Check if configInfo still exists

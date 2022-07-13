@@ -52,7 +52,7 @@ namespace Tcl::Interpreter::Command{
 
         using ConditionInterpretFunction = ConditionResult (Controller::*)(ConditionalActionsParameters);
         using ExecutableInterpretFunction = void (Controller::*)(ExecutableActionsParameters);
-        using ConditionInterpretFunctions = ConditionInterpretFunction[static_cast<std::underlying_type_t<Definition::Action::Conditional>>(Definition::Action::Conditional::Size)];
+        using ConditionInterpretFunctions = ConditionInterpretFunction[static_cast<std::underlying_type_t<Definition::Action::Conditional>>(Definition::Action::Conditional::PrivateSize)];
         using ExecutableInterpretFunctions = ExecutableInterpretFunction[static_cast<std::underlying_type_t<Definition::Action::Executable>>(Definition::Action::Executable::PrivateSize)];
 
         // ----

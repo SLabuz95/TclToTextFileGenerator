@@ -5,27 +5,23 @@
 
 namespace Panels::Configuration::Navigation::Procedure{
 
+using NavigationElement = List::NavigationElement;
+
 class DefaultProcedureElement : public NavigationElement{
 public:
-    class ListItem : public QTreeWidgetItem{
+    class ListItem : public NavigationElement{
     public:
         ListItem(Qt::ItemFlags flags, DefaultProcedureElement *parent = nullptr, const QStringList &strings = QStringList(), int type = Type)
-            : QTreeWidgetItem(parent, strings, type)
+            : NavigationElement(parent, strings, type)
         {
             setFlags(flags);
         }
         ListItem(DefaultProcedureElement *parent = nullptr, const QStringList &strings = QStringList(), int type = Type)
-            : QTreeWidgetItem(parent, strings, type)
+            : NavigationElement(parent, strings, type)
         {
             setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
         }
     };
-    using NewIndexes = QStringList;
-    struct CurEditItemInfo{
-        ListItem* item = nullptr;
-        QString oldStr;
-    } curEditItemInfo;
-    NewIndexes newIndexes;
 
     inline DefaultProcedureElement(QTreeWidget *parent, const QStringList &strings, int type = Type)
         : NavigationElement(parent, strings, type)
@@ -67,7 +63,6 @@ public:
     void edittingFinished();
 
     //bool eventFilter(QObject* obj, QEvent* ev)override;
-    bool tryToManageIndex(QString oldIndex, QString newIndex);
     // Procedure Rules Control
 
 
@@ -76,7 +71,9 @@ public:
 class ProceduresElement : public NavigationElement{
 public:
     class ListItem : public DefaultProcedureElement{
+
     public:
+        using ChildType = DefaultProcedureElement::ListItem;
         ListItem(Qt::ItemFlags flags, ProceduresElement *parent = nullptr, const QStringList &strings = QStringList(), int type = Type)
             : DefaultProcedureElement(parent, strings, type)
         {
@@ -85,13 +82,8 @@ public:
             : DefaultProcedureElement(parent, strings, type)
         {
         }
+        void menuControl(QContextMenuEvent* cev, ListItem* item);
     };
-    using NewIndexes = QStringList;
-    struct CurEditItemInfo{
-        ListItem* item = nullptr;
-        QString oldStr;
-    } curEditItemInfo;
-    NewIndexes newIndexes;
 
     inline ProceduresElement(QTreeWidget *parent, const QStringList &strings, int type = Type)
         : NavigationElement(parent, strings, type)
@@ -106,8 +98,11 @@ public:
     using Request_ContextMenu_Func = void (ProceduresElement::*)(ListItem*);
     enum class Request_ContextMenu{
         AddProcedure,
+        AddIndex,
         EditProcedure,
+        EditProcedureMultiLine,
         RemoveProcedure,
+        ClearIndexes,
         ClearProcedures,
         Size
     };
@@ -118,7 +113,6 @@ public:
     void edittingFinished();
 
     //bool eventFilter(QObject* obj, QEvent* ev)override;
-    bool tryToManageIndex(QString oldIndex, QString newIndex);
     // Procedure Rules Control
 
 

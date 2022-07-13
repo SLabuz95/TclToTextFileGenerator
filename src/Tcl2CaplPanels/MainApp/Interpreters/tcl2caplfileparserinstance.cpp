@@ -1,6 +1,5 @@
 #include"tcl2caplfileparserinstance.hpp"
 //#include"tcl2caplfileparserpanel.hpp"
-#include"appwindow.hpp"
 #include<QSplitter>
 #include<QEvent>
 #include<QMessageBox>
@@ -11,6 +10,9 @@
 #include"FileInstanceResultPanel/fileinstanceresultpanel.hpp"
 #include"External/FileReader/FilesSpecificData/XML/TclCaplParserConfig/FRI_FSD_XML_TCL_CAPL_Parser_Config.hpp"
 #include<QContextMenuEvent>
+#include"Tcl2CaplPanels/MainApp/mainApp.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
+
 
 Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance()
     : QSplitter(Qt::Horizontal),
@@ -243,7 +245,9 @@ void Tcl2CaplFileParserInstance::generateCapl(){
     addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
     instanceWidget->show();
 
-    instanceWidget->generateCapl(tempUserProceduresConfig_);
+    MainWindow::ConfigEditor& configEditor =  mainWindow().getConfigEditor(&subWindow());
+    configEditor.syncConfig();
+    instanceWidget->generateCapl(configEditor.config());
 
 
 /*
@@ -306,7 +310,9 @@ void Tcl2CaplFileParserInstance::generateCaplRaportMode(){
     addDockWidget(Qt::BottomDockWidgetArea, newInstance);*/
     instanceWidget->show();
 
-    instanceWidget->generateCaplInWriteOnlyMode(tempUserProceduresConfig_);
+    MainWindow::ConfigEditor& configEditor =  mainWindow().getConfigEditor(&subWindow());
+    configEditor.syncConfig();
+    instanceWidget->generateCaplInWriteOnlyMode(configEditor.config());
 
     /*tcl2Capl.userProceduresConfig().proceduresSettings().setWriteOnlyMode(true);
     if(!tcl2Capl.generateCaplsFromFolderWithTcls(inputDirPath.text(), outputDirPath.text()).isEmpty()){
@@ -389,3 +395,13 @@ void Tcl2CaplFileParserInstance::execRequest_FileInfoRef<Tcl2CaplFileParserInsta
         outputDirPath.setText(file.filePath());
     }
 }
+
+SubWindow& Tcl2CaplFileParserInstance::subWindow(){
+    return *static_cast<SubWindow*>(parentWidget());
+}
+
+MainWindow& Tcl2CaplFileParserInstance::mainWindow(){
+    return *static_cast<MainWindow*>(&(subWindow().mainWindow()));
+}
+
+

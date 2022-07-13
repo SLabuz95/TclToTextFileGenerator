@@ -2,42 +2,56 @@
 #define TEXTRULE_HPP
 
 #include"../formattedString.hpp"
-#include<QLineEdit>
+#include<QTextEdit>
 
 namespace Panels::Configuration::View::FormattedString{
     class TextItemDataView
             : public ItemDataView
     {
+        static constexpr FormatRuleType ruleType = FormatRuleType::TextItem;
     public:
-        TextItemDataView(){
+        TextItemDataView(QWidget* parent)
+            : ItemDataView(parent)
+        {
             addRow("Tekst: ", &textLineEdit);
-            textLineEdit.setClearButtonEnabled(true);
         }
+        TextItemDataView(QWidget* parent, FormatRuleRef);
         ~TextItemDataView(){}
 
-        class LineEdit : public QLineEdit{
+        class TextEdit : public QTextEdit{
         public:
-            LineEdit(){
+            TextEdit(){
                 setStyleSheet("border: 1px solid red;");
+                setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
             }
+            inline void setText(const QString& str){
+                QTextEdit::setText(str);
+                checkText();
+            }
+            void checkText(){
+                if(toPlainText().isEmpty()){
+                    setStyleSheet("border: 1px solid red;");
+                }else{
+                    setStyleSheet("");
+                }
+            }
+
             bool event(QEvent* ev)override{
                 if(ev->type() == QEvent::InputMethodQuery){
-                    if(text().isEmpty()){
-                        setStyleSheet("border: 1px solid red;");
-                    }else{
-                        setStyleSheet("");
-                    }
+                    checkText();
                 }
-                return QLineEdit::event(ev);
+                return QTextEdit::event(ev);
             }
         };
 
         using ItemDataView::FormatRuleRef;
-        static ItemDataView* create(ItemView& view, FormatRuleRef = nullptr);
-        constexpr FormatRuleType type()const override{return FormatRuleType::TextItem;}
+        static ItemDataView* create(QWidget* parent, FormatRuleRef = nullptr);
+        constexpr FormatRuleType type()const override{return ruleType;}
+        using Rule = FormatParametersFactory::Product<ruleType>;
     protected:
         //LineEdit* textLineEdit = nullptr;
-        LineEdit textLineEdit;// = nullptr;
+        TextEdit textLineEdit;// = nullptr;
+        void readRule(FormatRuleBase&) override;
 
     };
 }

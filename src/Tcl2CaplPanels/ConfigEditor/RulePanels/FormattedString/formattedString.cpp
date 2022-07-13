@@ -8,8 +8,8 @@
 
 using namespace Panels::Configuration::View::FormattedString;
 
-ItemView::ItemView(ListItem& item)
-    : dataView_(ItemDataView::createView(*this, nullptr))
+ItemView::ItemView(List& list, FormatRulePtr rule)
+ : Super(list.viewport())
 {
     using OutputOption2FormatRuleMap = const QStringList;
     OutputOption2FormatRuleMap outputOption2FormatRuleMap =
@@ -21,41 +21,55 @@ ItemView::ItemView(ListItem& item)
         //"Separator",
         "Format"
     };
+    titleComboBox.addItems(outputOption2FormatRuleMap);
+    if(rule)
+        titleComboBox.setCurrentIndex( FormatRule::toUnderlyng(rule->type()) );
     mainLayout.setSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
     mainLayout.addRow("Typ akcji:", &titleComboBox);
-    titleComboBox.addItems(outputOption2FormatRuleMap);
+
     titleComboBox.installEventFilter(this);
     titleComboBox.view()->installEventFilter(this);
+
+    setLayout(&mainLayout);
+
+    QWidget* widget = new QWidget();
+    mainLayout.addRow(widget);
+    dataView_ = ItemDataView::createView(widget, rule);
     if(dataView_){
-        QWidget* widget = new QWidget();
         dataView_->setSpacing(0);
         dataView_->setContentsMargins(0,0,0,0);
-        widget->setLayout(dataView_);
-        mainLayout.addRow(widget);
+    }else{
+        delete widget;
     }
-    setLayout(&mainLayout);
     qApp->processEvents();
 }
 
+void ItemView::readRule(FormatRulePtr& rule){
+    rule = FormatParametersFactory::create(FormatRule::fromUnderlying(titleComboBox.currentIndex()));
+
+    if(dataView_){
+        dataView_->readRule(*rule);
+    }
+}
 
 List& ItemView::parentWidget()const{
     return *static_cast<List*>(Super::parentWidget()->parentWidget()); // Viewport (1 parent) -> List (2 parent)
 }
 
-
 bool ItemView::createFormatRuleDataView(FormatRuleType type){
     if(not dataView_ or dataView_->type() != type){
+        QWidget* widget = new QWidget();
         if(dataView_){
             mainLayout.removeRow(mainLayout.rowCount() - 1);
         }
-        dataView_ = ItemDataView::createView(*this, type);
+        mainLayout.addRow(widget);
+        dataView_ = ItemDataView::createView(widget, type);
         if(dataView_){
-            QWidget* widget = new QWidget();
             dataView_->setSpacing(0);
             dataView_->setContentsMargins(0,0,0,0);
-            widget->setLayout(dataView_);
-            mainLayout.addRow(widget);
+        }else{
+            delete widget;
         }
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
@@ -215,8 +229,24 @@ bool ItemView::eventFilter(QObject* obj, QEvent* ev){
     return Super::eventFilter(obj, ev);
 }
 
-List
-::List(){
+void List::loadRules(FormatRulesRef rules){
+    using Rule = std::decay_t<FormatRulesRef>::Iterator;
+    setUpdatesEnabled(false);
+    for(Rule rule = rules.begin(); rule < rules.end(); rule++)
+        addNewItem(*rule);
+    setUpdatesEnabled(true);
+}
+
+void List::readRules(FormatRulesRef rules)
+{
+    rules.resize(count());
+    using Rule = std::decay_t<FormatRulesRef>::Iterator;
+    Rule rule = rules.begin();
+    for(int i = 0; i < rules.size(); i++, rule++)
+        item(i)->readRule(*rule);
+}
+
+List::List(){
     // Initiailzie
     /*setStyleSheet("QListView::item{"
     "border: 2px solid #6a6ea9;"
@@ -239,8 +269,8 @@ List
 }
 
 
-ListItem::ListItem(List& list)
-    : view_(*this)
+ListItem::ListItem(List& list, FormatRulePtr rule)
+    : QListWidgetItem(&list), view_(list, rule)
 {
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
@@ -249,15 +279,6 @@ ListItem::ListItem(List& list)
     setSizeHint(view().sizeHint());
 }
 
-/*
-ListItem::ListItem(List& list, ActionPtr action)
-    : view_(*this)
-{
-    setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
-    //list.addItem(this);
-    //list.setItemWidget(this, view_);
-    //setSizeHint(view()->sizeHint());
-};*/
 
 
 List &ListItem::list() const

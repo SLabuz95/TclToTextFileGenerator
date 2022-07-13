@@ -19,7 +19,8 @@
 #include"FileParserInstanceLists/inputsList.hpp"
 
 //class Tcl2CaplFileParserPanel;
-class AppWindow;
+class SubWindow;
+class MainWindow;
 #include<QApplication>
 #include"FileParserInstanceLists/filesList.hpp"
 #include"FileParserInstanceLists/filesListElement.hpp"
@@ -79,7 +80,7 @@ class Tcl2CaplFileParserInstance : public QSplitter{
 
     // Temp Data from ConfigFile
     using UserProceduresConfig = UserInputConfig::UserInputConfigData;
-    UserProceduresConfig tempUserProceduresConfig_;
+   // UserProceduresConfig tempUserProceduresConfig_;
 
 public:
     using Request_FileInfoRef_Func = void (Tcl2CaplFileParserInstance::*)(QFileInfo&);
@@ -111,7 +112,8 @@ protected:
     Error readNewInputConfig_dialog();
     Error readProceduresConfig(QFileInfo&);
 
-
+    SubWindow& subWindow();
+    MainWindow& mainWindow();
 };
 
 #endif // TCL2CAPLFILEPARSERINSTANCE_HPP

@@ -42,7 +42,7 @@ class ProductDefinition {
     using IS_Methods_BASE_OF_Implementation = void;
     public:
 
-    class Interface : protected InterfaceData::Methods{};
+    class Interface : public InterfaceData::Methods{};
 
     class Definition : public Interface{
     public:

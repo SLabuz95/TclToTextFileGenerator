@@ -18,6 +18,7 @@
 #include"RulePanels/rawRule.hpp"
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
 #include<QPainter>
+#include"Tcl2Capl/controllerconfiginfo.hpp"
 
 namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
     class RulesList;
@@ -27,16 +28,17 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
     using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 
     class ListItem : public QListWidgetItem{
+        using RulesRef = ControllerConfigInfo::NewRules;
+        using Rule = std::remove_pointer_t<RulesRef::Type>;
+        using RuleRef = Rule&;
         using RawRuleView = Rules::RawRuleView;
-        using RulesRef = Tcl2CaplControllerConfig::RawRules&;
-        using RuleRef = Tcl2CaplControllerConfig::RawRule&;
-        using Rule = Tcl2CaplControllerConfig::RawRule;
+        using RulesViewRef = ControllerConfigInfo::RulesView;
+        using RuleViewRef = RulesViewRef::first_type;
     public:
         using List = RulesList;
         ListItem() = delete;
-        ListItem(RulesList& list);
-        ListItem(RulesList& list, RuleRef rule);
-        ListItem(const ListItem& item) : ListItem(item.rulesList()){
+        ListItem(RulesList& list, RuleViewRef rule);
+        ListItem(const ListItem& item) : ListItem(item.rulesList(), nullptr){
             //itemContent = new ItemContent(item.widget());
         }
         ~ListItem()override{
@@ -46,13 +48,15 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         RawRuleView rawRuleView_;
 
     public:
+        inline void readRule(RuleRef rule){rawRuleView_.readRule(rule);}
         RulesList &rulesList() const; //{ return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }
         inline RawRuleView& rawRuleView(){return rawRuleView_;}
+
     };
     class RulesList : public ContextMenuInterface<QListWidget> {
-        using RulesRef = Tcl2CaplControllerConfig::RawRules&;
-        using RuleRef = Tcl2CaplControllerConfig::RawRule&;
-        using Rule = Tcl2CaplControllerConfig::RawRule;
+        using RulesRef = ControllerConfigInfo::NewRules;
+        using RulesViewRef = ControllerConfigInfo::RulesView;
+        using RuleViewRef = RulesViewRef::first_type;
         using Super = ContextMenuInterface<QListWidget>;
     public:
         using Request_ContextMenu_Func = void (RulesList::*)(ListItem*);
@@ -74,23 +78,30 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
 
     protected:
         ListItem* lastPressedItem = nullptr;
-
     public:
+        QString procedureName;
+        ControllerConfigInfo::RulesCategories rulesCategory = static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);
+
         inline ListItem* currentItem()const{return static_cast<ListItem*>(QListWidget::currentItem());}
         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(QListWidget::itemAt(p));}
 
         inline ListItem* item(int index)const{return static_cast<ListItem*>(QListWidget::item(index));}
         inline ListItem* lastItem()const{return item(count() - 1);}
 
-        void loadRules(RulesRef);
+        inline bool initialized()const{return rulesCategory != static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);}
+        inline void setNonInitialized(){rulesCategory = static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);}
+        int countRules(){return count();}
+
+        void loadRules(RulesViewRef);
+        void readRules(RulesRef&);
 
         inline void addNewItem(){
             //ListItem* newItem = nullptr;
-            new ListItem(*this);
+            new ListItem(*this, nullptr);
             //newItem->init();
         }
 
-        inline void addNewItem(RuleRef rule){
+        inline void addNewItem(RuleViewRef rule){
             //ListItem* newItem = nullptr;
             new ListItem(*this, rule);
             //newItem->init();

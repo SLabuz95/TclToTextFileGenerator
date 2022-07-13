@@ -85,7 +85,8 @@ private:
     SubWindowPositionInfo getSubWindowPositionInfo(QTreeWidgetItem* item){
         return SubWindowPositionInfo{
             item->treeWidget()->indexOfTopLevelItem(item->parent()),
-            item->parent()->indexOfChild(item)};
+            item->parent()->indexOfChild(item)
+        };
     }
 
     void contextMenuEvent(QContextMenuEvent *e) override;

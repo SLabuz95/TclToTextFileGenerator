@@ -7,13 +7,25 @@
 
 using namespace Panels::Configuration::View::Rules::RulesProcedurePanel;
 
-void RulesList::loadRules(RulesRef rules)
+void RulesList::loadRules(RulesViewRef rules)
 {
-    using RawRule = std::decay_t<RulesRef>::Iterator;
     setUpdatesEnabled(false);
-    for(RawRule rule = rules.begin(); rule < rules.end(); rule++)
-        addNewItem(*rule);
+    clear();
+    for( ; rules.first < rules.second; rules.first++)
+        addNewItem(rules.first);
+    setUpdatesEnabled(true);
 }
+
+void RulesList::readRules(RulesRef& rules)
+{
+    rules.resize(count());
+    RulesRef::Iterator rule = rules.begin();
+    for(int i = 0; i < rules.size(); i++, rule++){
+        *rule = RulesFactory::create(RulesFactory::ProductTypeEnum::RawRule);
+        item(i)->readRule(*(*rule));
+    }
+}
+
 
 
 template<>
@@ -122,21 +134,14 @@ void RulesList::extendContextMenu(ContextMenuConfig& config)const{
                      });
 }
 
-ListItem::ListItem(RulesList& list)
-    : rawRuleView_(*this)
+ListItem::ListItem(RulesList& list, RuleViewRef rule)
+    : QListWidgetItem(&list), rawRuleView_(*this, rule)
 {
     list.addItem(this);
     list.setItemWidget(this, &rawRuleView());
     setSizeHint(rawRuleView().minimumSizeHint());
 }
 
-ListItem::ListItem(RulesList& list, RuleRef rule)
-    : rawRuleView_(*this, rule)
-{
-    list.addItem(this);
-    list.setItemWidget(this, &rawRuleView());
-    setSizeHint(rawRuleView().minimumSizeHint());
-};
 
 RulesList &ListItem::rulesList() const
 { return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }

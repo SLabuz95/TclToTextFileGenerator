@@ -11,7 +11,8 @@ struct FormatParametersProducts::ImplementationData<FormatParametersType::IndexI
 {
 
 protected:
-   // FormatParametersProducts::FactoryCommonInterface* data = nullptr;
+   static constexpr int INVALID_INDEX = INT_MIN;
+   int index_ = INT_MIN;
 
 };
 
@@ -29,6 +30,12 @@ class FormatParametersProducts::InterfaceData<FormatParametersType::IndexItem>::
 : public FormatParametersProducts::Implementation<FormatParametersType::IndexItem>
 {
 public:
+    void setIndex(int index){index_ = index;}
+    int index(){return (index_ == INVALID_INDEX)? 0 : index_;}
+    void toActionParameters(QStringList& parameters)override{
+        using Format = Tcl::Interpreter::Command::Definition::Format;
+        Format::addFormatRule(parameters, Format::Rule::INDEX_OR_FULL_LINE, QString::number(index()));
+    }
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
     //inline RawFormatType rawFormatType()const override final{return RawFormatType::IndexItem;}
 

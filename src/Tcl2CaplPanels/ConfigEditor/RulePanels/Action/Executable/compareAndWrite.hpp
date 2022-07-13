@@ -28,8 +28,10 @@ namespace Panels::Configuration::View::ActionsList{
             : public ActionDataView<ExecutablesFactory::ListOfBases>
     {
 
+        static constexpr ActionType actionType = ExecutablesTypes::CompareAndWrite;
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
         using ContextMenuInterface = Utils::ContextMenuBuilder::InterfaceExtended<QTreeWidget, QListWidget>;
+        using Action = ExecutablesFactory::Product<actionType>;
 
         using RawRule = Tcl2CaplControllerConfig::RawRule;
     public:
@@ -104,7 +106,9 @@ namespace Panels::Configuration::View::ActionsList{
                 void addArgument();
                 void addEmptyStringArgument();
                 void loadArguments(QStringList&);
+                void readArguments(QStringList&);
                 void loadArgument(QString&);
+                inline QString readArgument(){return (type_ == ItemType::EmptyStringItem)? QString() : text(2);}
                 QString toolTipText() const;
             };
             using ListItem = EAL_Item;
@@ -157,8 +161,9 @@ namespace Panels::Configuration::View::ActionsList{
             ExpectedArgumentsList();
             void addIndex();
             void addEditItem(ListItem*);
-            void loadExpectedArguments(RawRule& rule);
-            void clearEditItem();            
+            void loadExpectedArguments(Action::ArgumentsMap& argumentsMap);
+            void readExpectedArguments(Action::ArgumentsMap& argumentsMap);
+            void clearEditItem();
             ParentContextMenu& parentContextMenu()const override;
             void extendContextMenu(ContextMenuConfig&)const override;
             void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*)override;
@@ -380,14 +385,16 @@ namespace Panels::Configuration::View::ActionsList{
         //OutputsList outputsList;
 
     public:
-        CompareAndWriteActionView(ActionView&);
+        CompareAndWriteActionView(QWidget*);
+        CompareAndWriteActionView(QWidget*, ActionPtr);
         //CompareAndWriteActionView(CompareAndWriteActionView* item);
         ~CompareAndWriteActionView(){}
 
-        static ActionDataView* create(ActionView&, ActionRef);
+        static ActionDataView* create(QWidget*, ActionRef);
         //bool eventFilter(QObject* obj, QEvent* ev)override;
         //inline ListItem& item()const{return item_;}
-        constexpr ActionType type()const override{return ExecutablesTypes::CompareAndWrite;}
+        constexpr ActionType type()const override{return actionType;}
+        void readAction(ActionBase&) override;
 
     };
 

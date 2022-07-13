@@ -7,14 +7,21 @@
 
 namespace Panels::Configuration{
 namespace View{
+    namespace Rules{
+        namespace RulesProcedurePanel{
+        class RulesList;
+        }
+    }
     class ConfigViewPanel;
 }
+
     class AttributesPanel;
     class WriteOnlyProceduresList;
 
     class ConfigTabsPanel : public QTabWidget{
 
         using Super = QTabWidget;
+        using RulesProcedurePanel = View::Rules::RulesProcedurePanel::RulesList;
     public:
         ConfigTabsPanel(View::ConfigViewPanel& parent);
         virtual ~ConfigTabsPanel() override{}
@@ -25,6 +32,8 @@ namespace View{
 
         AttributesPanel& attributesList();
         WriteOnlyProceduresList& writeOnlyProceduresList();
+        RulesProcedurePanel& rulesProcedureList();
+        RulesProcedurePanel& rulesDefaultProcedureList();
 
         WIDGET_ADD_EVENT_FILTER
 

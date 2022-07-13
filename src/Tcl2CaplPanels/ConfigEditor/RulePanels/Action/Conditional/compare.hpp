@@ -5,8 +5,7 @@
 #include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
 #include"../actions.hpp"
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
-#include<QDialog>
-#include<QTextEdit>
+#include"Tcl2CaplPanels/General/multilineEditorDialog.hpp"
 
 namespace General = Panels::Configuration::View;
 namespace Panels::Configuration::View::ActionsList::CompareActionView{
@@ -14,13 +13,17 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
     class CompareActionView
             : public ActionDataView<ConditionalsFactory::ListOfBases>
     {
+
+        static constexpr ActionType actionType = ConditionalsTypes::Compare;
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
         using ContextMenuInterface = Utils::ContextMenuBuilder::InterfaceExtended<QListWidget>;
+        using Action = ConditionalsFactory::Product<actionType>;
 
-        CompareActionView(ActionView&);
+        CompareActionView(QWidget* );
+        CompareActionView(QWidget* , ActionPtr);
     public:
         using ParentContextMenu = ContextMenuInterface::Interface;
-        static ActionDataView* create(ActionView&, ActionRef);
+        static ActionDataView* create(QWidget* , ActionRef);
         using ActionView = ActionView;
     protected:
         using Conditionals = ConditionalsFactory::ListOfBases;
@@ -33,8 +36,9 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
         class ListOfIndexes : public ContextMenuInterface{
             class ListItem : public QListWidgetItem{
             public:
-                inline ListItem(QString str = QString())
-                    : QListWidgetItem(str)
+                ListItem() = delete;
+                inline ListItem(ListOfIndexes& list, QString str = QString())
+                    : QListWidgetItem(str, &list)
                 {
                      setFlags(flags() | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
 
@@ -42,46 +46,6 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
                 bool multiLineItem = false;
                 inline ListOfIndexes& parentList()const{return *static_cast<ListOfIndexes*>(QListWidgetItem::listWidget());}
 
-            };
-            class MultiLineEditor : public QDialog{
-            public:
-                MultiLineEditor(QString text)
-                    : QDialog()
-                {
-                    QTextOption to;
-                    to.setFlags(QTextOption::IncludeTrailingSpaces | QTextOption::ShowTabsAndSpaces);
-                    setSizeGripEnabled(true);
-                    setModal(true);
-
-                    titleLabel.setText("Edytor");
-
-                    ok.setText("Ok");
-                    cancel.setText("Cancel");
-                    buttons.addWidget(&ok);
-                    buttons.addWidget(&cancel);
-
-                    layout.addWidget(&titleLabel);
-                    layout.addWidget(&textEditor);
-                    layout.addLayout(&buttons);
-                    ok.installEventFilter(this);
-                    cancel.installEventFilter(this);
-
-                    setLayout(&layout);
-                    textEditor.document()->setDefaultTextOption(to);
-                    textEditor.setPlainText(text);
-                }
-
-            protected:
-                QVBoxLayout layout;
-                QLabel titleLabel;
-                QTextEdit textEditor;
-                QHBoxLayout buttons;
-                QPushButton ok;
-                QPushButton cancel;
-
-                bool eventFilter(QObject* obj, QEvent* ev)override;
-            public:
-                QString text()const{return textEditor.toPlainText();}
             };
 
             using Request_ContextMenu_Func = void (ListOfIndexes::*)(ListItem*);
@@ -117,8 +81,8 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
                 setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
                 setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
                 viewport()->installEventFilter(this);
-
             }
+
             QSize sizeHint() const override{
                 if(Super::sizeHint().height() > minimumSizeHint().height()){
                     return Super::sizeHint();
@@ -162,7 +126,13 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
             }
             void commitChanges(){}
 
-            void loadIndexes();
+            void loadIndexes(QStringList);
+            void readAll(QStringList& list){
+                list.resize(count());
+                int i = 0;
+                for(QStringList::Iterator string = list.begin(); string != list.end(); string++, i++)
+                    (*string) = item(i)->text();
+            }
 
             inline void clearChanges(){
 
@@ -181,8 +151,9 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
 
     public:
        // Action toAction()override{}
-        constexpr ActionType type()const override{return ConditionalsTypes::Compare;}
+        constexpr ActionType type()const override{return actionType;}
 
+        void readAction(ActionBase&) override;
     };
 
 }

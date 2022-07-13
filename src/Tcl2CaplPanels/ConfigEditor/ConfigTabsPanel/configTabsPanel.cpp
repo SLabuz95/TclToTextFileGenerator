@@ -36,3 +36,9 @@ AttributesPanel& ConfigTabsPanel::attributesList(){
 WriteOnlyProceduresList& ConfigTabsPanel::writeOnlyProceduresList(){
     return *static_cast<WriteOnlyProceduresList*>(panels[1]);
 }
+RulesProcedurePanel& ConfigTabsPanel::rulesProcedureList(){
+    return *static_cast<RulesProcedurePanel*>(panels[2]);
+}
+RulesProcedurePanel& ConfigTabsPanel::rulesDefaultProcedureList(){
+    return *static_cast<RulesProcedurePanel*>(panels[3]);
+}

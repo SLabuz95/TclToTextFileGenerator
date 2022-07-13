@@ -5,8 +5,11 @@
 #include<QMouseEvent>
 #include<QMessageBox>
 #include<QResizeEvent>
+#include"Tcl2CaplPanels/General/multilineEditorDialog.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
 
 using namespace Panels::Configuration::Navigation;
+using ConfigEditor = Panels::Configuration::Panel;
 using ConfigViewPanel = Panels::Configuration::View::ConfigViewPanel;
 using ProceduresElement = Procedure::ProceduresElement;
 using DefaultProcedureElement = Procedure::DefaultProcedureElement;
@@ -17,16 +20,17 @@ const QString List::navigationPanelNames[panelType2number(PanelType::Size)]{
             QString("Procedury"),
             QString("Procedura domyślna")
             //QString("Priorytety"),
-            //QString("Reguły szybkie"),
-            //QString("Reguły zaawansowane"),
 };
 
 List::List(View::ConfigViewPanel& parent)
-    : QTreeWidget(&parent), configPanel(parent)
+    : QTreeWidget(&parent), configPanel_(parent)
 {
+    ItemDelegate* itemDelegateObj = new ItemDelegate(*this);
+    setItemDelegate(itemDelegateObj);
     setHeaderHidden(true);
     setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setSelectionMode(SelectionMode::NoSelection);
     //setIndentation(0);
 
     QList<QTreeWidgetItem*> items(panelType2number(PanelType::Size), nullptr);
@@ -50,27 +54,138 @@ List::List(View::ConfigViewPanel& parent)
 
     }
 
-    // Add procedures children
-
-    // A
-
     addTopLevelItems(items);
     viewport()->installEventFilter(this);
     installEventFilter(this);
 }
 
+
+QWidget* List::ItemDelegate::
+createEditor(QWidget* parent,
+             const QStyleOptionViewItem& option,
+             const QModelIndex& index) const
+{
+
+    NavigationElement* item = list.itemFromIndex(index);
+    PanelType panelType = PanelType();
+    if(item->parent() != nullptr){
+        // otherwise:
+        // if parent is mainNavigationElement -> check index of parent to define panelType
+        panelType = static_cast<PanelType>(list.indexOfTopLevelItem(item->parent()));
+        switch(panelType){
+        case PanelType::NoFound: // Not MainNavigationPanel -> Child of ProcedureElement of ProceduresElement
+        {
+            // Interpret like DefaultProcedure child
+            panelType = PanelType::Procedures;
+        }
+        Q_FALLTHROUGH();
+        case PanelType::DefaultProcedure: // Indexes if index of child < 2 are not editable (0 and 1 are fixed categories)
+        {
+            QLineEdit* editor = nullptr;
+            editor = new QLineEdit(parent);            
+            editor->setValidator(new QRegularExpressionValidator(QRegularExpression(RegExpCore::regExpForUint)));
+            return editor;
+        }
+            break;
+        case PanelType::Procedures: // All are editable
+        default:
+            break;
+        }
+    }
+    return QItemDelegate::createEditor(parent, option, index);
+}
+
+
+void List::ItemDelegate::
+setEditorData(QWidget* editor,
+              const QModelIndex& index) const
+{
+   QItemDelegate::setEditorData(editor, index);
+}
+
+void List::ItemDelegate::
+setModelData(QWidget* editor,
+             QAbstractItemModel* model,
+             const QModelIndex& index) const
+{
+   QItemDelegate::setModelData(editor, model, index);
+}
+
+void List::ItemDelegate::
+updateEditorGeometry(QWidget* editor,
+                     const QStyleOptionViewItem& option,
+                     const QModelIndex& index) const
+{
+   QItemDelegate::updateEditorGeometry(editor, option, index);
+}
+
+
 bool List::eventFilter(QObject* obj, QEvent* ev){
     if(ev->type() == QEvent::MouseButtonDblClick and obj == viewport()){
         QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
-        NavigationElement* item = itemAt(mev->pos());
+        QTreeWidgetItem* item = itemAt(mev->pos());
         if(item){
-            const int indexOfMainNavigationElement = indexOf(item);
+            NavigationElement* nitem = static_cast<NavigationElement*>(item);
+            const int indexOfMainNavigationElement = indexOf(nitem);
             if(indexOfMainNavigationElement == -1){ // Not found -> Item is child of main navigation element
-                const int& indexOfMainNavigationElementChild = indexOfMainNavigationElement;
-                DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(topLevelItem(indexOfMainNavigationElement));
+                // Ask about parent of child item
+                // it can only be child of MainNavigation panel:
+                // - child of DefaultProcedure element (Category of Rules element),
+                // - child of Procedures element (Procedure name element)
+                // OR
+                // - child of Procedure element (Category of Rules element)
+                const PanelType& panelType = static_cast<PanelType>(indexOf(nitem->parent()));
+                switch(panelType){
+                case PanelType::Procedures:
+                {
+                    // No navigation
+                    navigateMainPanel(panelType);
+                }
+                    break;
 
-            }else{
-                navigateMainPanel(number2panelType(indexOfMainNavigationElement));
+                case PanelType::NoFound:
+                    // - child of Procedure element (Category of Rules element)
+                {
+                    DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(item->parent());
+                    int index = dPE.indexOfChild(item);
+                    if(index < 2) {
+                        // First 2 categories (index 0 and 1) are FIXED - act like MainNavigationElement clicked (OnEndOfCall oraz OnArgument)
+                        configEditor().loadRules(dPE.text(0), QString::number(index - 2));
+                    }else{
+                        configEditor().loadRules(dPE.text(0), item->text(0));
+                    }
+                    activateProcedureCategory(nitem);
+                    navigateMainPanel(PanelType::Procedures);
+                }
+                    break;
+                case PanelType::DefaultProcedure:
+                {
+                    DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(item->parent());
+                    int index = dPE.indexOfChild(item);
+                    if(index < 2) {
+                        // First 2 categories (index 0 and 1) are FIXED - act like MainNavigationElement clicked (OnEndOfCall oraz OnArgument)
+                        configEditor().loadDefaultRules(QString::number(index - 2));
+                    }else{
+                        configEditor().loadDefaultRules(item->text(0));
+                    }
+                    activateDefaultProcedureCategory(nitem);
+                    navigateMainPanel(panelType);
+                }
+                    break;
+                default:
+                    break;
+                }
+
+            }else{// Main navigation panel clicked
+                const PanelType& panelType = static_cast<PanelType>(indexOfMainNavigationElement);
+                switch(panelType){
+                case PanelType::Procedures:
+                case PanelType::DefaultProcedure:
+                    break;
+                default:
+                    navigateMainPanel(panelType);
+                }
+                //navigateMainPanel(number2panelType(indexOfMainNavigationElement));
             }
         }
     }
@@ -83,11 +198,11 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
 
             if(resizeEvent.oldSize().width() == 0){
                 if( resizeEvent.size().width() != 0){   // Appear Condition
-                    configPanel.navigationListAppeared();
+                    configPanel_.navigationListAppeared();
                 }
             }else{
                 if(resizeEvent.size().width() == 0){ // Disappear Condition
-                    configPanel.navigationListDisappeared();
+                    configPanel_.navigationListDisappeared();
                 }
             }
         }
@@ -102,20 +217,50 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
                 NavigationElement* nitem = static_cast<NavigationElement*>(item);
                 const int indexOfMainNavigationElement = indexOf(nitem);
                 if(indexOfMainNavigationElement == -1){ // Not found -> Item is child of main navigation element
+                    // Ask about parent of child item
+                    // it can only be child of MainNavigation panel:
+                    // - child of DefaultProcedure element (Category of Rules element),
+                    // - child of Procedures element (Procedure name element)
+                    // OR
+                    // - child of Procedure element (Category of Rules element)
+                    const PanelType& panelType = static_cast<PanelType>(indexOf(nitem->parent()));
+                    switch(panelType){
+                    case PanelType::Procedures:
+                    {
+                        ProceduresElement& dPE = *static_cast<ProceduresElement*>(item->parent());
+                        dPE.menuControl(cev, static_cast<ProceduresElement::ListItem*>(item));
+                    }
+                        break;
 
+                    case PanelType::NoFound:
+                        // - child of Procedure element (Category of Rules element)
+                    case PanelType::DefaultProcedure:
+                    {
+                        DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(item->parent());
+                        if(dPE.indexOfChild(item) < 2) {
+                            // First 2 categories (index 0 and 1) are FIXED - act like MainNavigationElement clicked (OnEndOfCall oraz OnArgument)
+                            dPE.menuControl(cev, nullptr); // Simulate no item choosed
+                        }else{
+                            dPE.menuControl(cev, static_cast<DefaultProcedureElement::ListItem*>(item));
+                        }
+                    }
+                        break;
+                    default:
+                        break;
+                    }
 
-                }else{
+                }else{// Main navigation panel clicked
                     const PanelType& panelType = static_cast<PanelType>(indexOfMainNavigationElement);
                     switch(panelType){
                     case PanelType::Procedures:
                     {
-                        ProceduresElement& dPE = *static_cast<ProceduresElement*>(topLevelItem(indexOfMainNavigationElement));
+                        ProceduresElement& dPE = *static_cast<ProceduresElement*>(nitem);
                         dPE.menuControl(cev, nullptr); // Simulate no item choosed
                     }
                         break;
                     case PanelType::DefaultProcedure:
                     {
-                        DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(topLevelItem(indexOfMainNavigationElement));
+                        DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(nitem);
                         dPE.menuControl(cev, nullptr); // Simulate no item choosed
                     }
                         break;
@@ -129,19 +274,273 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
 
     }
         break;
-    case QEvent::ChildRemoved:
-    {
-
-    }
-    break;
     default:
         break;
     }
     return Super::eventFilter(obj, ev);
 }
 
+
+
+bool List::edit(const QModelIndex &index, QAbstractItemView::EditTrigger trigger, QEvent *event){
+    using Trigger = QAbstractItemView::EditTrigger;
+    //CurEditItemInfo tempEditItem = curEditItemInfo;
+    if(index.isValid()){
+        NavigationElement* item = itemFromIndex(index);
+        PanelType panelType = PanelType();
+        switch(trigger){
+        case Trigger::AllEditTriggers:
+        {
+            // if no parent (== nullptr), mainNavigationElement - no editing
+            if(item->parent() == nullptr){
+                return false;
+            }else{
+                // otherwise:
+                // if parent is mainNavigationElement -> check index of parent to define panelType
+                panelType = static_cast<PanelType>(indexOfTopLevelItem(item->parent()));
+                switch(panelType){
+                case PanelType::NoFound: // Not MainNavigationPanel -> Child of ProcedureElement of ProceduresElement
+                {
+                    // Interpret like DefaultProcedure child
+                    panelType = PanelType::Procedures;
+                }
+                Q_FALLTHROUGH();
+                case PanelType::DefaultProcedure: // Indexes if index of child < 2 are not editable (0 and 1 are fixed categories)
+                {
+                    if(item->parent()->indexOfChild(item) < 2)
+                        return false;
+                }
+                    break;
+                case PanelType::Procedures: // All are editable
+                    break;
+                default:
+                    return false; // Other children of other Panel - not editable
+                }
+            }
+        }
+            break;
+        case Trigger::DoubleClicked:
+        {
+            // if no parent (== nullptr), mainNavigationElement - no editing
+            if(item->parent() == nullptr){
+                return false;
+            }else{
+                // otherwise:
+                // if parent is mainNavigationElement -> check index of parent to define panelType
+                panelType = static_cast<PanelType>(indexOfTopLevelItem(item->parent()));
+                switch(panelType){
+                case PanelType::Procedures: // All are editable
+                    break;
+                case PanelType::NoFound: // Not MainNavigationPanel -> Child of ProcedureElement of ProceduresElement
+                {
+                    // Navigate to category - not editable
+                }
+                case PanelType::DefaultProcedure: // Indexes if index of child < 2 are not editable (0 and 1 are fixed categories)
+                {
+                    // Navigate to category - not editable
+                }
+                default:
+                    return false; // Other children of other Panel - not editable
+                }
+            }
+
+        }
+
+            break;
+        default:
+            break;
+        }
+        curEditItemInfo.panelType = panelType;
+        curEditItemInfo.item = item;
+        curEditItemInfo.oldStr = curEditItemInfo.item->text(0);
+        if(curEditItemInfo.oldStr.contains("\n")){ // If multiline
+            MultiLineEditor editor(curEditItemInfo.oldStr);
+            switch(editor.exec()){
+            case QDialog::Accepted:
+                curEditItemInfo.item->setText(0, editor.text());
+                processEditData(curEditItemInfo);
+                break;
+            case QDialog::Rejected:
+                curEditItemInfo = {};
+                break;
+            }
+            return false;
+        }
+
+    }
+    return Super::edit(index, trigger, event);
+}
+
+void List::closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint){
+    using Hint = QAbstractItemDelegate::EndEditHint;
+    CurEditItemInfo tempInfo = curEditItemInfo;
+    Super::closeEditor(editor, hint);
+    switch(hint){
+    case Hint::EditNextItem:
+    case Hint::EditPreviousItem:
+    {
+        if(curEditItemInfo.item != tempInfo.item){
+            processEditData(tempInfo);
+        }
+    }
+        break;
+    default:
+        processEditData(curEditItemInfo);
+    }
+}
+void List::closePersistentEditor(){
+    if(curEditItemInfo.item){
+        Super::closePersistentEditor(curEditItemInfo.item);
+        qApp->processEvents();
+    }
+}
+void List::editItem(NavigationElement* item){
+    curEditItemInfo = {
+        item,
+        (item->parent()->treeWidget()->isDefaultProcedurePanel(item))? PanelType::DefaultProcedure : PanelType::Procedures,
+        item->text(0)
+    };
+    Super::editItem(item, 0);
+}
+
+void List::processEditData(CurEditItemInfo& curEditItemInfo)
+{
+    if(curEditItemInfo.item){
+        switch(curEditItemInfo.panelType){
+        case PanelType::DefaultProcedure: // Only Indexes
+        {
+            if(curEditItemInfo.item->text(0).isEmpty()){ // Remove or Restore
+                if(curEditItemInfo.oldStr.isEmpty()){ // Remove only if empty
+                    delete curEditItemInfo.item;
+                }else{
+                    curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+                }
+            }else{ // Not empty (New or Change)
+                bool ok;
+                qsizetype newIndex = curEditItemInfo.item->text(0).toULongLong(&ok);
+                if(curEditItemInfo.oldStr.isEmpty()){    // new
+                    // Manage New - if manage failed Duplicated for example, remove
+                    if(not ok or config().addIndex(newIndex) == false){
+                        delete curEditItemInfo.item;
+                    }/*else{
+                        activateDefaultProcedureCategory(static_cast<NavigationElement*>(curEditItemInfo.item));
+                        configPanel.configEditor.loadDefaultRules(curEditItemInfo.item->text(0));
+                    }*/
+                }else{
+                    // Manage Change - if manage failed Duplicated for example, restore
+                    // Is new index - valid
+                    if(curEditItemInfo.oldStr != curEditItemInfo.item->text(0)){
+                        if(not ok or configEditor().editIndex(curEditItemInfo.oldStr.toULongLong(), newIndex) == false){
+                            curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+                        }
+                    }
+                }
+            }
+        }
+            break;
+        case PanelType::Procedures:
+        {
+            // if Procedure Element (parent == topLevelItem(Panel::Procedures))
+            if(curEditItemInfo.item->parent() == topLevelItem(panelType2number(PanelType::Procedures))){
+                 // Can be empty or not (New or Change)
+                if(curEditItemInfo.oldStr.isEmpty()){    // new
+                    if(curEditItemInfo.item->text(0).isEmpty()){
+                        if(config().addProcedure(curEditItemInfo.item->text(0)) == false){
+                            NavigationElement* parentItem = curEditItemInfo.item->parent();
+                            int itemIndex = 0;
+                            for( ; itemIndex < parentItem->childCount(); itemIndex++){
+                                if(parentItem->child(itemIndex) != curEditItemInfo.item and
+                                         parentItem->child(itemIndex)->text(0) == curEditItemInfo.oldStr)
+                                { // Duplicated for sure
+                                    delete curEditItemInfo.item;
+                                    break;
+                                }
+                            }
+                            if(itemIndex == parentItem->childCount()){ // Not found, not duplicated ->
+                                // Do nothing -  nothing has changed
+                            }
+                        }
+                    }else{
+                        if(config().isProcedureExist("")){ // Check if empty procedure exists
+                            NavigationElement* parentItem = curEditItemInfo.item->parent();
+                            int itemIndex = 0;
+                            for( ; itemIndex < parentItem->childCount(); itemIndex++){
+                                if(parentItem->child(itemIndex) != curEditItemInfo.item and
+                                         parentItem->child(itemIndex)->text(0) == curEditItemInfo.oldStr)
+                                { // New element
+                                    if(config().addProcedure(curEditItemInfo.item->text(0)) == false){
+                                        delete curEditItemInfo.item;
+                                    }
+                                    break;
+                                }
+                            }
+                            if(itemIndex == parentItem->childCount()){ // Not found - empty procedure is current element
+                                if(configEditor().editProcedure(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))  == false){
+                                    curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+                                }
+                            }
+                        }else{
+                            if(config().addProcedure(curEditItemInfo.item->text(0)) == false){
+                                delete curEditItemInfo.item;
+                            }
+                        }
+                    }                    
+                }else{                    
+
+                    if(curEditItemInfo.item->text(0) != curEditItemInfo.oldStr){    // changed
+                        // Manage Change - if manage failed Duplicated for example, restore
+                        if(configEditor().editProcedure(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))  == false){
+                            curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+                        }
+                    }
+                }
+            }
+            // Otherwise - Index/category of procedure
+            else{
+                if(curEditItemInfo.item->text(0).isEmpty()){ // Remove or Restore
+                    if(curEditItemInfo.oldStr.isEmpty()){ // Remove only if empty
+                        delete curEditItemInfo.item;
+                    }else{
+                        curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+                    }
+                }else{ // Not empty (New or Change )
+                    bool ok;
+                    qsizetype newIndex = curEditItemInfo.item->text(0).toULongLong(&ok);
+                    if(curEditItemInfo.oldStr.isEmpty()){    // new
+                        // Manage New - if manage failed Duplicated for example, remove
+                        if(not ok or config().addIndex(curEditItemInfo.item->parent()->text(0) , newIndex) == false){
+                            delete curEditItemInfo.item;
+                        }else{
+                            activateProcedureCategory(static_cast<NavigationElement*>(curEditItemInfo.item));
+                            configEditor().loadRules(curEditItemInfo.item->parent()->text(0) ,curEditItemInfo.item->text(0));
+                        }
+                    }else{
+                        // Manage Change - if manage failed Duplicated for example, restore
+                        if(not ok or configEditor().editIndex(curEditItemInfo.item->parent()->text(0) ,curEditItemInfo.oldStr.toULongLong(), newIndex) == false){
+                            curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+                        }
+                    }
+                }
+            }
+        }
+            break;
+        default:
+            break;
+        }
+    curEditItemInfo = {};
+    }
+}
+
+List::ConfigEditor& List::configEditor(){
+    return configPanel_.configEditor;
+}
+
+ControllerConfigInfo& List::config(){
+    return configEditor().config();
+}
+
 void List::navigateMainPanel(const PanelType tabPanel){
-    View::ConfigTabs& configTabsPanel = configPanel.Panels::Super::ViewPanel::Super::get();
+    View::ConfigTabs& configTabsPanel = configPanel_.Panels::Super::ViewPanel::Super::get();
     configTabsPanel.setCurrentIndex(panelType2number(tabPanel));
 }
 

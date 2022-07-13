@@ -8,17 +8,23 @@ namespace Panels::Configuration::View::FormattedString{
     class IndexItemDataView
             : public ItemDataView
     {
+        static constexpr FormatRuleType ruleType = FormatRuleType::IndexItem;
     public:
-        IndexItemDataView(){
+        using ItemDataView::FormatRuleRef;
+        IndexItemDataView(QWidget* parent)
+            : ItemDataView(parent)
+        {
             addRow("Indeks: ", &indexSpinBox);
             indexSpinBox.setRange(-99, 99);
             indexSpinBox.setValue(0);
         }
+        IndexItemDataView(QWidget* parent, FormatRuleRef);
         ~IndexItemDataView(){}
 
-        using ItemDataView::FormatRuleRef;
-        static ItemDataView* create(ItemView& view, FormatRuleRef);
-        constexpr FormatRuleType type()const override{return FormatRuleType::IndexItem;}
+        static ItemDataView* create(QWidget* parent, FormatRuleRef);
+        constexpr FormatRuleType type()const override{return ruleType;}
+        using Rule = FormatParametersFactory::Product<ruleType>;
+        void readRule(FormatRuleBase&) override;
     protected:
         //QSpinBox* indexSpinBox = nullptr;
         QSpinBox indexSpinBox;// = nullptr;

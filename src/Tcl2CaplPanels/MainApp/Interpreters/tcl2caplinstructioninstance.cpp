@@ -9,15 +9,16 @@
 #include"External/FileReader/FilesSpecificData/XML/TclCaplParserConfig/FRI_FSD_XML_TCL_CAPL_Parser_Config.hpp"
 #include"TcFileModifier/tcfilemodifier.hpp"
 #include<QStringListModel>
+#include"Tcl2CaplPanels/MainApp/mainApp.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
 
 
-Tcl2CaplInstructionInstance::Tcl2CaplInstructionInstance(Tcl2CaplInstructionPanel & panel)
-    : panel(panel),
+Tcl2CaplInstructionInstance::Tcl2CaplInstructionInstance()
+    : //panel(panel),
       mainSplitter(Qt::Vertical, this),
       tclCaplSplitter(Qt::Horizontal, this),
       configErrorsSplitter(Qt::Horizontal, this),
       inputTclConfigBox(INPUT_TCL_CONFIG_BOX_TEXT, this),
-      inputConfigBox(INPUT_CONFIG_BOX_TITLE, this),
       outputBox(OUTPUT_BOX_TITLE, this),
       errorsBox(ERRORS_BOX_TITLE, this),
       generateCaplButton(GENERATE_CAPL_BUTTON_TEXT, this),
@@ -40,16 +41,16 @@ Tcl2CaplInstructionInstance::Tcl2CaplInstructionInstance(Tcl2CaplInstructionPane
     inputTclConfig.setTabStopDistance(TAB_NUMB_OF_CHARACKTERS * QFontMetricsF(inputTclConfig.font()).maxWidth());
 
     // - inputConfig
-    inputConfig.setAutoFormatting(InputTextEdit::AutoAll);
+    /*inputConfig.setAutoFormatting(InputTextEdit::AutoAll);
     inputConfig.setWordWrapMode(QTextOption::NoWrap);
     inputConfig.setAcceptRichText(false);
-    inputConfig.setTabStopDistance(TAB_NUMB_OF_CHARACKTERS * QFontMetricsF(inputConfig.font()).maxWidth());
+    inputConfig.setTabStopDistance(TAB_NUMB_OF_CHARACKTERS * QFontMetricsF(inputConfig.font()).maxWidth());*/
     QStringList wordList;
     wordList << "alpha" << "omega" << "omicron" << "zeta";
 
-    inputConfigCompleter.setWidget(&inputConfig);
+    /*inputConfigCompleter.setWidget(&inputConfig);
     inputConfigCompleter.setModel(new QStringListModel(wordList));
-    completerHelper.setCompleter(&inputConfigCompleter);
+    completerHelper.setCompleter(&inputConfigCompleter);*/
 
     // - outputText
     outputText.setAutoFormatting(InputTextEdit::AutoAll);
@@ -60,8 +61,8 @@ Tcl2CaplInstructionInstance::Tcl2CaplInstructionInstance(Tcl2CaplInstructionPane
     inputTclConfigBox.setLayout(&inputTclBoxLayout);   
 
     // - inputConfigBox
-    inputConfigBoxLayout.addWidget(&inputConfig);
-    inputConfigBox.setLayout(&inputConfigBoxLayout);
+    /*inputConfigBoxLayout.addWidget(&inputConfig);
+    inputConfigBox.setLayout(&inputConfigBoxLayout);*/
 
     // - outputBox
     outputBoxLayout.addWidget(&outputText);
@@ -76,7 +77,7 @@ Tcl2CaplInstructionInstance::Tcl2CaplInstructionInstance(Tcl2CaplInstructionPane
     tclCaplSplitter.addWidget(&outputBox);
 
     // - outputSplitter
-    configErrorsSplitter.addWidget(&inputConfigBox);
+    //configErrorsSplitter.addWidget(&inputConfigBox);
     configErrorsSplitter.addWidget(&errorsBox);
 
     // - mainSplitter
@@ -92,8 +93,7 @@ Tcl2CaplInstructionInstance::Tcl2CaplInstructionInstance(Tcl2CaplInstructionPane
     centralWidgetLayout.addLayout(&controlLayout);
 
     // - centralWidget
-    centralWidget.setLayout(&centralWidgetLayout);
-    setCentralWidget(&centralWidget);
+    setLayout(&centralWidgetLayout);
     installEventFilter(this);
     // - generateCaplButton
     generateCaplButton.installEventFilter(this);
@@ -132,6 +132,7 @@ bool Tcl2CaplInstructionInstance::eventFilter(QObject *obj, QEvent *ev){
 bool
 Tcl2CaplInstructionInstance::readInputConfig(){
     // Reader
+    /*
     QString inputConfigText = inputConfig.toPlainText();
     if(not inputConfigText.isEmpty()){
         Tcl2CaplControllerConfigXmlData tempUserDefinitionsData;
@@ -163,7 +164,7 @@ Tcl2CaplInstructionInstance::readInputConfig(){
     }else{
         //tempUserProceduresConfig_ = UserProceduresConfig();
     }
-
+*/
     return true;
 
 }
@@ -173,7 +174,9 @@ void Tcl2CaplInstructionInstance::generateCapl(){
       //  return;
 
     FunctionDefinitions caplFunctionDefinitions;
-    UserInputConfig userInputConfig(tempUserProceduresConfig_);
+    MainWindow::ConfigEditor& configEditor =  mainWindow().getConfigEditor(&subWindow());
+    configEditor.syncConfig();
+    UserInputConfig userInputConfig(configEditor.config());
     TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
     QFile file_DONT_USE_PH_ONLY;
     Tcl2CaplResult::Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, userInputConfig, caplFunctionDefinitions);
@@ -280,7 +283,10 @@ void Tcl2CaplInstructionInstance::generateCaplRaportMode(){
     //tempUserProceduresConfig_.proceduresSettings().setMode(Mode::TestCaseReport);
 
     FunctionDefinitions caplFunctionDefinitions;
-   // TcFileModifier::Data data(tempUserProceduresConfig_, caplFunctionDefinitions);
+    MainWindow::ConfigEditor& configEditor =  mainWindow().getConfigEditor(&subWindow());
+    configEditor.syncConfig();
+    UserInputConfig userInputConfig(configEditor.config());
+    //TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
     //QFile file_DONT_USE_PH_ONLY;
     //Tcl2CaplResult::Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, tempUserProceduresConfig_);
     QString inputTclText = inputTclConfig.toPlainText();
@@ -377,3 +383,12 @@ void Tcl2CaplInstructionInstance::generateCaplRaportMode(){
         break;
     }*/
 }
+
+SubWindow& Tcl2CaplInstructionInstance::subWindow(){
+    return *static_cast<SubWindow*>(parentWidget());
+}
+
+MainWindow& Tcl2CaplInstructionInstance::mainWindow(){
+    return *static_cast<MainWindow*>(&(subWindow().mainWindow()));
+}
+

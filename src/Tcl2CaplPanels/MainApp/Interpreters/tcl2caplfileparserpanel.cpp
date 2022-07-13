@@ -1,6 +1,5 @@
 #include"tcl2caplfileparserpanel.hpp"
 #include"tcl2caplfileparserinstance.hpp"
-#include"appwindow.hpp"
 #include<QDockWidget>
 #include<QEvent>
 #include<QInputDialog>

@@ -9,13 +9,22 @@ using IsLastSavedStatActionView = ActionsList_NS::IsLastSavedStatActionView::IsL
 
 // IsLastSavedStatActionView Action View Definitions -----------------------------------
 
-IsLastSavedStatActionView::IsLastSavedStatActionView(ActionView& view)
-
+IsLastSavedStatActionView::IsLastSavedStatActionView(QWidget* parent)
+    : ActionDataView(parent)
 {
 
 }
 
-IsLastSavedStatActionView::DataView* IsLastSavedStatActionView::create(ActionView& view, ActionRef){
-    return new IsLastSavedStatActionView(view);
+IsLastSavedStatActionView::IsLastSavedStatActionView(QWidget* parent, ActionPtr action)
+    : IsLastSavedStatActionView(parent)
+{
+
+}
+
+void IsLastSavedStatActionView::readAction(ActionBase& ){
+}
+
+IsLastSavedStatActionView::DataView* IsLastSavedStatActionView::create(QWidget* parent, ActionRef action){
+    return new IsLastSavedStatActionView(parent, action);
 }
 

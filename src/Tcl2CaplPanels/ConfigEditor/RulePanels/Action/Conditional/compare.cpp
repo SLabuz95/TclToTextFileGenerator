@@ -15,16 +15,32 @@ using ParentContextMenu = CompareActionView::ParentContextMenu;
 
 // CompareNumbOfArgs Action View Definitions -----------------------------------
 
-CompareActionView::CompareActionView(ActionView& view)
-
+CompareActionView::CompareActionView(QWidget* parent)
+ : ActionDataView(parent)
 {
     splitter.addWidget(&listOfIndexes);
     splitter.addWidget(&formattedStringList);
     addWidget(&splitter);
 }
 
-CompareActionView::DataView* CompareActionView::create(ActionView& view, ActionRef){
-    return new CompareActionView(view);
+CompareActionView::CompareActionView(QWidget* parent, ActionPtr pAction)
+    : CompareActionView(parent)
+{
+    if(pAction){
+        Action& action = *static_cast<Action*>(pAction);
+        listOfIndexes.loadIndexes(action.stringsToCompare());
+        formattedStringList.loadRules(action.inputFormattedString().parameters());
+    }
+}
+
+void CompareActionView::readAction(ActionBase& fAction){
+    Action& action = *static_cast<Action*>(&fAction);
+    listOfIndexes.readAll(action.stringsToCompare());
+    formattedStringList.readRules(action.inputFormattedString().parameters());
+}
+
+CompareActionView::DataView* CompareActionView::create(QWidget* parent, ActionRef action){
+    return new CompareActionView(parent, action);
 }
 
 
@@ -39,7 +55,7 @@ void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::
         closePersistentEditor(curEditItemInfo.item);
         qApp->processEvents();
     }
-    ListItem* item = new ListItem;
+    ListItem* item = new ListItem(*this);
     addItem(item);
     scrollToItem(item);
     editItem(item);
@@ -134,7 +150,9 @@ void ListOfIndexes::rowsInserted(const QModelIndex &parent, int start, int end){
     using ActionsList = decltype(parentWidget().parentWidget());
     ActionsList& actionsList = parentWidget().parentWidget();
     QListWidgetItem* item = actionsList.itemAt(actionsList.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-    item->setSizeHint(actionsList.itemWidget(item)->sizeHint());
+    QWidget* widget = actionsList.itemWidget(item);
+    if(widget)
+        item->setSizeHint(actionsList.itemWidget(item)->sizeHint());
     Super::rowsInserted(parent, start, end);
 
 }
@@ -157,6 +175,7 @@ bool ListOfIndexes::edit(const QModelIndex &index, QAbstractItemView::EditTrigge
                     processEditData(curEditItemInfo);
                     break;
                 case QDialog::Rejected:
+                    curEditItemInfo = {};
                     break;
                 }
                 return false;
@@ -228,25 +247,6 @@ void ListOfIndexes::processEditData(CurEditItemInfo& curEditItemInfo)
     curEditItemInfo = {};
 }
 
-bool ListOfIndexes::MultiLineEditor::eventFilter(QObject* obj, QEvent* ev){
-    switch(ev->type()){
-    case QEvent::MouseButtonRelease:
-    {
-        if(obj == &ok){
-            done(QDialog::Accepted);
-        }
-        if(obj == &cancel){
-            done(QDialog::Rejected);
-        }
-    }
-        break;
-    default:
-        break;
-    }
-
-    return QDialog::eventFilter(obj, ev);
-}
-
 void ListOfIndexes::contextMenuEvent(QContextMenuEvent *cev){
 
     ListItem* item = itemAt(cev->pos());
@@ -299,8 +299,15 @@ ActionView& ListOfIndexes::parentWidget()const{
 
 
 
-void ListOfIndexes::loadIndexes(){
-    clearChanges();
+void ListOfIndexes::loadIndexes(QStringList listOfStrings){
+    using String = QStringList::Iterator;
+    setUpdatesEnabled(false);
+    for(String string = listOfStrings.begin(); string < listOfStrings.end(); string++)
+    {
+        ListItem* item = new ListItem(*this, *string);
+        addItem(item);
+    }
+    setUpdatesEnabled(true);
 }
 
 void ListOfIndexes::reloadGui(){

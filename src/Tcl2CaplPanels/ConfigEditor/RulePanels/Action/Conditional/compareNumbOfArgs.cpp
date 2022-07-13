@@ -12,15 +12,41 @@ using ParentContextMenu = CompareNumbOfArgsActionView::ParentContextMenu;
 
 // CompareNumbOfArgs Action View Definitions -----------------------------------
 
-CompareNumbOfArgsActionView::CompareNumbOfArgsActionView(ActionView& view)
+CompareNumbOfArgsActionView::CompareNumbOfArgsActionView(QWidget* parent)
+    : ActionDataView(parent)
 {
     addWidget(&listOfIndexes);
 }
 
-CompareNumbOfArgsActionView::DataView* CompareNumbOfArgsActionView::create(ActionView& view, ActionRef){
-    return new CompareNumbOfArgsActionView(view);
+CompareNumbOfArgsActionView::CompareNumbOfArgsActionView(QWidget* parent, ActionRef pAction)
+    : CompareNumbOfArgsActionView(parent)
+{
+    if(pAction){
+        Action& action = *static_cast<Action*>(pAction);
+        listOfIndexes.loadIndexes(action.numbOfArgs());
+    }
 }
 
+void CompareNumbOfArgsActionView::readAction(ActionBase& fAction){
+    Action& action = *static_cast<Action*>(&fAction);
+    listOfIndexes.readAll(action.numbOfArgs());
+}
+
+CompareNumbOfArgsActionView::DataView* CompareNumbOfArgsActionView::create(QWidget* parent, ActionRef action){
+    return new CompareNumbOfArgsActionView(parent, action);
+}
+
+
+void ListOfIndexes::loadIndexes(const Action::NumbOfArgumentsList& list){
+    using Index = Action::NumbOfArgumentsList::ConstIterator;
+    setUpdatesEnabled(false);
+    for(Index index = list.constBegin(); index < list.constEnd(); index++)
+    {
+        ListItem* item = new ListItem(*this, *index);
+        addItem(item);
+    }
+    setUpdatesEnabled(true);
+}
 
 QWidget& ListOfIndexes::itemView()const{
     // Splitter -> Widget (Widget with Layout of DataView) -> ItemView (Any)
@@ -42,8 +68,7 @@ createEditor(QWidget* parent,
     // For List Item Type == EmptyStringItem dont edit
     QLineEdit* editor = nullptr;
     editor = new QLineEdit(parent);
-    if(not index.parent().isValid())
-        editor->setValidator(new QRegularExpressionValidator(QRegularExpression(RegExpCore::regExprForIntRange_MinusNinetyNine2NinetyNine)));
+    editor->setValidator(new QRegularExpressionValidator(QRegularExpression(RegExpCore::regExpForUint)));
     return editor;
 }
 
@@ -80,7 +105,7 @@ void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::
         qApp->processEvents();
     }
 
-    curEditItemInfo = {new ListItem, QString()};
+    curEditItemInfo = {new ListItem(*this), QString()};
     addItem(curEditItemInfo.item);
     editItem(curEditItemInfo.item);
 }
@@ -231,11 +256,6 @@ void ListOfIndexes::contextMenuEvent(QContextMenuEvent *cev){
 
 }
 
-
-void ListOfIndexes::loadIndexes(){
-    clearChanges();
-
-}
 
 void ListOfIndexes::reloadGui(){
 

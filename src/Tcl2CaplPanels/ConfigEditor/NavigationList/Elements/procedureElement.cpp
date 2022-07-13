@@ -3,22 +3,21 @@
 #include<QContextMenuEvent>
 #include<QApplication>
 #include<QMessageBox>
-
+#include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
 
 using namespace Panels::Configuration::Navigation::Procedure;
 
 template<>
 void DefaultProcedureElement::execRequest_ContextMenu<DefaultProcedureElement::Request_ContextMenu::AddIndex>(ListItem* )
 {
+    treeWidget()->closePersistentEditor();
 
-    if(curEditItemInfo.item){
-        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
-        qApp->processEvents();
-    }
+    ListItem* item = new ListItem();
+    addChild(item);
+    item->parent()->setExpanded(true);
+    treeWidget()->scrollToItem(item);
 
-    curEditItemInfo = {new ListItem, QString()};
-    addChild(curEditItemInfo.item);
-    static_cast<Navigation::List*>(treeWidget())->editItem(curEditItemInfo.item);
+    treeWidget()->editItem(item);
 
 }
 
@@ -26,73 +25,54 @@ template<>
 void DefaultProcedureElement::execRequest_ContextMenu<DefaultProcedureElement::Request_ContextMenu::EditIndex>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, "DefaultProcedureElement::ContextMenu::editProcedure", "Item is null");
-    if(curEditItemInfo.item){
-        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
-        qApp->processEvents();
-    }
+    treeWidget()->closePersistentEditor();
 
-    curEditItemInfo = {item, item->text(0)};
-    static_cast<Navigation::List*>(treeWidget())->editItem(item, 0);
+    item->parent()->setExpanded(true);
+    treeWidget()->scrollToItem(item);
+    treeWidget()->editItem(item);
 }
 
 template<>
 void DefaultProcedureElement::execRequest_ContextMenu<DefaultProcedureElement::Request_ContextMenu::RemoveIndex>(ListItem* item)
 {
-    Q_ASSERT_X(item != nullptr, "DefaultProcedureElement::ContextMenu::editProcedure", "Item is null");
-    if(curEditItemInfo.item){
-        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
-        curEditItemInfo = {};
-        qApp->processEvents();
+    Q_ASSERT_X(item != nullptr, "DefaultProcedureElement::ContextMenu::removeIndex", "Item is null");
+    treeWidget()->closePersistentEditor();
+
+    if(treeWidget()->isDefaultProcedurePanel(this)){
+        treeWidget()->configEditor().removeIndex(item->text(0).toULongLong());
+        if(treeWidget()->isNavigationElementActive(item))
+            treeWidget()->deactivateDefaultProcedureCategory();
+    }else{
+        treeWidget()->configEditor().removeIndex(item->parent()->text(0), item->text(0).toULongLong());
+        if(treeWidget()->isNavigationElementActive(item))
+            treeWidget()->deactivateProcedureCategory();
     }
-    tryToManageIndex(item->text(0), QString());
     delete item;
 }
 
 template<>
 void DefaultProcedureElement::execRequest_ContextMenu<DefaultProcedureElement::Request_ContextMenu::ClearIndexes>(ListItem*)
 {
-    if(curEditItemInfo.item)
-    {
-        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
-        qApp->processEvents();
+    treeWidget()->closePersistentEditor();
+    bool defaultProcedure = treeWidget()->isDefaultProcedurePanel(this);
+    if(defaultProcedure){
+        treeWidget()->configEditor().clearIndexes();
+        treeWidget()->deactivateDefaultProcedureCategory();
+    }else{
+        treeWidget()->configEditor().clearIndexes(text(0));
+        treeWidget()->deactivateProcedureCategory();
     }
-    curEditItemInfo = {};
     while(childCount() != 2){
+        if(treeWidget()->isNavigationElementActive(child(2)))
+        {
+            if(defaultProcedure){
+                treeWidget()->deactivateDefaultProcedureCategory();
+            }else{
+                treeWidget()->deactivateProcedureCategory();
+            }
+        }
         delete child(2); // Remove First index
     }
-}
-bool DefaultProcedureElement::tryToManageIndex(QString oldIndex, QString newIndex){
-
-    Q_ASSERT_X(not (oldIndex.isEmpty() and newIndex.isEmpty()), "DefaultProcedureElement::tryToManageIndex", "OldIndex and NewIndex cant be empty");
-    if(curEditItemInfo.item){
-        // Confirm that index or argument isnt duplicated
-        if(curEditItemInfo.item->text(0).isEmpty()){
-            delete curEditItemInfo.item;
-        }else{
-            // Confirm that index or argument isnt duplicated
-            // Remove if its
-            bool indexOrArgumentIsntDuplicated = true;
-            QString textToCompare = curEditItemInfo.item->text(0);
-
-            for(int itemIndex = 0 ; itemIndex < childCount(); itemIndex++){
-                if(child(itemIndex) != curEditItemInfo.item and
-                        child(itemIndex)->text(0) == textToCompare){
-                    indexOrArgumentIsntDuplicated = false;
-                    break;
-                }
-            }
-
-            if(indexOrArgumentIsntDuplicated){
-
-            }else{
-                delete curEditItemInfo.item;
-            }
-
-        }
-        curEditItemInfo = {};
-    }
-
-    return true;
 }
 
 void DefaultProcedureElement::menuControl(QContextMenuEvent* cev, ListItem* item){
@@ -142,116 +122,89 @@ void DefaultProcedureElement::menuControl(QContextMenuEvent* cev, ListItem* item
 }
 
 
-void DefaultProcedureElement::edittingFinished(){
-    if(curEditItemInfo.item){
-        if(curEditItemInfo.item->text(0).isEmpty()){ // Remove Item
-            if(not curEditItemInfo.oldStr.isEmpty()) // old name isnt empty (removeProcedure)
-                tryToManageIndex(curEditItemInfo.oldStr, QString());
-            delete curEditItemInfo.item;
-        }else{  // Not empty (New Procedure or Change Procedure)
-            if(curEditItemInfo.item->text(0) != curEditItemInfo.oldStr){    // name changed
-                if(curEditItemInfo.oldStr.isEmpty()){  // New Procedure
-                    if(not tryToManageIndex(QString(), curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
-                        QMessageBox::warning(nullptr, QStringLiteral("Duplicated Index"), QStringLiteral("Index \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
-                        delete curEditItemInfo.item;
-                    }
-                }else{  // Change Procedure Name
-                    if(not tryToManageIndex(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
-                        QMessageBox::warning(nullptr, QStringLiteral("Duplicated Index"), QStringLiteral("Index \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
-                        curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
-                    }
-                }
-            }
-        }
-        curEditItemInfo = {};
-    }
-}
-
-
-
 template<>
 void ProceduresElement::execRequest_ContextMenu<ProceduresElement::Request_ContextMenu::AddProcedure>(ListItem* )
 {
 
-    if(curEditItemInfo.item){
-        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
-        qApp->processEvents();
+    treeWidget()->closePersistentEditor();
+
+    ListItem* item = new ListItem();
+    addChild(item);
+    item->parent()->setExpanded(true);
+    treeWidget()->scrollToItem(item);
+    treeWidget()->editItem(item);
+
+}
+
+template<>
+void ProceduresElement::execRequest_ContextMenu<ProceduresElement::Request_ContextMenu::AddIndex>(ListItem* item)
+{
+    if(item){
+        item->execRequest_ContextMenu<ListItem::Request_ContextMenu::AddIndex>(nullptr);
     }
-
-    curEditItemInfo = {new ListItem, QString()};
-    addChild(curEditItemInfo.item);
-    static_cast<Navigation::List*>(treeWidget())->editItem(curEditItemInfo.item);
-
 }
 
 template<>
 void ProceduresElement::execRequest_ContextMenu<ProceduresElement::Request_ContextMenu::EditProcedure>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, "ProceduresElement::ContextMenu::editProcedure", "Item is null");
-    if(curEditItemInfo.item){
-        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
-        qApp->processEvents();
-    }
+    treeWidget()->closePersistentEditor();
 
-    curEditItemInfo = {item, item->text(0)};
-    static_cast<Navigation::List*>(treeWidget())->editItem(item, 0);
+    item->parent()->setExpanded(true);
+    treeWidget()->scrollToItem(item);
+
+    treeWidget()->editItem(item);
+}
+
+
+template<>
+void ProceduresElement::execRequest_ContextMenu<ProceduresElement::Request_ContextMenu::EditProcedureMultiLine>(ListItem* item)
+{
+    Q_ASSERT_X(item != nullptr, "ProceduresElement::ContextMenu::editProcedure", "Item is null");
+    treeWidget()->closePersistentEditor();
+    item->setText(0, item->text(0) + "\n");
+    item->parent()->setExpanded(true);
+    treeWidget()->scrollToItem(item);
+    treeWidget()->editItem(item);
 }
 
 template<>
 void ProceduresElement::execRequest_ContextMenu<ProceduresElement::Request_ContextMenu::RemoveProcedure>(ListItem* item)
 {
     Q_ASSERT_X(item != nullptr, "ProceduresElement::ContextMenu::editProcedure", "Item is null");
-    if(curEditItemInfo.item){
-        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
-        curEditItemInfo = {};
-        qApp->processEvents();
+    treeWidget()->closePersistentEditor();
+
+    treeWidget()->configEditor().removeProcedure(item->text(0));
+    for(int i = 0 ; i < item->childCount(); i++){
+        if(treeWidget()->isNavigationElementActive(item->child(i)))
+        {
+            treeWidget()->deactivateProcedureCategory();
+            break;
+        }
     }
-    tryToManageIndex(item->text(0), QString());
     delete item;
+}
+
+template<>
+void ProceduresElement::execRequest_ContextMenu<ProceduresElement::Request_ContextMenu::ClearIndexes>(ListItem* item)
+{
+    if(item){
+        item->execRequest_ContextMenu<ListItem::Request_ContextMenu::ClearIndexes>(nullptr);
+    }
 }
 
 template<>
 void ProceduresElement::execRequest_ContextMenu<ProceduresElement::Request_ContextMenu::ClearProcedures>(ListItem*)
 {
-    if(curEditItemInfo.item)
-    {
-        static_cast<Navigation::List*>(treeWidget())->closePersistentEditor(curEditItemInfo.item);
-        qApp->processEvents();
-    }
-    curEditItemInfo = {};
-    for(int i = 0; i < static_cast<Navigation::List*>(treeWidget())->topLevelItemCount(); i++){
-        tryToManageIndex(static_cast<Navigation::List*>(treeWidget())->topLevelItem(i)->text(0), QString());
-    }
-    static_cast<Navigation::List*>(treeWidget())->clear();
-}
-bool ProceduresElement::tryToManageIndex(QString oldIndex, QString newIndex){
+    treeWidget()->closePersistentEditor();
 
-    Q_ASSERT_X(not (oldIndex.isEmpty() and newIndex.isEmpty()), "ProceduresElement::tryToManageIndex", "OldIndex and NewIndex cant be empty");
-    if(oldIndex.isEmpty()){  // NewName isnt empty and oldIndex is empty - NewProcedure
-        if(newIndexes.contains(newIndex)/* or
-                ( savedAttributes->contains(newIndex) and removedAttributes.removeAll(newIndex) == 0)*/)
-                    return false;   // DUPLICATED
-        newIndexes.append({newIndex});
-    }else{  // Old Name isnt empty
-        if(newIndex.isEmpty()){  // NewName is empty and oldIndex isnt empty - Remove Procedure
-            if(newIndexes.removeAll(oldIndex) == 0);
-                //removedAttributes.append({oldIndex});
-        }else{  // NewName and oldIndex isnt empty - ChangedProcedure
-            //bool savedIndexesContainsNewName = false;
-            if(newIndexes.contains(newIndex)/* or
-                    ((savedAttributesContainsNewName = savedAttributes->contains(newIndex)) and removedAttributes.removeAll(newIndex) == 0)*/)
-                        return false;   // DUPLICATED
-           if(newIndexes.removeAll(oldIndex) == 0)
-           {    // Old name in savedAttributes
-               //removedAttributes.append({oldIndex});
-           }
-           //if(not savedIndexesContainsNewName)
-               newIndexes.append({newIndex});
-        }
-    }
-
-    return true;
+    treeWidget()->configEditor().clearProcedures();
+    treeWidget()->deactivateProcedureCategory();
+    auto children = takeChildren();
+    for(auto child = children.begin(); child < children.end(); child++)
+        delete *child;
 }
+
 
 void ProceduresElement::menuControl(QContextMenuEvent* cev, ListItem* item){
     // Specify file and error checking
@@ -266,14 +219,20 @@ void ProceduresElement::menuControl(QContextMenuEvent* cev, ListItem* item){
     if(item){
         actions = {
           new QAction("Dodaj procedure"),
+          new QAction("Dodaj indeks"),
           new QAction("Edytuj procedure"),
+          new QAction("Edytuj procedure (edytor)"),
           new QAction("Usuń procedure"),
+          new QAction("Usuń indeksy"),
           new QAction("Usuń procedury")
         };
         actionFuncs = {
             &ProceduresElement::execRequest_ContextMenu<Request::AddProcedure>,
+            &ProceduresElement::execRequest_ContextMenu<Request::AddIndex>,
             &ProceduresElement::execRequest_ContextMenu<Request::EditProcedure>,
+            &ProceduresElement::execRequest_ContextMenu<Request::EditProcedureMultiLine>,
             &ProceduresElement::execRequest_ContextMenu<Request::RemoveProcedure>,
+            &ProceduresElement::execRequest_ContextMenu<Request::ClearIndexes>,
             &ProceduresElement::execRequest_ContextMenu<Request::ClearProcedures>,
         };
     }else{
@@ -298,33 +257,6 @@ void ProceduresElement::menuControl(QContextMenuEvent* cev, ListItem* item){
         delete menu, menu = nullptr;
     }
 }
-
-
-void ProceduresElement::edittingFinished(){
-    if(curEditItemInfo.item){
-        if(curEditItemInfo.item->text(0).isEmpty()){ // Remove Item
-            if(not curEditItemInfo.oldStr.isEmpty()) // old name isnt empty (removeProcedure)
-                tryToManageIndex(curEditItemInfo.oldStr, QString());
-            delete curEditItemInfo.item;
-        }else{  // Not empty (New Procedure or Change Procedure)
-            if(curEditItemInfo.item->text(0) != curEditItemInfo.oldStr){    // name changed
-                if(curEditItemInfo.oldStr.isEmpty()){  // New Procedure
-                    if(not tryToManageIndex(QString(), curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
-                        QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
-                        delete curEditItemInfo.item;
-                    }
-                }else{  // Change Procedure Name
-                    if(not tryToManageIndex(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
-                        QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
-                        curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
-                    }
-                }
-            }
-        }
-        curEditItemInfo = {};
-    }
-}
-
 
 
 

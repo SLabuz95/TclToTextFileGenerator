@@ -7,7 +7,7 @@
 template<>
 template<>
 struct RulesProducts::ImplementationData<RulesTypes::RulesForArgument>::Properties
-: protected RulesProductDefinition::Definition
+: public RulesProductDefinition::Definition
 {
 public:
     using Index = int;
@@ -26,7 +26,7 @@ protected:
 template<>
 template<>
 class RulesProducts::ImplementationData<RulesTypes::RulesForArgument>::Methods
-        : protected RulesProducts::ImplementationData<RulesTypes::RulesForArgument>::Properties
+        : public RulesProducts::ImplementationData<RulesTypes::RulesForArgument>::Properties
 {
 
 };

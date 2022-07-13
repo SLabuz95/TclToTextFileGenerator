@@ -10,7 +10,7 @@ struct FormatParametersProducts::ImplementationData<FormatParametersType::TextIt
 : public FormatParametersProductDefinition::Definition
 {
 protected:
-    //FormatParametersProducts::FactoryCommonInterface* data = nullptr;
+    QString text_;
 
 };
 
@@ -28,6 +28,14 @@ class FormatParametersProducts::InterfaceData<FormatParametersType::TextItem>::M
 : public FormatParametersProducts::Implementation<FormatParametersType::TextItem>
 {
 public:
+    void setText(QString str){text_ = str;}
+    const QString& text()const{return text_;}
+    void toActionParameters(QStringList& parameters)override{
+        using Format = Tcl::Interpreter::Command::Definition::Format;
+        if(not text().isEmpty()){
+            parameters << text();
+        }
+    }
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
    // inline RawFormatType rawFormatType()const override final{return RawFormatType::ArgumentsFromItem;}
 

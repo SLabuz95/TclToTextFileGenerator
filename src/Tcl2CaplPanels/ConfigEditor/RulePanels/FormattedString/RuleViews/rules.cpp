@@ -13,10 +13,10 @@ View::CreateFunctionTable View::createFunctionTable = {
     &FormatItemDataView::create,
 };
 
-View* View::createView(ItemView& view, FormatRuleRef data){
-    return (createFunctionTable[FCT_toUnderlying((data)? data->type() : FormatRuleType())])(view, data);
+View* View::createView(QWidget* parent, FormatRuleRef data){
+    return (createFunctionTable[FCT_toUnderlying((data)? data->type() : FormatRuleType())])(parent, data);
 }
 
-View* View::createView(ItemView& view, FormatRuleType type){
-    return (createFunctionTable[FCT_toUnderlying(type)])(view, nullptr);
+View* View::createView(QWidget* parent, FormatRuleType type){
+    return (createFunctionTable[FCT_toUnderlying(type)])(parent, nullptr);
 }

@@ -4,6 +4,7 @@
 #include<QEnterEvent>
 #include"app.hpp"
 #include<QApplication>
+#include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
 
 MainWindow::MainWindow(App& app)
     :  app_(app), instanceList(*this)
@@ -21,6 +22,7 @@ MainWindow::MainWindow(App& app)
     );
     //view.setViewMode(View::TabbedView);
     show();
+    qDebug() << "MainWindow" << this;
 }
 
 void MainWindow::insertSubWindow(InstanceList::SubWindowPositionInfo&& positionInfo, QWidget* internalWidget){
@@ -36,6 +38,7 @@ void MainWindow::insertSubWindow(InstanceList::SubWindowPositionInfo&& positionI
     subWindows.insert(subWindowListIndex, subWindow);
     view.addSubWindow(subWindow);
     subWindow->show();
+    qDebug() << "MainWindow" << &subWindow->mainWindow();
 }
 
 void MainWindow::removeSubWindow(InstanceList::SubWindowPositionInfo&& positionInfo){
@@ -121,6 +124,23 @@ void MainWindow::instanceNameChanged(InstanceListElement* instance){
     }
 }
 
+MainWindow::Config& MainWindow::getConfig(SubWindow* subWindow){
+    return getConfigEditor(subWindow).config();
+}
+
+
+MainWindow::ConfigEditor& MainWindow::getConfigEditor(SubWindow* subWindow){
+    using ConfigEditor = Panel;
+    qsizetype subWindowIndex = subWindows.indexOf(subWindow);
+    int instanceIndex = 0;
+    int subWindowCounter = 0;
+    while(subWindowIndex >= instanceList.topLevelItem(instanceIndex)->childCount()){
+        subWindowIndex -= instanceList.topLevelItem(instanceIndex)->childCount();
+        subWindowCounter += instanceList.topLevelItem(instanceIndex)->childCount();
+        instanceIndex++;
+    }
+    return *static_cast<ConfigEditor*>(subWindows.at(subWindowCounter)->widget());
+}
 
 void MainWindow::Splitter::Handle::paintEvent(QPaintEvent *event)
 {
@@ -168,4 +188,15 @@ void MainWindow::Splitter::Handle::leaveEvent(QEvent *event){
         QSplitterHandle::leaveEvent(event);
     }
 }
+
+
+SubWindow::View& SubWindow::view(){
+    return *static_cast<View*>(parentWidget()->parentWidget());
+} // Viewport -> View (QMdiArea)
+
+MainWindow& SubWindow::mainWindow(){
+    return *static_cast<MainWindow*>(view().parentWidget()->parentWidget());
+} // View (QMdiArea) -> Splitter -> QMainWindow
+
+
 

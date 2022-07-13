@@ -10,14 +10,29 @@ using ActionView = ErrorActionView::ActionView;
 
 // ErrorActionView Action View Definitions -----------------------------------
 
-ErrorActionView::ErrorActionView(ActionView& view)
+ErrorActionView::ErrorActionView(QWidget* parent)
+    : ActionDataView(parent)
 {
     splitter.addWidget(&formattedStringList);
     addWidget(&splitter);
 }
 
-ErrorActionView::DataView* ErrorActionView::create(ActionView& view, ActionRef){
-    return new ErrorActionView(view);
+ErrorActionView::ErrorActionView(QWidget* parent, ActionPtr pAction)
+    : ErrorActionView(parent)
+{
+    if(pAction){
+        Action& action = *static_cast<Action*>(pAction);
+        formattedStringList.loadRules(action.inputFormattedString().parameters());
+    }
+}
+
+void ErrorActionView::readAction(ActionBase& fAction){
+    Action& action = *static_cast<Action*>(&fAction);
+    formattedStringList.readRules(action.inputFormattedString().parameters());
+}
+
+ErrorActionView::DataView* ErrorActionView::create(QWidget* parent, ActionRef action){
+    return new ErrorActionView(parent, action);
 }
 
 

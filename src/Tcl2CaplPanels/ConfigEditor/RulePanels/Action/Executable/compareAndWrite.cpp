@@ -47,16 +47,28 @@ QListWidget& CompareAndWriteActionView::ExpectedArgumentsList::itemListView()con
     return *static_cast<QListWidget*>(itemView().parentWidget()->parentWidget());
 }
 
-void CompareAndWriteActionView::ExpectedArgumentsList::loadExpectedArguments(RawRule& rule)
+void CompareAndWriteActionView::ExpectedArgumentsList::loadExpectedArguments(Action::ArgumentsMap& argumentsMap)
 {
-    /*using ArgumentsByIndexIter = QuickRule::ExpectedArgumentsByIndex::Iterator;
-    for(ArgumentsByIndexIter argumentsByIndexIter = rule.getExpectedArgumentsByIndex().begin();
-        argumentsByIndexIter != rule.getExpectedArgumentsByIndex().end();
+    using ExpectedArgumentsByIndex = Action::ArgumentsMap;
+    using ArgumentsByIndexIter = ExpectedArgumentsByIndex::Iterator;
+    for(ArgumentsByIndexIter argumentsByIndexIter = argumentsMap.begin();
+        argumentsByIndexIter != argumentsMap.end();
         argumentsByIndexIter++)
     {
         curEditItem = new ListItem(ListItem::ItemType::IndexItem, QString::number(argumentsByIndexIter.key()), argumentsByIndexIter.value());
         addTopLevelItem(curEditItem);
-    }*/
+    }
+}
+
+void CompareAndWriteActionView::ExpectedArgumentsList::readExpectedArguments(Action::ArgumentsMap& argumentsMap)
+{
+    using ExpectedArgumentsByIndex = Action::ArgumentsMap;
+    using ArgumentsByIndexIter = ExpectedArgumentsByIndex::Iterator;
+    ArgumentsByIndexIter newIndexInMap;
+    for(int i = 0; i < topLevelItemCount(); i++){
+        newIndexInMap = argumentsMap.insert(topLevelItem(i)->text(0).toInt(), {});
+        topLevelItem(i)->readArguments(newIndexInMap.value());
+    }
 }
 
 void CompareAndWriteActionView::ExpectedArgumentsList::clearEditItem()
@@ -158,19 +170,31 @@ void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::addEmptyStringA
 }
 
 void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::loadArguments(QStringList& arguments){
-    /*using ArgumentsByIndexIter = QuickRule::ExpectedArgumentsByIndex::Iterator;
     for(QStringList::Iterator argument = arguments.begin();
         argument != arguments.end();
         argument++)
     {
         loadArgument(*argument);
-    }*/
+    }
 }
+
+
 
 void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::loadArgument(QString& argument)
 {
     ListItem* newItem = new ListItem(ListItem::ItemType::ArgumentItem, argument);
     addChild(newItem);
+}
+
+void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::readArguments(QStringList& arguments){
+    arguments.resize(childCount());
+    int i = 0;
+    for(QStringList::Iterator argument = arguments.begin();
+        argument != arguments.end();
+        argument++, i++)
+    {
+        (*argument) = child(i)->readArgument();
+    }
 }
 
 template<>
@@ -448,7 +472,9 @@ bool CompareAndWriteActionView::ExpectedArgumentsList::eventFilter(QObject* obj,
     if(ev->type() == QEvent::LayoutRequest and obj == viewport()){  // Any change        
         QListWidget& listWidget = itemListView();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-        item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
+        QWidget* widget = listWidget.itemWidget(item);
+        if(widget)
+            item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
     }
 
     if(ev->type() == QEvent::ChildRemoved and obj == viewport()){
@@ -793,11 +819,12 @@ void CompareAndWriteActionView::OutputsList::contextMenuEvent(QContextMenuEvent 
 */
 
 
-CompareAndWriteActionView::DataView* CompareAndWriteActionView::create(ActionView& view, ActionRef){
-    return new CompareAndWriteActionView(view);
+CompareAndWriteActionView::DataView* CompareAndWriteActionView::create(QWidget* parent, ActionRef action){
+    return new CompareAndWriteActionView(parent, action);
 }
 
-CompareAndWriteActionView::CompareAndWriteActionView(ActionView& )
+CompareAndWriteActionView::CompareAndWriteActionView(QWidget* parent)
+    : ActionDataView(parent)
 /*: item_(item)*/
 {
     // Setup layout
@@ -823,23 +850,27 @@ CompareAndWriteActionView::CompareAndWriteActionView(ActionView& )
     quickRuleInput.addWidget(&formattedStringList);
     //outputsList.setHeaderLabels({"Format", "Zawartość"});
     //quickRuleInput.addWidget(&outputsList);
-
     centralLayout.addWidget(&quickRuleInput);
 
     addLayout(&centralLayout);
 
-    // Rule available
-    //if(rule){   // Exists
-        /*QuickRule& quickRule = *static_cast<QuickRule*>(rule);
-        // NumbOfArguments
-        if(quickRule.getNumbOfArguments() != -1){
-            numbOfArgumentCondition.setText(QString::number(quickRule.getNumbOfArguments()));
-        }
-        // ControlFlag
-        ruleControlComboBox.setCurrentIndex(static_cast<std::underlying_type_t<ControlFlag>>(quickRule.controlFlag()));
-        // Expected Arguments
-        expectedArgumentsList.loadExpectedArguments(quickRule);*/
-    //}
+}
+
+CompareAndWriteActionView::CompareAndWriteActionView(QWidget* parent, ActionPtr pAction)
+    : CompareAndWriteActionView(parent)
+{
+    if(pAction){
+        Action& action = *static_cast<Action*>(pAction);
+        expectedArgumentsList.loadExpectedArguments(action.argumentsMap());
+        formattedStringList.loadRules(action.inputFormattedString().parameters());
+    }
+}
+
+
+void CompareAndWriteActionView::readAction(ActionBase& fAction){
+    Action& action = *static_cast<Action*>(&fAction);
+    expectedArgumentsList.readExpectedArguments(action.argumentsMap());
+    formattedStringList.readRules(action.inputFormattedString().parameters());
 }
 /*
 CompareAndWriteActionView::CompareAndWriteActionView(CompareAndWriteActionView* itemF)

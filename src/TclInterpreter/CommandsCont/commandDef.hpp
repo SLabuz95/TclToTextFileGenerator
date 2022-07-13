@@ -42,13 +42,13 @@ namespace Tcl::Interpreter::Command{
             enum class Conditional : int{
                 CompareNumbOfArguments, // Current numb of Arguments for last procedure call (current definition)
                 FCT_Begin = CompareNumbOfArguments,
-                IsLastSavedStat,    // Check Stat for specified SavedStat (Arguments pattern: 1- savedStat number)
                 Compare,
+                FCT_End,// VVVVVVVV Privates factory products not required
+                IsLastSavedStat = FCT_End,    // Check Stat for specified SavedStat (Arguments pattern: 1- savedStat number)
 
-
-                Size,
-                End = Size,
-                FCT_End = End,
+                PrivateSize,
+                PublicSize = FCT_End,
+                End = PrivateSize,
                 None = -1,
             };
 
@@ -160,10 +160,17 @@ namespace Tcl::Interpreter::Command{
             static const QList<QString> targetMap;
         public:
             static inline std::underlying_type_t<Target> cast_target(const Target t){return static_cast<std::underlying_type_t<Target>>(t);}
+            static inline Target castTo_target(const std::underlying_type_t<Target> t){return static_cast<Target>(t);}
             static const QString cast_target_str(const Target t){return QString::number(cast_target(t));}
             static inline std::underlying_type_t<Rule> cast_format_rule(const Rule t){return static_cast<std::underlying_type_t<Rule>>(t);}
-            static const QString cast_format_rule_str(const Rule t){return QString(cast_format_rule(t));}
-            static const QString FORMAT_RULE_CALL(){return "";}
+            inline static const QString cast_format_rule_str(const Rule t){return QString(cast_format_rule(t));}
+            inline static const QString cast_format_rule_str(const Rule t, const QString& data){
+                return QString(cast_format_rule(t)) + data;
+            }
+            inline static const QString FORMAT_RULE_CALL(){return "";}
+            inline static void addFormatRule(QStringList& parameters, const Rule rule, const QString& data){
+                parameters << FORMAT_RULE_CALL() << cast_format_rule_str(rule, data);
+            }
             // End of Interface ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
         };
         // ----
@@ -185,7 +192,7 @@ namespace Tcl::Interpreter::Command{
 
             public:
                 ActionCall(){}
-                ActionCall(ActionType type, Parameters parameters = {}) : type_(type), parameters_(parameters){}
+                ActionCall(ActionType type, const Parameters& parameters = {}) : type_(type), parameters_(parameters){}
 
                 inline ActionType type()const{return type_;}
                 inline Parameters& parameters(){return parameters_;}
@@ -232,7 +239,7 @@ namespace Tcl::Interpreter::Command{
 
             // End of Functions |||||||||||||||||||||||||||||||||||||||||||||
             // Interface ----------------------------------------------------
-            Rule(ConditionalActions conditions = {}, ExecutableActions executables = {}, Control controlFlag = Control::BreakRuleCheck)
+            Rule(const ConditionalActions& conditions = {}, const ExecutableActions& executables = {}, Control controlFlag = Control::BreakRuleCheck)
                 : conditions(conditions), actions(executables), controlFlag(controlFlag) {}
             // End of Interface |||||||||||||||||||||||||||||||||||||||||||||
 
@@ -243,6 +250,7 @@ namespace Tcl::Interpreter::Command{
         struct RulesForArgument{
             enum class Status : bool {Specified, Unspecified};
             //const Status status;
+            qsizetype index;
             Rules rules;
             Rules rulesOnMoveArgument;
             //Rule::ExecutableActions onNoRules;
@@ -269,9 +277,9 @@ namespace Tcl::Interpreter::Command{
         // Interface -----------------------------------------------------
     public:
         Definition(ProcedureName name = QString(),
-                            RulesForArguments rulesForArguments = {},
-                            RulesForArgument rulesForUnspecifiedArgument = {},
-                            RulesOnEndOfCall rulesOnEnd = {})
+                            const RulesForArguments& rulesForArguments = {},
+                            const RulesForArgument& rulesForUnspecifiedArgument = {},
+                            const RulesOnEndOfCall& rulesOnEnd = {})
             : name(name),
               userInteraction(UserInteractionStatus::NotRequired),
               rulesForArguments(rulesForArguments),
@@ -279,9 +287,9 @@ namespace Tcl::Interpreter::Command{
               rulesOnEndOfProcedureCall(rulesOnEnd){}
         Definition(ProcedureName name,
                             UserInteractionStatus userInteraction,
-                            RulesForArguments rulesForArguments = {},
-                            RulesForArgument rulesForUnspecifiedArgument = {},
-                            RulesOnEndOfCall rulesOnEnd = {})
+                            const RulesForArguments& rulesForArguments = {},
+                            const RulesForArgument& rulesForUnspecifiedArgument = {},
+                            const RulesOnEndOfCall& rulesOnEnd = {})
             : name(name),
               userInteraction(userInteraction),
               rulesForArguments(rulesForArguments),

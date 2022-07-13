@@ -39,19 +39,18 @@ namespace Panels::Configuration::View::ActionsList{
     class ActionDataView : public QVBoxLayout{
     public:
         using ActionPtr = typename Actions::Type;
-        using Action = std::remove_pointer_t<ActionPtr>;
+        using ActionBase = std::remove_pointer_t<ActionPtr>;
         using Error = QString;
-        using ActionRef = const Action* ;
-        using ActionDef = Action;
-        using ActionType = typename Action::ProductsList;
+        using ActionRef = ActionPtr;
+        using ActionType = typename ActionBase::ProductsList;
         using ActionView = ActionView<Actions>;
         using DataView = ActionDataView<Actions>;
 
-        using CreateFunction =  ActionDataView* (*)(ActionView&, ActionRef);
+        using CreateFunction =  ActionDataView* (*)(QWidget*, ActionRef);
         using CreateFunctionTable = CreateFunction[];
      protected:
-        ActionDataView()
-            : QVBoxLayout(){}
+        ActionDataView(QWidget* parent)
+            : QVBoxLayout(parent){}
 
         /*
         static constexpr CreateFunction initCreateFunctionTable(){
@@ -70,13 +69,13 @@ namespace Panels::Configuration::View::ActionsList{
     public:
         ~ActionDataView()override{
         }
-        static ActionDataView* createNoDataView(ActionView& view, ActionRef = nullptr){return nullptr;}
-        static ActionDataView* createView(ActionView& view, ActionRef);
-        static ActionDataView* createView(ActionView& view, ActionType);
+        static ActionDataView* createNoDataView(QWidget*, ActionRef = nullptr){return nullptr;}
+        static ActionDataView* createView(QWidget* parent, ActionRef);
+        static ActionDataView* createView(QWidget* parent, ActionType);
 
         //virtual Action toAction() = 0;
         virtual constexpr ActionType type()const = 0;
-
+        virtual void readAction(ActionBase&) = 0;
 
     };
     template<class Actions>
@@ -100,11 +99,13 @@ namespace Panels::Configuration::View::ActionsList{
             }
         };
         public:
-            ActionView(ListItem& );
+            ActionView(List& , ActionPtr);
             ~ActionView()override{
 
             }
             List& parentWidget()const;
+
+            void readAction(ActionPtr& action);
 
         protected:
             bool eventFilter(QObject* obj, QEvent* ev)override;
@@ -119,7 +120,9 @@ namespace Panels::Configuration::View::ActionsList{
                 qApp->processEvents();
                 QListWidget& listWidget = parentWidget().parentWidget().parentWidget();
                 QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-                item->setSizeHint(parentWidget().parentWidget().sizeHint());
+                QWidget* widget = listWidget.itemWidget(item);
+                if(widget)
+                    item->setSizeHint(parentWidget().parentWidget().sizeHint());
             }
     };
 
@@ -131,10 +134,9 @@ namespace Panels::Configuration::View::ActionsList{
         using List = List<Actions>;
         using View = ActionView<Actions>;
         ListItem() = delete;
-        ListItem(List& list);
         ListItem(List& list, ActionPtr action);
         ListItem(const ListItem& item)
-            : ListItem(item.list())
+            : ListItem(item.list(), nullptr)
         {
         }
         ~ListItem()override{
@@ -143,6 +145,7 @@ namespace Panels::Configuration::View::ActionsList{
         View view_;
 
     public:
+        inline void readAction(ActionPtr& action){view_.readAction(action);}
         List &list() const; //{ return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }
         inline View& view(){return view_;}
     };
@@ -186,10 +189,11 @@ namespace Panels::Configuration::View::ActionsList{
         inline ListItem* lastItem()const{return item(count() - 1);}
 
         void loadActions(ActionsRef);
+        void readActions(ActionsRef);
 
         inline void addNewItem(){
             //ListItem* newItem = nullptr;
-            new ListItem(*this);
+            new ListItem(*this, nullptr);
             //newItem->init();
         }
 

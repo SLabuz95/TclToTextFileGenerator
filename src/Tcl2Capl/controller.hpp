@@ -2,7 +2,8 @@
 #define CONTROLLER_H
 //#include"Result/tcl2caplresult.hpp"
 #include<QDir>
-#include"controllerconfig.hpp"
+//#include"controllerconfig.hpp"
+#include"controllerconfiginfo.hpp"
 //#include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 #include<QThread>
 
@@ -17,7 +18,7 @@ public:
     using UserDefaultProcedure = UserProcedure;
     using Predefinitions = Tcl::Interpreter::PredefinitionsController::Predefinitions;
 
-    using UserInputConfigData = Tcl2CaplControllerConfig;
+    using UserInputConfigData = ControllerConfigInfo;
     UserInputConfig(){}
     UserInputConfig(UserInputConfigData& configData);
     ~UserInputConfig(){}
@@ -115,12 +116,12 @@ public:
     //Error readNewInputConfig();
     inline void generateCaplsFromFolderWithTcls(QObject* setProgressEventDest, UserInputConfig::UserInputConfigData& config){
         progressEventDest = setProgressEventDest;
-        userInputConfig_ = config;
+        userInputConfig_ = UserInputConfig(config);
         start();
     }
     inline void generateCaplsFromFolderWithTcls(QObject* setProgressEventDest, UserInputConfig::UserInputConfigData& config, UserInputConfig::Settings::InterpreterMode mode){
         progressEventDest = setProgressEventDest;
-        userInputConfig_ = config;
+        userInputConfig_ = UserInputConfig(config);
         userInputConfig_.proceduresSettings().setMode(mode);
         start();
     }

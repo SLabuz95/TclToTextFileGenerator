@@ -6,7 +6,7 @@
 #include<QMenu>
 #include<QMessageBox>
 #include"Tcl2CaplPanels/MainApp/Interpreters/tcl2caplfileparserinstance.hpp"
-#include"Tcl2CaplPanels/MainApp/Interpreters/tcl2caplinstructionpanel.hpp"
+#include"Tcl2CaplPanels/MainApp/Interpreters/tcl2caplinstructioninstance.hpp"
 #include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
 
 template<>
@@ -42,7 +42,7 @@ void InstanceList::execRequest_ContextMenu<InstanceList::Request_ContextMenu::Ad
     }
     InstanceListElementInterpreter* child = new InstanceListElementInterpreter("Text Interpreter");
     callerItem->addChild(child);
-    mainApp.insertSubWindow(getSubWindowPositionInfo(child), new Tcl2CaplInstructionPanel);
+    mainApp.insertSubWindow(getSubWindowPositionInfo(child), new Tcl2CaplInstructionInstance);
 }
 
 template<>
@@ -132,11 +132,11 @@ InstanceList::InstanceList(MainWindow& parent)
     installEventFilter(this);
 }
 void InstanceList::contextMenuEvent(QContextMenuEvent *cev){
-    enum class MenuType{
+    /*enum class MenuType{
         ViewPort,
         InstanceItem,
         InstanceChildItem
-    } menuType;
+    } menuType;*/
     InstanceListElement* item = itemAt(cev->pos());
     /*if(item){
         NavigationElement* nitem = static_cast<NavigationElement*>(item);

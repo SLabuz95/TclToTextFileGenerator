@@ -35,24 +35,29 @@ using RulesProductDefinition = ProductDefinition<RulesTypes>;
 template <>
 struct RulesProductDefinition::ImplementationData::Properties{
 protected:
-    inline Properties(ControlFlag cf) : controlFlag_(cf){}
+    //inline Properties(ControlFlag cf) : controlFlag_(cf){}
     ControlFlag controlFlag_;
 };
 
 template <>
-class RulesProductDefinition::ImplementationData::Methods : public RulesProductDefinition::ImplementationData::Properties{
+class RulesProductDefinition::ImplementationData::Methods
+        : public RulesProductDefinition::ImplementationData::Properties
+{
 public:
-    Methods(ControlFlag flag) : Properties(flag){}
+    //Methods(ControlFlag flag) : Properties(flag){}
 
 };
 
 template <>
-class RulesProductDefinition::InterfaceData::Methods : public RulesProductDefinition::Implementation{
+class RulesProductDefinition::InterfaceData::Methods
+    : public RulesProductDefinition::Implementation
+{
 
-    inline void changeControlFlag(ControlFlag cf){controlFlag_ = cf;}
+public:
+    inline void setControlFlag(ControlFlag cf){controlFlag_ = cf;}
     inline ControlFlag controlFlag()const{return controlFlag_;}
 
-   // virtual void toRule(UserProcedureRule&) = 0;
+    virtual void toRule(UserProcedureRule&) = 0;
     //virtual void toXmlContent(QXmlStreamWriter& xmlWriter);
 };
 

@@ -16,11 +16,11 @@ View::CreateFunctionTable View::createFunctionTable = {
 };
 
 template<>
-View* View::createView(ActionView& view, ActionRef action){
-    return (createFunctionTable[FCT_toUnderlying((action)? action->type() : ActionType())])(view, action);
+View* View::createView(QWidget* parent, ActionRef action){
+    return (createFunctionTable[FCT_toUnderlying((action)? action->type() : ActionType())])(parent, action);
 }
 
 template<>
-View* View::createView(ActionView& view, ActionType type){
-    return (createFunctionTable[FCT_toUnderlying(type)])(view, nullptr);
+View* View::createView(QWidget* parent, ActionType type){
+    return (createFunctionTable[FCT_toUnderlying(type)])(parent, nullptr);
 }

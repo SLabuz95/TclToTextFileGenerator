@@ -10,14 +10,30 @@ using ActionView = TclParseActionView::ActionView;
 
 // TclParseActionView Action View Definitions -----------------------------------
 
-TclParseActionView::TclParseActionView(ActionView& view)
+TclParseActionView::TclParseActionView(QWidget* parent)
+    : ActionDataView(parent)
 {
     splitter.addWidget(&formattedStringList);
     addWidget(&splitter);
 }
 
-TclParseActionView::DataView* TclParseActionView::create(ActionView& view, ActionRef){
-    return new TclParseActionView(view);
+TclParseActionView::TclParseActionView(QWidget* parent, ActionPtr pAction)
+    : TclParseActionView(parent)
+{
+    if(pAction){
+        Action& action = *static_cast<Action*>(pAction);
+        formattedStringList.loadRules(action.inputFormattedString().parameters());
+    }
+}
+
+
+void TclParseActionView::readAction(ActionBase& fAction){
+    Action& action = *static_cast<Action*>(&fAction);
+    formattedStringList.readRules(action.inputFormattedString().parameters());
+}
+
+TclParseActionView::DataView* TclParseActionView::create(QWidget* parent, ActionRef action){
+    return new TclParseActionView(parent, action);
 }
 
 

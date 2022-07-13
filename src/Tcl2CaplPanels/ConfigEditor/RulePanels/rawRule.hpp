@@ -10,6 +10,7 @@
 #include<QPushButton>
 #include<QSplitter>
 #include"Action/actions.hpp"
+#include"Tcl2Capl/controllerconfiginfo.hpp"
 
 namespace Panels::Configuration::View::Rules{
 
@@ -27,8 +28,13 @@ namespace Panels::Configuration::View::Rules{
                 addItems(Tcl::Command::Definition::Rule::getRuleControlFlagNames());
             }
         };
-        using RawRule = Tcl2CaplControllerConfig::RawRule;
-        using RawRuleRef = const RawRule&;
+
+        using RulesRef = ControllerConfigInfo::NewRules;
+        using Rule = std::remove_pointer_t<RulesRef::Type>;
+        using RuleRef = Rule&;
+
+        using RulesViewRef = ControllerConfigInfo::RulesView;
+        using RawRuleRef = RulesViewRef::first_type;
         using List = RulesProcedurePanel::RulesList;
         using Super = QWidget;
     public:
@@ -39,6 +45,8 @@ namespace Panels::Configuration::View::Rules{
         ~RawRuleView()override{
 
         }        
+
+        void readRule(RuleRef rule);
 
         List& parentWidget()const;
     protected:
