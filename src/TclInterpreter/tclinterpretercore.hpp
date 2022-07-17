@@ -46,6 +46,9 @@ namespace Tcl::Interpreter::Core {
         DoubleQuotes, // "  {Parent, Child, Processing, Pending}  // SAVEABLE
         ComplexWord, // {Parent, Child, Pending} If VariableSubbing,BackslashSubbing or CommandSubbing occured with anther string (without whitespace)
         Script,  // {Parent, Child, Pending} SAVEABLE // Old Name: CodeBLock
+        BracesStartExprOnly,
+        DoubleQuotesExprOnly,
+        ComplexWordExprOnly,
         //ExprCommand, // {Parent, Child} SAVEABLE
         Ignore, // {Parent, Prodromic, Pending} SAVEABLE
         VariableSubbing,           // $ {Child, Processing} // Specific behaviour

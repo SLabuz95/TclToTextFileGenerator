@@ -81,8 +81,9 @@ namespace Tcl{
             }
         }
 
-        /*inline void addExpressionToMainCodeBlock(OutputCommand command){command.isEmpty() or
-                                                                    If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) + command ), true);
+        /*inline void addExpressionToMainCodeBlock(OutputCommand command){
+         * command.isEmpty() or
+If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) + command ), true);
                                                                    }*/
         inline void addExpressionToMainCodeBlock(OutputCommands commands, QString postfix = QString()){
             if(commands.size() > 0){

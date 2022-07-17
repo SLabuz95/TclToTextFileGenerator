@@ -9,14 +9,16 @@
 #include"TclInterpreter/ErrorCont/errorCont.hpp"
 #include"commandCall.hpp"
 #include"commandCallConfig.hpp"
+#include"TclInterpreter/CallReplacerCont/callReplacerCont.hpp"
+#include"TclInterpreter/ExprCont/exprCont.hpp"
 
 class UserInputConfig;
 namespace Tcl{
     class TCLInterpreter;
 };
 
-
 namespace Tcl::Interpreter::Command{
+
     using namespace Tcl::Interpreter::Types;
     using namespace Tcl::Interpreter::Core;
     using namespace Tcl;
@@ -67,13 +69,16 @@ namespace Tcl::Interpreter::Command{
 
         // Objects -------------------------------------------------------------------------------
         TCLInterpreter& tclInterpreter;
-        UserInputConfig& userConfig;
+        UserInputConfig& userConfig;        
         CommandDefinitions& procedureDefinitions;
         Definition& unknownProcedureDefinition;
+        static CommandDefinitions hardcodedProcedureDefinitions;
         static CommandDefinitions defaultProcedureDefinitions;
         OutputCommand command;
         Calls procedureCalls;
         Call::Parameters rawParameterStats;
+        CallReplacer::Controller callReplacerController;
+        ExprController::Controller exprController;
         //UserInteraction& userInteraction;
         //Preexpressions& preexpressions;
 
@@ -103,6 +108,7 @@ namespace Tcl::Interpreter::Command{
         Error addPreExpressionForUserInteraction();
 
 
+        CallConfig callConfig;
         CallConfig::CommandCallControlFunctions const* currentCommandCallFunctions = nullptr;
     //    {
     //        ExecutableActionsParameters parameters =
@@ -145,7 +151,7 @@ namespace Tcl::Interpreter::Command{
         Error addNewParameter(Stat);
         Error addNewParameter(Stat, QString , OutputCommand = OutputCommand());
         Error addFinalizedCallParameter();
-        Error startVariableSubbing();
+        void startVariableSubbing();
         bool isVariableSubbingProcessingJustActivated();
         Error processVariableSubbing();
         bool isFirstSignOk(QString str);
@@ -184,11 +190,11 @@ namespace Tcl::Interpreter::Command{
         }
 
         inline void updateCurrentCallProcedures(){
-            currentCommandCallFunctions = CallConfig::controlFunctionsForStat((procedureCalls.isEmpty())? Stat::Script : lastProcedureCall().stat());
+            currentCommandCallFunctions = callConfig.controlFunctionsForStat((procedureCalls.isEmpty())? Stat::Script : lastProcedureCall().stat());
         }
 
         inline void updateCurrentCallProcedures(Stat stat){
-            currentCommandCallFunctions = CallConfig::controlFunctionsForStat(stat);
+            currentCommandCallFunctions = callConfig.controlFunctionsForStat(stat);
         }
 
         // WriteOnlyProcedures

@@ -119,6 +119,7 @@ namespace Tcl::Interpreter::Command{
                 appendCommand(command, rawCommand);
             }
             inline Stat stat()const{return stat_;}
+            inline void setStat(Stat stat){stat_ = stat;}
             inline OutputCommand outputCommand()const{return outputCommand_;}
             inline OutputCommand rawCommand()const{return rawCommand_;}
             inline void setOutputCommand(OutputCommand outputCommand){outputCommand_ = outputCommand;}
@@ -204,17 +205,21 @@ namespace Tcl::Interpreter::Command{
             //inline QString name(){return parameters().at(0).outputCommand();}
             //inline QString rawName(){return parameters().at(0).rawCommand();}
             inline Definition::RulesForArguments::Iterator lastRulesForArgument_dynamicCheck()const{
-                return (lastArgumentIndex() < definition()->rulesForArguments.size())?
-                            definition()->rulesForArguments.begin() + lastArgumentIndex() :
-                            definition()->rulesForArguments.end();}
+                Parameters::size_type lastIndex = lastArgumentIndex();
+                for(Definition::RulesForArguments::Iterator iter = definition()->rulesForArguments.begin();
+                    iter < definition()->rulesForArguments.end(); iter++)
+                {
+                    if(iter->index == lastIndex)
+                        return iter;
+                }
+                return definition()->rulesForArguments.end();
+                }
             inline Definition::RulesForArguments::Iterator lastRulesForArgument_onMoved()const{
-                return (lastArgumentIndex() < definition()->rulesForArguments.size())?
-                            definition()->rulesForArguments.begin() + lastArgumentIndex() :
-                            definition()->rulesForArguments.end();}
+                return lastRulesForArgument_dynamicCheck();}
             inline Definition::RulesForArguments::Iterator rulesForUnspecifiedArgument()const{
                 return &definition()->rulesForUnspecifiedArgument;}
             inline Error isRulesInRange(Definition::RulesForArguments::Iterator rules)const{
-                return (rules < definition()->rulesForArguments.constEnd())?
+                return (rules < definition()->rulesForArguments.end())?
                             Error::NoError :
                             Error::Error;}
             inline Definition::RulesOnEndOfCall& rulesOnEndOfCall()const{

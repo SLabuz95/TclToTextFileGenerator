@@ -66,6 +66,8 @@ namespace Tcl::Interpreter::Command{
                 AddFunctionDefinition,
                 //AddSnprintf,
                 AddPredefinition,
+                ExprProcessParameter,
+                ExprFinalize,
 
                 PrivateSize,
                 PublicSize = FCT_End,

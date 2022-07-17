@@ -35,6 +35,10 @@ namespace Tcl::Interpreter::Command{
             :    // Correct Case
                 static_cast<std::underlying_type_t<Stat>>(stat) - static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing);
         }
+
+        constexpr static std::underlying_type_t<Stat> numbOfSpecialCalls(){
+            return static_cast<std::underlying_type_t<Stat>>(Stat::Size) - static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing);
+        }
     protected:
         WriteOnlyProcedures writeOnlyProcedures_;
         InterpreterMode mode_ = InterpreterMode::TestCase;
@@ -92,19 +96,20 @@ namespace Tcl::Interpreter::Command{
             NewParameterFctPtr newParameter;
             DestructorFctPtr destructor;
         };
-        static CommandCallControlFunctions const* controlFunctionsForStat(const Stat stat){
+        CallConfig();
+        CommandCallControlFunctions const* controlFunctionsForStat(const Stat stat){
             return &commandCallSpecialFunctions[Settings::specialCallStat2number(stat)];
         }
         static const QString& parameterSeparators(const Stat stat){
             return commandCallParameterSeparators[Settings::specialCallStat2number(stat)];
         }
 
-        static void setCommandSubbingNewParameter_procedureNameMode();
-        static void setCommandSubbingNewParameter_parametersMode();
+        void setCommandSubbingNewParameter_procedureNameMode();
+        void setCommandSubbingNewParameter_parametersMode();
 
     private:
         //static const CommandCallSpecialInterpretFunction commandCallSpecialInterprets[];
-        static CommandCallControlFunctions commandCallSpecialFunctions[];
+        CommandCallControlFunctions commandCallSpecialFunctions[Tcl::Interpreter::Core::numbOfSpecialCommandCallsAndSafeguard()];
         static const QString commandCallParameterSeparators[];
 
             /*static inline CommandCallSpecialInterpretFunction interpretCallAt(const Stat stat){

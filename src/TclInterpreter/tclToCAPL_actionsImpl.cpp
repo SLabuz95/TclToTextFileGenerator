@@ -71,7 +71,7 @@ TCLCommandsController::executeConditionalAction
             throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)));
             return ConditionResult::Satisfied;
         }
-       if(processingStat() == stat)
+       if(callReplacerController.data().stat() == stat)
             return ConditionResult::Satisfied;
     }
     return ConditionResult::Unsatisfied;
@@ -183,7 +183,7 @@ void TCLCommandsController::executeAction
     TCLCommandsController::Definition::Action::Executable::ChangeLastSavedStat>: ";
 
     // IMPORTANT - You cant change FunctionCall, Snprintf or PendingSnprintf stat
-    switch(lastProcedureCall().stat()){
+    /*switch(lastProcedureCall().stat()){
         case Stat::CommandSubbing:
         case Stat::DoubleQuotes:
         case Stat::ComplexWord:
@@ -193,7 +193,7 @@ void TCLCommandsController::executeAction
         }
         default:
             break;
-    }
+    }*/
 
     if(parameters.size() != 1){
         throwError(ERROR_PREFIX + "Number of action arguments dont match. Expected: 1.");
@@ -210,8 +210,7 @@ void TCLCommandsController::executeAction
         throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)));
         return ;
     }
-    lastProcedureCall().changeStat(stat);
-   updateCurrentCallProcedures();
+    callReplacerController.data().changeStat(stat);
 
 }
 
@@ -241,6 +240,160 @@ void TCLCommandsController::executeAction
     if(not str.endsWith(";\n"))
         str.append(";");
     tclInterpreter.preexpressions().append(str);
+}
+
+template <>
+void TCLCommandsController::executeAction
+<TclProcedureCommand::Definition::Action::Executable::ExprProcessParameter>
+(ExecutableActionsParameters )
+{
+    // if call in command subbing -> its for sure "expr" procedure -> categorize and append output command of call by output command of parameter (only expr procedure can call if on moveArg)
+    // On end of call - finalize will be called
+    // Other procedure rules can only call finalizeExpr (if called be expr procedure - other behaviour will be used)
+    // If current procedure will be call not in commandSubbing then categorize only and append output of lastProcedureCall (which is not expr procedure -> that output will be add to expr if used in expr otherwise it will be just used as output parameter of command like if or something else)
+
+    const QString ERROR_PREFIX = "executeAction<\
+    TCLCommandsController::Definition::Action::Executable::ExprProcessParameter>: ";
+    Call& exprCall = (lastProcedureCall().stat() == Stat::CommandSubbing)?
+                lastProcedureCall() : // Current call is exprCall
+                *(procedureCalls.rbegin() + 1); // Parameter passed from ___ExprOnly call - prelast call is exprCall
+
+    if(lastProcedureCall().stat() == Stat::CommandSubbing){
+        if(lastProcedureCall()._name() == "expr"){
+            // Do nothing - all is ok
+        }else{
+            lastProcedureCall().lastParameter().setStat(lastProcedureCall().stat());
+            switch(lastProcedureCall().lastParameter().stat()){
+                case Stat::Word:
+                case Stat::BackslashSubbing:
+                {
+                    lastProcedureCall().lastParameter().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+                }
+                break;
+                /*case Stat::BackslashSubbing:
+                {
+                    lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+                }
+                break;*/
+                case Stat::VariableSubbing:
+                case Stat::CommandSubbing:
+                case Stat::BracesStart:
+                case Stat::DoubleQuotes:
+                {
+                    lastProcedureCall().lastParameter().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+                }
+                break;
+                /*case Stat::CommandSubbing:
+                {
+                    lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+                }
+                break;*/
+                default:
+                break;
+            }
+            return;
+        }
+    }else{
+        if((procedureCalls.rbegin() + 1)->_name() == "expr"){
+            // Do nothing - all is ok
+        }else{
+            (procedureCalls.rbegin() + 1)->lastParameter().setStat(lastProcedureCall().stat());
+            switch(lastProcedureCall().lastParameter().stat()){
+                case Stat::Word:
+                case Stat::BackslashSubbing:
+                {
+                    (procedureCalls.rbegin() + 1)->lastParameter().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+                }
+                break;
+                /*case Stat::BackslashSubbing:
+                {
+                    lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+                }
+                break;*/
+                case Stat::VariableSubbing:
+                case Stat::CommandSubbing:
+                case Stat::BracesStart:
+                case Stat::DoubleQuotes:
+                {
+                    (procedureCalls.rbegin() + 1)->lastParameter().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+                }
+                break;
+                /*case Stat::CommandSubbing:
+                {
+                    lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+                }
+                break;*/
+                default:
+                break;
+            }
+            return;
+        }
+    }
+
+    switch(lastProcedureCall().lastParameter().stat()){
+        case Stat::Word:
+        case Stat::BackslashSubbing:
+        {
+            exprCall.outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+        }
+        break;
+        /*case Stat::BackslashSubbing:
+        {
+            lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+        }
+        break;*/
+        case Stat::VariableSubbing:
+        case Stat::CommandSubbing:
+        case Stat::BracesStart:
+        case Stat::DoubleQuotes:
+        {
+            exprCall.outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+        }
+        break;
+        /*case Stat::CommandSubbing:
+        {
+            lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+        }
+        break;*/
+        default:
+        break;
+    }
+}
+
+
+template <>
+void TCLCommandsController::executeAction
+<TclProcedureCommand::Definition::Action::Executable::ExprFinalize>
+(ExecutableActionsParameters )
+{
+    const QString ERROR_PREFIX = "executeAction<\
+    TCLCommandsController::Definition::Action::Executable::ExprFinalize>: ";
+    /*Call& exprCall = (lastProcedureCall().stat() == Stat::CommandSubbing)?
+                lastProcedureCall() : // Current call is exprCall
+                *(procedureCalls.rbegin() + 1); // Parameter passed from ___ExprOnly call - prelast call is exprCall
+
+    switch(lastProcedureCall().lastParameter().stat()){
+        case Stat::Word:
+        case Stat::BackslashSubbing:
+        {
+            exprCall.outputCommand().append(lastProcedureCall().lastParameter().rawCommand());
+        }
+        break;
+
+        case Stat::VariableSubbing:
+        case Stat::CommandSubbing:
+        {
+            exprCall.outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+        }
+        break;
+        /*case Stat::CommandSubbing:
+        {
+            lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+        }
+        break;
+        default:
+        break;
+    }*/
 }
 
 template <>
@@ -684,9 +837,9 @@ TclProcedureInterpreter::ConditionInterpretFunctions TclProcedureInterpreter::co
     &TCLCommandsController::executeConditionalAction<
     TclProcedureCommand::Definition::Action::Conditional::CompareNumbOfArguments>,
     &TCLCommandsController::executeConditionalAction<
-    TclProcedureCommand::Definition::Action::Conditional::IsLastSavedStat>,
-    &TCLCommandsController::executeConditionalAction<
     TclProcedureCommand::Definition::Action::Conditional::Compare>,
+    &TCLCommandsController::executeConditionalAction<
+    TclProcedureCommand::Definition::Action::Conditional::IsLastSavedStat>,
 };
 
 TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::executableInterpretFunctions = {
@@ -711,4 +864,8 @@ TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::e
     TclProcedureCommand::Definition::Action::Executable::AddFunctionDefinition>,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::AddPredefinition>,
+    &TCLCommandsController::executeAction<
+    TclProcedureCommand::Definition::Action::Executable::ExprProcessParameter>,
+    &TCLCommandsController::executeAction<
+    TclProcedureCommand::Definition::Action::Executable::ExprFinalize>,
 };
