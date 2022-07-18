@@ -22,7 +22,6 @@ MainWindow::MainWindow(App& app)
     );
     //view.setViewMode(View::TabbedView);
     show();
-    qDebug() << "MainWindow" << this;
 }
 
 void MainWindow::insertSubWindow(InstanceList::SubWindowPositionInfo&& positionInfo, QWidget* internalWidget){
@@ -38,7 +37,6 @@ void MainWindow::insertSubWindow(InstanceList::SubWindowPositionInfo&& positionI
     subWindows.insert(subWindowListIndex, subWindow);
     view.addSubWindow(subWindow);
     subWindow->show();
-    qDebug() << "MainWindow" << &subWindow->mainWindow();
 }
 
 void MainWindow::removeSubWindow(InstanceList::SubWindowPositionInfo&& positionInfo){

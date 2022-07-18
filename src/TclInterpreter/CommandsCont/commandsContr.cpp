@@ -720,7 +720,7 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::BracesStart>(){
     switch(processingStat()){
     case Stat::Braces:
     {
-        if(tclInterpreter.listController().incrementListLevel() == Error::Error)
+        if(tclInterpreter.listController().decrementListLevel() == Error::Error)
             return throwError(ERROR_PREFIX + error());
         if(tclInterpreter.listController().isListClosed()){ // - Control deactived or list closed - finalize
             if(finalizeCall() == Error::Error)
@@ -1608,8 +1608,60 @@ Error TclProcedureInterpreter::interpret_mode<Stat::Ignore>(){
     case Stat::Semicolon:
     case Stat::EndOfString:
     {
-        if(removeIgnore() == Error::Error)
-            return throwError(ERROR_PREFIX + error());
+        if(numberOfProcedureCalls() > 0){
+            switch(lastProcedureCall().stat()){
+            case Stat::CommandSubbing:
+            {
+                if(isNotCommandSubbing()){ // Command Subbing as procedure in Script or MainScript
+                    procedureCalls.removeLast();
+                    removeIgnore();
+                    // Restore
+                }else{ // Element of other call (other then script)
+                    // Ignore
+                }
+            }
+                break;
+            case Stat::BracesStart:
+            }
+
+        }else{
+            removeIgnore();
+        }
+    }
+        break;
+    case Stat::CommandSubbingStart:
+    {
+
+    }
+        break;
+    case Stat::CommandSubbingEnd:
+    {
+
+    }
+        break;
+    case Stat::BackslashSubbing:
+    {
+
+    }
+        break;
+    case Stat::Braces:
+    {
+
+    }
+        break;
+    case Stat::BracesStart:
+    {
+
+    }
+        break;
+    case Stat::Comment:
+    {
+
+    }
+        break;
+    case Stat::DoubleQuotes:
+    {
+
     }
         break;
     default:
@@ -2013,6 +2065,11 @@ Error Controller::createCall(Stat stat, Call::Parameter&& parameter){
     // If Stat id for semi command call stats is correct (If wrong stat , stat id of Stat::Size is returnedgh)
     if(Settings::specialCallStat2number(stat) == Settings::specialCallStat2number(Stat::Size))
         return throwError("Wrong stat for CreateCall procedure. Stat: " + QString::number(TCLInterpreter::cast_stat(stat)));
+
+    if(not parameter.isEmpty()){
+        if(addNewParameter() == Error::Error)
+            return Error::Error;
+    }
 
     // Replacer Call controller
     // Call rules to eventually modify behaviour of interpreter
@@ -2566,25 +2623,9 @@ Error TclProcedureInterpreter::dynamicRulesCheck(){
     return Error::NoError;
 }
 
-Error TclProcedureInterpreter::processCallsForError(){
-    while(not procedureCalls.empty()){
-        switch(lastProcedureCall().stat()){
-        case Stat::Script:
-            updateCurrentCallProcedures(Stat::Ignore);
-            return Error::NoError;
-        case Stat::CommandSubbing:
-        case Stat::DoubleQuotes:
-        case Stat::ComplexWord:
-// Commented but required
-//            if(removeProcedureCall() == Error::Error)
-                return throwError("TCLInterpreter::processSavedStatsForError: " + error());
-        default:
-// Commented but required
-//            if( == Error::Error)
-                return throwError("TCLInterpreter::processSavedStatsForError: " + error() );
-        }
-    }
-    return throwError("TCLInterpreter::processSavedStatsForError: No stats");
+Error TclProcedureInterpreter::processCallsForError(){   
+    updateCurrentCallProcedures(Stat::Ignore);
+    return Error::NoError;
 }
 
 Error Controller::prepareSnprintf(){
@@ -2600,8 +2641,7 @@ Error Controller::prepareSnprintf(){
         {
             lastProcedureCall().changeStat(lastProcedureCall().parameters().first().stat());
             lastProcedureCall().setOutputCommand(lastProcedureCall().parameters().first().outputCommand());
-            lastProcedureCall().setRawCommand(lastProcedureCall().parameters().first().rawCommand() +
-                                              lastProcedureCall().parameters().at(1).rawCommand());
+            lastProcedureCall().setRawCommand(lastProcedureCall().parameters().first().rawCommand());
         }
             return Error::NoError;
         default:

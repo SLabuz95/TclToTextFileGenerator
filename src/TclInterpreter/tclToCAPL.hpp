@@ -228,11 +228,11 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
                 ignoreMessages.append(message);
                 qDebug() << ignoreMessages.last().toString();
             }
-            Error removeIgnore(){
+            /*Error removeIgnore(){
 //                return (isSavedStatsEmpty())?
 //                                throwError("TCLInterpreter::removeIgnore: No stats") :
 //                                (removeLastStat(), Error::NoError);
-            }
+            }*/
 
 
 
@@ -253,8 +253,6 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
             Error finalizeSnprintfCall();
 
             Error processError(){
-                if(error().isEmpty())
-                    qDebug() << "test";
                 addIgnoreMessage(ErrorMessage(error(), textInterpreter().readTclCommand(), textInterpreter().restOfString()));
                  if(commandsController.processCallsForError() == Error::Error)
                      return Error::Error;

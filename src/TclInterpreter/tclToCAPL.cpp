@@ -334,15 +334,13 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 },
                 {   // Rules on moveArgument
                    { // Rule 1
-                       {
-                         {
-                          ProcedureDefinition::Action::Conditional::IsLastSavedStat,
-                          {
-                             QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))
-                          }
-                         },
+                       {                         
                        },
                        {
+                         {   // Finalize expr
+                             ProcedureDefinition::Action::Executable::ExprFinalize,
+                             {}
+                         },
                          {   // Write as ( =-1 )
                              ProcedureDefinition::Action::Executable::Write,
                              {
@@ -354,24 +352,6 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                          }
                        }
                     },
-                    {
-                        {},
-                        {
-                            {// Parse [expr_parser =-1]
-                                ProcedureDefinition::Action::Executable::ExprProcessParameter,
-                                {}
-                            },
-                            {   // Write as ( =-1 )
-                                ProcedureDefinition::Action::Executable::Write,
-                                {
-                                    "( ",
-                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                    "=-1",
-                                    " )"
-                                }
-                            }
-                        }
-                    }
                 }
             },
             { // On 2nd argument (then or script)
@@ -2843,8 +2823,6 @@ void TCLInterpreter::printErrorReport(QString& errorReport){
         {
             errorReport.append(QString(TCL_TO_CAPL_ERRORS_LOG_NEW_ROW_POSTFIX_TEXT + TCL_TO_CAPL_ERRORS_LOG_ERROR_CELL_TEXT_FOR_INSTRUCTION_PANEL + TCL_TO_CAPL_ERRORS_LOG_DETAILS_CELL_TEXT).toUtf8());
         }
-
-
 
     }
 }

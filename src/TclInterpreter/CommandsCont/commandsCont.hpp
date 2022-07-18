@@ -162,7 +162,7 @@ namespace Tcl::Interpreter::Command{
         inline void deactivateBackslashSubbing(){backslashSubbingActive = false;}
 
         Error finalizeCall();
-        Error removeIgnore(){};
+        void removeIgnore(){updateCurrentCallProcedures();}
 
         Controller(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig);
 
