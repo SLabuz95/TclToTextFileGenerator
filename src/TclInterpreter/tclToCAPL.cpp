@@ -318,7 +318,24 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                            }
                         }
                     },
-                    {   // Rule 2: Error if no rules have been executed
+                    {   // Rule 1: If lastSavedStat stat == ComplexWord -> ChangeTo
+                        {
+                            {
+                             ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                             {
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWord))
+                             }
+                            },
+
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWordExprOnly))}
+                           }
+                        }
+                    },
+                    {   // Rule 3: Error if no rules have been executed
                         {
                             // No Conditions
                         },
@@ -326,7 +343,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                             {   // Error
                                 ProcedureDefinition::Action::Executable::Error,
                                 {
-                                    "\"If\" conditional expression isnt list"
+                                    "\"If\" conditional expression isnt list or complexWord"
                                 }
                             }
                         }
@@ -370,7 +387,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                            }
                         }
-                    }
+                    },
+
                 },
                 {   // Rules on moveArgument
                     {   // Rule 1: If Script
@@ -536,10 +554,11 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                     {
                        {    // Action 1: Change stat to CodeBlock
                              ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
                        }
                     }
-                }
+                },
+
             },
             {   // Rules on moveArgument
                 {   // Rule 1: if lastSavedStat command == (elseif) -> Error
@@ -2049,37 +2068,49 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
     using Target = ProcedureDefinition::Format::Target;
 
     switch(target){
-    case Target::Raw:
+    case Target::TclFormat:
        return rawCommand();
-    case Target::ProcedureParametersStat:
+    case Target::Stat:
     {
         return QString::number(std::underlying_type_t<Stat>(stat()));
-    }
-    case Target::SnprintfFormat:
-    {        
-        switch(stat()){
-        case Stat::Word:
-        case Stat::DoubleQuotes:
-        case Stat::ComplexWord:
-            return QString("\"") + outputCommand() + "\"";
-        case Stat::Script:
-            return QString("{\n") + outputCommand() + "\n}\n";
-        case Stat::Braces:
-            //return savedStat().listToCaplString();
-        default:
-            return outputCommand();
-        }
     }
     case Target::CaplFormat:
     {
         return outputCommand();
     }
-    case Target::TclFormat:
+    case Target::Raw:
     {
-        using Parameter = Parameters::Iterator;
+        switch(stat()){
+        case Stat::Word:
+        {
+            if(rawCommand().startsWith("\""))
+                return rawCommand().sliced(1, rawCommand().size() - 2);
+        }
+            break;
+        case Stat::BracesStart:
+        case Stat::BracesStartExprOnly:
+        case Stat::DoubleQuotes:
+        case Stat::DoubleQuotesExprOnly:
+        case Stat::Script:
+        {
+            return rawCommand().sliced(1, rawCommand().size() - 2);
+        }
+        case Stat::CommandSubbing:
+        {
+            if(rawCommand().startsWith("["))
+                return rawCommand().sliced(1, rawCommand().size() - 2);
+            break;
+        }
+        case Stat::VariableSubbing:
+            if(rawCommand().size() > 2 and rawCommand().at(1) == '{') // ${}
+                return rawCommand().sliced(2, rawCommand().size() - 3);
+            else
+                return rawCommand().sliced(1);
+        default:
+            break;
+        }
         return rawCommand();
     }
-        break;
     default:
         break;
     }
@@ -2921,7 +2952,7 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                             index++; // Ignore procedure name
                             switch(target){                            
                             case Target::Raw:
-                            case Target::ProcedureParametersStat:
+                            case Target::Stat:
                             case Target::CaplFormat:
                             case Target::TclFormat:
                                 dest += lastProcedureCall().parameters()[index].toString(target);
@@ -2945,7 +2976,6 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                             return (arg - args.begin());
                         index++; // Ignore procedure name
                         switch(target){
-                        case Target::SnprintfFormat:
                         case Target::CaplFormat:
                         case Target::TclFormat:
                         case Target::Raw:

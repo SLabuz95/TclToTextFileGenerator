@@ -16,12 +16,12 @@ namespace Panels::Configuration::View::FormattedString{
         {
             const QStringList formatRuleComboBoxOptions =
             {
-                "Raw",    // Orginal Interpreter Read
                 "TclFormat",
+                "Raw",    // Orginal Interpreter Read                
                 "CaplFormat",
-                "ProcedureParametersStat",    // Number
+                "Stat",    // Number
                 //"Command",
-                "SnprintfFormat"
+                //"SnprintfFormat"
             };
 
             addRow("Format: ", &formatRule);

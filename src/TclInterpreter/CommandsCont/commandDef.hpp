@@ -136,12 +136,11 @@ namespace Tcl::Interpreter::Command{
                //SLICED = '\\'
             };
             enum class Target : qint8{
-                Raw,    // Orginal Interpreter Read
-                TclFormat,
-                CaplFormat,
-                ProcedureParametersStat,    // Number
+                TclFormat, // TclFormat - rawOutput variable
+                Raw,    // TclFormat with some changes
+                CaplFormat, // Output variable
                 //Command,
-                SnprintfFormat,
+                Stat,    // Number
                 Size,
                 None = -1,
                 //ProcedureParameters,

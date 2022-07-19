@@ -5,6 +5,9 @@
 using namespace Tcl::Interpreter::Command;
 using namespace Tcl::Interpreter;
 
+
+Call::Call(Stat stat) : stat_(stat){}
+
 Call::Call(Stat stat, Parameter& parameter, ProcedureDefinitionIterator definition, ParameterIndex index)
     : stat_(stat), _parameters(1, parameter), _procedureDefinition(definition), currentParameterIndex(index)
 {

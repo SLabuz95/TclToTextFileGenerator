@@ -30,12 +30,15 @@ namespace Tcl::Interpreter::Command::CallReplacer{
             ControllerData(Stat stat) : stat_(stat){}
             const Stat& stat()const{return stat_;}
             void changeStat(const Stat& newStat){stat_ = newStat;}
+
         };
 
         Error performReplacerRuleCheckForNewCall(CommandController&, ControllerData&);
         ControllerData& data(){return data_;}
+        bool isActive()const{return active;}
     protected:
         ControllerData data_;
+        bool active = false;
     };
 
 }

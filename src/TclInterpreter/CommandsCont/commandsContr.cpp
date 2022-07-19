@@ -568,12 +568,21 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::CommandSubbingStart>(){
     // Impossible procedure name contains:
     // - CommandSubbing
     // - VariableSubbing
-    // - BackslashSubbing (with special meaning) ???? Or NO
+    // - BackslashSubbing (with special meaning) ???? Or No
 
     // Create simplfied procedure name and assign to OutputCommand
+    // READ RAW FORMAT
+    // Possible name contains only:
+    // -
+    const QRegularExpression regex = QRegularExpression("(?<!:):{1}(?!:)(?<!:):{1}(?!:)|[^a-zA-Z0-9_:]");
+    //const qsizetype firstNotAlphanumericCharacter = lastProcedureCall().lastParameter().indexOf(regex); // Alpha + sign '_'
+    // Global namespace verification - check github - add to output command directly
+    QString procedureName = lastProcedureCall().lastParameter().toString(Definition::Format::Target::Raw); // Tcl format without some syntax - just data
 
-    qDebug() << lastProcedureCall().lastParameter().rawCommand();
-    qDebug() << lastProcedureCall().lastParameter().outputCommand();
+    // Name Verification - use regex to find inconsitencies of output command
+
+    // ------------
+
     if(callDefinition(lastProcedureCall()._name()) == Error::Error)
         return throwError(ERROR_PREFIX + error());
 
@@ -588,16 +597,19 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::CommandSubbing>(){
 
     switch(lastProcedureCall().lastParameter().stat()){
     case Stat::Word:
-    case Stat::BackslashSubbing:
     {
-        lastProcedureCall().lastParameter().setOutputCommand("\"" + lastProcedureCall().lastParameter().rawCommand() + "\"");
+
     }
         break;
     case Stat::VariableSubbing:
     {
-        lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
+        lastProcedureCall().lastParameter().rawCommand().prepend("$");
+        lastProcedureCall().lastParameter().outputCommand().replace(QRegularExpression(":+"), ".");
+        qsizetype index = lastProcedureCall().lastParameter().outputCommand().indexOf(QRegularExpression("[^:]+"));
+        //if(index != -1)
+           // Remove global namespace
     }
-        break;    
+        break;
     default:
         break;
     }
@@ -766,16 +778,21 @@ Error TclProcedureInterpreter::destructor_mode<Stat::BracesStart>(){
     lastProcedureCall().parameters().removeLast(); // Shall be empty after previous procedure
 
     // If first parameter is VariableSubbing, change call to VariableSubbing ,remove that parameter and activate bracesListControl
+
+    lastProcedureCall().setOutputCommand(lastProcedureCall().rawCommand());
     if(not lastProcedureCall().parameters().isEmpty()){
         if(lastProcedureCall().parameters().front().stat() == Stat::VariableSubbing){
             lastProcedureCall().parameters().removeFirst();
             lastProcedureCall().changeStat(Stat::VariableSubbing);
             tclInterpreter.listController().activateListLevelControl();
-
+            lastProcedureCall().setOutputCommand(lastProcedureCall().rawCommand());
+            lastProcedureCall().setRawCommand("${" + lastProcedureCall().rawCommand() + "}");
+        }else{
+            lastProcedureCall().setRawCommand("{" + lastProcedureCall().rawCommand() + "}");
         }
+    }else{
+        lastProcedureCall().setRawCommand("{" + lastProcedureCall().rawCommand() + "}");
     }
-    lastProcedureCall().setOutputCommand(lastProcedureCall().rawCommand());
-    lastProcedureCall().setRawCommand("{" + lastProcedureCall().rawCommand() + "}");
 
     return Error::NoError;
 }
@@ -932,7 +949,7 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::DoubleQuotes>(){
     switch(lastProcedureCall().lastParameter().stat()){
     case Stat::VariableSubbing:
     {
-        lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
+        //lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
     }
         break;
     default:
@@ -1093,13 +1110,13 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::ComplexWord>(){
     switch(lastProcedureCall().lastParameter().stat()){
     case Stat::Word:
     case Stat::BackslashSubbing:
-    {
-        lastProcedureCall().lastParameter().setOutputCommand("\"" + lastProcedureCall().lastParameter().rawCommand() + "\"");
+    {// Analysis
+        //lastProcedureCall().lastParameter().setOutputCommand("\"" + lastProcedureCall().lastParameter().rawCommand() + "\"");
     }
         break;
     case Stat::VariableSubbing:
     {
-        lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
+        //lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
     }
         break;
     default:
@@ -1129,7 +1146,12 @@ Error TclProcedureInterpreter::interpret_mode<Stat::BracesStartExprOnly>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::BracesStartExprOnly>: ";
     switch(processingStat()){
     case Stat::BackslashSubbing:
-        return throwError(ERROR_PREFIX + "Backslash subbing is forbidden in expr command");
+        if(tclInterpreter.textInterpreter().isCurrentChar()){
+            return throwError(ERROR_PREFIX + "Backslash subbing is forbidden in expr command");
+        }else{
+            // Ignore Backslash Subbing and use EndOfString
+        }
+        break;
     case Stat::Comment:
     case Stat::Word:
     case Stat::VariableSubbing:
@@ -1395,7 +1417,7 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::DoubleQuotesExprOnly>(){
     switch(lastProcedureCall().lastParameter().stat()){
     case Stat::VariableSubbing:
     {
-        lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
+        //lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
     }
         break;
     default:
@@ -1427,13 +1449,13 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::ComplexWordExprOnly>(){
     switch(lastProcedureCall().lastParameter().stat()){
     case Stat::Word:
     case Stat::BackslashSubbing:
-    {
-        lastProcedureCall().lastParameter().setOutputCommand("\"" + lastProcedureCall().lastParameter().rawCommand() + "\"");
+    { // Analysis
+        //lastProcedureCall().lastParameter().setOutputCommand("\"" + lastProcedureCall().lastParameter().rawCommand() + "\"");
     }
         break;
     case Stat::VariableSubbing:
     {
-        lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
+        //lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
     }
         break;
     default:
@@ -1497,7 +1519,7 @@ Error TclProcedureInterpreter::interpret_mode<Stat::Script>(){
             }
         }else{  // Add new Line
             if(userConfig.proceduresSettings().mode() == Settings::InterpreterMode::TestCase){
-                lastProcedureCall().lastParameter().rawCommand().append("\n");
+                lastProcedureCall().lastParameter().outputCommand().append("\n");
             }
         }
         break;
@@ -1604,70 +1626,391 @@ template<>
 Error TclProcedureInterpreter::interpret_mode<Stat::Ignore>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::Script>: ";
 
-    switch(processingStat()){
-    case Stat::Semicolon:
-    case Stat::EndOfString:
-    {
-        if(numberOfProcedureCalls() > 0){
-            switch(lastProcedureCall().stat()){
-            case Stat::CommandSubbing:
+    if(numberOfProcedureCalls() > 1){ // More then 1 cause 1 call = IgnoreMode
+        bool ignoreRemovable = numberOfProcedureCalls() == ignoreModeIndex(); // Ignore is last procedure call that means that no calls have been created in IgnoreMode
+
+        switch(lastProcedureCall().stat()){
+        case Stat::CommandSubbing:
+        {
+            switch(processingStat()){
+            //case Stat::Word:              // IGNORE            
+            //case Stat::Braces:            // Interpreted as word
+            //case Stat::Whitespace:        // Interpreted as word
+            //case Stat::Namespace:         // Interpreted as word
+            case Stat::CommandSubbingEnd:
             {
-                if(isNotCommandSubbing()){ // Command Subbing as procedure in Script or MainScript
-                    procedureCalls.removeLast();
-                    removeIgnore();
-                    // Restore
-                }else{ // Element of other call (other then script)
-                    // Ignore
+                if(isCommandSubbingCall()){ // True commandSubbing - not call of Script or MainScript
+                    // Move Ignore
+                    if(ignoreRemovable){
+                        moveIgnore();
+                    }else{
+                        removeCallInIgnoreMode();
+                    }
+                }else{
+                    // Ignore // Interpreted as word
+                }
+            }
+                break;
+            case Stat::CommandSubbingStart:
+            {
+                createCallInIgnoreMode(Stat::CommandSubbing);
+            }
+                break;
+            case Stat::DoubleQuotes:
+            {
+                createCallInIgnoreMode(Stat::DoubleQuotes);
+            }
+                break;
+            case Stat::Semicolon:
+            case Stat::EndOfString:
+            {
+                // Stop IgnoreMode
+                if(isNotCommandSubbing()){ // Not commandSubbing - call in Script or MainScript
+                    if(ignoreRemovable)
+                        removeIgnore();
+                    else
+                        removeCallInIgnoreMode();
+                }
+            }
+                break;
+            case Stat::Comment:
+            {
+                // COMMENT_IMPL - comment can exist in Scripts only
+            }
+                break;
+            case Stat::BracesStart:
+            {
+                if(tclInterpreter.listController().incrementListLevel() == Error::Error)
+                    return throwError(ERROR_PREFIX + error());
+                createCallInIgnoreMode(Stat::BracesStart);
+            }
+                break;
+            case Stat::VariableSubbing:
+            {
+                if(tclInterpreter.textInterpreter().isCurrentChar()){
+                    if(tclInterpreter.textInterpreter().currentCharForSpecialSign() == '{'){ // Braces is activated
+                        tclInterpreter.listController().deactivateListLevelControl();
+                        createCallInIgnoreMode(Stat::BracesStart);
+                    }else{
+                        // Ignore
+                    }
+                }else{ // End of string detected
+                    // Stop IgnoreMode
+                    if(isNotCommandSubbing()){ // Not commandSubbing - call in Script or MainScript
+                        if(ignoreRemovable)
+                            removeIgnore();
+                        else
+                            removeCallInIgnoreMode();
+                    }
+                }
+            }
+                break;
+            case Stat::BackslashSubbing:
+            {
+                // Increment to Ignore possible keywords - Analyzed for newLine subbing and other subbings
+                tclInterpreter.textInterpreter().incrementCurrentCharDueToSpecialSign();
+            }
+                break;
+            default:
+                break;
+            }
+        }
+            break;
+        case Stat::BracesStartExprOnly:
+        case Stat::BracesStart:
+        {
+            switch(processingStat()){
+            //case Stat::Word:              // IGNORE
+            //case Stat::CommandSubbingEnd: // Interpreted as word
+            //case Stat::CommandSubbingStart: // Interpreted as word
+            //case Stat::Whitespace:        // Interpreted as word
+            //case Stat::Namespace:         // Interpreted as word
+            //case Stat::Semicolon:         // Interpreted as word
+            //case Stat::EndOfString:       // Interpreted as word
+            //case Stat::Comment:           // Interpreted as word
+            //case Stat::VariableSubbing: // Interpreted as word
+            //case Stat::BackslashSubbing: // Interpreted as word
+            //case Stat::DoubleQuotes:
+            case Stat::Braces:
+            {
+                if(tclInterpreter.listController().decrementListLevel() == Error::Error)
+                    return throwError(ERROR_PREFIX + error());
+                if(tclInterpreter.listController().isListClosed()){ // - Control deactived or list closed - finalize
+                    tclInterpreter.listController().activateListLevelControl();
+                    if(ignoreRemovable)
+                        moveIgnore();
+                    else
+                        removeCallInIgnoreMode();
                 }
             }
                 break;
             case Stat::BracesStart:
+            {
+                if(tclInterpreter.listController().incrementListLevel() == Error::Error)
+                    return throwError(ERROR_PREFIX + error());
             }
+                break;
+            default:
+                break;
+            }
+        }
+            break;
+        case Stat::DoubleQuotes:
+        case Stat::DoubleQuotesExprOnly:
+        {
+            switch(processingStat()){
+            //case Stat::Word:              // IGNORE
+            //case Stat::CommandSubbingEnd: // Interpreted as word
+            //case Stat::Whitespace:        // Interpreted as word
+            //case Stat::Namespace:         // Interpreted as word
+            //case Stat::Semicolon:         // Interpreted as word
+            //case Stat::EndOfString:       // Interpreted as word
+            //case Stat::Comment:           // Interpreted as word
+            //case Stat::Braces:
+            //case Stat::BracesStart:
+            case Stat::CommandSubbingStart:
+            {
+                createCallInIgnoreMode(Stat::CommandSubbing);
+            }
+                break;
+            case Stat::DoubleQuotes:
+            {
+                if(ignoreRemovable)
+                    moveIgnore();
+                else
+                    removeCallInIgnoreMode();
+            }
+                break;
+            case Stat::VariableSubbing:
+            {
+                if(tclInterpreter.textInterpreter().isCurrentChar()){
+                    if(tclInterpreter.textInterpreter().currentCharForSpecialSign() == '{'){ // Braces is activated
+                        tclInterpreter.listController().deactivateListLevelControl();
+                        createCallInIgnoreMode(Stat::BracesStart);
+                    }else{
+                        // Ignore
+                    }
+                }else{ // End of string detected
+                }
+            }
+                break;
+            case Stat::BackslashSubbing:
+            {
+                // Increment to Ignore possible keywords - Analyzed for newLine subbing and other subbings
+                tclInterpreter.textInterpreter().incrementCurrentCharDueToSpecialSign();
+            }
+                break;
+            default:
+                break;
+            }
+        }
+            break;
+        case Stat::ComplexWord:
+        case Stat::ComplexWordExprOnly:
+        {
+            switch(processingStat()){
+            //case Stat::Word:              // IGNORE
+            //case Stat::CommandSubbingEnd: // Interpreted as word
+            //case Stat::Whitespace:        // Interpreted as word
+            //case Stat::Namespace:         // Interpreted as word
+            //case Stat::Comment:           // Interpreted as word
+            //case Stat::BracesStart:       // Interpreted as word
+            //case Stat::DoubleQuotes:
+            //case Stat::Braces:
+            //case Stat::BracesStart:
+            case  Stat::CommandSubbingStart:
+            {
+                createCallInIgnoreMode(Stat::CommandSubbing);
+            }
+                break;
+            case Stat::Semicolon:
+            case Stat::EndOfString:
+            {
+                if(ignoreRemovable){
+                    moveIgnore();
+                }else{
+                    removeCallInIgnoreMode(); // Probably impossible cause i do not create ComplexWord in IgnoreMode
+                }
+                if(interpret() == Error::Error)
+                    return throwError(ERROR_PREFIX + error());
+            }
+                break;
+            case Stat::VariableSubbing:
+            {
+                if(tclInterpreter.textInterpreter().isCurrentChar()){
+                    if(tclInterpreter.textInterpreter().currentCharForSpecialSign() == '{'){ // Braces is activated
+                        tclInterpreter.listController().deactivateListLevelControl();
+                        createCallInIgnoreMode(Stat::BracesStart);
+                    }else{
+                        // Ignore
+                    }
+                }else{ // End of string detected
+                }
+            }
+                break;
+            case Stat::BackslashSubbing:
+            {
+                // Increment to Ignore possible keywords - Analyzed for newLine subbing and other subbings
+                tclInterpreter.textInterpreter().incrementCurrentCharDueToSpecialSign();
+            }
+                break;
+            default:
+                break;
+            }
+        }
+            break;
+        case Stat::Script:
+        {
+            switch(processingStat()){
+            //case Stat::Word:              // IGNORE
+            //case Stat::Whitespace:        // Interpreted as word
+            //case Stat::Namespace:         // Interpreted as word
+            //case Stat::CommandSubbingEnd:
+            case Stat::Braces:
+            {
+                if(ignoreRemovable){
+                    createCallInIgnoreMode(Stat::CommandSubbing);// To have somethink to remove and do not remove script itself
+                    removeIgnore();
+                    if(interpret() == Error::Error) // In this case, call Interpret to "safely" finalize script
+                        return throwError(ERROR_PREFIX + error());
+                }else{
+                    removeCallInIgnoreMode(); // Probably impossible cause I dont create Script in IgnoreMode
+                }
+            }
+                break;
+            case Stat::CommandSubbingStart:
+            {
+                createCallInIgnoreMode(Stat::CommandSubbing);
+            }
+                break;
+            case Stat::DoubleQuotes:
+            {
+                createCallInIgnoreMode(Stat::DoubleQuotes);
+            }
+                break;
+            case Stat::Semicolon:
+            case Stat::EndOfString:
+            {
+                if(ignoreRemovable){
+                    createCallInIgnoreMode(Stat::CommandSubbing);// To have somethink to remove and do not remove script itself
+                    removeIgnore();
+                    if(interpret() == Error::Error) // In this case, call Interpret to "safely" finalize script
+                        return throwError(ERROR_PREFIX + error());
+                }else{
+                    removeCallInIgnoreMode(); // Probably impossible cause I dont create Script in IgnoreMode
+                }
+            }
+                break;
+            case Stat::Comment:
+            {
+                // COMMENT_IMPL - comment can exist in Scripts only
+            }
+                break;
+            case Stat::BracesStart:
+            {
+                if(tclInterpreter.listController().incrementListLevel() == Error::Error)
+                    return throwError(ERROR_PREFIX + error());
+                createCallInIgnoreMode(Stat::BracesStart);
+            }
+                break;
+            case Stat::VariableSubbing:
+            {
+                if(tclInterpreter.textInterpreter().isCurrentChar()){
+                    if(tclInterpreter.textInterpreter().currentCharForSpecialSign() == '{'){ // Braces is activated
+                        tclInterpreter.listController().deactivateListLevelControl();
+                        createCallInIgnoreMode(Stat::BracesStart);
+                    }else{
+                        // Ignore
+                    }
+                }else{ // End of string detected
+                    // Stop IgnoreMode
+                    if(ignoreRemovable){
+                        createCallInIgnoreMode(Stat::CommandSubbing);// To have somethink to remove and do not remove script itself
+                        removeIgnore();
+                        if(interpret() == Error::Error) // In this case, call Interpret to "safely" finalize script
+                            return throwError(ERROR_PREFIX + error());
+                    }else{
+                        removeCallInIgnoreMode(); // Probably impossible cause I dont create Script in IgnoreMode
+                    }
+                }
+            }
+                break;
+            case Stat::BackslashSubbing:
+            {
+                // Increment to Ignore possible keywords - Analyzed for newLine subbing and other subbings
+                tclInterpreter.textInterpreter().incrementCurrentCharDueToSpecialSign();
+            }
+                break;
+            default:
+                break;
+            }
+        }
+            break;
+        }
 
-        }else{
+    }else{ // In Ignore mode of MainScript
+        switch(processingStat()){
+        //case Stat::Word:              // IGNORE
+        //case Stat::CommandSubbingEnd: // Interpreted as word
+        //case Stat::Braces:            // Interpreted as word
+        //case Stat::Whitespace:        // Interpreted as word
+        //case Stat::Namespace:         // Interpreted as word
+        case Stat::CommandSubbingStart:
+        {
+            createCallInIgnoreMode(Stat::CommandSubbing);
+        }
+            break;
+        case Stat::Semicolon:
+        case Stat::EndOfString:
+        {
+            // Stop IgnoreMode
             removeIgnore();
         }
+            break;
+        case Stat::Comment:
+        {
+            // COMMENT_IMPL
+        }
+            break;
+        case Stat::DoubleQuotes:
+        {
+            createCallInIgnoreMode(Stat::DoubleQuotes);
+        }
+            break;
+        case Stat::BracesStart:
+        {
+            if(tclInterpreter.listController().incrementListLevel() == Error::Error)
+                return throwError(ERROR_PREFIX + error());
+            createCallInIgnoreMode(Stat::BracesStart);
+        }
+            break;
+        case Stat::VariableSubbing:
+        {
+            if(tclInterpreter.textInterpreter().isCurrentChar()){
+                if(tclInterpreter.textInterpreter().currentCharForSpecialSign() == '{'){ // Braces is activated
+                    tclInterpreter.listController().deactivateListLevelControl();
+                    createCallInIgnoreMode(Stat::BracesStart);
+                }else{
+                    // Just Ignore
+                }
+            }else{ // End of string detected
+                // Stop IgnoreMode
+                removeIgnore();
+            }
+            tclInterpreter.textInterpreter().incrementCurrentCharDueToSpecialSign();
+        }
+            break;
+        case Stat::BackslashSubbing:
+        {
+            // Increment to Ignore possible keywords - Analyzed for newLine subbing and other subbings
+            tclInterpreter.textInterpreter().incrementCurrentCharDueToSpecialSign();
+        }
+            break;
+        default:
+            break;
+        }
+        // Ignore - wait for semicolon or end of line
     }
-        break;
-    case Stat::CommandSubbingStart:
-    {
-
-    }
-        break;
-    case Stat::CommandSubbingEnd:
-    {
-
-    }
-        break;
-    case Stat::BackslashSubbing:
-    {
-
-    }
-        break;
-    case Stat::Braces:
-    {
-
-    }
-        break;
-    case Stat::BracesStart:
-    {
-
-    }
-        break;
-    case Stat::Comment:
-    {
-
-    }
-        break;
-    case Stat::DoubleQuotes:
-    {
-
-    }
-        break;
-    default:
-        break;
-    }
-
     return Error::NoError;
 }
 
@@ -2067,7 +2410,7 @@ Error Controller::createCall(Stat stat, Call::Parameter&& parameter){
         return throwError("Wrong stat for CreateCall procedure. Stat: " + QString::number(TCLInterpreter::cast_stat(stat)));
 
     if(not parameter.isEmpty()){
-        if(addNewParameter() == Error::Error)
+        if(lastProcedureCall().newParameter() == Error::Error)
             return Error::Error;
     }
 
@@ -2101,6 +2444,16 @@ Error Controller::createCall(Stat stat, Call::Parameter&& parameter){
     return Error::NoError;
 }
 
+
+void Controller::createCallInIgnoreMode(Stat stat){
+    procedureCalls.append(Call(stat));
+}
+
+void Controller::removeCallInIgnoreMode(){
+    procedureCalls.removeLast();
+}
+
+
 Error Controller::createCallAndMoveLastParameterToOne(Stat stat){
     if(procedureCalls.last().isLastParameterEmpty())
         return throwError("CreateAndMove procedure: No parameters or empty parameter");
@@ -2132,6 +2485,7 @@ Error Controller::processVariableSubbing(){
         if(procedureCalls.last().isLastParameterEmpty()){ // Variable Subbing Empty
             return throwError("Impossible case. Empty Variable Subbing");
         }else{
+            lastProcedureCall().lastParameter().rawCommand().prepend("$");
             // Otherwise New parameter required
             if(processingStat() == Stat::Word){
                 tclInterpreter.saveKeyword(str);
@@ -2399,6 +2753,7 @@ Error Controller::processBackslashSubbing(){
     return Error::NoError;
 }
 
+
 Stat Controller::processingStat()const{return tclInterpreter.processingStat();}
 
 Error Controller::addNewParameter(){    // To create empty parameter
@@ -2623,7 +2978,11 @@ Error TclProcedureInterpreter::dynamicRulesCheck(){
     return Error::NoError;
 }
 
-Error TclProcedureInterpreter::processCallsForError(){   
+Error TclProcedureInterpreter::processCallsForError(){
+    if(isIgnoreModeActive()){
+        return Error::Error;
+    }
+    activateIgnoreMode();
     updateCurrentCallProcedures(Stat::Ignore);
     return Error::NoError;
 }
@@ -2652,6 +3011,7 @@ Error Controller::prepareSnprintf(){
     const QString snprintfVarName = tclInterpreter.snprintfController.getNextSnprintfVarName();
     // Prepare preexpression
     bool snprintfRequired = false;
+    bool procedureNameProcessing = preLastProcedureCall().definition() == nullptr;
     QString format;
     QString arguments;
     QString preexpresion = QStringLiteral("snprintf(") + snprintfVarName + QStringLiteral(", elcount(") + snprintfVarName + QStringLiteral("), \"");
@@ -2659,19 +3019,34 @@ Error Controller::prepareSnprintf(){
     for(Call::Parameters::Iterator parameter = parameters.begin();
         parameter < parameters.end(); parameter++)
     {
-        switch(parameter->stat()){
-        case Stat::Word:
-        case Stat::BackslashSubbing:
-            format += parameter->rawCommand();
-            break;
-        case Stat::VariableSubbing:
-        case Stat::CommandSubbing:
-            format += "%s";
-            arguments += ", " + parameter->outputCommand();
-            snprintfRequired = true;
-            break;
-        default:
-            return throwError(ERROR_PREFIX + "Unknown Parameter Stat");
+        if(procedureNameProcessing){
+            switch(parameter->stat()){
+            case Stat::Word:
+            case Stat::BackslashSubbing:
+                format += parameter->rawCommand();
+                break;
+            case Stat::VariableSubbing:
+                return throwError(ERROR_PREFIX + "VariableSubbing in procedure name");
+            case Stat::CommandSubbing:
+                return throwError(ERROR_PREFIX + "CommandSubbing in procedure name");
+            default:
+                return throwError(ERROR_PREFIX + "Unknown Parameter Stat");
+            }
+        }else{
+            switch(parameter->stat()){
+            case Stat::Word:
+            case Stat::BackslashSubbing:
+                format += parameter->rawCommand();
+                break;
+            case Stat::VariableSubbing:
+            case Stat::CommandSubbing:
+                format += "%s";
+                arguments += ", " + parameter->outputCommand();
+                snprintfRequired = true;
+                break;
+            default:
+                return throwError(ERROR_PREFIX + "Unknown Parameter Stat");
+            }
         }
     }
 

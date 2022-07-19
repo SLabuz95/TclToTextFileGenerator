@@ -73,7 +73,7 @@ void FunctionDefinitions::addDefinitionNotSatisfiedRules(Call& procedureCall)
 }
 
 void FunctionDefinitions::writeCaplFunctionDefinitions(QFile &file){
-    /*if(not definitions.isEmpty()) {
+    if(not definitionsOnNoRules.isEmpty()) {
         const QString newFunction = "// _NEW_FUNC_\n";
         const QString startOfExamples = "// EXAMPLES\n";
         const QString endOfExamples = "\n// END OF EXAMPLES\n";
@@ -82,8 +82,8 @@ void FunctionDefinitions::writeCaplFunctionDefinitions(QFile &file){
                 return;
             file.write("includes{\n}\n\nvariables{\n}\n\n");
         }
-        for(Definitions::Iterator caplDefinition = definitions.begin();
-            caplDefinition != definitions.end();
+        for(Definitions::Iterator caplDefinition = definitionsOnNoRules.begin();
+            caplDefinition != definitionsOnNoRules.end();
             caplDefinition++)
         {
             QString name = caplDefinition.key();
@@ -104,10 +104,26 @@ void FunctionDefinitions::writeCaplFunctionDefinitions(QFile &file){
 
                 // Examples
                 file.write(startOfExamples.toUtf8());
-                file.write(caplDefinitionInfo->values().join("\n").toUtf8());
+                /*using Definitions = FunctionDefinitions::DefinitionInfo;
+                using ParametersNumb = Definitions::mapped_type;
+                for(ParametersNumb::Iterator parametersNumb = defInfo.value().begin();
+                    parametersNumb != defInfo.value().end();
+                    parametersNumb++)
+                {
+                    QTreeWidgetItem* parametersItem = new QTreeWidgetItem(this);
+                    parametersItem->setText(0, "Parametry: " + toString(parametersNumb.key()));
+                    using Example = ParametersNumb::mapped_type::Iterator;
+                    for(Example example = parametersNumb.value().begin();
+                        example != parametersNumb.value().end();
+                        example++)
+                    {
+                        parametersItem->addChild(new QTreeWidgetItem({*example}));
+                    }
+                }*/
+                //file.write(caplDefinitionInfo->values().join("\n").toUtf8());
                 file.write(endOfExamples.toUtf8());
             }
         }
         file.close();
-    }*/
+    }
 }

@@ -10,6 +10,11 @@
 
 // Move to other file ControllerConfigInfo
 class ControllerConfigInfo{
+    // All works based on Local COnfig Changes
+    // New, edit , removed all in Local changes
+    // But if possible procedures from saved asosiated config can be used to restore data which has been permanently removed
+    // When Config is loaded, all procedures shall be loaded to local changes
+    // Exceptions are simple data like Write only or attibutes. Panels to simple data refer to saved config data. New and removed are from local changes.
 public:
     enum RulesCategories : qsizetype{   // To control rules list in
         OnEndOfCall = -2,

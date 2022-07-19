@@ -120,8 +120,10 @@ namespace Tcl::Interpreter::Command{
             }
             inline Stat stat()const{return stat_;}
             inline void setStat(Stat stat){stat_ = stat;}
-            inline OutputCommand outputCommand()const{return outputCommand_;}
-            inline OutputCommand rawCommand()const{return rawCommand_;}
+            inline OutputCommand& outputCommand(){return outputCommand_;}
+            inline const OutputCommand& outputCommand()const{return outputCommand_;}
+            inline OutputCommand& rawCommand(){return rawCommand_;}
+            inline const OutputCommand& rawCommand()const{return rawCommand_;}
             inline void setOutputCommand(OutputCommand outputCommand){outputCommand_ = outputCommand;}
             inline void setRawCommand(OutputCommand rawCommmand){rawCommand_ = rawCommmand;}
 
@@ -173,6 +175,7 @@ namespace Tcl::Interpreter::Command{
 
         public:
 
+            Call(Stat);
             Call(Stat, Parameter&, ProcedureDefinitionIterator = nullptr, ParameterIndex = -1);
             //Call& operator=(Call&& call){_name = call._name; _arguments = call._arguments;}
 

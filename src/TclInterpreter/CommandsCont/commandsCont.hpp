@@ -89,6 +89,7 @@ namespace Tcl::Interpreter::Command{
         //CommandCallSpecialInterpret commandCallSpecialInterpret = &Controller::emptyCommandCallSpecialInterpret;
 
         Calls::size_type writeOnlyProcedureActiveIndex = -1;
+        Calls::size_type ignoreModeActiveIndex = -1;
 
         //Command command;
 
@@ -145,6 +146,8 @@ namespace Tcl::Interpreter::Command{
         Error performDynamicRulesCheck();
         //Error createCall(Stat, Call::Parameter&&);
         Error createCall(Stat, Call::Parameter&& = Call::Parameter());
+        void createCallInIgnoreMode(Stat);
+        void removeCallInIgnoreMode();
         Error addNewParameter();
         Error addNewParameter(QString);
         Error addNewParameter(Call& call);
@@ -162,7 +165,20 @@ namespace Tcl::Interpreter::Command{
         inline void deactivateBackslashSubbing(){backslashSubbingActive = false;}
 
         Error finalizeCall();
-        void removeIgnore(){updateCurrentCallProcedures();}
+        Calls::size_type ignoreModeIndex()const{
+            return ignoreModeActiveIndex;
+        }
+        void moveIgnore(){
+            ignoreModeActiveIndex--;
+            removeCallInIgnoreMode();
+        }
+
+        void removeIgnore(){
+            deactivateIgnoreMode();
+            if(not procedureCalls.isEmpty())
+                removeCallInIgnoreMode();
+            updateCurrentCallProcedures();
+        }
 
         Controller(TCLInterpreter& tclInterpreter, UserInputConfig& userConfig);
 
@@ -197,6 +213,7 @@ namespace Tcl::Interpreter::Command{
             currentCommandCallFunctions = callConfig.controlFunctionsForStat(stat);
         }
 
+
         // WriteOnlyProcedures
         void tryToActivateWriteOnlyProcedure(Call::Name& name);
         //inline bool isWriteOnlyProcedureActive()const{return writeOnlyProcedureActiveIndex != -1;}
@@ -208,7 +225,16 @@ namespace Tcl::Interpreter::Command{
         }
         // ---------------------------
         void activateWriteOnlyProcedureMode();
-        void deactivateWriteOnlyProcedureMode();
+        void deactivateWriteOnlyProcedureMode();        
+        inline void activateIgnoreMode(){
+            ignoreModeActiveIndex = numberOfProcedureCalls();
+        }
+        inline void deactivateIgnoreMode(){
+            ignoreModeActiveIndex = -1;
+        }
+        inline bool isIgnoreModeActive(){
+            return ignoreModeActiveIndex != -1;
+        }
 
         template<Settings::InterpreterMode>
         Error callDefinition_mode(Call::Name name);
@@ -259,6 +285,7 @@ namespace Tcl::Interpreter::Command{
 
         inline Calls::size_type numberOfProcedureCalls()const{return procedureCalls.size();}
         inline Call& lastProcedureCall(){return procedureCalls.last();}
+        inline Call& preLastProcedureCall(){return *(procedureCalls.rbegin() + 1);}
 
         // Action Functions
         QStringList::size_type createAndAssignString(QString&, QStringList);

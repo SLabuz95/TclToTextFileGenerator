@@ -36,6 +36,7 @@ namespace Tcl::Interpreter::Command{
                 static_cast<std::underlying_type_t<Stat>>(stat) - static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing);
         }
 
+
         constexpr static std::underlying_type_t<Stat> numbOfSpecialCalls(){
             return static_cast<std::underlying_type_t<Stat>>(Stat::Size) - static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing);
         }
@@ -99,7 +100,7 @@ namespace Tcl::Interpreter::Command{
         CallConfig();
         CommandCallControlFunctions const* controlFunctionsForStat(const Stat stat){
             return &commandCallSpecialFunctions[Settings::specialCallStat2number(stat)];
-        }
+        }        
         static const QString& parameterSeparators(const Stat stat){
             return commandCallParameterSeparators[Settings::specialCallStat2number(stat)];
         }

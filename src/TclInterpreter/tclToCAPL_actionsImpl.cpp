@@ -71,8 +71,13 @@ TCLCommandsController::executeConditionalAction
             throwError(ERROR_PREFIX + "Stat not in range. Current index: " + QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Size)));
             return ConditionResult::Satisfied;
         }
-       if(callReplacerController.data().stat() == stat)
-            return ConditionResult::Satisfied;
+        if(callReplacerController.isActive()){ // OPTIMIZE
+            if(callReplacerController.data().stat() == stat)
+                return ConditionResult::Satisfied;
+        }else{
+            if(lastProcedureCall().lastParameter().stat() == stat)
+                return ConditionResult::Satisfied;
+        }
     }
     return ConditionResult::Unsatisfied;
 }
