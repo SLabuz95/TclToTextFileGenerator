@@ -48,6 +48,7 @@ namespace Tcl::Interpreter::Command{
         static const FinalizeCallInterModeFctPtr finalizeCallInterModeCalls[];
 
     public:
+        inline bool isEmpty()const{return writeOnlyProcedures_.empty();}
         static inline CallDefinitionInterModeFctPtr newCallAt(const Settings::InterpreterMode mode){
             return callDefinitionInterModeCalls[mode2number(mode)];
         }
@@ -68,8 +69,9 @@ namespace Tcl::Interpreter::Command{
         // TEMP _Debug_Only
         inline WriteOnlyProcedures& writeOnlyProcedures(){return writeOnlyProcedures_;}
         inline void toXmlContent(QXmlStreamWriter& xmlWriter){
-            // CONFIG_TAG
+            xmlWriter.writeStartElement("settings");
             xmlWriter.writeTextElement("writeOnlyProcedures", writeOnlyProcedures().join("\n"));
+            xmlWriter.writeEndElement();
         }
     };
 

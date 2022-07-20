@@ -30,7 +30,7 @@ namespace Tcl::Interpreter::Command{
         // Concept Definition ------------------------------------------------------------------
 
     public:
-        inline static UserInteractionStatus fromStr(QString& str){return static_cast<UserInteractionStatus>(userInteractionMap.indexOf(str.toLower()));}
+        inline static UserInteractionStatus fromStr(QString& str){return static_cast<UserInteractionStatus>(userInteractionMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
         inline static QString toStr(UserInteractionStatus userInteraction){
             return userInteractionMap.at(userInteraction); // Empty String == Not found
         }

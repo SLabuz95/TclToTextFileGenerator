@@ -2,51 +2,43 @@
 #define CONTROLLERCONFIGMANAGER_HPP
 
 #include<QList>
-#include"controllerconfiginfo.hpp"
+#include<QDateTime>
 
-class CorruptedConfigInfoEvent;
+class ControllerConfigInfo;
 class ControllerConfigManager{
     // Ver 2 VVVVVVVVVVVVVVVVVVV
-
-
-    // Ver 1 VVVVVVVVVVVVVVVVVVV
-    /*
+    QString lastErrorMsg_;
 public:
-    using EventHandlerPtr = QObject*;
-    using EventHandlerPtrs = QList<EventHandlerPtr>;
-    using Info = ControllerConfigInfo;
-    using InfoRef = Info::SelfRef;
-    using InfoPtr = Info::SelfPtr;
-    using InfosBySubsribers = QMap<InfoPtr, EventHandlerPtrs>;
-    using SubsribersByInfos = QMap<EventHandlerPtr, InfoPtr>;
-    using ErrorMsg = QString;
-    using CorruptedInfoEvent = CorruptedConfigInfoEvent;
+    class ConfigFile{
+    public:
+        using ConfigPath = QString;
+        using RegisterFileModificationTime = QDateTime;
 
-protected:
-    InfosBySubsribers infosBySubsribers;
-    SubsribersByInfos temporaryConfigInfos;
+    protected:
+        ConfigPath configPath_;
+        RegisterFileModificationTime modificationTime_;
 
-    ErrorMsg _lastErrorMsg;
+    public:
+        ConfigFile(){}
+        ConfigFile(ConfigPath path, RegisterFileModificationTime time)
+            : configPath_(path)
+        {
 
-    void processCorupptedInfo(InfosBySubsribers::key_value_iterator);
-    bool readConfig(QFileInfo&, Info::ControllerConfigRef);
+        };
 
-    InfoPtr registerConfig(EventHandlerPtr, Info::ConfigPath = QString());
-    InfoPtr reregisterConfig(InfoPtr, Info::ConfigPath);
-    bool unregisterConfig(InfoPtr, EventHandlerPtr);
+        bool isConfigured()const{
+            return not configPath_.isEmpty();
+        }
+        const QString& configPath()const{return configPath_;}
+        void changeConfigPath(const QString& newPath){configPath_ = newPath;}
+    };
+
 
 public:
-    InfoPtr loadConfig(EventHandlerPtr, Info::ConfigPath = QString());
-    bool unloadConfig(InfoPtr, EventHandlerPtr);
-    InfoPtr changeConfig(InfoPtr, Info::ConfigPath);
-
-    bool saveConfigOnly(InfoPtr);
-    InfoPtr saveConfigAs(InfoPtr, Info::ConfigPath&);
-    InfoPtr saveConfig(InfoPtr, Info::ConfigPath);
-    inline ErrorMsg lastErrorMessage(){return _lastErrorMsg;}
-    inline bool isInfoExist(InfoPtr info){return infosBySubsribers.keys().contains(info);}
-    //static QString readRawConfig(QFileInfo, Info::ControllerConfigRef);
-    */
+    bool loadConfig(ControllerConfigInfo&);
+    bool saveConfig(ControllerConfigInfo&);
+    bool saveConfigAs(ControllerConfigInfo&, QString newPath);
+    const QString& errorMsg()const{return lastErrorMsg_;}
 
 };
 

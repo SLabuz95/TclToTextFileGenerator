@@ -58,7 +58,7 @@ public:
     inline ControlFlag controlFlag()const{return controlFlag_;}
 
     virtual void toRule(UserProcedureRule&) = 0;
-    //virtual void toXmlContent(QXmlStreamWriter& xmlWriter);
+    virtual void toXmlContent(QXmlStreamWriter& xmlWriter) = 0;
 };
 
 using RulesProducts = ProductsConfiguration<RulesTypes>;

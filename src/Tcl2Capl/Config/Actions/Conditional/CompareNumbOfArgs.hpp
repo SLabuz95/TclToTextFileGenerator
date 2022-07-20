@@ -40,6 +40,10 @@ public:
         using Parameters = UserProcedureRule::ConditionalActions::Type::Parameters;
         conditional = Action(type(), numbOfArgs());
     }
+
+    void toXmlContent(QXmlStreamWriter& xmlWriter)override{
+
+    }
 };
 
 

@@ -8,6 +8,7 @@
 #include<QSplitterHandle>
 #include<QPainter>
 #include<QEnterEvent>
+#include<QMessageBox>
 
 using namespace Panels::Configuration;
 
@@ -43,10 +44,6 @@ Panel::Panel(App& app)
     }*/
 }
 
-bool Panel::isDefaultConfig(){
-   //Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "Panel::isDefaultConfig", "Internal error: ConfingInfo is not registered");
-   //return configInfoPtr->isDefaultConfig();
-}
 
 Panel::~Panel(){
     /*if(configInfoPtr){
@@ -211,89 +208,69 @@ void Panel::clearIndexes(){ // DefaultProcedure
 
 bool Panel::newConfig(){
     // Check if configInfo still exists
-    /*Q_ASSERT_X(app().configManager().isInfoExist(configInfoPtr), "Panel::newConfig", "Internal error: ConfingInfo is not registered");
 
-    bool errorOccurred = false;
+    // Ask to save to file
+    if(saveCurrentConfig() == false)
+        return false;   // Cancelled or failed
 
-    {   // Ask to save to file
-        bool saveToFile = false;
+    // Clear config
 
-        if(configInfoPtr->isTemporaryConfiguration()){  // Temporary Config
-            // Ask to save to file
-            if(anyChanges() or //  On Changes
-                 not configInfoPtr->isDefaultConfig()){   // On not default configuration without changes
-                saveToFile = true;
-            }
-        }else{  // File Config
-            if(anyChanges()) //  On Changes
-                saveToFile = true;
-        }
-
-        // If saveToFile is satisfied (true)
-        if(saveToFile == true){
-            // Dialog with save to file question
-            // If yes, call save to file from fileManager
-
-        }
-    }
-
-    if(not errorOccurred){ // Change config with new temporary config
-        ConfigInfoPtr newConfigInfo = nullptr;
-        newConfigInfo = app().configManager().changeConfig(configInfoPtr, QString());
-        if(newConfigInfo != nullptr){   // Normal case (no errors)
-            // Load Config and Reload Gui
-            loadConfigData(newConfigInfo, LoadConfigSettings::LoadGui);
-        }else{
-            errorOccurred = true;
-        }
-    }
-
-    return not errorOccurred;*/
-}
-/*
-void Panel::loadConfigData(ConfigInfoPtr configInfo, LoadConfigSettings settings){
-    Q_ASSERT_X(configInfo != nullptr, "Panel::loadConfig", "ConfigInfo is null");
-    if(configInfo != configInfoPtr){    // If
-        configInfoPtr = configInfo;
-        configViewPanel.loadConfigData(settings);
-        if(settings == LoadConfigSettings::LoadGui){
-            // Load Gui
-            reloadGuiForUpdatedConfig();
-        }
-    }
-}
-*/
-void Panel::reloadGui(){
-
+    return true;
 }
 
 bool Panel::saveConfig(QString path){
-    bool errorOccurred = false;
 
-    /*if(app().configManager().saveConfig(configInfoPtr, path) == nullptr){    // Error
-        errorOccurred = true;
-    }*/
+    // Save Config
 
-    return not errorOccurred;
+
+    return true;
 }
 
 
 bool Panel::readConfig(QString path)
 {
-    bool errorOccurred = false;
+    // Ask to save to file
+    if(saveCurrentConfig() == false)
+        return false;   // Cancelled or failed
 
-    // If file exists, reregister
-    /*ConfigInfoPtr newConfigInfo = nullptr;
-    newConfigInfo = app().configManager().changeConfig(configInfoPtr, path);
-    if(newConfigInfo != nullptr){   // Register Success
-        loadConfigData(newConfigInfo, LoadConfigSettings::LoadGui);
-    }else{
-        errorOccurred = true;
-    }*/
+    // Load config
 
-    return not errorOccurred;
+    // Reload Gui
+
+    return true;
 }
 
-void Panel::clearProcedureRulesPanel(){
-//    splitter.replaceWidget(1, &noSelectedProcedurePanel);
+bool Panel::saveCurrentConfig(){ // False to cancel
+    // If saveToFile is satisfied (true)
+    if(not config().isEmpty()){
+        // Dialog with save to file question
+        // If yes, call save to file from fileManager
+        QMessageBox saveToFileQuestionMsgBox;
+        QPushButton* saveButton = nullptr;
+        QPushButton* saveAsButton = nullptr;
+        saveButton = saveToFileQuestionMsgBox.addButton(QString("Zapisz"), QMessageBox::ButtonRole::AcceptRole);
+        if(config().isLocalConfig()){
+            saveToFileQuestionMsgBox.addButton(QString("Anuluj"), QMessageBox::ButtonRole::DestructiveRole);
+            saveToFileQuestionMsgBox.exec();
+            if(saveToFileQuestionMsgBox.clickedButton() == saveButton){
+                fileConfigPanel.saveButtonPressed();
+            }else{ // Cancelled
+                return false;
+            }
+        }else{
+            saveAsButton = saveToFileQuestionMsgBox.addButton(QString("Zapisz jako"), QMessageBox::ButtonRole::AcceptRole);
+            saveToFileQuestionMsgBox.addButton(QString("Anuluj"), QMessageBox::ButtonRole::DestructiveRole);
+            saveToFileQuestionMsgBox.exec();
+            if(saveToFileQuestionMsgBox.clickedButton() == saveButton){
+                fileConfigPanel.saveButtonPressed();
+            }else{
+                if(saveToFileQuestionMsgBox.clickedButton() == saveAsButton){
+                    fileConfigPanel.saveAsButtonPressed(); // Call SaveAs function from FilePanel
+                }else{ // Cancelled
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }

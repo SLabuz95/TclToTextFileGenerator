@@ -34,7 +34,7 @@ class ExecutablesProductDefinition::ImplementationData::Methods{
 template <>
 class ExecutablesProductDefinition::InterfaceData::Methods{
 public:
-    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){}
+    virtual void toXmlContent(QXmlStreamWriter& xmlWriter) = 0;
     virtual void toAction(UserProcedureRule::ExecutableActions::Type&) = 0;
     //inline virtual RawFormatType rawFormatType() const = 0;
 };

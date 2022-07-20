@@ -40,7 +40,9 @@ public:
             Format::addFormatRule(parameters, Format::Rule::SEPARATOR, separator_);
         Format::addFormatRule(parameters, Format::Rule::ARGS_AFTER_INDEX, QString::number(index()));
     }
-    //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
+    void toXmlContent(QXmlStreamWriter& xmlWriter) override{
+
+    }
    // inline RawFormatType rawFormatType()const override final{return RawFormatType::ArgumentsFromItem;}
 
 };

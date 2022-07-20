@@ -45,7 +45,7 @@ class FormatParametersProductDefinition::ImplementationData::Methods{
 template <>
 class FormatParametersProductDefinition::InterfaceData::Methods{
 public:
-    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){}
+    virtual void toXmlContent(QXmlStreamWriter& xmlWriter) = 0;
     virtual void toActionParameters(QStringList& parameters) = 0;
     //inline virtual RawFormatType rawFormatType() const = 0;
 };

@@ -36,7 +36,9 @@ public:
             parameters << text();
         }
     }
-    //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
+    void toXmlContent(QXmlStreamWriter& xmlWriter) override{
+
+    }
    // inline RawFormatType rawFormatType()const override final{return RawFormatType::ArgumentsFromItem;}
 
 };

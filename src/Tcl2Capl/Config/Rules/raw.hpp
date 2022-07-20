@@ -55,6 +55,22 @@ public:
         }
         rule = UserProcedureRule(conditionals_, executables_, controlFlag());
     }
+
+    void toXmlContent(QXmlStreamWriter& xmlWriter)override{
+        xmlWriter.writeStartElement("rawRule");
+        xmlWriter.writeAttribute("controlFlag", UserProcedureRule::toStr(controlFlag()));
+        using Conditionals = UserProcedureRule::ConditionalActions;
+        using Executables = UserProcedureRule::ExecutableActions;
+        ConditionalActions::Iterator condition = conditions().begin();
+        ExecutableActions::Iterator executable = executables().begin();
+        for( ; condition < conditions().end(); condition++){
+            (*condition)->toXmlContent(xmlWriter);
+        }
+        for( ; executable < executables().end(); executable++){
+            (*executable)->toXmlContent(xmlWriter);
+        }
+        xmlWriter.writeEndElement();
+    }
 /*
     template<ConditionalsFactory::ProductTypeEnum productType, class ...Args>
     ConditionalsFactory::Product<productType>& addCondition(Args ...arg){

@@ -81,54 +81,54 @@ KeywordsMap KeywordsController::keywordsMap ={
 //TODO: Dodać ostrzeżenia o braku EndOfCall z RulesForArgument i rulesForUnspeicifiedArgument
  const QList<QString> TclProcedureInterpreter::userInteractionMap
 {
-    QStringLiteral("NotRequired").toLower(),
-    QStringLiteral("Required").toLower()
+    QStringLiteral("NotRequired"),
+    QStringLiteral("Required"),
 };
 
  const QList<QString> Rule::controlMap
 {
-    QStringLiteral("BreakRuleCheck").toLower(),
-    QStringLiteral("NoBreakRuleCheck").toLower(),
-    //{QStringLiteral("BreakRuleCheckDontExecOnEndActions").toLower(), RuleControlFlag::BreakRuleCheckDontExecOnEndActions}
+    QStringLiteral("BreakRuleCheck"),
+    QStringLiteral("NoBreakRuleCheck"),
+    //{QStringLiteral("BreakRuleCheckDontExecOnEndActions"), RuleControlFlag::BreakRuleCheckDontExecOnEndActions}
 };
 
 const QList<QString> Action::conditionalMap
 {
-    QStringLiteral("CompareNumbOfArguments").toLower(),
-    QStringLiteral("IsLastSavedStat").toLower(),
-    QStringLiteral("Compare").toLower()
+    QStringLiteral("CompareNumbOfArguments"),
+    QStringLiteral("IsLastSavedStat"),
+    QStringLiteral("Compare")
 };
 
  const QList<QString> Action::executableMap
 {
-    QStringLiteral("Write").toLower(),
-    QStringLiteral("TclParse").toLower(),
-    QStringLiteral("Error").toLower(),
-    //QStringLiteral("ChangeLastSavedStat").toLower(),
-    //QStringLiteral("AddFunctionDefinition").toLower(),
-    QStringLiteral("AddPreExpression").toLower(),
-    QStringLiteral("AddUserInteraction").toLower(),
-    QStringLiteral("CompareAndWrite").toLower(),
+    QStringLiteral("Write"),
+    QStringLiteral("TclParse"),
+    QStringLiteral("Error"),
+    //QStringLiteral("ChangeLastSavedStat"),
+    //QStringLiteral("AddFunctionDefinition"),
+    QStringLiteral("AddPreExpression"),
+    QStringLiteral("AddUserInteraction"),
+    QStringLiteral("CompareAndWrite"),
     //{QStringLiteral("FinalizeForEach"), Action::Executable::FinalizeForEach},  // private
     //{QStringLiteral("AddSnprintf"), Action::Executable::AddSnprintf},// private
 };
 
 const QList<QString> Format::ruleMap
 {
-    QStringLiteral("NameOrIndex").toLower(),
-    QStringLiteral("ArgumentsFrom").toLower(),
-    QStringLiteral("Separator").toLower(),
-    QStringLiteral("Target").toLower(),
+    QStringLiteral("NameOrIndex"),
+    QStringLiteral("ArgumentsFrom"),
+    QStringLiteral("Separator"),
+    QStringLiteral("Target"),
 };
 
  const QList< QString> Format::targetMap
 {
-    QStringLiteral("Raw").toLower(),
-    QStringLiteral("TclFormat").toLower(),
-    QStringLiteral("CaplFormat").toLower(),
-    QStringLiteral("ParametersStat").toLower(),
-    //{QStringLiteral("Command").toLower(), FormatTarget::Raw},
-    QStringLiteral("SnprintfFormat").toLower(),
+    QStringLiteral("Raw"),
+    QStringLiteral("TclFormat"),
+    QStringLiteral("CaplFormat"),
+    QStringLiteral("ParametersStat"),
+    //{QStringLiteral("Command"), FormatTarget::Raw},
+    QStringLiteral("SnprintfFormat"),
 };
 
 

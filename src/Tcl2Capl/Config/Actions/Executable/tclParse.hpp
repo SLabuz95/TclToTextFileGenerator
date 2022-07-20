@@ -39,6 +39,10 @@ public:
         inputFormattedString().toActionParameters(formattedStringParameters);
         conditional = Action(type(),formattedStringParameters);
     }
+
+    void toXmlContent(QXmlStreamWriter& xmlWriter)override{
+
+    }
 };
 
 

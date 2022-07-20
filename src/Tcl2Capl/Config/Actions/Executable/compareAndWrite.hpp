@@ -64,6 +64,10 @@ public:
                                         );
 
     }
+
+    void toXmlContent(QXmlStreamWriter& xmlWriter)override{
+
+    }
 };
 
 #endif // COMPAREANDWRITE_HPP

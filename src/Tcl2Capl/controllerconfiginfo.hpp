@@ -7,22 +7,18 @@
 #include<QFileInfo>
 #include<QBitArray>
 #include<QMultiMap>
+#include"controllerconfigmanager.hpp"
 
 // Move to other file ControllerConfigInfo
 class ControllerConfigInfo{
-    // All works based on Local COnfig Changes
-    // New, edit , removed all in Local changes
-    // But if possible procedures from saved asosiated config can be used to restore data which has been permanently removed
-    // When Config is loaded, all procedures shall be loaded to local changes
-    // Exceptions are simple data like Write only or attibutes. Panels to simple data refer to saved config data. New and removed are from local changes.
 public:
     enum RulesCategories : qsizetype{   // To control rules list in
         OnEndOfCall = -2,
         UndefinedArgument = -1,
         //Dynamic = -1,
         // 0 > - Argument index value
-
     };
+
 private:
     struct ProcedureRuleCategoryKey : public QPair<QString, RulesCategories>{
     public:
@@ -43,7 +39,7 @@ public:
         ProcedureMap::Iterator procedure;
         RulesView rulesView;
     };
-
+    using ConfigFile = ControllerConfigManager::ConfigFile;
 
 protected:
     qsizetype numbOfExistingProcedures = 0;
@@ -56,7 +52,6 @@ protected:
     inline void countDown_RemoveHiddenProcedure(){numbOfAllProcedures--;}
 public:
     ControllerConfigInfo();
-
 
     public:
         // FOR NOW ALL AT NEW CONFIG ONLY , EVEN READ AND WRITE
@@ -88,6 +83,15 @@ public:
         void clearProcedures();
 
         inline bool isProcedureExist(QString procedure){return newProceduresMap.contains({procedure, RulesCategories::OnEndOfCall});}
+        bool isEmpty()const{
+            return _settings.isEmpty() and
+                    newProceduresMap.isEmpty() and
+                    newDefaultProcedureMap.size() == 2 and
+                    newDefaultProcedureRules.isEmpty(); // 2 Categories and no rules
+        }
+        bool isLocalConfig()const{
+            return configFile.isConfigured();
+        }
 
         void loadNewRules(QString, RulesCategories, NewRules&);
         void loadNewRules(RulesCategories, NewRules&);
@@ -103,79 +107,28 @@ public:
         inline Settings::WriteOnlyProcedures& writeOnlyProcedures(){return _settings.writeOnlyProcedures();}
         inline Settings& settings(){return _settings;}
 
+        inline const QString& filePath()const{return configFile.configPath();}
+
+        // XML Section
+        void toXmlContent(QXmlStreamWriter& xmlWriter);
+        void writeSettingsToXML(QXmlStreamWriter&);
+        void writeProceduresToXML(QXmlStreamWriter&);
+        void writeDefaultProcedureToXML(QXmlStreamWriter&);
+
+
+
     protected:
-
-        //Config& savedConfig;
-
-        // Removed Rules mask
-        // Created based on number of rules from configuration - it will never change til change of configuration
-        //using RemovedIndexes = QBitArray; // Only for Saved Config
-        using UserInterationProcedures = QBitArray; // Only for Saved Config
-        //using RemovedRules = QBitArray; // Maybe int to control number of removed rules
-        //using NewIndexes = QList<uint>; // Only information about new indexes - there are sorted
-        //using NewRules = QList<Rule*>;
-        // Probably i can calculate position of rules even for new indexes
-        // New Index > Old Index -> Right position
-
+        ConfigFile configFile;
 
         // Local changes
         Settings _settings;
-        ProcedureMap savedProceduresMap;// saved procedures map
-        DefaultProcedureMap savedDefaultProcedureMap;// saved procedures map
-
         ProcedureMap newProceduresMap;// procedures map
         NewRules newRules;
         DefaultProcedureMap newDefaultProcedureMap;// default procedure map
         NewRules newDefaultProcedureRules;
-        //RemovedRules removedRules; // Only for Saved Config
-        //RemovedIndexes removedIndexes; // Only for Saved Config - Removed = -index
-        //QMap<QPair<QString, RulesCategories>, QMap<ProcedureRuleCategoryKey, qsizetype>::Iterator> editted;
-        //QMap<QString, int> newSettings;
-        //UserInterationProcedures userInterationProceduresChanged; // Only for Saved Config
-        //NewIndexes newIndexes;
-
-        // Const config infos - in config
-        //int numbOfProcedures; - Can be derived from userInteractionProcedures size
-        //QMap<ProcedureRuleCategoryKey, qsizetype> configMap;// Pos/Size Pair
-
 
 
 };
 
-// Change to ControllerConfigFileInfo
-//class ControllerConfigInfo{
-    // Ver 2 VVVVVVVVVVVVVVVVV
-
-    /* Ver 1 VVVVVVVVVVVVVVVVV
-public:
-    using ConfigPath = QString;
-    using RegisterFileModificationTime = QDateTime;
-    using ControllerConfigRef = Tcl2CaplControllerConfig&;
-
-protected:
-    ConfigPath configPath;
-    RegisterFileModificationTime modificationTime;
-    Tcl2CaplControllerConfig _controllerConfig;
-
-public:
-    ControllerConfigInfo(){}
-    ControllerConfigInfo(ConfigPath, RegisterFileModificationTime, Tcl2CaplControllerConfig);
-
-    using Self = ControllerConfigInfo;
-    using SelfPtr = ControllerConfigInfo*;
-    using SelfRef = ControllerConfigInfo&;
-
-    inline bool operator==(QString rhs){return this->configPath == rhs;}
-    inline ControllerConfigRef controllerConfig(){return _controllerConfig;}
-    inline void updateConfig(Tcl2CaplControllerConfig& cnf){_controllerConfig = cnf;}
-    inline void updateModificationTime(){modificationTime = QFileInfo(configPath).lastModified();}
-    inline bool isFileUpdated(){return QFileInfo(configPath).lastModified() > modificationTime;}
-    inline bool isFileConfiguration(){return not configPath.isEmpty();}
-    inline bool isTemporaryConfiguration(){return configPath.isEmpty();}
-    inline ConfigPath path(){return configPath;}
-    inline bool isDefaultConfig(){
-        return _controllerConfig.isDefault();
-    }*/
-//};
 
 #endif // CONTROLLERCONFIGINFO_HPP

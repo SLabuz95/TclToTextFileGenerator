@@ -38,7 +38,9 @@ public:
         using Format = Tcl::Interpreter::Command::Definition::Format;
         Format::addFormatRule(parameters, Format::Rule::TARGET, Format::cast_target_str(target()));
     }
-   // void toXmlContent(QXmlStreamWriter& xmlWriter) override;
+    void toXmlContent(QXmlStreamWriter& xmlWriter) override{
+
+    }
    // inline RawFormatType rawFormatType()const override final{return RawFormatType::NameItem;}
 
 };

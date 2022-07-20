@@ -4,6 +4,7 @@
 #include"TclInterpreter/tclinterpretercore.hpp"
 #include"TclInterpreter/UserInteractionCont/userInteractionCont.hpp"
 #include<QList>
+#include<QRegularExpression>
 
 namespace Tcl::Interpreter::Command{
     using namespace Tcl::Interpreter::Core;
@@ -81,8 +82,10 @@ namespace Tcl::Interpreter::Command{
             static const QList<QString> executableMap;
             // End of Concept Definition
         public:
-            inline static Conditional fromStr_conditional(QString& str){return static_cast<Conditional>(conditionalMap.indexOf(str));}
-            inline static Executable fromStr_executable(QString& str){return static_cast<Executable>(executableMap.indexOf(str));}
+            inline static Conditional fromStr_conditional(QString& str){return static_cast<Conditional>(conditionalMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
+            inline static Executable fromStr_executable(QString& str){return static_cast<Executable>(executableMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
+            inline static QString toStr_conditional(Conditional type){return conditionalMap.at(std::underlying_type_t<Conditional>(type));}
+            inline static QString toStr_executable(Executable type){return executableMap.at(std::underlying_type_t<Executable>(type));}
             inline static const decltype(conditionalMap)& conditionalsNames(){return conditionalMap;}
             inline static const decltype(executableMap)& executablesNames(){return executableMap;}
         };
@@ -154,8 +157,10 @@ namespace Tcl::Interpreter::Command{
 
             // End of Functions ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
             // Interface ---------------------------------------------------------------------
-            inline static Rule fromStr_rule(QString& str){return static_cast<Rule>(ruleMap.indexOf(str.toLower()));}
-            inline static Target fromStr_target(QString& str){return static_cast<Target>(targetMap.indexOf(str.toLower()));}
+            inline static Rule fromStr_rule(QString& str){return static_cast<Rule>(ruleMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
+            inline static Target fromStr_target(QString& str){return static_cast<Target>(targetMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
+            inline static QString toStr_rule(Rule rule){return ruleMap.at(std::underlying_type_t<Rule>(rule));}
+            inline static QString toStr_target(Target target){return targetMap.at(std::underlying_type_t<Target>(target));}
          private:
             static const QList<QString> ruleMap;
             static const QList<QString> targetMap;
@@ -223,7 +228,7 @@ namespace Tcl::Interpreter::Command{
         private:
             static const QList<QString> controlMap;
         public:
-            inline static Control fromStr(QString& str){return static_cast<Control>(controlMap.indexOf(str.toLower()));}
+            inline static Control fromStr(QString& str){return static_cast<Control>(controlMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
             inline static QString toStr(Control flag){return controlMap.at(static_cast<std::underlying_type_t<Control>>(flag));}
             inline static decltype (controlMap)& getRuleControlFlagNames(){
                 return controlMap;

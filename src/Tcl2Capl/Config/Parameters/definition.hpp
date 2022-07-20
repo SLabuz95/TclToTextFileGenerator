@@ -38,14 +38,16 @@ struct ParametersProductDefinition::ImplementationData::Properties{
 };
 
 template <>
-class ParametersProductDefinition::ImplementationData::Methods : protected ParametersProductDefinition::ImplementationData::Properties{
+class ParametersProductDefinition::ImplementationData::Methods
+{
 
 };
 
 template <>
-class ParametersProductDefinition::InterfaceData::Methods : public ParametersProductDefinition::Implementation{
-
-    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){};
+class ParametersProductDefinition::InterfaceData::Methods
+{
+public:
+    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){}
     //inline virtual RawFormatType rawFormatType() const = 0;
 };
 

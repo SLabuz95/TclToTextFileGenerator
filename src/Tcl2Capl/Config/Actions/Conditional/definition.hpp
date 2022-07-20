@@ -35,7 +35,7 @@ class ConditionalsProductDefinition::ImplementationData::Methods{
 template <>
 class ConditionalsProductDefinition::InterfaceData::Methods{
 public:
-    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){};
+    virtual void toXmlContent(QXmlStreamWriter& xmlWriter) = 0;
     virtual void toAction(UserProcedureRule::ConditionalActions::Type&) = 0;
     //inline virtual RawFormatType rawFormatType() const = 0;
 };

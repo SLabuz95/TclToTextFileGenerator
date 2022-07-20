@@ -59,12 +59,11 @@ namespace Panels::Configuration{
 
         bool newConfig();
         bool readConfig(QString);
-        bool saveConfig(QString);
+        bool saveConfig(QString = QString());
+        bool saveCurrentConfig();
         //void loadConfigData(ConfigInfoPtr, LoadConfigSettings);
-        void reloadGui();
 
         void loadProcedureRulesPanel();
-        void clearProcedureRulesPanel();
 
         bool eventFilter(QObject*, QEvent*) override;
 
@@ -89,14 +88,8 @@ namespace Panels::Configuration{
         inline bool request_newConfig(){return newConfig();}
         inline bool request_readConfig(QString path){return readConfig(path);}
         inline bool request_saveConfig(QString path){return saveConfig(path);}
-        inline bool anyChanges(){
-            //return writeOnlyProceduresList.anyChanges() or
-              //      proceduresList.anyChanges();
-        }
 
-         bool isDefaultConfig();
-
-        inline void reloadGuiForUpdatedConfig(){
+        inline void reloadGui(){
             //writeOnlyProceduresList.reloadGui();
             //proceduresList.reloadGui();
             //reloadGui();

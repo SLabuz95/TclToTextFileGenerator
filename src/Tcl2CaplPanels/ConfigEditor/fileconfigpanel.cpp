@@ -102,6 +102,7 @@ void FileConfigPanel::saveButtonPressed(){
 }
 
 void FileConfigPanel::saveAsButtonPressed(){
+    QString oldPath = filePathStr();
     //get save file location
     QString filePath = QFileDialog::getSaveFileName(nullptr, QString("Zapisz plik konfiguracyjny:"), QString(), "*.xml");
 
@@ -109,7 +110,7 @@ void FileConfigPanel::saveAsButtonPressed(){
     if(not filePath.isEmpty()){
         // request save file for the path
         // if success, change path in filePathLineEdit
-        if(configEditor_.request_saveConfig(filePathStr()) == true){
+        if(configEditor_.request_saveConfig(filePath) == true){
             filePathLineEdit.setText(filePath);
         }
 
