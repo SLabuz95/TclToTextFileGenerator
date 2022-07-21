@@ -39,7 +39,9 @@ public:
         Format::addFormatRule(parameters, Format::Rule::TARGET, Format::cast_target_str(target()));
     }
     void toXmlContent(QXmlStreamWriter& xmlWriter) override{
-
+        xmlWriter.writeEmptyElement("formatRule"); // String param?
+        xmlWriter.writeAttribute("type", QString::number(type())); // For compatibility with future implementation
+        xmlWriter.writeAttribute("target", Format::toStr_target(target())); // For compatibility with future implementation
     }
    // inline RawFormatType rawFormatType()const override final{return RawFormatType::NameItem;}
 

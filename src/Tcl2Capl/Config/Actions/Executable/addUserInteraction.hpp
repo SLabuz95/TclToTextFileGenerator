@@ -42,7 +42,11 @@ public:
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
-
+        xmlWriter.writeStartElement("executableAction");
+        xmlWriter.writeAttribute("type", UserProcedure::Action::toStr_executable(type()));
+        // inputFormattedString_
+        inputFormattedString_.toXmlContent(xmlWriter);
+        xmlWriter.writeEndElement();
     }
 };
 

@@ -70,7 +70,13 @@ namespace Tcl::Interpreter::Command{
         inline WriteOnlyProcedures& writeOnlyProcedures(){return writeOnlyProcedures_;}
         inline void toXmlContent(QXmlStreamWriter& xmlWriter){
             xmlWriter.writeStartElement("settings");
-            xmlWriter.writeTextElement("writeOnlyProcedures", writeOnlyProcedures().join("\n"));
+            xmlWriter.writeStartElement("writeOnlyProcedures");
+            for(QStringList::Iterator procedure = writeOnlyProcedures().begin();
+                procedure != writeOnlyProcedures().end(); procedure++)
+            {
+                xmlWriter.writeTextElement("procedure", *procedure);
+            }
+            xmlWriter.writeEndElement();
             xmlWriter.writeEndElement();
         }
     };

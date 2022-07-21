@@ -9,6 +9,7 @@
 #include<QPainter>
 #include<QEnterEvent>
 #include<QMessageBox>
+#include<QFileDialog>
 
 using namespace Panels::Configuration;
 
@@ -61,6 +62,20 @@ bool Panel::eventFilter(QObject* obj, QEvent* ev){
     }
     return QWidget::eventFilter(obj, ev);
 }
+void Panel::deactivateRulesPanel(){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    if(configTabsPanel.rulesProcedureList().initialized()){
+        configTabsPanel.rulesProcedureList().clear();
+        configTabsPanel.rulesProcedureList().setNonInitialized();
+        configTabsPanel.rulesProcedureList().setEnabled(false);
+    }
+    if(configTabsPanel.rulesDefaultProcedureList().initialized()){
+        configTabsPanel.rulesDefaultProcedureList().clear();
+        configTabsPanel.rulesDefaultProcedureList().setNonInitialized();
+        configTabsPanel.rulesDefaultProcedureList().setEnabled(false);
+    }
+}
+
 void Panel::syncConfig(){
     View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
     if(configTabsPanel.rulesProcedureList().initialized()){
@@ -207,35 +222,51 @@ void Panel::clearIndexes(){ // DefaultProcedure
 }
 
 bool Panel::newConfig(){
-    // Check if configInfo still exists
 
     // Ask to save to file
     if(saveCurrentConfig() == false)
         return false;   // Cancelled or failed
 
     // Clear config
+    config().clear();
+    // Reload Gui
+
 
     return true;
 }
 
-bool Panel::saveConfig(QString path){
-
+bool Panel::saveAsConfig(QString path){
     // Save Config
-
-
-    return true;
+    syncConfig();
+    if( app().configManager().saveConfigAs(config_, path) == false)
+        return false;
+    config().changeConfigFile(fileConfigPanel.filePathStr());
 }
 
 
-bool Panel::readConfig(QString path)
+bool Panel::saveConfig(){
+    // Save Config
+    syncConfig();
+    return app().configManager().saveConfig(config_);
+}
+
+
+bool Panel::readConfig()
 {
+    QString oldPath = config().filePath();
     // Ask to save to file
     if(saveCurrentConfig() == false)
         return false;   // Cancelled or failed
 
     // Load config
+    ConfigInfo tempConfig;
+    if(app().configManager().loadConfig(tempConfig) == false)
+        return false;
 
+    config_ = tempConfig;
+    config_.changeConfigFile(fileConfigPanel.filePathStr());
     // Reload Gui
+    reloadGui();
 
     return true;
 }
@@ -253,7 +284,20 @@ bool Panel::saveCurrentConfig(){ // False to cancel
             saveToFileQuestionMsgBox.addButton(QString("Anuluj"), QMessageBox::ButtonRole::DestructiveRole);
             saveToFileQuestionMsgBox.exec();
             if(saveToFileQuestionMsgBox.clickedButton() == saveButton){
-                fileConfigPanel.saveButtonPressed();
+                QString filePath = QFileDialog::getSaveFileName(nullptr, QString("Zapisz plik konfiguracyjny:"), QString(), "*.xml");
+
+                // if not empty,
+                if(not filePath.isEmpty()){
+                    // request save file for the path
+                    // if success, change path in filePathLineEdit
+                    if(request_saveAsConfig(filePath) == true){
+                       fileConfigPanel.changeFilePath(filePath);
+                    }else{
+                        return false;
+                    }
+                }else{
+                    return false;
+                }
             }else{ // Cancelled
                 return false;
             }
@@ -262,10 +306,25 @@ bool Panel::saveCurrentConfig(){ // False to cancel
             saveToFileQuestionMsgBox.addButton(QString("Anuluj"), QMessageBox::ButtonRole::DestructiveRole);
             saveToFileQuestionMsgBox.exec();
             if(saveToFileQuestionMsgBox.clickedButton() == saveButton){
-                fileConfigPanel.saveButtonPressed();
+                if(request_saveConfig() == false){
+                    return false;
+                }
             }else{
                 if(saveToFileQuestionMsgBox.clickedButton() == saveAsButton){
-                    fileConfigPanel.saveAsButtonPressed(); // Call SaveAs function from FilePanel
+                    QString filePath = QFileDialog::getSaveFileName(nullptr, QString("Zapisz plik konfiguracyjny:"), QString(), "*.xml");
+
+                    // if not empty,
+                    if(not filePath.isEmpty()){
+                        // request save file for the path
+                        // if success, change path in filePathLineEdit
+                        if(request_saveAsConfig(filePath) == true){
+                           fileConfigPanel.changeFilePath(filePath);
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        return false;
+                    }
                 }else{ // Cancelled
                     return false;
                 }

@@ -8,7 +8,6 @@
 #include"error.hpp"
 #include"tclParse.hpp"
 #include"write.hpp"
-#include"compareAndWrite.hpp"
 #include"External/Factory/factory.hpp"
 
 using ExecutablesFactory = Factory<ExecutablesTypes>;

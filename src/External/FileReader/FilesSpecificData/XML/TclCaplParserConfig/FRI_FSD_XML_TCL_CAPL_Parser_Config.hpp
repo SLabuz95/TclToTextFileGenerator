@@ -2,12 +2,12 @@
 #define FRI_FSD_XML_TCL_CAPL_PARSER_CONFIG_H
 #include"External/FileReader/FilesSpecificData/XML/FRI_FSD_XML.hpp"
 #include"External/FileReader/FilesSpecificData/FSDConfig.hpp"
-#include"Tcl2Capl/controllerconfigxmldata.hpp"
+#include"Tcl2Capl/controllerconfiginfo.hpp"
 #include"External/XML/XMLDefinition.hpp"
 #include<QStack>
 
 // Test Module Section ------------------------------------------------------
-using  FSD_XML_TclCaplParserConfigInterpreter = FSD_XML::Interpreter<Tcl2CaplControllerConfigXmlData>;
+using  FSD_XML_TclCaplParserConfigInterpreter = FSD_XML::Interpreter<ControllerConfigInfo>;
 
 template <>
 QString FSD_XML_TclCaplParserConfigInterpreter::Config::fileFilter();
@@ -15,22 +15,23 @@ QString FSD_XML_TclCaplParserConfigInterpreter::Config::fileFilter();
 template<>
 template<>
 enum class FSD_XML_TclCaplParserConfigInterpreter::Stat{
-    UserConfig,
+    TclConfig,
     Settings,
     WriteOnlyFunctions,
+    Procedures,
     Procedure,
+    Name,
     DefaultProcedure,
     RulesForArgument,
     RulesForUnspecifiedArgument,
     RulesOnEndOfCall,
-    DynamicRules,
+    RulesOnInit,
     RulesOnMove,
-    Rule,
+    RawRule,
     ConditionalAction,
     ExecutableAction,
     ActionParameter,
     FormatRule,
-    ParametersList,
 
     Forbidden,
     SIZE
@@ -78,118 +79,127 @@ struct FSD_XML_TclCaplParserConfigInterpreter::Data{
     static  ConditionalActionDefinitions conditionalActionDefinitions;
     static  ExecutableActionDefinitions executableActionDefinitions;
 */    
-    using XMLAttributes = const QStringList;
+//    using XMLAttributes = const QStringList;
 
-    struct XMLToken{
-    public:
-        class XMLObject;
-        using ObjectRef = const XMLObject&;
-        using DefinitionRef = const XMLToken&;
-        using Tokens = const QList<const XMLToken * >;
-        using Attributes =  XMLAttributes;
-        using ProcessingFunction = QString (Interpreter::*)(ObjectRef, ObjectRef);
+//    struct XMLToken{
+//    public:
+//        class XMLObject;
+//        using ObjectRef = const XMLObject&;
+//        using DefinitionRef = const XMLToken&;
+//        using Tokens = const QList<const XMLToken * >;
+//        using Attributes =  XMLAttributes;
+//        using ProcessingFunction = QString (Interpreter::*)(ObjectRef, ObjectRef);
 
-        /*inline XMLToken(const QString name) :
-            name(name){}
-        inline XMLToken(const QString name, const Tokens requiredTokens, const Tokens optionalTokens) :
-            XMLToken(name), requieredTokens(requiredTokens), optionalTokens(optionalTokens) {}*/
-        const QString name;
-        Tokens requiredTokens;
-        Tokens optionalTokens;
-        Attributes requiredAttributes;
-        Attributes optionalAttributes;
-        const bool requiredTextContent = false;
-        const bool expectedNoDuplicates = false;
-        QList<ProcessingFunction> onCreate;
-        QList<ProcessingFunction> onDestroy;
+//        /*inline XMLToken(const QString name) :
+//            name(name){}
+//        inline XMLToken(const QString name, const Tokens requiredTokens, const Tokens optionalTokens) :
+//            XMLToken(name), requieredTokens(requiredTokens), optionalTokens(optionalTokens) {}*/
+//        const QString name;
+//        Tokens requiredTokens;
+//        Tokens optionalTokens;
+//        Attributes requiredAttributes;
+//        Attributes optionalAttributes;
+//        const bool requiredTextContent = false;
+//        const bool expectedNoDuplicates = false;
+//        QList<ProcessingFunction> onCreate;
+//        QList<ProcessingFunction> onDestroy;
 
-        class XMLObject{
-            using XMLDefinition = const XMLToken *;
-            using XMLDefinitions = QList<XMLDefinition>;
+//        class XMLObject{
+//            using XMLDefinition = const XMLToken *;
+//            using XMLDefinitions = QList<XMLDefinition>;
 
-            QString initialize(XMLDefinition definition){ // For Global definition only
-                informations = QBitArray(
-                            definition->requiredTokens.size() +
-                            ((definition->expectedNoDuplicates)? definition->optionalTokens.size() : 0) +
-                            definition->optionalAttributes.size() + 1 /* textOnly */
-                            );
-            }
+//            QString initialize(XMLDefinition definition){ // For Global definition only
+//                informations = QBitArray(
+//                            definition->requiredTokens.size() +
+//                            ((definition->expectedNoDuplicates)? definition->optionalTokens.size() : 0) +
+//                            definition->optionalAttributes.size() + 1 /* textOnly */
+//                            );
+//            }
 
-            QString initialize(XMLDefinition definition, QXmlStreamReader& reader){ // For Global definition only
-                informations = QBitArray(
-                            definition->requiredTokens.size() +
-                            ((definition->expectedNoDuplicates)? definition->optionalTokens.size() : 0) +
-                            definition->optionalAttributes.size() + 1 /* textOnly */
-                            );
-            }
+//            QString initialize(XMLDefinition definition, QXmlStreamReader& reader){ // For Global definition only
+//                informations = QBitArray(
+//                            definition->requiredTokens.size() +
+//                            ((definition->expectedNoDuplicates)? definition->optionalTokens.size() : 0) +
+//                            definition->optionalAttributes.size() + 1 /* textOnly */
+//                            );
+//            }
 
-            QString findToken(QXmlStreamReader& reader, XMLDefinition definition)
-            {
-                // Find Token
-                using XMLToken = XMLToken::Tokens::ConstIterator;
-
-
-                return QString();
-            }
-
-        public:
-            inline static  XMLObject createXmlObject(QString& errorMsg, XMLDefinitions definitions){
-                XMLObject object;
-                errorMsg = object.initialize(definitions.last());
-                return object;
-            }
-
-            inline static  XMLObject createXmlObject(QXmlStreamReader& reader,  QString& errorMsg, XMLDefinitions definitions){
-                XMLObject object;
-                errorMsg = object.initialize(definitions.last(), reader);
-                return object;
-            }
-
-        protected:
-            // Information have to read about token from Reader
-            // -- RequiredTokens +  WARNING
-            // -- (only if no duplicates) OptionalTokens +
-            // -- optionalAttributes
-            // -- textOnly
-            QBitArray informations;
-
-        };
-    };
-    using XMLObject = XMLToken::XMLObject;
-    using ObjectRef = XMLToken::ObjectRef;
-    using DefinitionRef = XMLToken::DefinitionRef;
-
-   static const XMLToken paramToken;
-   static const XMLToken formatParamToken;
-   static const XMLToken conditionalActionToken;
-   static const XMLToken executableActionToken;
-   static const XMLToken ruleToken;
-   static const XMLToken dynamicRulesToken;
-   static const XMLToken rulesOnMoveToken;
-   static const XMLToken rulesForArgumentToken;
-   static const XMLToken rulesForUnspecifiedArgumentToken;
-   static const XMLToken rulesOnEndOfCallToken;
-   static const XMLToken procedureToken;
-   static const XMLToken defaultProcedureToken;
-   static const XMLToken writeOnlyProcedureToken;
-   static const XMLToken writeOnlyProceduresToken;
-   static const XMLToken settingsToken;
-   static const XMLToken userConfigToken;
-   static const XMLToken xmlDefinition;
+//            QString findToken(QXmlStreamReader& reader, XMLDefinition definition)
+//            {
+//                // Find Token
+//                using XMLToken = XMLToken::Tokens::ConstIterator;
 
 
-    template<DefinitionRef parent, DefinitionRef current>
-    static QString processingFunction(ObjectRef, ObjectRef);
+//                return QString();
+//            }
 
-    class ParametersList{
-        QStringList parameters;
-    public:
-        inline void append(QString str){parameters.append(str);}
-        inline void append(QStringList strList){parameters.append(strList);}
-        inline QStringList getParametersPrependedWithSize(){return QStringList({QString::number(parameters.size())}) + parameters;}
-        inline QStringList getParameters(){return parameters;}
+//        public:
+//            inline static  XMLObject createXmlObject(QString& errorMsg, XMLDefinitions definitions){
+//                XMLObject object;
+//                errorMsg = object.initialize(definitions.last());
+//                return object;
+//            }
 
-    } parametersList;
+//            inline static  XMLObject createXmlObject(QXmlStreamReader& reader,  QString& errorMsg, XMLDefinitions definitions){
+//                XMLObject object;
+//                errorMsg = object.initialize(definitions.last(), reader);
+//                return object;
+//            }
+
+//        protected:
+//            // Information have to read about token from Reader
+//            // -- RequiredTokens +  WARNING
+//            // -- (only if no duplicates) OptionalTokens +
+//            // -- optionalAttributes
+//            // -- textOnly
+//            QBitArray informations;
+
+//        };
+//    };
+//    using XMLObject = XMLToken::XMLObject;
+//    using ObjectRef = XMLToken::ObjectRef;
+//    using DefinitionRef = XMLToken::DefinitionRef;
+
+//   static const XMLToken paramToken;
+//   static const XMLToken formatParamToken;
+//   static const XMLToken conditionalActionToken;
+//   static const XMLToken executableActionToken;
+//   static const XMLToken ruleToken;
+//   static const XMLToken dynamicRulesToken;
+//   static const XMLToken rulesOnMoveToken;
+//   static const XMLToken rulesForArgumentToken;
+//   static const XMLToken rulesForUnspecifiedArgumentToken;
+//   static const XMLToken rulesOnEndOfCallToken;
+//   static const XMLToken procedureToken;
+//   static const XMLToken defaultProcedureToken;
+//   static const XMLToken writeOnlyProcedureToken;
+//   static const XMLToken writeOnlyProceduresToken;
+//   static const XMLToken settingsToken;
+//   static const XMLToken userConfigToken;
+//   static const XMLToken xmlDefinition;
+
+
+//    template<DefinitionRef parent, DefinitionRef current>
+//    static QString processingFunction(ObjectRef, ObjectRef);
+
+//    class ParametersList{
+//        QStringList parameters;
+//    public:
+//        inline void append(QString str){parameters.append(str);}
+//        inline void append(QStringList strList){parameters.append(strList);}
+//        inline QStringList getParametersPrependedWithSize(){return QStringList({QString::number(parameters.size())}) + parameters;}
+//        inline QStringList getParameters(){return parameters;}
+
+//    } parametersList;
+    using RulesView = DataModel::RulesFromConfigFileView;
+    using Rules = DataModel::NewRules;
+    using Rule = Rules::Type;
+    using RawRule = RulesFactory::Product<RulesFactory::ProductTypeEnum::RawRule>;
+
+    using ConditionalAction = ConditionalsFactory::ListOfBases::Type;
+    using ExecutableAction = ExecutablesFactory::ListOfBases::Type;
+
+    using FormatRule = FormatParametersFactory::ListOfBases::Type;
 
     static constexpr std::underlying_type_t<Stat> stat2type(Stat stat){return static_cast<std::underlying_type_t<Stat>>(stat);}
     struct DataModelStat{
@@ -198,18 +208,29 @@ struct FSD_XML_TclCaplParserConfigInterpreter::Data{
     };
     using DataModelStats = QVector<DataModelStat>;
     DataModelStats dmStats;
-    //Rule tempRule;
-    QStringList listOfDefinitions;
-    int currentActionParameterIndex = -1;
-    QVector<int> arguments;
+    bool procedureNameTokenAppeared = false;
+    QString procedureName;
+    RulesView tempRulesView;
+    bool tclConfigUsed = false;
+    bool settingsTokenUsed = false;
+    bool writeOnlyFunctionsUsed = false;
+    bool proceduresUsed = false;
     bool defaultProcedureUsed = false;
-    bool rulesForArgumentsUsed = false;
     bool rulesForUnspecifiedArgumentUsed = false;
     bool rulesOnEndOfCallUsed = false;
-    bool dynamicRulesUsed = false;
+    bool onInitRulesUsed = false;
     bool onMoveRulesUsed = false;
 
-    QStack<XMLObject> xmlObjects;
+    bool compareAndWrite_IndexUsed = false;
+    bool compareAndWrite_ListOfArgumentsUsed = false;
+
+    QList<uint> currentActionParamIndexes;
+
+    int tempIndex;
+    QString tempString;
+    QStringList tempStringList;
+
+    //QStack<XMLObject> xmlObjects;
 
 };
 template<>

@@ -18,17 +18,16 @@ ConfigViewPanel::ConfigViewPanel(ConfigEditor& parent)
     moveSplitter(0,1);
 }
 
-void ConfigViewPanel::loadConfigData(LoadConfigSettings settings)
+void ConfigViewPanel::loadConfigData(ControllerConfigInfo::ProceduresView& proceduresView)
 {
+    NavigationList& navigationPanel = this->Panels::Super::ViewPanel::get();
     ConfigTabs& configTabsPanel = this->Panels::Super::ViewPanel::Super::get();
+    navigationPanel.loadData(proceduresView);
     //configTabsPanel.attributesList().loadAttributes(&configEditor.getConfigInfoPtr()->controllerConfig().attributes(), settings);
     //configTabsPanel.writeOnlyProceduresList().loadProcedures(&configEditor.getConfigInfoPtr()->controllerConfig().writeOnlyProcedures(), settings);
     //proceduresList.loadProcedures(&configInfoPtr->controllerConfig().userProcedures(), settings);
     //clearProcedureRulesPanel();
-    if(settings == LoadConfigSettings::LoadGui){
-        // Load Gui
-        //reloadGuiForUpdatedConfig();
-    }
+
 }
 
 void ConfigViewPanelSplitter::Splitter::Handle::paintEvent(QPaintEvent *event)

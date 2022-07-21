@@ -6,7 +6,6 @@
 // List of all views for condtionals
 #include"addPreexpression.hpp"
 #include"addUserInteraction.hpp"
-#include"compareAndWrite.hpp"
 #include"error.hpp"
 #include"tclParse.hpp"
 #include"write.hpp"

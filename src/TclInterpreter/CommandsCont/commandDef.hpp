@@ -44,6 +44,7 @@ namespace Tcl::Interpreter::Command{
                 CompareNumbOfArguments, // Current numb of Arguments for last procedure call (current definition)
                 FCT_Begin = CompareNumbOfArguments,
                 Compare,
+                CompareAndWrite, // QuickRule
                 FCT_End,// VVVVVVVV Privates factory products not required
                 IsLastSavedStat = FCT_End,    // Check Stat for specified SavedStat (Arguments pattern: 1- savedStat number)
 
@@ -60,7 +61,6 @@ namespace Tcl::Interpreter::Command{
                 Error,
                 AddPreExpression,
                 AddUserInteraction,
-                CompareAndWrite, // QuickRule
                 FCT_End,// VVVVVVVV Privates factory products not required
                 FinalizeForEach = FCT_End,
                 ChangeLastSavedStat,

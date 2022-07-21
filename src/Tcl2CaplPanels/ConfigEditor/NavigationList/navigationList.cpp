@@ -281,6 +281,88 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
 }
 
 
+void List::loadData(ControllerConfigInfo::ProceduresView& proceduresView){
+    ProceduresElement& dPE = *static_cast<ProceduresElement*>(topLevelItem(panelType2number(PanelType::Procedures)));
+    dPE.execRequest_ContextMenu<ProceduresElement::Request_ContextMenu::ClearProcedures>(nullptr);
+    DefaultProcedureElement& defPE = *static_cast<DefaultProcedureElement*>(topLevelItem(panelType2number(PanelType::DefaultProcedure)));
+    defPE.execRequest_ContextMenu<DefaultProcedureElement::Request_ContextMenu::ClearIndexes>(nullptr);
+
+    using ConfigMap = ControllerConfigInfo::ProceduresView::first_type;
+    using DefaultConfigMap = ControllerConfigInfo::ProceduresView::second_type;
+
+    {
+        using Config = ConfigMap;
+        using ConfigKeyIter = Config::Iterator;
+        using ProcedureName = UserProcedure::ProcedureName;
+        using Rules = UserProcedureRules;
+
+        QString name;
+        // Prepare containers
+        // On end of Call
+        Config& newProceduresMap = proceduresView.first;
+        ConfigKeyIter configProcedureStartIter = newProceduresMap.begin();
+        ConfigKeyIter configMapIter = configProcedureStartIter;
+
+        while(configMapIter != newProceduresMap.end()){
+            configProcedureStartIter = configMapIter;
+            name = configMapIter.key().first;
+            if(configMapIter.value() >= 0){ // Check if Exists
+                // Write Procedure element
+                ProceduresElement::ListItem* item = new ProceduresElement::ListItem();
+                dPE.addChild(item);
+                item->setText(0, name);
+
+                configMapIter = configProcedureStartIter; // On End
+                configMapIter++; // Undefined
+                configMapIter++; // First Index
+                while(configMapIter != newProceduresMap.end() and configMapIter.key().second != ControllerConfigInfo::RulesCategories::OnEndOfCall){
+                    if(configMapIter.value() >= 0) // Index exists
+                    {
+                        // Set Index
+                        ProceduresElement::ListItem::ChildType* indexItem = new ProceduresElement::ListItem::ChildType();
+                        indexItem->addChild(item);
+                        indexItem->setText(0, QString::number(configMapIter.key().second));
+                    }
+                    configMapIter++;
+                }
+            }else{ // Not exist - move to next procedure
+                while(configMapIter != newProceduresMap.end() and configMapIter.key().second != ControllerConfigInfo::RulesCategories::OnEndOfCall){
+                    configMapIter++;
+                }
+                // Do not increment again
+            }
+        }
+    }
+    {
+        using Config = DefaultConfigMap;
+        using ConfigKeyIter = Config::Iterator;
+        using ProcedureName = UserProcedure::ProcedureName;
+        using Rules = UserProcedureRules;
+
+        QString name;
+        // Prepare containers
+        // On end of Call
+        Config& newProceduresMap = proceduresView.second;
+        ConfigKeyIter configProcedureStartIter = newProceduresMap.begin();
+        ConfigKeyIter configMapIter = configProcedureStartIter;
+
+        configMapIter = configProcedureStartIter; // On End
+        configMapIter++; // Undefined
+        configMapIter++; // First Index
+        while(configMapIter != newProceduresMap.end()){
+            if(configMapIter.value() >= 0) // Index exists
+            {
+                // Set Index
+                DefaultProcedureElement::ListItem* indexItem = new DefaultProcedureElement::ListItem();
+                defPE.addChild(indexItem);
+                indexItem->setText(0, QString::number(configMapIter.key()));
+            }
+            configMapIter++;
+        }
+    }
+
+}
+
 
 bool List::edit(const QModelIndex &index, QAbstractItemView::EditTrigger trigger, QEvent *event){
     using Trigger = QAbstractItemView::EditTrigger;

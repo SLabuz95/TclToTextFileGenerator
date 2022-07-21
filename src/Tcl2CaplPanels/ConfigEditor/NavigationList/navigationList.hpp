@@ -5,6 +5,7 @@
 #include"External/Utils/class.hpp"
 #include<QItemDelegate>
 #include<QApplication>
+#include"Tcl2Capl/controllerconfiginfo.hpp"
 
 class ControllerConfigInfo;
 namespace  Panels::Configuration{
@@ -164,6 +165,8 @@ namespace Panels::Configuration::Navigation{
                 element = element->parent();
             }
         }
+
+        void loadData(ControllerConfigInfo::ProceduresView&);
 
     };
 

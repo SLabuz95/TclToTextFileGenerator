@@ -7,6 +7,7 @@
 #include"compare.hpp"
 #include"isLastSavedStat.hpp"
 #include"compareNumbOfArgs.hpp"
+#include"compareAndWrite.hpp"
 // ---------------------------
 
 //using namespace Panels::Configuration::View;

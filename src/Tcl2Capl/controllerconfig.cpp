@@ -1,11 +1,11 @@
 #include"controllerconfig.hpp"
 #include<QFileInfo>
 #include<QXmlStreamWriter>
-
+/*
 Tcl2CaplControllerConfig::Tcl2CaplControllerConfig(Tcl2CaplControllerConfigXmlData& xmlData)
 {
 
-}
+}*/
 
 Tcl2CaplControllerConfig::Procedure::Procedure(const Procedure& procedureRef, Name newName) : Procedure(procedureRef){
     name_ = newName;

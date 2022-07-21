@@ -1733,3 +1733,143 @@ UserProcedure ControllerConfigInfo::readDefaultProcedure(){
 
 }
 
+
+bool ControllerConfigInfo::addIndex(QString name, RulesFromConfigFileView& rulesView)
+{
+    qDebug() << "addIndex begin" << newProceduresMap;
+    using Config = decltype(newProceduresMap);
+    using ConfigKeyIter = Config::Iterator;
+    using EditIndexIter = QMap<QPair<QString, qsizetype>, QMap<ProcedureRuleCategoryKey, qsizetype>::Iterator>::Iterator;
+    //EditIndexIter editIndexIter = newNames.find(name);
+    ConfigKeyIter configKeyIter;
+    QString oldName;
+    bool found = false;
+    NewRules& rules = rulesView.rules;
+    const qsizetype& index = static_cast<qsizetype>(rulesView.index);
+    configKeyIter = newProceduresMap.find({name, static_cast<RulesCategories>(index)});
+    if(configKeyIter != newProceduresMap.end()){
+        return false; // Duplicated
+    }
+    if(index > -1){
+        configKeyIter = newProceduresMap.insert({name, static_cast<RulesCategories>(index)}, 0);
+        configKeyIter++;
+        qsizetype value;
+        if(configKeyIter != newProceduresMap.end()){
+            value = configKeyIter.value();
+        }else{
+            value = newRules.size();
+        }
+
+        configKeyIter--;
+        configKeyIter.value() = abs(value);
+    }
+
+    ConfigKeyIter beginIter;
+    ConfigKeyIter endIter;
+
+    beginIter = newProceduresMap.find({name, static_cast<RulesCategories>(index)});
+    if(beginIter != newProceduresMap.end()){
+        endIter = ++beginIter;
+        beginIter--;
+        qsizetype position = abs(beginIter.value());
+        qsizetype numbOfRules = 0;
+        if(endIter != newProceduresMap.end()){
+            numbOfRules = abs(endIter.value()) - position;
+        }else{
+            numbOfRules = newRules.size() - position;
+        }
+        qsizetype diff = rules.size() - numbOfRules;
+        if(diff != 0){
+            beginIter++;
+            while(beginIter != newProceduresMap.end()){
+                beginIter.value() += (beginIter.value() < 0)? -diff : diff;
+                beginIter++;
+            }
+        }
+        NewRules::Iterator tempRulesIter = newRules.begin() + position;
+        NewRules::Iterator newRulesIter = tempRulesIter + numbOfRules;
+        for( ; tempRulesIter < newRulesIter; tempRulesIter++){
+            delete *tempRulesIter;
+        }
+        newRules.remove(position, numbOfRules);
+        tempRulesIter = rules.begin();
+        newRules.insert(position, rules.size(), nullptr);
+        newRulesIter = newRules.begin() + position;
+        for(; tempRulesIter < rules.end(); tempRulesIter++, newRulesIter++){
+            *newRulesIter = *tempRulesIter;
+        }
+    }
+
+    return true;
+}
+
+bool ControllerConfigInfo::addIndex(RulesFromConfigFileView& rulesView){
+    using Config = decltype(newDefaultProcedureMap);
+    using ConfigKeyIter = Config::Iterator;
+    using EditIndexIter = QMap<QPair<QString, qsizetype>, QMap<ProcedureRuleCategoryKey, qsizetype>::Iterator>::Iterator;
+
+    ConfigKeyIter configKeyIter;
+    QString oldName;
+    bool found = false;
+    NewRules& rules = rulesView.rules;
+    const qsizetype& index = static_cast<qsizetype>(rulesView.index);
+
+    configKeyIter = newDefaultProcedureMap.find(static_cast<RulesCategories>(index));
+    if(configKeyIter != newDefaultProcedureMap.end()){
+        return false; // Duplicated
+    }
+    if(index > -1){
+        configKeyIter = newDefaultProcedureMap.insert(static_cast<RulesCategories>(index), 0);
+        configKeyIter++;
+        qsizetype value;
+        if(configKeyIter != newDefaultProcedureMap.end()){
+            value = configKeyIter.value();
+        }else{
+            value = newDefaultProcedureRules.size();
+        }
+
+        configKeyIter--;
+        configKeyIter.value() = abs(value);
+    }
+
+    ConfigKeyIter beginIter;
+    ConfigKeyIter endIter;
+
+    beginIter = newDefaultProcedureMap.find(static_cast<RulesCategories>(index));
+    if(beginIter != newDefaultProcedureMap.end()){
+        endIter = ++beginIter;
+        beginIter--;
+        qsizetype position = abs(beginIter.value());
+        qsizetype numbOfRules = 0;
+        if(endIter != newDefaultProcedureMap.end()){
+            numbOfRules = abs(endIter.value()) - position;
+        }else{
+            numbOfRules = newDefaultProcedureRules.size() - position;
+        }
+        qsizetype diff = rules.size() - numbOfRules;
+        if(diff != 0){
+            beginIter++;
+            while(beginIter != newDefaultProcedureMap.end()){
+                beginIter.value() += (beginIter.value() < 0)? -diff : diff;
+                beginIter++;
+            }
+        }
+        NewRules::Iterator tempRulesIter = newDefaultProcedureRules.begin() + position;
+        NewRules::Iterator newRulesIter = tempRulesIter + numbOfRules;
+        for( ; tempRulesIter < newRulesIter; tempRulesIter++){
+            delete *tempRulesIter;
+        }
+        newDefaultProcedureRules.remove(position, numbOfRules);
+        tempRulesIter = rules.begin();
+        newDefaultProcedureRules.insert(position, rules.size(), nullptr);
+        newRulesIter = newDefaultProcedureRules.begin() + position;
+        for(; tempRulesIter < rules.end(); tempRulesIter++, newRulesIter++){
+            *newRulesIter = *tempRulesIter;
+        }
+    }
+
+    return true;
+}
+
+
+

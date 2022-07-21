@@ -1,6 +1,7 @@
 #ifndef CONTROLLERCONFIGINFO_HPP
 #define CONTROLLERCONFIGINFO_HPP
 
+#include"External/FileReader/FilesSpecificData/FSDTemplate.hpp"
 #include<QString>
 #include<QDateTime>
 #include"Tcl2Capl/controllerconfig.hpp"
@@ -10,7 +11,7 @@
 #include"controllerconfigmanager.hpp"
 
 // Move to other file ControllerConfigInfo
-class ControllerConfigInfo{
+class ControllerConfigInfo : public FSD_DataModelBase<ControllerConfigInfo>{
 public:
     enum RulesCategories : qsizetype{   // To control rules list in
         OnEndOfCall = -2,
@@ -35,6 +36,11 @@ public:
     using SavedRules = Config::RawRules;
     using NewRules = Config::DynamicRawRules;
     using RulesView = QPair<NewRules::Iterator, NewRules::Iterator>;
+    struct RulesFromConfigFileView{
+        RulesCategories index;
+        NewRules rules;
+    };
+
     struct ProcedureView{
         ProcedureMap::Iterator procedure;
         RulesView rulesView;
@@ -81,6 +87,7 @@ public:
         void clearIndexes(QString name);
         void clearIndexes(); // DefaultProcedure
         void clearProcedures();
+        void clear();
 
         inline bool isProcedureExist(QString procedure){return newProceduresMap.contains({procedure, RulesCategories::OnEndOfCall});}
         bool isEmpty()const{
@@ -90,13 +97,18 @@ public:
                     newDefaultProcedureRules.isEmpty(); // 2 Categories and no rules
         }
         bool isLocalConfig()const{
-            return configFile.isConfigured();
+            return not configFile.isConfigured();
         }
 
         void loadNewRules(QString, RulesCategories, NewRules&);
         void loadNewRules(RulesCategories, NewRules&);
+        //void loadNewRules(QString, RulesForArg&);
         RulesView readRules(QString, RulesCategories);
         RulesView readRules(RulesCategories);
+        using ProceduresView = QPair<ProcedureMap, DefaultProcedureMap>;
+        ProceduresView readProceduresInfo(){
+            return ProceduresView{newProceduresMap, newDefaultProcedureMap};
+        }
 
         inline qsizetype getNumbOfExistingProcedures(){return numbOfExistingProcedures;}
         inline qsizetype getNumbOfAllProcedures(){return numbOfAllProcedures;}
@@ -109,14 +121,16 @@ public:
 
         inline const QString& filePath()const{return configFile.configPath();}
 
-        // XML Section
+        // XML Section        
+        bool addIndex(QString name, RulesFromConfigFileView& rulesView);
+        bool addIndex(RulesFromConfigFileView& rulesView); // DefaultProcedure
+
         void toXmlContent(QXmlStreamWriter& xmlWriter);
         void writeSettingsToXML(QXmlStreamWriter&);
         void writeProceduresToXML(QXmlStreamWriter&);
         void writeDefaultProcedureToXML(QXmlStreamWriter&);
 
-
-
+        void changeConfigFile(QString newPath){configFile.changeConfigPath(newPath);}
     protected:
         ConfigFile configFile;
 
@@ -126,7 +140,6 @@ public:
         NewRules newRules;
         DefaultProcedureMap newDefaultProcedureMap;// default procedure map
         NewRules newDefaultProcedureRules;
-
 
 };
 

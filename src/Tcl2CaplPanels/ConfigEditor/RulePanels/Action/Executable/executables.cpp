@@ -12,7 +12,6 @@ View::CreateFunctionTable View::createFunctionTable = {
     &ErrorActionView::create,
     &AddPreexpressionActionView::create,
     &AddUserInteractionActionView::create,
-    &CompareAndWriteActionView::create,
 };
 
 template<>

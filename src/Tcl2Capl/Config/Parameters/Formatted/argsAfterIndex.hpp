@@ -41,7 +41,17 @@ public:
         Format::addFormatRule(parameters, Format::Rule::ARGS_AFTER_INDEX, QString::number(index()));
     }
     void toXmlContent(QXmlStreamWriter& xmlWriter) override{
-
+        if(separator().length() == 0){
+            xmlWriter.writeEmptyElement("formatRule"); // String param?
+            xmlWriter.writeAttribute("type", QString::number(type())); // For compatibility with future implementation
+            xmlWriter.writeAttribute("value", QString::number(index()));
+        }else{
+            xmlWriter.writeStartElement("formatRule"); // String param?
+            xmlWriter.writeAttribute("type", QString::number(type())); // For compatibility with future implementation
+            xmlWriter.writeAttribute("value", QString::number(index()));
+            xmlWriter.writeCharacters(separator());
+            xmlWriter.writeEndElement(); // List? End
+        }
     }
    // inline RawFormatType rawFormatType()const override final{return RawFormatType::ArgumentsFromItem;}
 

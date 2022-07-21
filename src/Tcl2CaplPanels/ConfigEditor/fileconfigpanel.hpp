@@ -36,6 +36,7 @@ namespace Panels::Configuration{
         FileConfigPanel(PanelRef, QString = QString());
 
         inline QString filePathStr(){return filePathLineEdit.text();}
+        void changeFilePath(QString newPath){filePathLineEdit.setText(newPath);}
 
         void newButtonPressed();
         void openButtonPressed();

@@ -37,7 +37,9 @@ public:
         Format::addFormatRule(parameters, Format::Rule::INDEX_OR_FULL_LINE, QString::number(index()));
     }
     void toXmlContent(QXmlStreamWriter& xmlWriter) override{
-
+            xmlWriter.writeEmptyElement("formatRule"); // String param?
+            xmlWriter.writeAttribute("type", QString::number(type())); // For compatibility with future implementation
+            xmlWriter.writeAttribute("value", QString::number(index()));
     }
     //inline RawFormatType rawFormatType()const override final{return RawFormatType::IndexItem;}
 

@@ -5,6 +5,7 @@
 #include"Tcl2CaplPanels/ConfigEditor/NavigationList/navigationList.hpp"
 #include"Tcl2CaplPanels/ConfigEditor/ConfigTabsPanel/configTabsPanel.hpp"
 #include"Tcl2CaplPanels/ConfigEditor/loadconfigsettings.hpp"
+#include"Tcl2Capl/controllerconfiginfo.hpp"
 
 namespace Panels::Configuration{
     using namespace Navigation;
@@ -120,7 +121,7 @@ namespace Panels::Configuration{
                 configTabsPanel.tabBar()->show();
 
             }
-            void loadConfigData(LoadConfigSettings settings);
+            void loadConfigData(ControllerConfigInfo::ProceduresView& view);
         };
     }
 

@@ -2,6 +2,15 @@
 
 using Type = FormatParametersFactory::ProductTypeEnum;
 
+const QList<QString> FormatParameters::TypeInfo::typeMap =
+{
+    "Text",
+    "Name",
+    "Index",
+    "ArgumentsFrom",
+    "Format"
+};
+
 template<>
 FormatParametersFactory::CreateFunctionTable FormatParametersFactory::createFunctionTable =
 {

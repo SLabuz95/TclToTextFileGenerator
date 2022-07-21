@@ -5,12 +5,14 @@ using Conditionals = ConditionalsFactory::ListOfBases;
 using View = ActionDataView<Conditionals>;
 using CompareActionDataView = CompareActionView::CompareActionView;
 using IsLastSavedStatDataView = IsLastSavedStatActionView::IsLastSavedStatActionView;
+using CompareAndWriteDataView = CompareAndWriteActionView;
 
 template<>
 View::CreateFunctionTable View::createFunctionTable = {
     &CompareNumbOfArgsActionView::create,
     /*&IsLastSavedStatDataView::create, replaced by*/&createNoDataView,
-    &CompareActionDataView::create
+    &CompareActionDataView::create,
+    &CompareAndWriteDataView::create
 };
 
 template<>

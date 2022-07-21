@@ -58,8 +58,9 @@ namespace Panels::Configuration{
         // ---------------------
 
         bool newConfig();
-        bool readConfig(QString);
-        bool saveConfig(QString = QString());
+        bool readConfig();
+        bool saveConfig();
+        bool saveAsConfig(QString);
         bool saveCurrentConfig();
         //void loadConfigData(ConfigInfoPtr, LoadConfigSettings);
 
@@ -68,6 +69,7 @@ namespace Panels::Configuration{
         bool eventFilter(QObject*, QEvent*) override;
 
     public:
+        void deactivateRulesPanel();
         void syncConfig();
         void loadRules(QString procedureName, QString rulesCategory);
         void loadDefaultRules(QString rulesCategory);
@@ -86,13 +88,15 @@ namespace Panels::Configuration{
 
         //inline ConfigInfoPtr getConfigInfoPtr()const{return configInfoPtr;}
         inline bool request_newConfig(){return newConfig();}
-        inline bool request_readConfig(QString path){return readConfig(path);}
-        inline bool request_saveConfig(QString path){return saveConfig(path);}
+        inline bool request_readConfig(){return readConfig();}
+        inline bool request_saveAsConfig(QString path){return saveAsConfig(path);}
+        inline bool request_saveConfig(){return saveConfig();}
 
         inline void reloadGui(){
             //writeOnlyProceduresList.reloadGui();
-            //proceduresList.reloadGui();
-            //reloadGui();
+            ConfigInfo::ProceduresView proceduresView = config().readProceduresInfo();
+            deactivateRulesPanel();
+            configViewPanel.loadConfigData(proceduresView);
         }
 
         inline App& app()const{return app_;}

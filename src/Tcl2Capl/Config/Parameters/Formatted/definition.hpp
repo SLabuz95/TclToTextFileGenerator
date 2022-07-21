@@ -14,7 +14,7 @@ using ControlFlag = UserProcedureRule::Control;
 
 
 namespace FormatParameters {
-    enum Type : uint{
+    enum Type : int{
         FCT_Begin,
 
         TextItem = FCT_Begin,
@@ -24,10 +24,18 @@ namespace FormatParameters {
         FormatItem,
 
         FCT_End,
-        Size = FCT_End
+        Size = FCT_End,
+        None = -1
 
     };
 
+    class TypeInfo{
+        static const QList<QString> typeMap;
+    public:
+        inline static Type fromStr(QString& str){return static_cast<Type>(typeMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
+        inline static QString toStr(Type type){return typeMap.at(std::underlying_type_t<Type>(type));}
+        inline static const decltype(typeMap)& typeNames(){return typeMap;}
+    };
 }
 
 using FormatParametersType = FormatParameters::Type;

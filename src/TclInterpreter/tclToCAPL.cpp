@@ -96,7 +96,8 @@ const QList<QString> Action::conditionalMap
 {
     QStringLiteral("CompareNumbOfArguments"),
     QStringLiteral("IsLastSavedStat"),
-    QStringLiteral("Compare")
+    QStringLiteral("Compare"),
+    QStringLiteral("CompareAndWrite"),
 };
 
  const QList<QString> Action::executableMap
@@ -108,7 +109,6 @@ const QList<QString> Action::conditionalMap
     //QStringLiteral("AddFunctionDefinition"),
     QStringLiteral("AddPreExpression"),
     QStringLiteral("AddUserInteraction"),
-    QStringLiteral("CompareAndWrite"),
     //{QStringLiteral("FinalizeForEach"), Action::Executable::FinalizeForEach},  // private
     //{QStringLiteral("AddSnprintf"), Action::Executable::AddSnprintf},// private
 };

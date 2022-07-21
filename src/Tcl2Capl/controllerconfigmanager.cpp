@@ -6,10 +6,11 @@
 
 
 bool ControllerConfigManager::loadConfig(ControllerConfigInfo& configRef){
-    Tcl2CaplControllerConfigXmlData tempUserDefinitionsData;
-    FSD_XML_TclCaplParserConfigInterpreter::Config parserConfigInterpreter(tempUserDefinitionsData);
+    FSD_XML_TclCaplParserConfigInterpreter::Config parserConfigInterpreter(configRef);
     QStringList blackList;
     QString filePath;
+
+    lastErrorMsg_.clear();
     if( not(filePath = parserConfigInterpreter.readFileByFilePath(configRef.filePath(), QStringList())).isEmpty()){
         // Check for interpreter errors
         if(parserConfigInterpreter.isError()){   // if error true
@@ -43,12 +44,17 @@ bool ControllerConfigManager::saveConfig(ControllerConfigInfo& configRef){
     }
     file.close();
 
-    return lastErrorMsg_.length() == 0;;
+    return lastErrorMsg_.length() == 0;
 }
 
 bool ControllerConfigManager::saveConfigAs(ControllerConfigInfo& configRef, QString newPath){
     // Save file
-    QFile file(configRef.filePath());
+    QFile file(newPath);
+    if(file.exists()){
+        // ask to replace
+        file.setFileName("config.temp");
+    }
+
     QXmlStreamWriter xmlWriter(&file);
     xmlWriter.setAutoFormatting(true);
 

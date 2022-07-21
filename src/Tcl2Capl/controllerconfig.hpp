@@ -5,7 +5,6 @@
 #include"Tcl2Capl/Config/Parameters/FCT_products.hpp"
 #include"Tcl2Capl/Config/Rules/FCT_products.hpp"
 
-class Tcl2CaplControllerConfigXmlData;
 class Tcl2CaplControllerConfig{
 public:
     using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
@@ -119,7 +118,7 @@ public:
         }
     };
     Tcl2CaplControllerConfig(){}
-    Tcl2CaplControllerConfig(Tcl2CaplControllerConfigXmlData&);
+    //Tcl2CaplControllerConfig(Tcl2CaplControllerConfigXmlData&);
     ~Tcl2CaplControllerConfig(){}
 
 

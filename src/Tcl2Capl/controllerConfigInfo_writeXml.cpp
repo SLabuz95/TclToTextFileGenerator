@@ -3,13 +3,13 @@
 
 void ControllerConfigInfo::writeProceduresToXML(QXmlStreamWriter& xmlWriter){
     // Prepare Token
-    xmlWriter.writeStartElement("procedures");
 
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
     using ProcedureName = UserProcedure::ProcedureName;
     using Rules = UserProcedureRules;
 
+    xmlWriter.writeStartElement("procedures");
 
     QString name;
     qsizetype numbOfRules;
@@ -110,7 +110,7 @@ void ControllerConfigInfo::writeProceduresToXML(QXmlStreamWriter& xmlWriter){
             // Do not increment again
         }
     }
-    xmlWriter.writeEndElement(); // --- procedures --------------
+    xmlWriter.writeEndElement();
 }
 
 void ControllerConfigInfo::writeDefaultProcedureToXML(QXmlStreamWriter& xmlWriter){
@@ -197,10 +197,12 @@ void ControllerConfigInfo::writeSettingsToXML(QXmlStreamWriter& xmlWriter){
 
 void ControllerConfigInfo::toXmlContent(QXmlStreamWriter& xmlWriter){
     xmlWriter.writeStartDocument();
+    xmlWriter.writeStartElement("userConfig");
 
     writeSettingsToXML(xmlWriter);
     writeProceduresToXML(xmlWriter);
     writeDefaultProcedureToXML(xmlWriter);
 
+    xmlWriter.writeEndElement();
     xmlWriter.writeEndDocument();
 }

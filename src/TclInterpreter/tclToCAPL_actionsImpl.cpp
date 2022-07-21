@@ -118,6 +118,41 @@ TCLCommandsController::executeConditionalAction
     return ConditionResult::Unsatisfied;
 }
 
+template <>
+TCLCommandsController::ConditionResult
+TCLCommandsController::executeConditionalAction
+<TclProcedureCommand::Definition::Action::Conditional::CompareAndWrite>
+(ConditionalActionsParameters parameters){
+    const QString ERROR_PREFIX = "executeConditionalAction<\
+    TCLCommandsController::Definition::Action::Executable::CompareAndWrite>: ";
+
+    QString formatStr;
+    bool ok = false;
+    uint numbOfCompares = UINT_MAX;
+    uint numbOfFormatArgs = UINT_MAX;
+    if(parameters.size() < 3){
+        throwError(ERROR_PREFIX + "Number of Action Parameters dont match.");
+        return ConditionResult::Satisfied;
+    }
+    if((numbOfCompares = parameters.at(0).toUInt(&ok), !ok) ||
+            numbOfCompares + 1 >= parameters.size()  ||
+            (numbOfFormatArgs = parameters.at(numbOfCompares + 1).toUInt(&ok), !ok) ||
+            numbOfCompares + numbOfFormatArgs + 2 != parameters.size())
+    {
+        throwError(ERROR_PREFIX + "Action Parameters are wrong.");
+        return ConditionResult::Satisfied;
+    }
+    if(!createAndAssignString(formatStr, parameters.mid(2 + numbOfCompares)))
+    {
+        throwError(ERROR_PREFIX + "");
+        return ConditionResult::Satisfied;
+    }
+    for(QStringList::ConstIterator str = parameters.begin() + 1; str < parameters.begin() + 1 + numbOfCompares; str++)
+        if(*str == formatStr)
+            return ConditionResult::Satisfied;
+    return ConditionResult::Unsatisfied;
+}
+
 
 template <>
 void TCLCommandsController::executeAction
@@ -749,7 +784,9 @@ TclProcedureInterpreter::ConditionInterpretFunctions TclProcedureInterpreter::co
     &TCLCommandsController::executeConditionalAction<
     TclProcedureCommand::Definition::Action::Conditional::Compare>,
     &TCLCommandsController::executeConditionalAction<
-    TclProcedureCommand::Definition::Action::Conditional::IsLastSavedStat>,
+    TclProcedureCommand::Definition::Action::Conditional::IsLastSavedStat>,    
+    &TCLCommandsController::executeConditionalAction<
+    TclProcedureCommand::Definition::Action::Conditional::CompareAndWrite>,
 };
 
 TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::executableInterpretFunctions = {
@@ -765,7 +802,6 @@ TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::e
     TclProcedureCommand::Definition::Action::Executable::AddUserInteraction>,
     /*&TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::CompareAndWrite>,*/
-    nullptr,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::FinalizeForEach>,
     &TCLCommandsController::executeAction<

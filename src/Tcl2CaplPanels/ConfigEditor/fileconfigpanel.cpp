@@ -18,13 +18,13 @@ FileConfigPanel::FileConfigPanel(PanelRef configEditor, QString filePath)
     filePathLineEdit.setReadOnly(true);
     openButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
     openButton.setToolTip("Otwórz");
-    //openButton.installEventFilter(this);
+    openButton.installEventFilter(this);
     saveButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
     saveButton.setToolTip("Zapisz");
-    //saveButton.installEventFilter(this);
+    saveButton.installEventFilter(this);
     saveAsButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxQuestion));
     saveAsButton.setToolTip("Zapisz jako");
-    //saveAsButton.installEventFilter(this);
+    saveAsButton.installEventFilter(this);
 
     layout.setSpacing(0);
     layout.setContentsMargins(0,0,0,0);
@@ -74,7 +74,7 @@ void FileConfigPanel::newButtonPressed(){
 }
 
 void FileConfigPanel::openButtonPressed(){
-
+    QString oldPath = filePathStr();
      //get config file by dialog for config files (*.xml)
      QString filePath = QFileDialog::getOpenFileName(nullptr, QString("Wybierz plik konfiguracyjny:"), QString(), "*.xml");
 
@@ -83,18 +83,19 @@ void FileConfigPanel::openButtonPressed(){
          // Request change of config in configEditor
          // If success, change path in filePathLineEdit
          // If failed, do nothing
-         if(configEditor_.request_readConfig(filePath) == true){
-             filePathLineEdit.setText(filePath);
+         filePathLineEdit.setText(filePath);
+         if(configEditor_.request_readConfig() == false){
+             filePathLineEdit.setText(oldPath);
          }
      }
 }
 
 void FileConfigPanel::saveButtonPressed(){
 
-    if(filePathStr().isEmpty()){    // Temporary Config
+    if(filePathStr().isEmpty()){    // Local Config
         saveAsButtonPressed();
     }else{
-       if(configEditor_.request_saveConfig(filePathStr()) == true){
+       if(configEditor_.request_saveConfig() == true){
            // Do nothing
        }
     }
@@ -110,7 +111,7 @@ void FileConfigPanel::saveAsButtonPressed(){
     if(not filePath.isEmpty()){
         // request save file for the path
         // if success, change path in filePathLineEdit
-        if(configEditor_.request_saveConfig(filePath) == true){
+        if(configEditor_.request_saveAsConfig(filePath) == true){
             filePathLineEdit.setText(filePath);
         }
 

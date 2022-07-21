@@ -188,7 +188,7 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readNewInputConfig
 
 Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readProceduresConfig(QFileInfo &iniConfig){
 
-    Tcl2CaplControllerConfigXmlData tempUserDefinitionsData;
+    /*Tcl2CaplControllerConfigXmlData tempUserDefinitionsData;
     FSD_XML_TclCaplParserConfigInterpreter::Config parserConfigInterpreter(tempUserDefinitionsData);
     QStringList blackList;
     QString filePath;
@@ -208,7 +208,7 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readProceduresConf
             }
         }
     }
-    return QString();
+    return QString();*/
 }
 
 void Tcl2CaplFileParserInstance::generateCapl(){

@@ -48,7 +48,6 @@ ActionView::ActionView(List& list, ActionPtr action)
 template<>
 void ActionView::readAction(ActionPtr& action){
     action = ConditionalsFactory::create(Action::fromUnderlying(actionTypeComboBox.currentIndex()));
-
     if(dataView_){
         dataView_->readAction(*action);
     }
