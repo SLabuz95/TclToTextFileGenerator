@@ -103,6 +103,7 @@ void ConditionalsList::loadActions(ActionsRef actions)
 template<>
 void ConditionalsList::readActions(ActionsRef actions)
 {
+    actions.reserve(count());
     actions.resize(count());
     using Action = std::decay_t<ActionsRef>::Iterator;
     Action action = actions.begin();

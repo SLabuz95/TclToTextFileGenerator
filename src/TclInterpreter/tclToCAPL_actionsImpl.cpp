@@ -784,9 +784,9 @@ TclProcedureInterpreter::ConditionInterpretFunctions TclProcedureInterpreter::co
     &TCLCommandsController::executeConditionalAction<
     TclProcedureCommand::Definition::Action::Conditional::Compare>,
     &TCLCommandsController::executeConditionalAction<
-    TclProcedureCommand::Definition::Action::Conditional::IsLastSavedStat>,    
-    &TCLCommandsController::executeConditionalAction<
     TclProcedureCommand::Definition::Action::Conditional::CompareAndWrite>,
+    &TCLCommandsController::executeConditionalAction<
+    TclProcedureCommand::Definition::Action::Conditional::CompareArgumentStat>,
 };
 
 TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::executableInterpretFunctions = {

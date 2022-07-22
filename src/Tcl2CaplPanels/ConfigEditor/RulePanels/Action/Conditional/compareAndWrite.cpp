@@ -187,6 +187,7 @@ void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::loadArgument(QS
 }
 
 void CompareAndWriteActionView::ExpectedArgumentsList::ListItem::readArguments(QStringList& arguments){
+    arguments.reserve(childCount());
     arguments.resize(childCount());
     int i = 0;
     for(QStringList::Iterator argument = arguments.begin();

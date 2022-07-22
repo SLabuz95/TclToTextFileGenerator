@@ -95,9 +95,9 @@ KeywordsMap KeywordsController::keywordsMap ={
 const QList<QString> Action::conditionalMap
 {
     QStringLiteral("CompareNumbOfArguments"),
-    QStringLiteral("IsLastSavedStat"),
     QStringLiteral("Compare"),
     QStringLiteral("CompareAndWrite"),
+    QStringLiteral("CompareArgumentStat"),
 };
 
  const QList<QString> Action::executableMap

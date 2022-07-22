@@ -239,6 +239,7 @@ void List::loadRules(FormatRulesRef rules){
 
 void List::readRules(FormatRulesRef rules)
 {
+    rules.reserve(count());
     rules.resize(count());
     using Rule = std::decay_t<FormatRulesRef>::Iterator;
     Rule rule = rules.begin();

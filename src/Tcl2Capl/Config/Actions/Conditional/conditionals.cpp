@@ -7,6 +7,6 @@ ConditionalsFactory::CreateFunctionTable ConditionalsFactory::createFunctionTabl
 {
     &ConditionalsFactory::create<Conditional::CompareNumbOfArguments>,
     &ConditionalsFactory::create<Conditional::Compare>,
-    //&ConditionalsFactory::create<Conditional::IsLastSavedStat>,
     &ConditionalsFactory::create<Conditional::CompareAndWrite>,
+    &ConditionalsFactory::create<Conditional::CompareArgumentStat>,
 };

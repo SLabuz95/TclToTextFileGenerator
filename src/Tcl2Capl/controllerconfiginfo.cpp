@@ -1378,8 +1378,20 @@ void ControllerConfigInfo::clearProcedures(){
         }
         configKeyIter++;
     }
-    numbOfAllProcedures = 0;
+    numbOfExistingProcedures = 0;
     qDebug() << "clearProcedures end" << newProceduresMap;
+}
+
+void ControllerConfigInfo::clear(){
+    settings().writeOnlyProcedures().clear();
+    numbOfExistingProcedures = 0;
+    numbOfAllProcedures = 0;
+    newProceduresMap.clear();
+    newDefaultProcedureMap.clear();
+    for(NewRules::Iterator rule = newRules.begin(); rule != newRules.end(); rule++)
+        delete (*rule);
+    for(NewRules::Iterator rule = newDefaultProcedureRules.begin(); rule != newDefaultProcedureRules.end(); rule++)
+        delete (*rule);
 }
 
 void ControllerConfigInfo::loadNewRules(QString name, RulesCategories index, NewRules& rules){
@@ -1660,7 +1672,7 @@ UserProcedure ControllerConfigInfo::readDefaultProcedure(){
     configMapIter++;
     rulesForDefaultArgument.rulesOnMoveArgument.reserve((configMapIter != newDefaultProcedureMap.end())?
                                                             abs(configMapIter.value()) - rulesOnEndOfCall.size() :
-                                                            newDefaultProcedureRules.size() - abs(configMapIter.value()));
+                                                            newDefaultProcedureRules.size() - rulesOnEndOfCall.size());
     rulesForDefaultArgument.rulesOnMoveArgument.resize(rulesForDefaultArgument.rulesOnMoveArgument.capacity());
     // Rules for arguments
     qsizetype numbOfIndexes = 0;

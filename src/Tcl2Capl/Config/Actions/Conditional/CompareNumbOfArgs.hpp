@@ -45,10 +45,10 @@ public:
         xmlWriter.writeAttribute("type", UserProcedure::Action::toStr_conditional(type()));
         // numbOfArgs_
         xmlWriter.writeStartElement("param"); // List?
-        xmlWriter.writeAttribute("type", 0); // For compatibility with future implementation
+        xmlWriter.writeAttribute("type", "0"); // For compatibility with future implementation
         for(NumbOfArgumentsList::Iterator arg = numbOfArgs().begin(); arg < numbOfArgs().end(); arg++){
             xmlWriter.writeEmptyElement("param"); // String param?
-            xmlWriter.writeAttribute("type", 0); // For compatibility with future implementation
+            xmlWriter.writeAttribute("type", "0"); // For compatibility with future implementation
             xmlWriter.writeAttribute("value", *arg);
         }
         xmlWriter.writeEndElement(); // List? End

@@ -1,22 +1,22 @@
-#ifndef ACTION_PANEL_ISLASTSAVEDSTAT_HPP
-#define ACTION_PANEL_ISLASTSAVEDSTAT_HPP
+#ifndef ACTION_PANEL_COMPAREARGUMENTSTAT_HPP
+#define ACTION_PANEL_COMPAREARGUMENTSTAT_HPP
 
 #include"Tcl2CaplPanels/ConfigEditor/RulePanels/FormattedString/formattedString.hpp"
 #include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
 #include"../actions.hpp"
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
 namespace General = Panels::Configuration::View;
-namespace Panels::Configuration::View::ActionsList::IsLastSavedStatActionView{
+namespace Panels::Configuration::View::ActionsList::CompareArgumentStatActionView{
 
-    class IsLastSavedStatActionView
+    class CompareArgumentStatActionView
             : public ActionDataView<ConditionalsFactory::ListOfBases>
     {
-        static constexpr ActionType actionType = ConditionalsTypes::IsLastSavedStat;
+        static constexpr ActionType actionType = ConditionalsTypes::CompareArgumentStat;
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
         using Action = ConditionalsFactory::Product<actionType>;
 
-        IsLastSavedStatActionView(QWidget*);
-        IsLastSavedStatActionView(QWidget*, ActionPtr);
+        CompareArgumentStatActionView(QWidget*);
+        CompareArgumentStatActionView(QWidget*, ActionPtr);
     public:
         static ActionDataView* create(QWidget*, ActionRef);
         using ActionView = ActionView;
@@ -42,4 +42,4 @@ namespace Panels::Configuration::View::ActionsList::IsLastSavedStatActionView{
 }
 
 
-#endif // ISLASTSAVEDSTAT_HPP
+#endif // COMPAREARGUMENTSTAT_HPP

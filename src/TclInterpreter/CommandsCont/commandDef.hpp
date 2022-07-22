@@ -45,8 +45,8 @@ namespace Tcl::Interpreter::Command{
                 FCT_Begin = CompareNumbOfArguments,
                 Compare,
                 CompareAndWrite, // QuickRule
+                CompareArgumentStat,    // Check Stat for specified SavedStat (Arguments pattern: 1- savedStat number)
                 FCT_End,// VVVVVVVV Privates factory products not required
-                IsLastSavedStat = FCT_End,    // Check Stat for specified SavedStat (Arguments pattern: 1- savedStat number)
 
                 PrivateSize,
                 PublicSize = FCT_End,

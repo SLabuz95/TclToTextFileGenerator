@@ -143,7 +143,7 @@ void ControllerConfigInfo::writeDefaultProcedureToXML(QXmlStreamWriter& xmlWrite
     configMapIter++;
     numbOfRules = (configMapIter != newDefaultProcedureMap.end())?
                 abs(configMapIter.value()) - numbOfRules :
-                newDefaultProcedureRules.size() - abs(configMapIter.value());
+                newDefaultProcedureRules.size() - numbOfRules;
 
     newRule = endRule;
     endRule = newRule + numbOfRules;

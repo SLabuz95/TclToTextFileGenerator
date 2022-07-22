@@ -40,7 +40,7 @@ public:
     }
     void toXmlContent(QXmlStreamWriter& xmlWriter) override{
         xmlWriter.writeStartElement("param"); // List?
-        xmlWriter.writeAttribute("type", 0); // For compatibility with future implementation
+        xmlWriter.writeAttribute("type", "0"); // For compatibility with future implementation
         Parameters::Iterator parameter = parameters().begin();
         for( ; parameter < parameters().end(); parameter++)
             (*parameter)->toXmlContent(xmlWriter);

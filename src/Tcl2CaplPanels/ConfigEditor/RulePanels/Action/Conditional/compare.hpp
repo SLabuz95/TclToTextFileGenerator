@@ -128,6 +128,7 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
 
             void loadIndexes(QStringList);
             void readAll(QStringList& list){
+                list.reserve(count());
                 list.resize(count());
                 int i = 0;
                 for(QStringList::Iterator string = list.begin(); string != list.end(); string++, i++)

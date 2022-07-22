@@ -116,6 +116,7 @@ namespace Panels::Configuration::View::ActionsList{
 
             void loadIndexes(const Action::NumbOfArgumentsList&);
             void readAll(QStringList& list){
+                list.reserve(count());
                 list.resize(count());
                 int i = 0;
                 for(QStringList::Iterator index = list.begin(); index != list.end(); index++, i++)

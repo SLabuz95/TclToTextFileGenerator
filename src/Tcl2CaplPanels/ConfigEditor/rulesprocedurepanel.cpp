@@ -18,6 +18,7 @@ void RulesList::loadRules(RulesViewRef rules)
 
 void RulesList::readRules(RulesRef& rules)
 {
+    rules.reserve(count());
     rules.resize(count());
     RulesRef::Iterator rule = rules.begin();
     for(int i = 0; i < rules.size(); i++, rule++){
