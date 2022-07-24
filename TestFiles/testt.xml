@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tclConfig>
+    <settings>
+        <writeOnlyProcedures/>
+    </settings>
+    <procedures>
+        <procedure>
+            <name>abc</name>
+            <rulesOnEndOfCall>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="CompareNumbOfArguments">
+                        <param type="0">
+                            <param type="0" value="2"/>
+                            <param type="0" value="3"/>
+                        </param>
+                    </conditionalAction>
+                    <conditionalAction type="Compare">
+                        <param type="0">
+                            <param type="0">abc</param>
+                            <param type="0">23</param>
+                        </param>
+                        <param type="0">
+                            <formatRule type="Text">test</formatRule>
+                        </param>
+                    </conditionalAction>
+                    <conditionalAction type="CompareArgumentStat"/>
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Text">test</formatRule>
+                            <formatRule type="Name"/>
+                            <formatRule type="Index" value="1"/>
+                            <formatRule type="ArgumentsFrom" value="3">; test</formatRule>
+                            <formatRule type="Format" target="TclFormat"/>
+                        </param>
+                    </executableAction>
+                    <executableAction type="TclParse">
+                        <param type="0"/>
+                    </executableAction>
+                    <executableAction type="AddPredefinition">
+                        <param type="0" value="MainScript"/>
+                        <param type="0"/>
+                    </executableAction>
+                </rawRule>
+            </rulesOnEndOfCall>
+            <rulesForUndefinedArgument/>
+        </procedure>
+    </procedures>
+    <defaultProcedure>
+        <rulesOnEndOfCall/>
+        <rulesForUndefinedArgument/>
+    </defaultProcedure>
+</tclConfig>
