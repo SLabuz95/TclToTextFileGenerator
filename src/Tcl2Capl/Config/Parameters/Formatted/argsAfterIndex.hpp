@@ -36,18 +36,18 @@ public:
     const QString& separator(){return separator_;}
     void toActionParameters(QStringList& parameters)override{
         using Format = Tcl::Interpreter::Command::Definition::Format;
-        if(separator().isEmpty())
+        if(not separator().isEmpty())
             Format::addFormatRule(parameters, Format::Rule::SEPARATOR, separator_);
         Format::addFormatRule(parameters, Format::Rule::ARGS_AFTER_INDEX, QString::number(index()));
     }
     void toXmlContent(QXmlStreamWriter& xmlWriter) override{
         if(separator().length() == 0){
             xmlWriter.writeEmptyElement("formatRule"); // String param?
-            xmlWriter.writeAttribute("type", QString::number(type())); // For compatibility with future implementation
+            xmlWriter.writeAttribute("type", FormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
             xmlWriter.writeAttribute("value", QString::number(index()));
         }else{
             xmlWriter.writeStartElement("formatRule"); // String param?
-            xmlWriter.writeAttribute("type", QString::number(type())); // For compatibility with future implementation
+            xmlWriter.writeAttribute("type", FormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
             xmlWriter.writeAttribute("value", QString::number(index()));
             xmlWriter.writeCharacters(separator());
             xmlWriter.writeEndElement(); // List? End

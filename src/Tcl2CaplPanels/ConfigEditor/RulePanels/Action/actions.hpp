@@ -97,6 +97,7 @@ namespace Panels::Configuration::View::ActionsList{
                 else
                     addItems(Tcl::Command::Definition::Action::executablesNames());
             }
+
         };
         public:
             ActionView(List& , ActionPtr);

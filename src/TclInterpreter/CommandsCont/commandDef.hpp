@@ -30,10 +30,11 @@ namespace Tcl::Interpreter::Command{
         using RulesForArgument = RulesForArgument;
         using RulesForArguments = QVector<RulesForArgument>;
 
-
+        static QString prepareTclProcedureNameFromStr(const QString& str);
     private:
         class Action{
         public:
+
             // Concept ----------------------------------------------------------------------
             enum class Conditional : int;
             enum class Executable : int;
@@ -41,8 +42,8 @@ namespace Tcl::Interpreter::Command{
             // End of Concept |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
             // Concept Definition ------------------------------------------------------------------
             enum class Conditional : int{
-                CompareNumbOfArguments, // Current numb of Arguments for last procedure call (current definition)
-                FCT_Begin = CompareNumbOfArguments,
+                FCT_Begin,
+                CompareNumbOfArguments = FCT_Begin, // Current numb of Arguments for last procedure call (current definition)
                 Compare,
                 CompareAndWrite, // QuickRule
                 CompareArgumentStat,    // Check Stat for specified SavedStat (Arguments pattern: 1- savedStat number)
@@ -55,18 +56,18 @@ namespace Tcl::Interpreter::Command{
             };
 
             enum class Executable : int{
-                 Write,
-                FCT_Begin = Write,
+                FCT_Begin,
+                Write = FCT_Begin,
                 TclParse,
                 Error,
                 AddPreExpression,
                 AddUserInteraction,
+                AddPredefinition, // Scope (Global (in file variables section), TestCase, CurrentBlock, NewBlock(Created only for this specific procedure call) )
                 FCT_End,// VVVVVVVV Privates factory products not required
                 FinalizeForEach = FCT_End,
-                ChangeLastSavedStat,
+                ChangeLastArgumentStat,
                 AddFunctionDefinition,
                 //AddSnprintf,
-                AddPredefinition,
                 ExprProcessParameter,
                 ExprFinalize,
 

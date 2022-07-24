@@ -27,7 +27,7 @@ void ControllerConfigInfo::writeProceduresToXML(QXmlStreamWriter& xmlWriter){
         if(configMapIter.value() >= 0){ // Check if Exists
             // Write Procedure element
             xmlWriter.writeStartElement("procedure");
-            xmlWriter.writeAttribute("name", name);
+            xmlWriter.writeTextElement("name", name);
 
             // Write OnEndOfCallRules
             xmlWriter.writeStartElement("rulesOnEndOfCall");
@@ -197,7 +197,7 @@ void ControllerConfigInfo::writeSettingsToXML(QXmlStreamWriter& xmlWriter){
 
 void ControllerConfigInfo::toXmlContent(QXmlStreamWriter& xmlWriter){
     xmlWriter.writeStartDocument();
-    xmlWriter.writeStartElement("userConfig");
+    xmlWriter.writeStartElement("tclConfig");
 
     writeSettingsToXML(xmlWriter);
     writeProceduresToXML(xmlWriter);

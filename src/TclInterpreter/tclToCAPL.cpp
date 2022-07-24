@@ -105,10 +105,10 @@ const QList<QString> Action::conditionalMap
     QStringLiteral("Write"),
     QStringLiteral("TclParse"),
     QStringLiteral("Error"),
-    //QStringLiteral("ChangeLastSavedStat"),
-    //QStringLiteral("AddFunctionDefinition"),
+    //QStringLiteral("ChangeLastArgumentStat"),
     QStringLiteral("AddPreExpression"),
     QStringLiteral("AddUserInteraction"),
+    QStringLiteral("AddPredefinition"),
     //{QStringLiteral("FinalizeForEach"), Action::Executable::FinalizeForEach},  // private
     //{QStringLiteral("AddSnprintf"), Action::Executable::AddSnprintf},// private
 };
@@ -123,8 +123,8 @@ const QList<QString> Format::ruleMap
 
  const QList< QString> Format::targetMap
 {
-    QStringLiteral("Raw"),
     QStringLiteral("TclFormat"),
+    QStringLiteral("Raw"),
     QStringLiteral("CaplFormat"),
     QStringLiteral("ParametersStat"),
     //{QStringLiteral("Command"), FormatTarget::Raw},
@@ -231,7 +231,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
               { // Rule 1: Braces -> BracesExprOnly
                 {
                     {
-                        ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                        ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                         {
                         QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))
                         }
@@ -239,7 +239,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 },
                 {
                    {    // Action 1: Change stat to DoubleQuoteExprOnly
-                         ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                         ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                         {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
                    }
                 }
@@ -247,7 +247,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
               { // Rule 2: DoubleQuotes -> DoublesQuotesExprOnly
                 {
                     {
-                        ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                        ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                         {
                         QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::DoubleQuotes))
                         }
@@ -255,7 +255,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 },
                 {
                    {    // Action 1: Change stat to DoubleQuoteExprOnly
-                         ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                         ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                         {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::DoubleQuotesExprOnly))}
                    }
                 }
@@ -263,7 +263,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
               { // Rule 3: ComplexWord -> ComplexWordExprOnly
                 {
                     {
-                        ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                        ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                         {
                         QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWord))
                         }
@@ -271,7 +271,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 },
                 {
                    {    // Action 1: Change stat to DoubleQuoteExprOnly
-                         ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                         ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                         {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWordExprOnly))}
                    }
                 }
@@ -304,7 +304,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                     {   // Rule 1: If lastSavedStat stat == List or EndOfList or FunctionCall or Whitespace -> Do nothing (Break)
                         {
                             {
-                             ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                              {
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))
                              }
@@ -313,7 +313,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                         },
                         {
                            {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
                            }
                         }
@@ -321,7 +321,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                     {   // Rule 1: If lastSavedStat stat == ComplexWord -> ChangeTo
                         {
                             {
-                             ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                              {
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWord))
                              }
@@ -330,7 +330,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                         },
                         {
                            {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWordExprOnly))}
                            }
                         }
@@ -377,13 +377,13 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                     {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
                         {   // Conditions:  If SavedStat stat == List
                             {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
                             },
                         },
                         {
                            {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                            }
                         }
@@ -394,7 +394,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                     {   // Rule 1: If Script
                         {
                             {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                             },
                         },
@@ -438,13 +438,13 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
                     {   // Conditions:  If SavedStat stat == List
                         {   // Condition 1:  If SavedStat stat == List
-                            ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                            ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
                         },
                     },
                     {
                        {    // Action 1: Change stat to CodeBlock
-                             ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                             ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                        }
                     }
@@ -454,7 +454,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 {   // Rule 1: If Script and prelast parameter is then
                     {
                         {   // Condition 1:  If SavedStat stat == List
-                            ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                            ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                         },
                         TclProcedureInterpreter::newCompareRule(
@@ -509,7 +509,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
                     {
                         {
-                          ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                          ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
                         },
                         {
@@ -527,7 +527,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                     },
                     {
                        {    // Action 1: Change stat to CodeBlock
-                             ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                             ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                        }
                     }
@@ -535,7 +535,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 {   // Rule 2: On lastSavedStat == List -> Change to CodeBlock
                     {
                         {
-                          ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                          ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
                         },
                         {
@@ -553,7 +553,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                     },
                     {
                        {    // Action 1: Change stat to CodeBlock
-                             ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                             ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                             {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
                        }
                     }
@@ -1241,7 +1241,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
     },
     // End of Definition ================================================,
 
-    {
+    /*{
         "for",
         {   // Rules for Arguments
             {
@@ -1250,14 +1250,14 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     {   // Rule 1: On lastSavedStat == List -> Change to Expression
                         {   // Conditions:  If SavedStat stat == List
                             {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
                             },
                         },
                         {
 //                            Commented but required
 //                           {    // Action 1: Change stat to Expression
-//                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+//                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
 //                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Expression))}
 //                           }
                         }
@@ -1265,7 +1265,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     {   // Rule 2: On Ignore
                         {   // Conditions: Ignore
                             {   // Condition 1:  Ignore
-                                ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                 {//QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
                                  //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
@@ -1325,7 +1325,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     {   // Rule 1: If lastSavedStat stat == List or EndOfList or FunctionCall or Whitespace -> Do nothing (Break)
                         {
                             {
-                             ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                              {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart)),
                               //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces)),
@@ -1393,14 +1393,14 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     {   // Rule 1: On lastSavedStat == List -> Change to Expression
                         {   // Conditions:  If SavedStat stat == List
                             {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
                             },
                         },
                         {
 //                            Commented but required
 //                           {    // Action 1: Change stat to Exxpression
-//                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+//                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
 //                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Expression))}
 //                           }
                         }
@@ -1408,7 +1408,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     {   // Rule 2: On Ignore
                         {   // Conditions:  Ignore
                             {   // Condition 1:  Ignore
-                                ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Braces)),
                                  //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
@@ -1470,13 +1470,13 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
                         {   // Conditions:  If SavedStat stat == List
                             {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
                             },
                         },
                         {
                            {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                            }
                         }
@@ -1484,7 +1484,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     {   // Rule 2: On Ignore -> Ignore
                         {   // Conditions:  Ignore
                             {   // Condition 1:  Ignore
-                                ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                 {
                                     //QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
                                 // QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
@@ -1523,6 +1523,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                                     "=-1",
                                 }
                             }*/
+    /*
                         }
                     },
                     {
@@ -1581,7 +1582,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                 }
             }
         }
-    },
+    },*/
     // End of Definition ================================================,
      /*{
          "foreach",
@@ -1681,13 +1682,13 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                      {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
                          {   // Conditions:  If SavedStat stat == List
                              {   // Condition 1:  If SavedStat stat == List
-                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                 ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                  {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
                              },
                          },
                          {
                             {    // Action 1: Change stat to CodeBlock
-                                  ProcedureDefinition::Action::Executable::ChangeLastSavedStat,
+                                  ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
                                  {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
                             }
                          }
@@ -1695,7 +1696,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                      {   // Rule 2: On Ignore
                          {   // Conditions:  Ignore
                              {   // Condition 1:  Ignore
-                                 ProcedureDefinition::Action::Conditional::IsLastSavedStat,
+                                 ProcedureDefinition::Action::Conditional::CompareArgumentStat,
                                  {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfCodeBlock)),
                                   QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::EndOfExpression)),
                                 QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Whitespace)),
@@ -2928,12 +2929,15 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                         if(arg->isEmpty()){
                             // FULL LINE ----------------
                             switch(target){
-                            case Target::TclFormat:
+                            case Target::TclFormat:                                
+                                dest += lastProcedureCall().rawParameters().at(0).rawCommand();
+                                break;
                             case Target::CaplFormat:
                                 dest += lastProcedureCall()._name();
                                 break;
+                            case Target::Stat:
                             case Target::Raw:
-                                dest += command;
+                                dest += lastProcedureCall().rawParameters().front().toString(target);
                                 break;
                             default:
                                 return (arg - args.begin());
@@ -2979,8 +2983,9 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                         case Target::CaplFormat:
                         case Target::TclFormat:
                         case Target::Raw:
+                        case Target::Stat:
                         {
-                            for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + index; responseArg < lastProcedureCall().parameters().end(); responseArg++){
+                            for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + index; responseArg != lastProcedureCall().parameters().end(); responseArg++){
                                 dest += responseArg->toString(target) + seperator;
                                 separatorUsed = true;
                             }

@@ -1639,6 +1639,7 @@ void ControllerConfigInfo::readProcedures(QList<UserProcedure>& userProcedures){
             (*userProcedureIter) = UserProcedure(name, rulesForArguments, rulesForDefaultArgument, rulesOnEndOfCall);
             userProcedureIter++;
         }else{ // Not exist - move to next procedure
+            configMapIter++;
             while(configMapIter != newProceduresMap.end() and configMapIter.key().second != RulesCategories::OnEndOfCall){
                 configMapIter++;
             }
@@ -1759,10 +1760,11 @@ bool ControllerConfigInfo::addIndex(QString name, RulesFromConfigFileView& rules
     NewRules& rules = rulesView.rules;
     const qsizetype& index = static_cast<qsizetype>(rulesView.index);
     configKeyIter = newProceduresMap.find({name, static_cast<RulesCategories>(index)});
-    if(configKeyIter != newProceduresMap.end()){
-        return false; // Duplicated
-    }
     if(index > -1){
+        if(configKeyIter != newProceduresMap.end()){
+            return false; // Duplicated
+        }
+
         configKeyIter = newProceduresMap.insert({name, static_cast<RulesCategories>(index)}, 0);
         configKeyIter++;
         qsizetype value;
@@ -1827,10 +1829,10 @@ bool ControllerConfigInfo::addIndex(RulesFromConfigFileView& rulesView){
     const qsizetype& index = static_cast<qsizetype>(rulesView.index);
 
     configKeyIter = newDefaultProcedureMap.find(static_cast<RulesCategories>(index));
+    if(index > -1){
     if(configKeyIter != newDefaultProcedureMap.end()){
         return false; // Duplicated
     }
-    if(index > -1){
         configKeyIter = newDefaultProcedureMap.insert(static_cast<RulesCategories>(index), 0);
         configKeyIter++;
         qsizetype value;

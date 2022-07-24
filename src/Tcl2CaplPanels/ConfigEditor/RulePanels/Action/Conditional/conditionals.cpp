@@ -10,9 +10,9 @@ using CompareAndWriteDataView = CompareAndWriteActionView;
 template<>
 View::CreateFunctionTable View::createFunctionTable = {
     &CompareNumbOfArgsActionView::create,
-    &CompareArgumentStatDataView::create,
     &CompareActionDataView::create,
-    &CompareAndWriteDataView::create
+    &CompareAndWriteDataView::create,
+    &CompareArgumentStatDataView::createNoDataView,
 };
 
 template<>

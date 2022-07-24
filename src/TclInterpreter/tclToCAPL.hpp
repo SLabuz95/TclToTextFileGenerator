@@ -68,7 +68,7 @@ namespace Tcl{
         //}
 
         inline void addPredefinitionsToScript(){    // CONFIRMED Add to script and to main scirpt
-            QString predefinitions = predefinitionsController.getPredefinitionsGroupStr();
+//            QString predefinitions = predefinitionsController.getPredefinitionsGroupStr();
 //            if(not predefinitions.isEmpty())
 //                lastSavedStat().setCommand(predefinitions + lastSavedStat().command());
         }
@@ -146,10 +146,10 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
         // End Of Concept ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
         // Concept Definition ------------------------------------------------------------------
 
-        inline bool isStringConstNumber(QString str)const{return isStringFloatNumber(str);}
-        inline bool isStringFloatNumber(QString str)const{return str.lastIndexOf(QRegularExpression(RegExpCore::regExpForFloatsNoComma)) == 0;}
-        inline bool isStringIntNumber(QString str)const{return str.lastIndexOf(QRegularExpression(RegExpCore::regExpForInt)) == 0;}
-        inline bool isStringUIntNumber(QString str)const{return str.lastIndexOf(QRegularExpression(RegExpCore::regExpForUint)) == 0;}
+        inline bool isStringConstNumber(const QString& str)const{return isStringFloatNumber(str);}
+        inline bool isStringFloatNumber(const QString& str)const{return str.trimmed().lastIndexOf(QRegularExpression(RegExpCore::regExpForFloatsNoComma)) == 0;}
+        inline bool isStringIntNumber(const QString& str)const{return str.trimmed().lastIndexOf(QRegularExpression(RegExpCore::regExpForInt)) == 0;}
+        inline bool isStringUIntNumber(const QString& str)const{return str.trimmed().lastIndexOf(QRegularExpression(RegExpCore::regExpForUint)) == 0;}
 
         // End of Concept Definition
         // Objects ----------------------------------------------------
@@ -224,10 +224,7 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
 //            inline bool isPrelastSavedStat()const{return savedStatsBegin() <= savedStatsEnd() - 2;}
 //            inline SavedStat& prelastSavedStat(){return *(savedStats().end() - 2);}
 
-            void addIgnoreMessage(ErrorMessage message){
-                ignoreMessages.append(message);
-                qDebug() << ignoreMessages.last().toString();
-            }
+
             /*Error removeIgnore(){
 //                return (isSavedStatsEmpty())?
 //                                throwError("TCLInterpreter::removeIgnore: No stats") :
@@ -253,7 +250,7 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
             Error finalizeSnprintfCall();
 
             Error processError(){
-                addIgnoreMessage(ErrorMessage(error(), textInterpreter().readTclCommand(), textInterpreter().restOfString()));
+                addIgnoreMessage();
                  if(commandsController.processCallsForError() == Error::Error)
                      return Error::Error;
                  clearError();
@@ -267,6 +264,16 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
             void addEmptyLine();
         // Interface -------------------------------------------------
         public:
+            void addIgnoreMessage(){
+                addIgnoreMessage(ErrorMessage(error(), textInterpreter().readTclCommand(), textInterpreter().restOfString()));
+            }
+            void addIgnoreMessage(const QString& errorMsg){
+                addIgnoreMessage(ErrorMessage(errorMsg, textInterpreter().readTclCommand(), textInterpreter().restOfString()));
+            }
+            void addIgnoreMessage(ErrorMessage message){
+                ignoreMessages.append(message);
+                qDebug() << ignoreMessages.last().toString();
+            }
             TCLInterpreter(UserInputConfig& userConfig, FunctionDefinitionsRef caplFunctionDefinitions);
 
 //          inline bool isComplete()const{return savedStatsSize() == 1;}

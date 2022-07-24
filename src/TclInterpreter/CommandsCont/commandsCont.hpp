@@ -106,7 +106,7 @@ namespace Tcl::Interpreter::Command{
         template<Definition::Rule::ExecutableActions::value_type::ActionType stat>
         void executeAction(ExecutableActionsParameters);
 
-        Error addPreExpressionForUserInteraction();
+        Error addPreExpressionForUserInteraction(QString);
 
 
         CallConfig callConfig;

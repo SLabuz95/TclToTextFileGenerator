@@ -244,7 +244,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
     userInputConfig_.proceduresSettings().setMode(savedMode);
     //qDebug() << formatCount;
     for(Predefinitions::Iterator predefinition = predefinitions.begin(); predefinition < predefinitions.end(); predefinition++){
-        qDebug() << predefinition->type + " " + predefinition->value;
+//        qDebug() << predefinition->type + " " + predefinition->value;
     }
     return errorMsg.isEmpty();
 }
@@ -299,7 +299,6 @@ bool Tcl2CaplController::generateCapls_impl(){
                 QString filePath;
                 //tcFileData.clearInterpreter();
                 tcFileData.setCurrentTCLFileName( inputFile.fileName());
-                errorMsg.clear();
                 if(!(filePath = tcFileModifier.readFileByFilePath(inputFile.filePath(), QStringList())).isEmpty()){
                     // Check for interpreter errors
                     if(tcFileModifier.isError()){   // if error true
@@ -316,6 +315,7 @@ bool Tcl2CaplController::generateCapls_impl(){
                     }
                 }
                 QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg, tcFileData.testCaseErrors()));
+                errorMsg.clear();
             }else{
                 int i = 0;
                 QString dirName = inputFile.fileName();
@@ -377,7 +377,6 @@ bool Tcl2CaplController::generateCapls_impl(){
                                 QString filePath;
                                 //tcFileData.clearInterpreter();
                                 tcFileData.last()->setCurrentTCLFileName( fileInfo.fileName());
-                                errorMsg.clear();
                                 if(!(filePath = tcFileModifier.readFileByFilePath(fileInfo.filePath(), QStringList())).isEmpty()){
                                     // Check for interpreter errors
                                     if(tcFileModifier.isError()){   // if error true
@@ -394,6 +393,7 @@ bool Tcl2CaplController::generateCapls_impl(){
                                     }
                                 }
                                 QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg, tcFileData.last()->testCaseErrors()));
+                                errorMsg.clear();
                             }
                         }
                     }

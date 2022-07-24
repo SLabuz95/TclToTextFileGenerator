@@ -73,6 +73,7 @@ namespace Tcl::Interpreter{
         }
         void processVariableSubbingParameter(Call::Parameter&, QString&);
         bool isFirstSignOk(QString);
+        QString prepareTclVariableNameFromStr(const QString& str);
     };
 
 };

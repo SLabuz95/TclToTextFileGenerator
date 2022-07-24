@@ -38,7 +38,7 @@ public:
     }
     void toXmlContent(QXmlStreamWriter& xmlWriter) override{
         xmlWriter.writeStartElement("formatRule"); // String param?
-        xmlWriter.writeAttribute("type", QString::number(type())); // For compatibility with future implementation
+        xmlWriter.writeAttribute("type", FormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
         xmlWriter.writeCharacters(text());
         xmlWriter.writeEndElement();
     }

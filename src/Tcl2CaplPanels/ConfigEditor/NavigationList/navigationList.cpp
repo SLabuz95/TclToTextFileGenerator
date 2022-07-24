@@ -522,12 +522,15 @@ void List::processEditData(CurEditItemInfo& curEditItemInfo)
             break;
         case PanelType::Procedures:
         {
+            using TclProcedure = ControllerConfigInfo::Config::UserProcedure;
             // if Procedure Element (parent == topLevelItem(Panel::Procedures))
             if(curEditItemInfo.item->parent() == topLevelItem(panelType2number(PanelType::Procedures))){
+                // Prepare TclProcedureName - namespace control etc
+                curEditItemInfo.item->setText(0, TclProcedure::prepareTclProcedureNameFromStr(curEditItemInfo.item->text(0)));
                  // Can be empty or not (New or Change)
                 if(curEditItemInfo.oldStr.isEmpty()){    // new
                     if(curEditItemInfo.item->text(0).isEmpty()){
-                        if(config().addProcedure(curEditItemInfo.item->text(0)) == false){
+                       if(config().addProcedure(curEditItemInfo.item->text(0)) == false){
                             NavigationElement* parentItem = curEditItemInfo.item->parent();
                             int itemIndex = 0;
                             for( ; itemIndex < parentItem->childCount(); itemIndex++){
@@ -562,13 +565,14 @@ void List::processEditData(CurEditItemInfo& curEditItemInfo)
                                 }
                             }
                         }else{
+                            // Prepare TclProcedureName - namespace control etc
+                            curEditItemInfo.item->setText(0, TclProcedure::prepareTclProcedureNameFromStr(curEditItemInfo.item->text(0)));
                             if(config().addProcedure(curEditItemInfo.item->text(0)) == false){
                                 delete curEditItemInfo.item;
                             }
                         }
                     }                    
-                }else{                    
-
+                }else{
                     if(curEditItemInfo.item->text(0) != curEditItemInfo.oldStr){    // changed
                         // Manage Change - if manage failed Duplicated for example, restore
                         if(configEditor().editProcedure(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))  == false){

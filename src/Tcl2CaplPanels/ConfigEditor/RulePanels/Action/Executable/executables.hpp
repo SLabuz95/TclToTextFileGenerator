@@ -4,6 +4,7 @@
 #include"Tcl2Capl/Config/Actions/Executable/executables.hpp"
 
 // List of all views for condtionals
+#include"addPredefinition.hpp"
 #include"addPreexpression.hpp"
 #include"addUserInteraction.hpp"
 #include"error.hpp"

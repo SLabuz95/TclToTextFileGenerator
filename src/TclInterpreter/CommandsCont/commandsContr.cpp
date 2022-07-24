@@ -3,6 +3,7 @@
 #include"TclInterpreter/tclToCAPL.hpp"
 #include"Tcl2Capl/controller.hpp"
 #include"TclInterpreter/ListsCont/listsCont.hpp"
+#include"External/RegExpCore/regexprcore.hpp"
 
 using namespace Tcl;
 
@@ -23,20 +24,21 @@ Command::Controller::Controller(TCLInterpreter& tclInterpreter, UserInputConfig&
     updateCurrentCallProcedures();
 }
 
-Error Controller::addPreExpressionForUserInteraction()
+Error Controller::addPreExpressionForUserInteraction(QString userText)
 {
     ExecutableActionsParameters parameters =
     {
-      QString("// _UI_") + QString::number(tclInterpreter.userInteraction.nextUserInteractionNumber()) + " ",
+      QString("// _UI_") + QString::number(tclInterpreter.userInteraction.nextUserInteractionNumber()) ,
       Definition::Format::FORMAT_RULE_CALL(),
       "=",
       " ",
       Definition::Format::FORMAT_RULE_CALL(),
        "@ ",
       Definition::Format::FORMAT_RULE_CALL(),
-        ">0"
+        ">0",
+        (not userText.isEmpty())? " - " + userText : QString()
     };
-    command = QString("/* _UI_") + QString::number(tclInterpreter.userInteraction.nextUserInteractionNumber()) + " */";
+    //command = QString("/* _UI_") + QString::number(tclInterpreter.userInteraction.nextUserInteractionNumber()) + " */";
     (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Definition::Action::Executable>>(Definition::Action::Executable::AddPreExpression)]))(parameters);
     tclInterpreter.userInteraction.addNewInfo();
     if(tclInterpreter.isError()){
@@ -76,11 +78,18 @@ Error TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::Te
                 break;
         }
         if(definition == procedureDefinitions.end()){
+            // If procedure name contains "::", inform user to write rule to change procedure name cause its not supported in CAPL
+            // Add Ingore message
+            if(name.lastIndexOf(QRegularExpression(RegExpCore::regExprForCaplName)) == -1)// Verify if name is acceptable by CAPL ()
+                tclInterpreter.addIgnoreMessage(ErrorController::ErrorMessage(
+                                                    "Write rule to change procedure name cause CAPL doesnt support this procedure name \"" + name +"\"",
+                                                 tclInterpreter.textInterpreter().readTclCommand(), tclInterpreter.textInterpreter().restOfString()
+                                                ));
             lastProcedureCall().setDefinition(&unknownProcedureDefinition);
         }else{
             lastProcedureCall().setDefinition(definition);
         }
-    }else{
+    }else{        
         lastProcedureCall().setDefinition(definition);
     }
 
@@ -122,7 +131,7 @@ Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::Test
     }
     // User Interaction Section ---------------------------
     if(procedureCalls.last().isUserInteractionRequired()){
-        if(addPreExpressionForUserInteraction() == Error::Error){
+        if(addPreExpressionForUserInteraction(QString()) == Error::Error){
             return throwError(ERROR_PREFIX + tclInterpreter.error());
         }
     } // -----------------------------------------------------
@@ -177,6 +186,7 @@ Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::Test
         }
     }
     finalizeOn = false;
+
 
     // If not commandSubbing (procedureCall in Script) and outputCommand is not Empty
     if(isNotCommandSubbing()){
@@ -329,6 +339,7 @@ Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::CommandSubbing>
         case Stat::Whitespace:
         {
             // Create new empty Word parameter
+            lastProcedureCall().rawCommand().append(tclInterpreter.readCurrentKeyword());
             return addNewParameter();
         }
         default:
@@ -577,11 +588,9 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::CommandSubbingStart>(){
     const QRegularExpression regex = QRegularExpression("(?<!:):{1}(?!:)(?<!:):{1}(?!:)|[^a-zA-Z0-9_:]");
     //const qsizetype firstNotAlphanumericCharacter = lastProcedureCall().lastParameter().indexOf(regex); // Alpha + sign '_'
     // Global namespace verification - check github - add to output command directly
-    QString procedureName = lastProcedureCall().lastParameter().toString(Definition::Format::Target::Raw); // Tcl format without some syntax - just data
-
-    // Name Verification - use regex to find inconsitencies of output command
-
-    // ------------
+    QString procedureName = lastProcedureCall().lastParameter().outputCommand(); // Tcl format without some syntax - just data
+    procedureName = Definition::prepareTclProcedureNameFromStr(procedureName);
+    lastProcedureCall().lastParameter().setOutputCommand(procedureName);
 
     if(callDefinition(lastProcedureCall()._name()) == Error::Error)
         return throwError(ERROR_PREFIX + error());
@@ -597,19 +606,21 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::CommandSubbing>(){
 
     switch(lastProcedureCall().lastParameter().stat()){
     case Stat::Word:
+    case Stat::BackslashSubbing:
+    case Stat::Braces:
+    case Stat::DoubleQuotes:
     {
-
+        if(not tclInterpreter.isStringConstNumber(lastProcedureCall().lastParameter().outputCommand())){
+            lastProcedureCall().lastParameter().setOutputCommand("\"" + lastProcedureCall().lastParameter().outputCommand() + "\"");
+        }
     }
-        break;
+        break;    
     case Stat::VariableSubbing:
     {
-        lastProcedureCall().lastParameter().rawCommand().prepend("$");
-        lastProcedureCall().lastParameter().outputCommand().replace(QRegularExpression(":+"), ".");
-        qsizetype index = lastProcedureCall().lastParameter().outputCommand().indexOf(QRegularExpression("[^:]+"));
-        //if(index != -1)
-           // Remove global namespace
+        lastProcedureCall().lastParameter().outputCommand().replace(QRegularExpression(":+"), ".");        
     }
         break;
+
     default:
         break;
     }
@@ -638,10 +649,18 @@ Error TclProcedureInterpreter::destructor_mode<Stat::CommandSubbing>(){
     if(addNewParameter() == Error::Error)
         return throwError(ERROR_PREFIX + error());
 
-    lastProcedureCall().parameters().removeLast(); // Shall be empty after previous procedure
+    if(lastProcedureCall().rawParametersLength() == 1 and lastProcedureCall().isLastParameterEmpty()){
+        if(newParameter() == Error::Error)
+            return throwError(ERROR_PREFIX + error());
+    }else{
+        lastProcedureCall().parameters().removeLast(); // Shall be empty after previous procedure
+    }
+
+    lastProcedureCall().setRawCommand("[" + lastProcedureCall().rawCommand() + "]");
 
     if(finalizeProcedureCall() == Error::Error)
         return throwError(ERROR_PREFIX + error());
+
 
     return Error::NoError;
 }
@@ -785,7 +804,8 @@ Error TclProcedureInterpreter::destructor_mode<Stat::BracesStart>(){
             lastProcedureCall().parameters().removeFirst();
             lastProcedureCall().changeStat(Stat::VariableSubbing);
             tclInterpreter.listController().activateListLevelControl();
-            lastProcedureCall().setOutputCommand(lastProcedureCall().rawCommand());
+            activateBackslashSubbing();
+            lastProcedureCall().setOutputCommand(tclInterpreter.variableController().prepareTclVariableNameFromStr(lastProcedureCall().outputCommand()));
             lastProcedureCall().setRawCommand("${" + lastProcedureCall().rawCommand() + "}");
         }else{
             lastProcedureCall().setRawCommand("{" + lastProcedureCall().rawCommand() + "}");
@@ -1119,6 +1139,11 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::ComplexWord>(){
         //lastProcedureCall().lastParameter().setRawCommand("$" + lastProcedureCall().lastParameter().rawCommand());
     }
         break;
+    case Stat::CommandSubbing:
+    {
+
+    }
+        break;
     default:
         break;
     }
@@ -1285,16 +1310,16 @@ Error TclProcedureInterpreter::destructor_mode<Stat::BracesStartExprOnly>(){
     lastProcedureCall().parameters().removeLast(); // Shall be empty after previous procedure
 
     // If first parameter is VariableSubbing, change call to VariableSubbing ,remove that parameter and activate bracesListControl
-    /*if(not lastProcedureCall().parameters().isEmpty()){
+    lastProcedureCall().setOutputCommand(lastProcedureCall().rawCommand());
+    if(not lastProcedureCall().parameters().isEmpty()){
         if(lastProcedureCall().parameters().front().stat() == Stat::VariableSubbing){
             lastProcedureCall().parameters().removeFirst();
             lastProcedureCall().changeStat(Stat::VariableSubbing);
             tclInterpreter.listController().activateListLevelControl();
-
+            activateBackslashSubbing();
+            lastProcedureCall().setOutputCommand(tclInterpreter.variableController().prepareTclVariableNameFromStr(lastProcedureCall().outputCommand()));
         }
-    }*/
-    /*lastProcedureCall().setOutputCommand(lastProcedureCall().rawCommand());
-    lastProcedureCall().setRawCommand("{" + lastProcedureCall().rawCommand() + "}");*/
+    }
 
     return Error::NoError;
 }
@@ -2485,6 +2510,7 @@ Error Controller::processVariableSubbing(){
         if(procedureCalls.last().isLastParameterEmpty()){ // Variable Subbing Empty
             return throwError("Impossible case. Empty Variable Subbing");
         }else{
+            lastProcedureCall().lastParameter().setOutputCommand(tclInterpreter.variableController().prepareTclVariableNameFromStr(lastProcedureCall().lastParameter().rawCommand()));
             lastProcedureCall().lastParameter().rawCommand().prepend("$");
             // Otherwise New parameter required
             if(processingStat() == Stat::Word){
@@ -2572,7 +2598,10 @@ Error Controller::processBackslashSubbing(){
                     characterIncrementRequired = false;
                 }
             }else{
-                if(addNewParameter(specialSignStr) == Error::Error)
+                if(addNewParameter() == Error::Error
+                        or addNewParameter(Stat::BackslashSubbing,
+                                   QString("\\") + specialSignStr,
+                                   specialSignStr) == Error::Error)
                 {
                     return Error::Error;
                 }
@@ -2641,7 +2670,10 @@ Error Controller::processBackslashSubbing(){
                     characterIncrementRequired = false;
                 }
             }else{
-                if(addNewParameter(specialSignStr) == Error::Error)
+                if(addNewParameter() == Error::Error
+                        or addNewParameter(Stat::BackslashSubbing,
+                                   QString("\\") + specialSignStr,
+                                   specialSignStr) == Error::Error)
                 {
                     return Error::Error;
                 }
@@ -2736,7 +2768,10 @@ Error Controller::processBackslashSubbing(){
                         characterIncrementRequired = false;
                     }
                 }else{
-                    if(addNewParameter(tclInterpreter.textInterpreter().currentCharForSpecialSign()) == Error::Error)
+                    if(addNewParameter() == Error::Error
+                            or addNewParameter(Stat::BackslashSubbing,
+                                       QString("\\") + tclInterpreter.textInterpreter().currentCharForSpecialSign(),
+                                       tclInterpreter.textInterpreter().currentCharForSpecialSign()) == Error::Error)
                     {
                         return Error::Error;
                     }
@@ -3023,7 +3058,7 @@ Error Controller::prepareSnprintf(){
             switch(parameter->stat()){
             case Stat::Word:
             case Stat::BackslashSubbing:
-                format += parameter->rawCommand();
+                format += parameter->outputCommand();
                 break;
             case Stat::VariableSubbing:
                 return throwError(ERROR_PREFIX + "VariableSubbing in procedure name");
@@ -3036,7 +3071,7 @@ Error Controller::prepareSnprintf(){
             switch(parameter->stat()){
             case Stat::Word:
             case Stat::BackslashSubbing:
-                format += parameter->rawCommand();
+                format += parameter->outputCommand();
                 break;
             case Stat::VariableSubbing:
             case Stat::CommandSubbing:
@@ -3052,6 +3087,9 @@ Error Controller::prepareSnprintf(){
 
     if(snprintfRequired){
         //Add Preexpression
+        ExecutableActionsParameters variableParameters = {
+            QStringLiteral("char ") + snprintfVarName + "[256]"
+        };
         ExecutableActionsParameters preexpressionParameters = {
             QStringLiteral("snprintf(") + snprintfVarName + ", elcount(" + snprintfVarName + "), " +
             "\"" + format + "\"" + arguments + ")"
@@ -3059,9 +3097,12 @@ Error Controller::prepareSnprintf(){
 
         (this->*executableInterpretFunctions[
                 static_cast<std::underlying_type_t<Definition::Action::Executable>>(
+                    Definition::Action::Executable::AddPreExpression)])(variableParameters);
+        (this->*executableInterpretFunctions[
+                static_cast<std::underlying_type_t<Definition::Action::Executable>>(
                     Definition::Action::Executable::AddPreExpression)])(preexpressionParameters);
         QString CHAR_TYPE = "char";
-        tclInterpreter.predefinitionsController.newVariable(CHAR_TYPE, snprintfVarName, {128});
+//        tclInterpreter.predefinitionsController.newVariable(CHAR_TYPE, snprintfVarName, {128});
 
         if(tclInterpreter.isError()){
             return throwError(ERROR_PREFIX + tclInterpreter.error());

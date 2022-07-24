@@ -12,6 +12,7 @@ struct ConditionalsProducts::ImplementationData<ConditionalsTypes::CompareArgume
 {
 protected:
     //IntegerParam lastSavedStat;
+    //int numbOfArgs_;
 
 };
 
@@ -28,8 +29,29 @@ template<>
 class ConditionalsProducts::InterfaceData<ConditionalsTypes::CompareArgumentStat>::Methods
 : public ConditionalsProducts::Implementation<ConditionalsTypes::CompareArgumentStat>
 {
+public:
+    //NumbOfArgumentsList& numbOfArgs(){return numbOfArgs_;}
+    //const NumbOfArgumentsList& numbOfArgs()const{return numbOfArgs_;}
+    void toAction(UserProcedureRule::ConditionalActions::Type& conditional)override{
+        using Action = UserProcedureRule::ConditionalActions::Type;
+        using Parameters = UserProcedureRule::ConditionalActions::Type::Parameters;
+        conditional = Action(type(), Parameters());
+    }
 
-    void toAction(UserProcedureRule::ConditionalActions::Type& conditional)override{}
+    void toXmlContent(QXmlStreamWriter& xmlWriter)override{
+        xmlWriter.writeStartElement("conditionalAction");
+        xmlWriter.writeAttribute("type", UserProcedure::Action::toStr_conditional(type()));
+        // numbOfArgs_
+        /*xmlWriter.writeStartElement("param"); // List?
+        xmlWriter.writeAttribute("type", "0"); // For compatibility with future implementation
+        for(NumbOfArgumentsList::Iterator arg = numbOfArgs().begin(); arg < numbOfArgs().end(); arg++){
+            xmlWriter.writeEmptyElement("param"); // String param?
+            xmlWriter.writeAttribute("type", "0"); // For compatibility with future implementation
+            xmlWriter.writeAttribute("value", *arg);
+        }
+        xmlWriter.writeEndElement(); // List? End*/
+        xmlWriter.writeEndElement();
+    }
 };
 
 #endif // CONFIG_CONDITIONALS_COMPAREARGUMENTSTAT_HPP

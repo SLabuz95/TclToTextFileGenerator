@@ -6,7 +6,7 @@
 /*
 template<>
 template<>
-struct ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastSavedStat>::Properties
+struct ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastArgumentStat>::Properties
 : protected ExecutablesProductDefinition::Definition
 {
 protected:
@@ -16,16 +16,16 @@ protected:
 
 template<>
 template<>
-class ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastSavedStat>::Methods
-: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastSavedStat>::Properties
+class ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastArgumentStat>::Methods
+: protected ExecutablesProducts::ImplementationData<ExecutablesTypes::ChangeLastArgumentStat>::Properties
 {
 
 };
 
 template<>
 template<>
-class ExecutablesProducts::InterfaceData<ExecutablesTypes::ChangeLastSavedStat>::Methods
-: protected ExecutablesProducts::Implementation<ExecutablesTypes::ChangeLastSavedStat>
+class ExecutablesProducts::InterfaceData<ExecutablesTypes::ChangeLastArgumentStat>::Methods
+: protected ExecutablesProducts::Implementation<ExecutablesTypes::ChangeLastArgumentStat>
 {
 
 };*/

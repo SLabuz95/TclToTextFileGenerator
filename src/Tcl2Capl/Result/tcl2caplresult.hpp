@@ -55,7 +55,7 @@ public:
         }
         inline QDir& dir(){return _dir;}
         InitializeStatus initialize();
-        inline void write(QString str){_fileContent.append(str);};
+        inline void write(QString str){_fileContent.append(str);}
         inline QFile& reportFile(){return _reportFile;}
         inline void setCurrentTCLFileName(QString str){_currentTCLFileName = str;}
         inline QString currentTCLFileName(){return _currentTCLFileName;}

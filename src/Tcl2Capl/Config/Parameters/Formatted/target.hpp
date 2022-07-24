@@ -40,7 +40,7 @@ public:
     }
     void toXmlContent(QXmlStreamWriter& xmlWriter) override{
         xmlWriter.writeEmptyElement("formatRule"); // String param?
-        xmlWriter.writeAttribute("type", QString::number(type())); // For compatibility with future implementation
+        xmlWriter.writeAttribute("type", FormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
         xmlWriter.writeAttribute("target", Format::toStr_target(target())); // For compatibility with future implementation
     }
    // inline RawFormatType rawFormatType()const override final{return RawFormatType::NameItem;}

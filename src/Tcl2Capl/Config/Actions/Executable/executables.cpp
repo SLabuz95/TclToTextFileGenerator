@@ -10,4 +10,5 @@ ExecutablesFactory::CreateFunctionTable ExecutablesFactory::createFunctionTable 
     &ExecutablesFactory::create<Executable::Error>,
     &ExecutablesFactory::create<Executable::AddPreExpression>,
     &ExecutablesFactory::create<Executable::AddUserInteraction>,
+    &ExecutablesFactory::create<Executable::AddPredefinition>,
 };

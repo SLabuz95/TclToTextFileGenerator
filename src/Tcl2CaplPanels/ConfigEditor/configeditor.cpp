@@ -260,11 +260,11 @@ bool Panel::readConfig()
 
     // Load config
     ConfigInfo tempConfig;
+    tempConfig.changeConfigFile(fileConfigPanel.filePathStr());
     if(app().configManager().loadConfig(tempConfig) == false)
         return false;
 
     config_ = tempConfig;
-    config_.changeConfigFile(fileConfigPanel.filePathStr());
     // Reload Gui
     reloadGui();
 

@@ -28,3 +28,12 @@ bool VariableController::isFirstSignOk(QString str){
 
     return firstNotAlphanumericCharacter != 0;
 }
+
+
+QString VariableController::prepareTclVariableNameFromStr(const QString& str){
+    QString procedureName = str;
+    procedureName.replace(QRegularExpression(":{2,}"), QString("::"));
+    if(procedureName.startsWith("::"))
+        procedureName.remove(0, 2); // Remove global namespace
+    return procedureName;
+}
