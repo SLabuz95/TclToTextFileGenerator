@@ -4,6 +4,7 @@
 #include<QApplication>
 #include<QMessageBox>
 #include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/NavigationList/navigationList.hpp"
 
 using namespace Panels::Configuration::Navigation::Procedure;
 
@@ -162,7 +163,8 @@ void ProceduresElement::execRequest_ContextMenu<ProceduresElement::Request_Conte
 {
     Q_ASSERT_X(item != nullptr, "ProceduresElement::ContextMenu::editProcedure", "Item is null");
     treeWidget()->closePersistentEditor();
-    item->setText(0, item->text(0) + "\n");
+    View::NavigationList& list = *static_cast<View::NavigationList*>(treeWidget());
+    list.requestMultiLineAccess();
     item->parent()->setExpanded(true);
     treeWidget()->scrollToItem(item);
     treeWidget()->editItem(item);

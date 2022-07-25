@@ -277,6 +277,8 @@ bool Panel::saveCurrentConfig(){ // False to cancel
         // Dialog with save to file question
         // If yes, call save to file from fileManager
         QMessageBox saveToFileQuestionMsgBox;
+        saveToFileQuestionMsgBox.setWindowTitle("Zapis aktualnej konfiguracji");
+        saveToFileQuestionMsgBox.setText("Czy chcesz zapisac aktualna konfiguracje?");
         QPushButton* saveButton = nullptr;
         QPushButton* saveAsButton = nullptr;
         saveButton = saveToFileQuestionMsgBox.addButton(QString("Zapisz"), QMessageBox::ButtonRole::AcceptRole);

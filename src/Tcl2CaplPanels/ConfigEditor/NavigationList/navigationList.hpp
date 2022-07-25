@@ -106,6 +106,8 @@ namespace Panels::Configuration::Navigation{
             QString oldStr;
         } curEditItemInfo;
 
+        bool requestMultiLineEditorAccess = false;
+
         NavigationElement* activeProcedureCategoryItem = nullptr;
         NavigationElement* activeDefaultProcedureCategoryItem = nullptr;
     public:
@@ -130,6 +132,7 @@ namespace Panels::Configuration::Navigation{
         inline bool isNavigationElementActive(NavigationElement* element)const{return activeProcedureCategoryItem == element or
                                                                               activeDefaultProcedureCategoryItem == element;}
 
+        inline void requestMultiLineAccess(){requestMultiLineEditorAccess = true;}
         WIDGET_ADD_EVENT_FILTER
 
         void deactivateProcedureCategory(){

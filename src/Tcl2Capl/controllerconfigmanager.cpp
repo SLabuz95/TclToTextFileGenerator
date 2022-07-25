@@ -41,6 +41,7 @@ bool ControllerConfigManager::saveConfig(ControllerConfigInfo& configRef){
         configRef.toXmlContent(xmlWriter);
     }else{
         lastErrorMsg_ = QString("Open File Error: ") + file.fileName();
+        qDebug() << lastErrorMsg_;
     }
     file.close();
 
@@ -50,10 +51,6 @@ bool ControllerConfigManager::saveConfig(ControllerConfigInfo& configRef){
 bool ControllerConfigManager::saveConfigAs(ControllerConfigInfo& configRef, QString newPath){
     // Save file
     QFile file(newPath);
-    if(file.exists()){
-        // ask to replace
-        file.setFileName("config.temp");
-    }
 
     QXmlStreamWriter xmlWriter(&file);
     xmlWriter.setAutoFormatting(true);
@@ -64,10 +61,10 @@ bool ControllerConfigManager::saveConfigAs(ControllerConfigInfo& configRef, QStr
         configRef.toXmlContent(xmlWriter);
     }else{
         lastErrorMsg_ = QString("Open File Error: ") + file.fileName();
+        qDebug() << lastErrorMsg_;
     }
 
     file.close();
-
     return lastErrorMsg_.length() == 0;
 }
 

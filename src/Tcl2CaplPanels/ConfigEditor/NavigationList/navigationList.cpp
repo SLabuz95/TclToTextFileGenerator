@@ -435,8 +435,10 @@ bool List::edit(const QModelIndex &index, QAbstractItemView::EditTrigger trigger
         curEditItemInfo.panelType = panelType;
         curEditItemInfo.item = item;
         curEditItemInfo.oldStr = curEditItemInfo.item->text(0);
-        if(curEditItemInfo.oldStr.contains("\n")){ // If multiline
-            MultiLineEditor editor(curEditItemInfo.oldStr);
+        if((trigger ==  Trigger::DoubleClicked or trigger == Trigger::AllEditTriggers) and curEditItemInfo.oldStr.contains("\n") or requestMultiLineEditorAccess == true){ // If multiline
+            requestMultiLineEditorAccess = false;
+            QString str = curEditItemInfo.oldStr;
+            MultiLineEditor editor(str);
             switch(editor.exec()){
             case QDialog::Accepted:
                 curEditItemInfo.item->setText(0, editor.text());
@@ -573,6 +575,7 @@ void List::processEditData(CurEditItemInfo& curEditItemInfo)
                         }
                     }                    
                 }else{
+                    qDebug() << curEditItemInfo.item->text(0) << curEditItemInfo.oldStr;
                     if(curEditItemInfo.item->text(0) != curEditItemInfo.oldStr){    // changed
                         // Manage Change - if manage failed Duplicated for example, restore
                         if(configEditor().editProcedure(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))  == false){

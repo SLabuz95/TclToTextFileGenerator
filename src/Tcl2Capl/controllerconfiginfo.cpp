@@ -55,6 +55,7 @@ bool ControllerConfigInfo::addProcedure(QString name){
         configKeyIter = newProceduresMap.insert({name, RulesCategories::OnEndOfCall}, 0);
         // iter2 = <name, UndefinedArgument> -  Value - Offset of previous rule category = 0
         ConfigKeyIter configUndefinedKeyIter = newProceduresMap.insert({name, RulesCategories::UndefinedArgument}, 0);
+        qDebug() << configUndefinedKeyIter.key();
         // 2. Specify values for keys:
         // 2.1. Check if iter2 + 1 is valid key
         configUndefinedKeyIter++; // To +1
@@ -67,6 +68,7 @@ bool ControllerConfigInfo::addProcedure(QString name){
             // 2.2. Set value iter1 to rulesList.size
             configKeyIter.value() = newRules.size();
         }
+
         configUndefinedKeyIter--;
         configUndefinedKeyIter.value() = configKeyIter.value();
     }else{
@@ -633,6 +635,7 @@ bool ControllerConfigInfo::editProcedureName(QString oldName, QString newName){
     {
         return false;
     }*/
+    qDebug() << oldName << newName;
     if(((beginIter = newProceduresMap.find({newName, RulesCategories::OnEndOfCall})) != newProceduresMap.end() and
             ( beginIter.value() >= 0)) )
     {
