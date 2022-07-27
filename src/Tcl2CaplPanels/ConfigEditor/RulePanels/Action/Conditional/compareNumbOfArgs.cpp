@@ -63,7 +63,7 @@ QListWidget& ListOfIndexes::itemListView()const{
 QWidget* ListOfIndexes::ItemDelegate::
 createEditor(QWidget* parent,
              const QStyleOptionViewItem& ,
-             const QModelIndex& index) const
+             const QModelIndex& ) const
 {
     // For List Item Type == EmptyStringItem dont edit
     QLineEdit* editor = nullptr;
@@ -158,7 +158,7 @@ void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::
     pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
-ListOfIndexes::ChangeAction ListOfIndexes::tryToManageIndexes(QString oldIndex, QString newIndex){
+ListOfIndexes::ChangeAction ListOfIndexes::tryToManageIndexes(QString , QString ){
     if(curEditItemInfo.item){
         // Confirm that index or argument isnt duplicated
         if(curEditItemInfo.item->text().isEmpty()){
@@ -194,6 +194,7 @@ ListOfIndexes::ChangeAction ListOfIndexes::tryToManageIndexes(QString oldIndex, 
         }
         curEditItemInfo = {};
     }
+    return ListOfIndexes::ChangeAction::NoAction;
 }
 
 

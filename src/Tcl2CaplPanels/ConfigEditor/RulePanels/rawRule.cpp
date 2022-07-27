@@ -66,14 +66,6 @@ void RawRuleView::readRule(RuleRef rule){
 }
 
 
-void RawRuleView::resizeEvent(QResizeEvent* ev){
-    Super::resizeEvent(ev);
-    qApp->processEvents();
-    List& listWidget = parentWidget();
-    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-
-    item->setSizeHint(sizeHint());
-}
 /*
 RawRuleView::RawRuleView(RawRuleView* itemF)
 : RawRuleView(itemF->item()){

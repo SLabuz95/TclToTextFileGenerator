@@ -42,7 +42,7 @@ namespace Tcl{
         inline const QString& error(){return errorController.error();}
     private:
         //
-        using AddExpressionToCodeBlockFunction = void (TCLInterpreter::*)(OutputCommands, QString);
+        using AddExpressionToCodeBlockFunction = void (TCLInterpreter::*)(const OutputCommands&, QString);
         using RemoveProcedureCallFunction = Error (TCLInterpreter::*)();
         using ErrorMessage = ErrorController::ErrorMessage;
         using ErrorMessages = QVector<ErrorMessage>;
@@ -77,7 +77,7 @@ namespace Tcl{
             if(not preexpressions().isEmpty()){ // Not Empty
                 //lastSavedStat().appendCommand("\n");
                 addExpressionToCodeBlock(preexpressions(), "\n");
-                preexpressions().clear();
+                _preexpressions.clear();
             }
         }
 
@@ -85,7 +85,7 @@ namespace Tcl{
          * command.isEmpty() or
 If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) + command ), true);
                                                                    }*/
-        inline void addExpressionToMainCodeBlock(OutputCommands commands, QString postfix = QString()){
+        inline void addExpressionToMainCodeBlock(const OutputCommands& commands, QString postfix = QString()){
             if(commands.size() > 0){
                 command.append(commands.join("\n") + postfix);
             }
@@ -94,16 +94,16 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
                                                                     If not empty  ( lastSavedStat().setCommand( lastSavedStat().command() +  command + "\n"), true);
                                                                    }*/
 
-        inline void addExpressionToCodeBlock(OutputCommands commands, QString postfix = QString()){
+        inline void addExpressionToCodeBlock(const OutputCommands& commands, QString postfix = QString()){
             (this->*addExpressionToCodeBlockFunction)(commands, postfix);
         }
 
-        inline void addExpressionToCodeBlock_standard(OutputCommands commands, QString postfix){
+        inline void addExpressionToCodeBlock_standard(const OutputCommands& , QString ){
 //            if(commands.size() > 0)
 //                lastSavedStat().appendCommand(commands.join("\n") + postfix);
         }
 
-        inline void addExpressionToCodeBlock_writeOnlyProcedure(OutputCommands commands, QString postfix){
+        inline void addExpressionToCodeBlock_writeOnlyProcedure(const OutputCommands& commands, QString postfix){
             addExpressionToMainCodeBlock(commands, postfix);
         }
 
@@ -111,7 +111,7 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
             if(not preexpressions().isEmpty()){ // Not Empty
                 addExpressionToMainCodeBlock(preexpressions(), "\n");
                 //lastSavedStat().appendCommand("\n");
-                preexpressions().clear();
+                _preexpressions.clear();
             }
         }
 
@@ -218,8 +218,8 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
             Error moveArgumentToSnprintf_priv(const Stat);
         // End of Functions |||||||||||||||||||||||||||||||||||||||||||
 
-            inline Error moveArgumentToSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::Snprintf);*/}
-            inline Error moveArgumentToPendingSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::PendingSnprintf);*/}
+//            inline Error moveArgumentToSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::Snprintf);*/}
+//            inline Error moveArgumentToPendingSnprintf(){/*return moveArgumentToSnprintf_priv(Stat::PendingSnprintf);*/}
 
 //            inline bool isPrelastSavedStat()const{return savedStatsBegin() <= savedStatsEnd() - 2;}
 //            inline SavedStat& prelastSavedStat(){return *(savedStats().end() - 2);}

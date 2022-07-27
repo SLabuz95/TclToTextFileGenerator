@@ -19,7 +19,7 @@ ConfigTabsPanel::ConfigTabsPanel(ConfigViewPanel& parent)
 
     for(int panelNameIndex = 0; panelNameIndex < panelType2number(PanelType::Size) ; panelNameIndex++){
         addTab(panels[panelNameIndex], Navigation::List::navigationPanelNames[panelNameIndex]);
-        panels[panelNameIndex]->show();
+        //panels[panelNameIndex]->show();
     }
 
 }

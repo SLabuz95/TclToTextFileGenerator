@@ -117,9 +117,6 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
             void processEditData(CurEditItemInfo&);
 
         public:
-            inline bool anyChanges()const{
-                //return not (newProcedures.isEmpty() and removedProcedures.isEmpty());
-            }
 
             inline void restoreSavedData(){
 

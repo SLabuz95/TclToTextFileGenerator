@@ -22,7 +22,7 @@ namespace Panels::Configuration{
                 static constexpr int NonTextModeHandelMargin = 1;
                 static constexpr int NonTextModeHandelTriangleWidth = NonTextModeHandelWidth - 2*NonTextModeHandelMargin;
                 public:
-                inline bool isNotActive(){if(splitter()) splitter()->isNotActive();}
+                inline bool isNotActive(){if(splitter()) return splitter()->isNotActive(); return false;}
                 bool textMode = false;
                 Handle(Qt::Orientation orientation, Splitter *parent) : QSplitterHandle(orientation, parent){
                     if(splitter())

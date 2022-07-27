@@ -19,6 +19,7 @@
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
 #include<QPainter>
 #include"Tcl2Capl/controllerconfiginfo.hpp"
+#include<QScrollBar>
 
 namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
     class RulesList;
@@ -78,9 +79,11 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
 
     protected:
         ListItem* lastPressedItem = nullptr;
+        QString procedureName_;
+        ControllerConfigInfo::RulesCategories rulesCategory_ = static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);
     public:
-        QString procedureName;
-        ControllerConfigInfo::RulesCategories rulesCategory = static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);
+        inline QString& procedureName(){return procedureName_;}
+        inline ControllerConfigInfo::RulesCategories& rulesCategory(){return rulesCategory_;}
 
         inline ListItem* currentItem()const{return static_cast<ListItem*>(QListWidget::currentItem());}
         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(QListWidget::itemAt(p));}
@@ -88,8 +91,8 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         inline ListItem* item(int index)const{return static_cast<ListItem*>(QListWidget::item(index));}
         inline ListItem* lastItem()const{return item(count() - 1);}
 
-        inline bool initialized()const{return rulesCategory != static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);}
-        inline void setNonInitialized(){rulesCategory = static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);}
+        inline bool initialized()const{return rulesCategory_ != static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);}
+        inline void setNonInitialized(){rulesCategory_ = static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);}
         int countRules(){return count();}
 
         void loadRules(RulesViewRef);
@@ -97,7 +100,9 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
 
         inline void addNewItem(){
             //ListItem* newItem = nullptr;
+            setUpdatesEnabled(false);
             new ListItem(*this, nullptr);
+            setUpdatesEnabled(true);
             //newItem->init();
         }
 
@@ -107,7 +112,10 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
             //newItem->init();
         }
 
-
+        virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles = QList<int>()) override{
+            qDebug() << topLeft << bottomRight << roles;
+            QListWidget::dataChanged(topLeft, bottomRight, roles);
+        }
 
        void contextMenuEvent(QContextMenuEvent *e) override;
 
@@ -138,21 +146,65 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
             QListWidget::dropEvent(ev);
         }
 
-        /*
-        QSize sizeHint()const override{
-            QSize&& sH = Super::sizeHint();
-            QSize&& msH = minimumSizeHint();
-            if(sH.height() > msH.height()){
-                return sH;
-            }else{
-                return QSize(sH.width(), msH.height());
-            }
-        }*/
+        QSize minimumSizeHint() const override{
+            return  QSize(0, 0);
+        }
+
+        QSize sizeHint() const override{
+            return (Super::count() > 0)? Super::viewportSizeHint()+=QSize(0, 6): QSize(0, 0);
+        }
+
+
         void extendContextMenu(ContextMenuConfig&)const override;
         void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*)override;
     };
 
-    using Panel = RulesList;
+    class RulesPanel : public QWidget{
+        using RulesRef = ControllerConfigInfo::NewRules;
+        using RulesViewRef = ControllerConfigInfo::RulesView;
+        using RuleViewRef = RulesViewRef::first_type;
+    protected:
+        QVBoxLayout mainLayout;
+        RulesList rulesList;
+        QPushButton addRuleButton;
+    public:
+        RulesPanel(){
+            addRuleButton.setText("Dodaj nowa regułę");
+
+            mainLayout.setSpacing(0);
+            mainLayout.setContentsMargins(0,0,0,0);
+            mainLayout.addWidget(&rulesList, 0, Qt::AlignTop);
+            mainLayout.addWidget(&addRuleButton, 1, Qt::AlignTop);
+            addRuleButton.installEventFilter(this);
+            setLayout(&mainLayout);
+        }
+        inline QString& procedureName(){return rulesList.procedureName();}
+        inline ControllerConfigInfo::RulesCategories& rulesCategory(){return rulesList.rulesCategory();}
+        inline void clear(){rulesList.clear();}
+
+        inline bool initialized()const{return rulesList.initialized();}
+        inline void setNonInitialized(){rulesList.setNonInitialized();}
+
+        inline void loadRules(RulesViewRef rulesView){rulesList.loadRules(rulesView);}
+        inline void readRules(RulesRef& rules){rulesList.readRules(rules);}
+
+        bool eventFilter(QObject* obj, QEvent* ev)override{
+            switch(ev->type()){
+            case QEvent::MouseButtonPress:
+            {
+                if(obj == &addRuleButton){
+                    rulesList.addNewItem();
+                }
+            }
+                break;
+            default:
+                break;
+            }
+            return QWidget::eventFilter(obj, ev);
+        }
+    };
+
+    using Panel = RulesPanel;
 
 
 }

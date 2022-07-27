@@ -116,15 +116,7 @@ namespace Panels::Configuration::View::ActionsList{
             ActionDataView* dataView_ = nullptr;
 
             bool createActionDataView(ActionType);
-            void resizeEvent(QResizeEvent* ev)override{
-                Super::resizeEvent(ev);
-                qApp->processEvents();
-                QListWidget& listWidget = parentWidget().parentWidget().parentWidget();
-                QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-                QWidget* widget = listWidget.itemWidget(item);
-                if(widget)
-                    item->setSizeHint(parentWidget().parentWidget().sizeHint());
-            }
+
     };
 
     template<class Actions>
@@ -235,6 +227,16 @@ namespace Panels::Configuration::View::ActionsList{
             QListWidget::dropEvent(ev);
         }
 
+        void resizeEvent(QResizeEvent* resizeEv){
+            if(resizeEv->size().height() != resizeEv->oldSize().height()){
+                QListWidget& listWidget = parentWidget().parentWidget();
+                QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                if(item)
+                    item->setSizeHint(parentWidget().sizeHint());
+            }
+            return QAbstractItemView::resizeEvent(resizeEv);
+        }
+
         /*void dataChanged(const QModelIndex &topLeft,
                         const QModelIndex &bottomRight,
                         const QList<int> &roles = QList<int>())override
@@ -247,17 +249,13 @@ namespace Panels::Configuration::View::ActionsList{
             item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
         }*/
 
+        QSize minimumSizeHint() const override{
+            return  QSize(0, 0);
+        }
 
-        /*
-        QSize sizeHint()const override{
-            QSize&& sH = Super::sizeHint();
-            QSize&& msH = minimumSizeHint();
-            if(sH.height() > msH.height()){
-                return sH;
-            }else{
-                return QSize(sH.width(), msH.height());
-            }
-        }*/
+        QSize sizeHint() const override{
+            return (Super::count() >= 0)? Super::viewportSizeHint()+=QSize(0, 6): QSize(0, 0);
+        }
         ParentContextMenu& parentContextMenu()const override;
         void extendContextMenu(ContextMenuConfig&)const override;
         void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*)override;

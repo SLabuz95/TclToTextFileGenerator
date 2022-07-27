@@ -9,7 +9,7 @@ namespace Panels::Configuration{
 namespace View{
     namespace Rules{
         namespace RulesProcedurePanel{
-        class RulesList;
+        class RulesPanel;
         }
     }
     class ConfigViewPanel;
@@ -21,7 +21,7 @@ namespace View{
     class ConfigTabsPanel : public QTabWidget{
 
         using Super = QTabWidget;
-        using RulesProcedurePanel = View::Rules::RulesProcedurePanel::RulesList;
+        using RulesProcedurePanel = View::Rules::RulesProcedurePanel::RulesPanel;
     public:
         ConfigTabsPanel(View::ConfigViewPanel& parent);
         virtual ~ConfigTabsPanel() override{}

@@ -289,7 +289,6 @@ ListItem::ListItem(ConditionalsList& list, ActionPtr action)
     list.addItem(this);
     list.setItemWidget(this, &view_);
     qApp->processEvents();
-    setSizeHint(view().minimumSizeHint());
 }
 
 

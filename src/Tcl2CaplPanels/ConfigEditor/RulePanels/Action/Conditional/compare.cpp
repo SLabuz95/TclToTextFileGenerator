@@ -117,6 +117,7 @@ void ListOfIndexes::execRequest_ContextMenu<ListOfIndexes::Request_ContextMenu::
 ListOfIndexes::ChangeAction ListOfIndexes::tryToManageIndexes(QString oldIndex, QString newIndex){
     Q_ASSERT_X(not (oldIndex.isEmpty() and newIndex.isEmpty()), "ListOfIndexes::tryToManageIndexes", "Only OldIndex or NewIndex can be empty ");
 
+    return ListOfIndexes::ChangeAction::NoAction;
 }
 
 
@@ -213,7 +214,7 @@ void ListOfIndexes::processEditData(CurEditItemInfo& curEditItemInfo)
     if(curEditItemInfo.item){
         if(curEditItemInfo.item->text().isEmpty()){ // Remove Item
             if(not curEditItemInfo.oldIndex.isEmpty()){ // Removed Existing item
-                ChangeAction changeAction = tryToManageIndexes(curEditItemInfo.oldIndex, QString());
+                /*ChangeAction changeAction =*/ tryToManageIndexes(curEditItemInfo.oldIndex, QString());
                 // Notify about Change
             }
             delete curEditItemInfo.item;

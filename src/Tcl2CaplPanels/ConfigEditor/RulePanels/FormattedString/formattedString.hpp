@@ -80,7 +80,7 @@ namespace Panels::Configuration::View::FormattedString{
             }
         }*/
         static CreateFunctionTable createFunctionTable;
-        static ItemDataView* createNoDataView(QWidget* parent, FormatRuleRef = nullptr){return nullptr;}
+        static ItemDataView* createNoDataView(QWidget* , FormatRuleRef = nullptr){return nullptr;}
     public:
         static ItemDataView* createView(QWidget* parent, FormatRuleType);
         static ItemDataView* createView(QWidget* parent, FormatRuleRef);
@@ -264,22 +264,7 @@ namespace Panels::Configuration::View::FormattedString{
              Super::dropEvent(ev);
          }
 
-         bool event(QEvent*ev)override{
-             if(ev->type() == QEvent::LayoutRequest){
-                 bool result = Super::event(ev);
-                 qApp->processEvents();
-                 QListWidget& listWidget = actionListView();
-                 QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-                 QWidget* widget = listWidget.itemWidget(pItem);
-                 if(widget)
-                     pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 
-                    qApp->postEvent(&listWidget, new QEvent(QEvent::LayoutRequest));
-                 //qApp->processEvents();
-                 return result;
-             }
-             return Super::event(ev);
-         }
     public:
          /*QSize sizeHint()const override{
              QSize&& sH = Super::sizeHint();

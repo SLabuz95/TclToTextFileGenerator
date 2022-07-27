@@ -103,9 +103,7 @@ namespace Panels::Configuration::View::ActionsList{
             void contextMenuEvent(QContextMenuEvent* ev)override;
             ChangeAction tryToManageIndexes(QString oldIndex, QString newIndex);
         public:
-            inline bool anyChanges()const{
-                //return not (newProcedures.isEmpty() and removedProcedures.isEmpty());
-            }
+
             QWidget& itemView()const; // Splitter -> Widget (Widget with Layout of ActionDataView) -> ActionView (Any - Conditional or Executable)
             QListWidget& itemListView()const; // ActionView -> Viewport -> List
 

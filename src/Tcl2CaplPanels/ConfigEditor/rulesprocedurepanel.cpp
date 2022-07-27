@@ -117,10 +117,10 @@ RulesList::RulesList(){
     "border: 2px solid #6a6ea9;"
     "border-radius: 6px;"
     "}");*/
+    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setMovement(QListView::Snap);
     setDefaultDropAction(Qt::DropAction::MoveAction);
-    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setDragDropMode(QAbstractItemView::InternalMove);
 
 }
@@ -140,7 +140,7 @@ ListItem::ListItem(RulesList& list, RuleViewRef rule)
 {
     list.addItem(this);
     list.setItemWidget(this, &rawRuleView());
-    setSizeHint(rawRuleView().minimumSizeHint());
+    setSizeHint(QSize(0, 100));
 }
 
 
