@@ -11,7 +11,6 @@ RawRuleView::RawRuleView(ListItemType& item)
     // Setup layout
     centralLayout.setSpacing(0);
     centralLayout.setContentsMargins(QMargins());
-    centralLayout.setSizeConstraint(QLayout::SetNoConstraint);
 
     setLayout(&centralLayout);
     closeButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCloseButton));
@@ -28,11 +27,9 @@ RawRuleView::RawRuleView(ListItemType& item)
     //settingsLayout.setVerticalSpacing(0);
     centralLayout.addLayout(&settingsLayout);
 
-
     actionsPanel.addWidget(&conditionalsList);
     actionsPanel.addWidget(&executablesList);
     centralLayout.addWidget(&actionsPanel);
-
 
 }
 
@@ -102,6 +99,7 @@ bool RawRuleView::eventFilter(QObject *obj, QEvent *ev){
         delete &item_;
         return true;
     }
+    qDebug() << "RuleView" << ev->type();
     return QWidget::eventFilter(obj, ev);
 }
 

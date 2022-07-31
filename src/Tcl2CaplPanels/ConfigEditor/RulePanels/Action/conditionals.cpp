@@ -23,7 +23,6 @@ using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 
 template<>
 ActionView::ActionView(List& list, ActionPtr action)
- : Super(list.viewport())
 {    
     mainLayout.setVerticalSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
@@ -43,6 +42,8 @@ ActionView::ActionView(List& list, ActionPtr action)
         widget->setLayout(dataView_);
     }
 
+    setParent(list.viewport());
+
 }
 
 template<>
@@ -61,7 +62,7 @@ List& ActionView::parentWidget()const{
 
 template<>
 RawRuleView& ConditionalsList::parentWidget()const{
-    return *static_cast<RawRuleView*>(Super::parentWidget()->parentWidget()); //Splitter -> RuleView
+    return *static_cast<RawRuleView*>(Super::parentWidget()->parentWidget()->parentWidget()); //Panel -> Splitter -> RuleView
 }
 
 template<>
@@ -134,10 +135,6 @@ void ConditionalsList::execRequest_ContextMenu<ConditionalsList::Request_Context
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     delete item;
-    qApp->processEvents();
-    QListWidget& listWidget = parentWidget().parentWidget();
-    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 
 }
 
@@ -145,11 +142,7 @@ template<>
 template<>
 void ConditionalsList::execRequest_ContextMenu<ConditionalsList::Request_ContextMenu::Clear>(ListItem*)
 {
-    clear();    
-    qApp->processEvents();
-    QListWidget& listWidget = parentWidget().parentWidget();
-    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
+    clear();
 }
 
 template<>
@@ -268,10 +261,10 @@ ConditionalsList
     //setHeaderLabels({"Akcje warunkowe"});
     //setIndentation(0);
     //setMovement(Snap);
+    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setDragDropMode(QAbstractItemView::InternalMove);
     setDefaultDropAction(Qt::DropAction::MoveAction);
-    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
     setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
     setDragDropOverwriteMode(true);
@@ -289,6 +282,7 @@ ListItem::ListItem(ConditionalsList& list, ActionPtr action)
     list.addItem(this);
     list.setItemWidget(this, &view_);
     qApp->processEvents();
+    setSizeHint(view().sizeHint());
 }
 
 

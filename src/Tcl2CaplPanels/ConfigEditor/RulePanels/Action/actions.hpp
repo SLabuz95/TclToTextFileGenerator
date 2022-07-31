@@ -197,6 +197,44 @@ namespace Panels::Configuration::View::ActionsList{
         }
        void contextMenuEvent(QContextMenuEvent *e) override;
 
+
+       bool viewportEvent(QEvent* ev)override{
+           qDebug() << "ViewPort" << ev->type();
+           switch(ev->type()){
+           case QEvent::LayoutRequest:
+           {
+               qDebug() << viewportSizeHint() << sizeHint() << minimumSizeHint();
+               if(parentWidget().sizeHint().height() != parentWidget().height()){
+                   QListWidget& listWidget = parentWidget().parentWidget();
+                   QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                   if(item){
+                       qDebug() << "Resize Item" << parentWidget().sizeHint() << parentWidget().minimumSizeHint();
+                       item->setSizeHint(parentWidget().sizeHint());
+                   }
+               }
+           }
+               break;
+           case QEvent::Resize:
+           {
+               QResizeEvent& rsEv = *static_cast<QResizeEvent*>(ev);
+               qDebug() << viewportSizeHint() << sizeHint() << minimumSizeHint();
+               if(rsEv.size().height() < rsEv.oldSize().height()){
+                   QListWidget& listWidget = parentWidget().parentWidget();
+                   QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                   if(item){
+                       qDebug() << "Resize Item" << parentWidget().sizeHint() << parentWidget().minimumSizeHint();
+                       item->setSizeHint(parentWidget().sizeHint() -= QSize(0, rsEv.oldSize().height() - rsEv.size().height()));
+                   }
+               }
+           }
+               break;
+           default:
+               break;
+           }
+
+           return QListWidget::viewportEvent(ev);
+       }
+
        void mousePressEvent(QMouseEvent* ev)override{
            lastPressedItem = itemAt(ev->pos());
            Super::mousePressEvent(ev);
@@ -227,38 +265,68 @@ namespace Panels::Configuration::View::ActionsList{
             QListWidget::dropEvent(ev);
         }
 
-        void resizeEvent(QResizeEvent* resizeEv){
-            if(resizeEv->size().height() != resizeEv->oldSize().height()){
-                QListWidget& listWidget = parentWidget().parentWidget();
-                QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-                if(item)
-                    item->setSizeHint(parentWidget().sizeHint());
-            }
-            return QAbstractItemView::resizeEvent(resizeEv);
-        }
-
-        /*void dataChanged(const QModelIndex &topLeft,
-                        const QModelIndex &bottomRight,
-                        const QList<int> &roles = QList<int>())override
-        {
-            qDebug() << "actions data changed" << topLeft << bottomRight << roles;
-            Super::dataChanged(topLeft, bottomRight, roles);
-            qApp->processEvents();
-            QListWidget& listWidget = parentWidget().parentWidget();
-            QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-            item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
-        }*/
-
         QSize minimumSizeHint() const override{
             return  QSize(0, 0);
         }
 
         QSize sizeHint() const override{
-            return (Super::count() >= 0)? Super::viewportSizeHint()+=QSize(0, 6): QSize(0, 0);
+            return (Super::count() > 0)? Super::viewportSizeHint()+=QSize(0, 6): QSize(0, 0);
         }
         ParentContextMenu& parentContextMenu()const override;
         void extendContextMenu(ContextMenuConfig&)const override;
         void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*)override;
+    };
+
+    template<class Actions>
+    class Panel : public QWidget{
+        using ActionsRef = Actions&;
+        using ActionPtr = typename Actions::Type;
+        using Action = std::remove_pointer_t<ActionPtr>;
+        using ActionType = typename Action::ProductsList;
+    public:
+        using ListItem = ListItem<Actions>;
+        using RawRuleView = Rules::RawRuleView;
+        using Super = QWidget;
+    protected:
+        QVBoxLayout mainLayout;
+        List<Actions> actionsList;
+        QPushButton addActionButton;
+    public:
+        Panel(){
+            if constexpr (std::is_same_v<ActionType, Tcl::Command::Definition::Action::Conditional>)
+                addActionButton.setText("Dodaj akcję warunkową");
+            else
+                addActionButton.setText("Dodaj akcję");
+
+
+            mainLayout.setSpacing(0);
+            mainLayout.setContentsMargins(0,0,0,0);
+            mainLayout.addWidget(&actionsList, 0, Qt::AlignTop);
+            mainLayout.addWidget(&addActionButton, 1, Qt::AlignTop);
+            addActionButton.installEventFilter(this);
+            setLayout(&mainLayout);
+        }
+        inline void clear(){actionsList.clear();}
+
+        inline void loadActions(ActionsRef actionsRef){actionsList.loadActions(actionsRef);}
+        inline void readActions(ActionsRef actionsRef){actionsList.readActions(actionsRef);}
+
+
+        bool eventFilter(QObject* obj, QEvent* ev)override{
+            switch(ev->type()){
+            case QEvent::MouseButtonPress:
+            {
+                if(obj == &addActionButton){
+                    actionsList.addNewItem();
+                }
+            }
+                break;
+            default:
+                break;
+            }
+            qDebug() << "ActionsPanel " << ev->type();
+            return QWidget::eventFilter(obj, ev);
+        }
     };
 
 }

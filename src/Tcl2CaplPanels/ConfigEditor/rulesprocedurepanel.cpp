@@ -140,7 +140,7 @@ ListItem::ListItem(RulesList& list, RuleViewRef rule)
 {
     list.addItem(this);
     list.setItemWidget(this, &rawRuleView());
-    setSizeHint(QSize(0, 100));
+    setSizeHint(rawRuleView().sizeHint());
 }
 
 

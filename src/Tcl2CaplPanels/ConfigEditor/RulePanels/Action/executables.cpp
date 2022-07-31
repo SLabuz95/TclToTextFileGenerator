@@ -20,7 +20,6 @@ using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 
 template<>
 ActionView::ActionView(List& list, ActionPtr action)
-: Super(list.viewport())
 {
     mainLayout.setVerticalSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
@@ -39,6 +38,8 @@ ActionView::ActionView(List& list, ActionPtr action)
         dataView_->setContentsMargins(0,0,0,0);
         widget->setLayout(dataView_);
     }
+
+    setParent(list.viewport());
 }
 
 template<>
@@ -81,7 +82,7 @@ bool ActionView::createActionDataView(ActionType type){
 
 template<>
 RawRuleView& ExecutablesList::parentWidget()const{
-    return *static_cast<RawRuleView*>(Super::parentWidget()->parentWidget()); //Splitter -> RuleView
+    return *static_cast<RawRuleView*>(Super::parentWidget()->parentWidget()->parentWidget()); //Panel -> Splitter -> RuleView
 }
 
 template<>
@@ -127,10 +128,6 @@ void ExecutablesList::execRequest_ContextMenu<ExecutablesList::Request_ContextMe
 {
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     delete item;
-    qApp->processEvents();
-    QListWidget& listWidget = parentWidget().parentWidget();
-    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 template<>
@@ -139,10 +136,6 @@ void ExecutablesList::execRequest_ContextMenu<ExecutablesList::Request_ContextMe
 {
     clear();
 
-    qApp->processEvents();
-    QListWidget& listWidget = parentWidget().parentWidget();
-    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 template<>
@@ -259,9 +252,9 @@ ExecutablesList
     //setHeaderLabels({"Akcje wykonywalne"});
     //setIndentation(0);
     //setMovement(Snap);
+    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setDragDropMode(QAbstractItemView::InternalMove);
-    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setDefaultDropAction(Qt::DropAction::MoveAction);
     setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
     setDragDropOverwriteMode(true);
@@ -279,7 +272,7 @@ ListItem::ListItem(ExecutablesList& list, ActionPtr action)
     list.addItem(this);
     list.setItemWidget(this, &view_);
     qApp->processEvents();
-    setSizeHint(view().minimumSizeHint());
+    setSizeHint(view().sizeHint());
 }
 
 
