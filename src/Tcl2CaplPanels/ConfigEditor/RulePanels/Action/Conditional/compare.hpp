@@ -145,7 +145,7 @@ namespace Panels::Configuration::View::ActionsList::CompareActionView{
         // GUI Layout
         QSplitter splitter;
         ListOfIndexes listOfIndexes;
-        General::FormattedString::List formattedStringList;
+        General::FormattedString::Panel formattedStringList;
 
     public:
        // Action toAction()override{}

@@ -41,7 +41,7 @@ namespace Panels::Configuration::View::ActionsList{
         QFormLayout mainLayout;
         ScopeComboBox scopeComboBox;
         QSplitter splitter;
-        FormattedString::List formattedStringList;
+        FormattedString::Panel formattedStringList;
 
     public:
        // Action toAction()override{}

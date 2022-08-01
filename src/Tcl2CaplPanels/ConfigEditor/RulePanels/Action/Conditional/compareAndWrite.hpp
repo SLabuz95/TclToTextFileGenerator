@@ -199,7 +199,7 @@ namespace Panels::Configuration::View::ActionsList{
         //RuleControlComboBox ruleControlComboBox;
         QSplitter quickRuleInput;
         ExpectedArgumentsList expectedArgumentsList;
-        General::FormattedString::List formattedStringList;
+        General::FormattedString::Panel formattedStringList;
         //OutputsList outputsList;
 
     public:

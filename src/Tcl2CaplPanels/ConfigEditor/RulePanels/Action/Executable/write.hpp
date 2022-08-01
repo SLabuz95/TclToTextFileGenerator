@@ -34,7 +34,7 @@ namespace Panels::Configuration::View::ActionsList{
     protected:
         // GUI Layout
         QSplitter splitter;
-        FormattedString::List formattedStringList;
+        FormattedString::Panel formattedStringList;
 
     public:
        // Action toAction()override{}

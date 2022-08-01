@@ -223,6 +223,7 @@ namespace Panels::Configuration::View::FormattedString{
         //void addNewOutput();/*{
             //addItem(new ListItem(this));
         //}
+    public:
        inline void addNewItem(){
             //ListItem* newItem = nullptr;
             new ListItem(*this, nullptr);
@@ -230,7 +231,7 @@ namespace Panels::Configuration::View::FormattedString{
 
             //newItem->init();
         }
-
+protected:
         inline void addNewItem(FormatRulePtr rule){
             //ListItem* newItem = nullptr;
             new ListItem(*this, rule);
@@ -264,17 +265,47 @@ namespace Panels::Configuration::View::FormattedString{
              Super::dropEvent(ev);
          }
 
+        bool viewportEvent(QEvent* ev)override{
+            switch(ev->type()){
+            case QEvent::LayoutRequest:
+            {
+                if(actionView().sizeHint().height() != actionView().height()){
+                    QListWidget& listWidget = actionListView();
+                    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                    if(item){
+                        item->setSizeHint(actionView().sizeHint());
+                    }
+                }
+            }
+                break;
+            case QEvent::Resize:
+            {
+                QResizeEvent& rsEv = *static_cast<QResizeEvent*>(ev);
+                if(rsEv.size().height() != rsEv.oldSize().height()){
+                    QListWidget& listWidget = actionListView();
+                    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                    if(item){
+                        item->setSizeHint(actionView().sizeHint() -= QSize(0, rsEv.oldSize().height() - rsEv.size().height()));
+                    }
+                }
+            }
+                break;
+            default:
+                break;
+            }
 
+            return QListWidget::viewportEvent(ev);
+        }
     public:
-         /*QSize sizeHint()const override{
-             QSize&& sH = Super::sizeHint();
-             QSize&& msH = minimumSizeHint();
-             if(sH.height() > msH.height()){
-                 return sH;
-             }else{
-                 return QSize(sH.width(), msH.height());
-             }
-         }*/
+
+        QSize minimumSizeHint() const override{
+            return  QSize(0, 0);
+        }
+
+        QSize sizeHint() const override{
+            return (Super::count() > 0)? Super::viewportSizeHint()+=QSize(0, 6): QSize(0, 0);
+        }
+
          void loadRules(FormatRulesRef);
          void readRules(FormatRulesRef);
          void contextMenuEvent(QContextMenuEvent* ev)override;
@@ -284,6 +315,47 @@ namespace Panels::Configuration::View::FormattedString{
          QWidget& actionView()const; // Splitter -> Widget (Widget with Layout of ActionDataView) -> ActionView (Any - Conditional or Executable)
          QListWidget& actionListView()const; // ActionView -> Viewport -> List
     };
+
+    class Panel : public QWidget{
+        using FormatRulesRef = FormatRules&;
+        using FormatRulePtr = typename FormatRules::Type;
+    protected:
+        QVBoxLayout mainLayout;
+        List rulesList;
+        QPushButton addRuleButton;
+    public:
+        Panel(){
+            addRuleButton.setText("Dodaj regułę formatującą");
+
+            mainLayout.setSpacing(0);
+            mainLayout.setContentsMargins(0,0,0,0);
+            mainLayout.addWidget(&rulesList, 0, Qt::AlignTop);
+            mainLayout.addWidget(&addRuleButton, 1, Qt::AlignTop);
+            addRuleButton.installEventFilter(this);
+            setLayout(&mainLayout);
+        }
+        inline void clear(){rulesList.clear();}
+
+        inline void loadRules(FormatRulesRef rulesView){rulesList.loadRules(rulesView);}
+        inline void readRules(FormatRulesRef rules){rulesList.readRules(rules);}
+
+        bool eventFilter(QObject* obj, QEvent* ev)override{
+            switch(ev->type()){
+            case QEvent::MouseButtonPress:
+            {
+                if(obj == &addRuleButton){
+                    rulesList.addNewItem();
+                }
+            }
+                break;
+            default:
+                break;
+            }
+            return QWidget::eventFilter(obj, ev);
+        }
+    };
+
+
 
 }
 

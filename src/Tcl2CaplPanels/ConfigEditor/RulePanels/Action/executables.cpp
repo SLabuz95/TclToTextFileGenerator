@@ -254,6 +254,7 @@ ExecutablesList
     //setMovement(Snap);
     setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
     setDragDropMode(QAbstractItemView::InternalMove);
     setDefaultDropAction(Qt::DropAction::MoveAction);
     setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);

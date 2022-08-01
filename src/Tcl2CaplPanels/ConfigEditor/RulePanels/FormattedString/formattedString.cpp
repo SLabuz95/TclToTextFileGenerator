@@ -113,9 +113,6 @@ void List::execRequest_ContextMenu<List::Request_ContextMenu::Remove>(ListItem* 
     Q_ASSERT_X(item != nullptr, __PRETTY_FUNCTION__, "No item");
     delete item;
     qApp->processEvents();
-    QListWidget& listWidget = actionListView();
-    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 template<>
@@ -123,9 +120,6 @@ void List::execRequest_ContextMenu<List::Request_ContextMenu::Clear>(ListItem*)
 {
     clear();
     qApp->processEvents();
-    QListWidget& listWidget = actionListView();
-    QListWidgetItem* pItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-    pItem->setSizeHint(listWidget.itemWidget(pItem)->sizeHint());
 }
 
 QWidget& List::actionView()const{
@@ -134,8 +128,8 @@ QWidget& List::actionView()const{
 }
 
 QListWidget& List::actionListView()const{
-     // itemView -> Viewport -> List
-    return *static_cast<QListWidget*>(actionView().parentWidget()->parentWidget());
+     // itemView -> Panel -> Viewport -> List
+    return *static_cast<QListWidget*>(actionView().parentWidget()->parentWidget()->parentWidget());
 }
 
 ParentContextMenu& List::parentContextMenu()const

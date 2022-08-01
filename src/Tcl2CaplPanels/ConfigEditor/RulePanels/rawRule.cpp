@@ -99,7 +99,6 @@ bool RawRuleView::eventFilter(QObject *obj, QEvent *ev){
         delete &item_;
         return true;
     }
-    qDebug() << "RuleView" << ev->type();
     return QWidget::eventFilter(obj, ev);
 }
 

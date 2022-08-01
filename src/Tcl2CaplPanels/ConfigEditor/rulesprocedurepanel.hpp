@@ -151,7 +151,6 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         }
 
         QSize sizeHint() const override{            
-            qDebug() << "Rules List" << Super::viewportSizeHint() << Super::sizeHint() << minimumSizeHint();
             return (Super::count() > 0)? Super::viewportSizeHint()+=QSize(0, 6): QSize(0, 0);
         }
 

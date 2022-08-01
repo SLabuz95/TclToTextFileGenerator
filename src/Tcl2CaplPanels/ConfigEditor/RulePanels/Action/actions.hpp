@@ -199,16 +199,13 @@ namespace Panels::Configuration::View::ActionsList{
 
 
        bool viewportEvent(QEvent* ev)override{
-           qDebug() << "ViewPort" << ev->type();
            switch(ev->type()){
            case QEvent::LayoutRequest:
            {
-               qDebug() << viewportSizeHint() << sizeHint() << minimumSizeHint();
                if(parentWidget().sizeHint().height() != parentWidget().height()){
                    QListWidget& listWidget = parentWidget().parentWidget();
                    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
                    if(item){
-                       qDebug() << "Resize Item" << parentWidget().sizeHint() << parentWidget().minimumSizeHint();
                        item->setSizeHint(parentWidget().sizeHint());
                    }
                }
@@ -218,7 +215,7 @@ namespace Panels::Configuration::View::ActionsList{
            {
                QResizeEvent& rsEv = *static_cast<QResizeEvent*>(ev);
                qDebug() << viewportSizeHint() << sizeHint() << minimumSizeHint();
-               if(rsEv.size().height() < rsEv.oldSize().height()){
+               if(rsEv.size().height() != rsEv.oldSize().height()){
                    QListWidget& listWidget = parentWidget().parentWidget();
                    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
                    if(item){
@@ -324,7 +321,6 @@ namespace Panels::Configuration::View::ActionsList{
             default:
                 break;
             }
-            qDebug() << "ActionsPanel " << ev->type();
             return QWidget::eventFilter(obj, ev);
         }
     };
