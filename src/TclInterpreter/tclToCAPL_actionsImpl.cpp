@@ -96,7 +96,7 @@ TCLCommandsController::executeConditionalAction
     bool ok = false;
     uint numbOfCompares = UINT_MAX;
     uint numbOfFormatArgs = UINT_MAX;
-    if(parameters.size() < 3){
+    if(parameters.size() < 2){
         throwError(ERROR_PREFIX + "Number of Action Parameters dont match.");
         return ConditionResult::Satisfied;
     }
@@ -131,29 +131,78 @@ TCLCommandsController::executeConditionalAction
     QStringList::size_type result = 0;
     QString formatStr;
     bool ok = false;
-    uint numbOfCompares = UINT_MAX;
+    uint numbOfExpectedArguments = UINT_MAX;
     uint numbOfFormatArgs = UINT_MAX;
     if(parameters.size() < 3){
         throwError(ERROR_PREFIX + "Number of Action Parameters dont match.");
         return ConditionResult::Satisfied;
     }
-    if((numbOfCompares = parameters.at(0).toUInt(&ok), !ok) ||
-            numbOfCompares + 1 >= parameters.size()  ||
-            (numbOfFormatArgs = parameters.at(numbOfCompares + 1).toUInt(&ok), !ok) ||
-            numbOfCompares + numbOfFormatArgs + 2 != parameters.size())
+    if((numbOfExpectedArguments = parameters.at(1).toUInt(&ok), !ok) ||
+            numbOfExpectedArguments + 1 >= parameters.size()  ||
+            (numbOfFormatArgs = parameters.at(numbOfExpectedArguments + 2).toUInt(&ok), !ok) ||
+            numbOfExpectedArguments + numbOfFormatArgs + 3 != parameters.size())
     {
         throwError(ERROR_PREFIX + "Action Parameters are wrong.");
         return ConditionResult::Satisfied;
     }
-    ConditionalActionsParameters& params = parameters.mid(2 + numbOfCompares);
+    // Numb of arguments satisfied?
+    uint numbOfArguments = UINT_MAX;
+    if(not parameters.at(0).isEmpty()){
+        if(static_cast<void>(numbOfArguments = parameters.at(0).toUInt(&ok)), not ok){
+            throwError(ERROR_PREFIX + "NumbOfArguments parameter is corrupted.");
+            return ConditionResult::Satisfied;
+        }
+        if(numbOfArguments != lastProcedureCall().parametersLength()){
+            return ConditionResult::Unsatisfied;
+        }
+    }
+    QStringList::ConstIterator endParam = parameters.begin() + 2 + numbOfExpectedArguments;
+    for(QStringList::ConstIterator str = parameters.begin() + 2; str != endParam; ){
+        // Index
+        int index = INT_MAX;
+        if(static_cast<void>(index = (*str).toInt(&ok)), not ok){
+            throwError(ERROR_PREFIX + "Index parameter is corrupted.");
+            return ConditionResult::Satisfied;
+        }
+        if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
+            index = lastProcedureCall().parametersLength() + index; // Index is negative
+        }
+        if(index < 0 or index >= lastProcedureCall().parametersLength()){ // Index not in range
+            throwError(ERROR_PREFIX + "Index " + *str + " is out of range for procedure call.");
+            return ConditionResult::Satisfied;
+        }
+        index++; // Ignore procedure name
+        QString&& param = lastProcedureCall().parameters()[index].toString(FormatTarget::TclFormat);
+        // Get numb of expected strings
+        str++; // To numb of expected strings
+        if(static_cast<void>(numbOfArguments = (*str).toUInt(&ok)), not ok){
+            throwError(ERROR_PREFIX + "ExpectedNumbOfArguments parameter is corrupted.");
+            return ConditionResult::Satisfied;
+        }
+        str++; // To first argument
+        QStringList::ConstIterator endExpectedStr = str +  numbOfArguments;
+        for( ; str != endExpectedStr; str++){
+            if(*str == param)
+                break;
+        }
+        if(str != endExpectedStr){ // Found
+            str = endExpectedStr;
+        }else{
+            return ConditionResult::Unsatisfied;
+        }
+    }
+    // All is alright
+    ConditionalActionsParameters& params = parameters.mid(3 + numbOfExpectedArguments);
     if((result = createAndAssignString(formatStr, params)) != params.size())
     {
-        throwError(ERROR_PREFIX + "");
+        throwError(ERROR_PREFIX + "Formatted string error");
         return ConditionResult::Satisfied;
     }
-    for(QStringList::ConstIterator str = parameters.begin() + 1; str < parameters.begin() + 1 + numbOfCompares; str++)
-        if(*str == formatStr)
-            return ConditionResult::Satisfied;
+    if(finalizeOn){ // Used for procedure
+        lastProcedureCall().setOutputCommand(formatStr);
+    }else{  // For last argument
+       lastProcedureCall().lastParameter().setOutputCommand(formatStr);
+    }
     return ConditionResult::Satisfied;
 }
 

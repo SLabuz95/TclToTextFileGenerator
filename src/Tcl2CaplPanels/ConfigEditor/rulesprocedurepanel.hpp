@@ -112,10 +112,6 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
             //newItem->init();
         }
 
-        virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles = QList<int>()) override{
-            qDebug() << topLeft << bottomRight << roles;
-            QListWidget::dataChanged(topLeft, bottomRight, roles);
-        }
 
        void contextMenuEvent(QContextMenuEvent *e) override;
 
@@ -150,8 +146,10 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
             return  QSize(0, 0);
         }
 
-        QSize sizeHint() const override{            
-            return (Super::count() > 0)? Super::viewportSizeHint()+=QSize(0, 6): QSize(0, 0);
+        QSize sizeHint() const override{
+            const int fW = frameWidth();
+            QSize&& s = Super::viewportSizeHint()+QSize(0, fW*2 + 40);
+            return (Super::count() > 0)? s: QSize(0, 40);
         }
 
 

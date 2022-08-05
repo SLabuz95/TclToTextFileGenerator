@@ -24,6 +24,7 @@ using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 template<>
 ActionView::ActionView(List& list, ActionPtr action)
 {    
+    setParent(list.viewport());
     mainLayout.setVerticalSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
     mainLayout.addRow("Typ akcji:",&actionTypeComboBox);
@@ -40,9 +41,10 @@ ActionView::ActionView(List& list, ActionPtr action)
         dataView_->setSpacing(0);
         dataView_->setContentsMargins(0,0,0,0);
         widget->setLayout(dataView_);
+    }else{
+        delete widget;
     }
 
-    setParent(list.viewport());
 
 }
 
@@ -79,13 +81,11 @@ bool ActionView::createActionDataView(ActionType type){
             dataView_->setContentsMargins(0,0,0,0);
         }else{
             delete widget;
-        }
+        }        
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-        QWidget* wwidget = listWidget.itemWidget(item);
-        if(wwidget)
-            item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
+        item->setSizeHint(sizeHint());
         qApp->processEvents();
     }
     return true;
@@ -281,7 +281,6 @@ ListItem::ListItem(ConditionalsList& list, ActionPtr action)
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
     list.setItemWidget(this, &view_);
-    qApp->processEvents();
     setSizeHint(view().sizeHint());
 }
 

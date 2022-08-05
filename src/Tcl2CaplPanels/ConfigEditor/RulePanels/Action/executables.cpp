@@ -21,6 +21,7 @@ using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 template<>
 ActionView::ActionView(List& list, ActionPtr action)
 {
+    setParent(list.viewport());
     mainLayout.setVerticalSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
     mainLayout.addRow("Typ akcji:",&actionTypeComboBox);
@@ -39,7 +40,6 @@ ActionView::ActionView(List& list, ActionPtr action)
         widget->setLayout(dataView_);
     }
 
-    setParent(list.viewport());
 }
 
 template<>
@@ -74,7 +74,7 @@ bool ActionView::createActionDataView(ActionType type){
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-        item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
+        item->setSizeHint(sizeHint());
         qApp->processEvents();
     }
     return true;
@@ -272,7 +272,6 @@ ListItem::ListItem(ExecutablesList& list, ActionPtr action)
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
     list.setItemWidget(this, &view_);
-    qApp->processEvents();
     setSizeHint(view().sizeHint());
 }
 

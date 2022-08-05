@@ -119,6 +119,7 @@ RulesList::RulesList(){
     "}");*/
     setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setMovement(QListView::Snap);
     setDefaultDropAction(Qt::DropAction::MoveAction);
     setDragDropMode(QAbstractItemView::InternalMove);

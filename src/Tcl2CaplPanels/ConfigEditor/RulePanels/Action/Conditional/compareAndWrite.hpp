@@ -193,7 +193,6 @@ namespace Panels::Configuration::View::ActionsList{
 
        // ListItem& item_;
         QVBoxLayout centralLayout;
-        QPushButton closeButton;
         QFormLayout settingsLayout;
         QLineEdit numbOfArgumentCondition;
         //RuleControlComboBox ruleControlComboBox;

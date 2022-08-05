@@ -75,8 +75,8 @@ void FunctionDefinitions::addDefinitionNotSatisfiedRules(Call& procedureCall)
 void FunctionDefinitions::writeCaplFunctionDefinitions(QFile &file){
     if(not definitionsOnNoRules.isEmpty()) {
         const QString newFunction = "// _NEW_FUNC_\n";
-        const QString startOfExamples = "// EXAMPLES\n";
-        const QString endOfExamples = "\n// END OF EXAMPLES\n";
+        const QString startOfExamples = "// EXAMPLES\n/*\n";
+        const QString endOfExamples = "\n*/\n// END OF EXAMPLES\n";
         if(not file.isOpen()){
             if(not file.open(QIODevice::Text | QIODevice::Append))
                 return;
@@ -104,23 +104,13 @@ void FunctionDefinitions::writeCaplFunctionDefinitions(QFile &file){
 
                 // Examples
                 file.write(startOfExamples.toUtf8());
-                /*using Definitions = FunctionDefinitions::DefinitionInfo;
-                using ParametersNumb = Definitions::mapped_type;
-                for(ParametersNumb::Iterator parametersNumb = defInfo.value().begin();
-                    parametersNumb != defInfo.value().end();
-                    parametersNumb++)
+                ProcedureInfos& procedureInfos = caplDefinitionInfo.value();
+                for(ProcedureInfos::Iterator procedureInfo = procedureInfos.begin();
+                    procedureInfo != procedureInfos.end();
+                    procedureInfo++)
                 {
-                    QTreeWidgetItem* parametersItem = new QTreeWidgetItem(this);
-                    parametersItem->setText(0, "Parametry: " + toString(parametersNumb.key()));
-                    using Example = ParametersNumb::mapped_type::Iterator;
-                    for(Example example = parametersNumb.value().begin();
-                        example != parametersNumb.value().end();
-                        example++)
-                    {
-                        parametersItem->addChild(new QTreeWidgetItem({*example}));
-                    }
-                }*/
-                //file.write(caplDefinitionInfo->values().join("\n").toUtf8());
+                    file.write(procedureInfo.value().join("\n").toUtf8());
+                }
                 file.write(endOfExamples.toUtf8());
             }
         }

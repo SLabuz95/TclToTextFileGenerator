@@ -549,10 +549,6 @@ CompareAndWriteActionView::CompareAndWriteActionView(QWidget* parent)
     // Setup layout
     centralLayout.setSpacing(0);
 
-    closeButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCloseButton));
-    closeButton.installEventFilter(this);
-    centralLayout.addWidget(&closeButton, 1, Qt::AlignRight);
-
     numbOfArgumentCondition.setValidator(new QRegularExpressionValidator(QRegularExpression("(\\>[\\d]+|[\\d+]+)?")));
     settingsLayout.addRow("Liczba argumentów: ", &numbOfArgumentCondition);
     /*ruleControlComboBox.setCurrentText(
@@ -561,7 +557,7 @@ CompareAndWriteActionView::CompareAndWriteActionView(QWidget* parent)
 
     //settingsLayout.addRow("Flaga kontrolna reguly: ", &ruleControlComboBox);
 
-    centralLayout.addLayout(&settingsLayout, Qt::AlignTop);
+    centralLayout.addLayout(&settingsLayout, 1);
 
     expectedArgumentsList.setHeaderLabels({"Indeksy", "Aktywne", "Spodziewane argumenty"});
     expectedArgumentsList.setSortingEnabled(true);
@@ -569,7 +565,7 @@ CompareAndWriteActionView::CompareAndWriteActionView(QWidget* parent)
     quickRuleInput.addWidget(&formattedStringList);
     //outputsList.setHeaderLabels({"Format", "Zawartość"});
     //quickRuleInput.addWidget(&outputsList);
-    centralLayout.addWidget(&quickRuleInput);
+    centralLayout.addWidget(&quickRuleInput, 0, Qt::AlignTop);
 
     addLayout(&centralLayout);
 

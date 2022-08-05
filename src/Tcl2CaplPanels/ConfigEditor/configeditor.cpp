@@ -281,9 +281,11 @@ bool Panel::saveCurrentConfig(){ // False to cancel
         saveToFileQuestionMsgBox.setWindowTitle("Zapis aktualnej konfiguracji");
         saveToFileQuestionMsgBox.setText("Czy chcesz zapisac aktualna konfiguracje?");
         QPushButton* saveButton = nullptr;
+        QPushButton* dontSaveButton = nullptr;
         QPushButton* saveAsButton = nullptr;
         saveButton = saveToFileQuestionMsgBox.addButton(QString("Zapisz"), QMessageBox::ButtonRole::AcceptRole);
         if(config().isLocalConfig()){
+            dontSaveButton = saveToFileQuestionMsgBox.addButton(QString("Nie zapisuj"), QMessageBox::ButtonRole::DestructiveRole);
             saveToFileQuestionMsgBox.addButton(QString("Anuluj"), QMessageBox::ButtonRole::DestructiveRole);
             saveToFileQuestionMsgBox.exec();
             if(saveToFileQuestionMsgBox.clickedButton() == saveButton){
@@ -301,11 +303,16 @@ bool Panel::saveCurrentConfig(){ // False to cancel
                 }else{
                     return false;
                 }
-            }else{ // Cancelled
-                return false;
+            }else{
+                if(saveToFileQuestionMsgBox.clickedButton() == dontSaveButton){ // Do not save
+
+                }else{// Cancelled
+                    return false;
+                }
             }
         }else{
             saveAsButton = saveToFileQuestionMsgBox.addButton(QString("Zapisz jako"), QMessageBox::ButtonRole::AcceptRole);
+            dontSaveButton = saveToFileQuestionMsgBox.addButton(QString("Nie zapisuj"), QMessageBox::ButtonRole::DestructiveRole);
             saveToFileQuestionMsgBox.addButton(QString("Anuluj"), QMessageBox::ButtonRole::DestructiveRole);
             saveToFileQuestionMsgBox.exec();
             if(saveToFileQuestionMsgBox.clickedButton() == saveButton){
@@ -328,8 +335,12 @@ bool Panel::saveCurrentConfig(){ // False to cancel
                     }else{
                         return false;
                     }
-                }else{ // Cancelled
-                    return false;
+                }else{
+                    if(saveToFileQuestionMsgBox.clickedButton() == dontSaveButton){ // Do not save
+
+                    }else{// Cancelled
+                        return false;
+                    }
                 }
             }
         }

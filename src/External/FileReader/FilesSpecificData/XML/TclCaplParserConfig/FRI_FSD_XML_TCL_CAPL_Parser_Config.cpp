@@ -1603,9 +1603,10 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         using Rule = FormatParametersFactory::Product<RuleType::TextItem>;
         Rule& rule = *static_cast<Rule*>(ruleBase);
 
-        value = config.data->reader->attributes().value("value").toString();
+        value = config.data->reader->readElementText(QXmlStreamReader::IncludeChildElements);
 
         rule.setText(value);
+        callEndElement = true;
     }
         break;
     default:

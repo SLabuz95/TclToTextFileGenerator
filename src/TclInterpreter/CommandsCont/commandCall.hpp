@@ -237,7 +237,7 @@ namespace Tcl::Interpreter::Command{
             inline QString generateFunctionDefinitionExample(){return QString("") + _name() + " " + generateFunctionDefinitionExampleParameters() + "";}
             inline QString generateFunctionDefinitionExampleParameters(){
                 QString str;
-                for(Parameters::Iterator parameter = parameters().begin(); parameter < _parameters.end(); parameter++)
+                for(Parameters::Iterator parameter = parameters().begin() + 1; parameter < _parameters.end(); parameter++)
                     str.append(parameter->toString(Definition::Format::Target::TclFormat) + " ");
                 str.chop(QStringLiteral(" ").length());
                 return str;

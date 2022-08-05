@@ -8,8 +8,7 @@
 
 using namespace Panels::Configuration::View::FormattedString;
 
-ItemView::ItemView(List& list, FormatRulePtr rule)
- : Super(list.viewport())
+ItemView::ItemView(List& list, FormatRulePtr rule) 
 {
     using OutputOption2FormatRuleMap = const QStringList;
     OutputOption2FormatRuleMap outputOption2FormatRuleMap =
@@ -24,25 +23,26 @@ ItemView::ItemView(List& list, FormatRulePtr rule)
     titleComboBox.addItems(outputOption2FormatRuleMap);
     if(rule)
         titleComboBox.setCurrentIndex( FormatRule::toUnderlyng(rule->type()) );
-    mainLayout.setSpacing(0);
+    //mainLayout.setSpacing(0);
+    mainLayout.setVerticalSpacing(0);
     mainLayout.setContentsMargins(0,0,0,0);
     mainLayout.addRow("Typ akcji:", &titleComboBox);
-
     titleComboBox.installEventFilter(this);
     titleComboBox.view()->installEventFilter(this);
 
+    QWidget* widget = new QWidget();
     setLayout(&mainLayout);
 
-    QWidget* widget = new QWidget();
-    mainLayout.addRow(widget);
     dataView_ = ItemDataView::createView(widget, rule);
     if(dataView_){
         dataView_->setSpacing(0);
         dataView_->setContentsMargins(0,0,0,0);
+        widget->setLayout(dataView_);
+        mainLayout.addRow(widget);
     }else{
         delete widget;
     }
-    qApp->processEvents();
+    setParent(list.viewport());
 }
 
 void ItemView::readRule(FormatRulePtr& rule){
@@ -59,22 +59,28 @@ List& ItemView::parentWidget()const{
 
 bool ItemView::createFormatRuleDataView(FormatRuleType type){
     if(not dataView_ or dataView_->type() != type){
+        QSize diffSize = QSize(0,0);
         QWidget* widget = new QWidget();
         if(dataView_){
+            diffSize.rheight() = -dataView_->sizeHint().height();
             mainLayout.removeRow(mainLayout.rowCount() - 1);
         }
-        mainLayout.addRow(widget);
         dataView_ = ItemDataView::createView(widget, type);
         if(dataView_){
             dataView_->setSpacing(0);
             dataView_->setContentsMargins(0,0,0,0);
+            diffSize.rheight() += dataView_->sizeHint().height();
+            mainLayout.addRow(widget);
         }else{
             delete widget;
-        }
+        }        
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-        item->setSizeHint(listWidget.itemWidget(item)->sizeHint());
+        qDebug() << item->sizeHint();
+        QSize sizeHint = item->sizeHint();
+        item->sizeHint().rwidth() = 0;
+        item->setSizeHint(sizeHint + diffSize);
         qApp->processEvents();
     }
     return true;
@@ -123,13 +129,13 @@ void List::execRequest_ContextMenu<List::Request_ContextMenu::Clear>(ListItem*)
 }
 
 QWidget& List::actionView()const{
-    // Splitter -> Widget (Widget with Layout of ActionDataView) -> ActionView (Any - Conditional or Executable)
-    return *Super::parentWidget()->parentWidget()->parentWidget();
+    // Panel -> Splitter -> Widget (Widget with Layout of ActionDataView) -> ActionView (Any - Conditional or Executable)
+    return *Super::parentWidget()->parentWidget()->parentWidget()->parentWidget();
 }
 
 QListWidget& List::actionListView()const{
-     // itemView -> Panel -> Viewport -> List
-    return *static_cast<QListWidget*>(actionView().parentWidget()->parentWidget()->parentWidget());
+     // Panel -> Viewport -> List
+    return *static_cast<QListWidget*>(actionView().parentWidget()->parentWidget());
 }
 
 ParentContextMenu& List::parentContextMenu()const
@@ -251,11 +257,11 @@ List::List(){
     //setHeaderLabels({"Akcje warunkowe"});
     //setIndentation(0);
     //setMovement(Snap);
+    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     setDragDropMode(QAbstractItemView::InternalMove);
     setDefaultDropAction(Qt::DropAction::MoveAction);
     setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
-    setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
     setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
     setDragDropOverwriteMode(true);
 
@@ -270,7 +276,6 @@ ListItem::ListItem(List& list, FormatRulePtr rule)
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
     list.setItemWidget(this, &view_);
-    qApp->processEvents();
     setSizeHint(view().sizeHint());
 }
 

@@ -97,7 +97,7 @@ QString ExceptionsPanel::ExceptionsList::toString(FunctionDefinitions::Parameter
             retString += "FunctionCall";
             break;
         case Stat::Word:
-            retString += "Operator";
+            retString += "Word";
             break;
         case Stat::VariableSubbing:
             retString += "Variable";

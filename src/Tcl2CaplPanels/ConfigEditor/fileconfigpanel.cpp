@@ -22,7 +22,7 @@ FileConfigPanel::FileConfigPanel(PanelRef configEditor, QString filePath)
     saveButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
     saveButton.setToolTip("Zapisz");
     saveButton.installEventFilter(this);
-    saveAsButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxQuestion));
+    saveAsButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
     saveAsButton.setToolTip("Zapisz jako");
     saveAsButton.installEventFilter(this);
 
@@ -111,8 +111,9 @@ void FileConfigPanel::saveAsButtonPressed(){
     if(not filePath.isEmpty()){
         // request save file for the path
         // if success, change path in filePathLineEdit
-        if(configEditor_.request_saveAsConfig(filePath) == true){
-            filePathLineEdit.setText(filePath);
+        filePathLineEdit.setText(filePath);
+        if(configEditor_.request_saveAsConfig(filePath) == false){
+            filePathLineEdit.setText(oldPath);
         }
 
     }

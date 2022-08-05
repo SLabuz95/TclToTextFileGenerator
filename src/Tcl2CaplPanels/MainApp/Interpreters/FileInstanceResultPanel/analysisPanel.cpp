@@ -45,7 +45,7 @@ bool AnalysisPanel::eventFilter(QObject* obj, QEvent* ev){
 
 void AnalysisPanel::loadNoRules(QString procedure, uint numbOfParameters){
     FunctionDefinitions::Definitions::Iterator caplDefinition;
-    if((caplDefinition = caplFunctionDefinitions().definitionsOnNotSatisfiedRulesView().find(procedure)) != caplFunctionDefinitions().definitionsOnNoRulesView().end()){
+    if((caplDefinition = caplFunctionDefinitions().definitionsOnNoRulesView().find(procedure)) != caplFunctionDefinitions().definitionsOnNoRulesView().end()){
         FunctionDefinitions::DefinitionInfo::Iterator caplDefinitionInfo;
         if((caplDefinitionInfo = caplDefinition->find(numbOfParameters)) != caplDefinition->end()){
             exceptionsPanel.load(caplDefinitionInfo);

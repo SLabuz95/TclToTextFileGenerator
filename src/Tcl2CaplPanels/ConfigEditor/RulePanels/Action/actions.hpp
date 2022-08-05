@@ -89,6 +89,9 @@ namespace Panels::Configuration::View::ActionsList{
         using List = List<Actions>;
         using Super = QWidget;
         class ActionTypeComboBox : public QComboBox{
+            void wheelEvent(QWheelEvent *e) final override{
+                // Pass to parent
+            }
         public:
             ActionTypeComboBox(){
 
@@ -214,12 +217,10 @@ namespace Panels::Configuration::View::ActionsList{
            case QEvent::Resize:
            {
                QResizeEvent& rsEv = *static_cast<QResizeEvent*>(ev);
-               qDebug() << viewportSizeHint() << sizeHint() << minimumSizeHint();
-               if(rsEv.size().height() != rsEv.oldSize().height()){
+               if(rsEv.size().height() < rsEv.oldSize().height()){
                    QListWidget& listWidget = parentWidget().parentWidget();
                    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
                    if(item){
-                       qDebug() << "Resize Item" << parentWidget().sizeHint() << parentWidget().minimumSizeHint();
                        item->setSizeHint(parentWidget().sizeHint() -= QSize(0, rsEv.oldSize().height() - rsEv.size().height()));
                    }
                }
@@ -267,7 +268,9 @@ namespace Panels::Configuration::View::ActionsList{
         }
 
         QSize sizeHint() const override{
-            return (Super::count() > 0)? Super::viewportSizeHint()+=QSize(0, 6): QSize(0, 0);
+            const int fW = frameWidth();
+            QSize&& s = Super::viewportSizeHint()+QSize(0, fW*2 + 40);
+            return (Super::count() > 0)? s: QSize(0, 40);
         }
         ParentContextMenu& parentContextMenu()const override;
         void extendContextMenu(ContextMenuConfig&)const override;

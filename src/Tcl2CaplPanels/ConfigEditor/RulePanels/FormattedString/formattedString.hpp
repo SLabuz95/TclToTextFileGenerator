@@ -115,14 +115,21 @@ namespace Panels::Configuration::View::FormattedString{
         // GUI Layout
         using MainLayout = QFormLayout;
         using TitleLayout = QHBoxLayout;
-        using ComboBox = QComboBox;
+        class ComboBox : public QComboBox{
+            void wheelEvent(QWheelEvent *) final override{
+                // Pass to parent
+            }
+        public:
+            using QComboBox::QComboBox;
+        };
+
         using RemoveButton = QPushButton;
         //FormatRulePtr formatRule = nullptr;
 
         MainLayout mainLayout;
-        TitleLayout titleLayout;
+        //TitleLayout titleLayout;
         ComboBox titleComboBox;
-        RemoveButton titleRemoveButton;
+        //RemoveButton titleRemoveButton;
         ItemDataView* dataView_ = nullptr;
 
 
@@ -269,11 +276,11 @@ protected:
             switch(ev->type()){
             case QEvent::LayoutRequest:
             {
-                if(actionView().sizeHint().height() != actionView().height()){
+                if(count() > 0){
                     QListWidget& listWidget = actionListView();
                     QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-                    if(item){
-                        item->setSizeHint(actionView().sizeHint());
+                    if(item and actionView().sizeHint().height() < sizeHint().height()){
+                        item->setSizeHint(actionView().sizeHint() += QSize(0, sizeHint().height() - height()));
                     }
                 }
             }
@@ -281,7 +288,7 @@ protected:
             case QEvent::Resize:
             {
                 QResizeEvent& rsEv = *static_cast<QResizeEvent*>(ev);
-                if(rsEv.size().height() != rsEv.oldSize().height()){
+                 if(rsEv.oldSize().height() != 0 and rsEv.size().height() < rsEv.oldSize().height()){
                     QListWidget& listWidget = actionListView();
                     QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
                     if(item){
@@ -303,7 +310,9 @@ protected:
         }
 
         QSize sizeHint() const override{
-            return (Super::count() > 0)? Super::viewportSizeHint()+=QSize(0, 6): QSize(0, 0);
+            const int fW = frameWidth();
+            QSize&& s = Super::viewportSizeHint()+QSize(0, fW*2 + 40);
+            return (count() > 0)? s: QSize(0, 40);
         }
 
          void loadRules(FormatRulesRef);
