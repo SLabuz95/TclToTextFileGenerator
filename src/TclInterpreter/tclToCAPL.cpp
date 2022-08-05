@@ -695,6 +695,170 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
             }
         }
     },  // End of Definition ================================================,
+    {   // Definition --------------------------------------------------------
+        "while",
+        {   // Rules for Arguments
+            {
+                0,
+                {   // Dynamic Rules
+                    {   // Rule 1: If lastSavedStat stat == List or EndOfList or FunctionCall or Whitespace -> Do nothing (Break)
+                        {
+                            {
+                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                             {
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))
+                             }
+                            },
+
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
+                           }
+                        }
+                    },
+                    {   // Rule 1: If lastSavedStat stat == ComplexWord -> ChangeTo
+                        {
+                            {
+                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                             {
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWord))
+                             }
+                            },
+
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWordExprOnly))}
+                           }
+                        }
+                    },
+                    {   // Rule 3: Error if no rules have been executed
+                        {
+                            // No Conditions
+                        },
+                        {
+                            {   // Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {
+                                    "\"If\" conditional expression isnt list or complexWord"
+                                }
+                            }
+                        }
+                    }
+                },
+                {   // Rules on moveArgument
+                   { // Rule 1
+                       {
+                       },
+                       {
+                         {   // Finalize expr
+                             ProcedureDefinition::Action::Executable::ExprFinalize,
+                             {}
+                         },
+                         {   // Write as ( =-1 )
+                             ProcedureDefinition::Action::Executable::Write,
+                             {
+                                 "( ",
+                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                 "=-1",
+                                 " )"
+                             }
+                         }
+                       }
+                    },
+                }
+            },
+            { // On 2nd argument (then or script)
+                1,
+                {   // Dynamic Rules
+                    {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
+                        {   // Conditions:  If SavedStat stat == List
+                            {   // Condition 1:  If SavedStat stat == List
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                            },
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                           }
+                        }
+                    },
+
+                },
+                {   // Rules on moveArgument
+                    {   // Rule 1: If Script
+                        {
+                            {   // Condition 1:  If SavedStat stat == List
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                            },
+                        },
+                        {
+
+                        }
+                    },
+                    {   // Rule 3: Error
+                        {
+
+                        },
+                        {
+                            {// Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {"While procedure incorrect 2nd argument"}
+                            }
+                        }
+                    },
+                }
+            },
+        },
+        {   // Rules for Unspecified Argument
+
+        },
+        {   // Rules on End of Call
+            {   // Rule 1
+
+                {
+                    {
+                        ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                        {
+                            QString::number(2)
+                        }
+                    }
+                },
+                {
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            "=",
+                            //ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            //ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                            //+ ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ">0"
+                        }
+                    }
+                }
+
+            },
+            {   // Rule 2: Error
+                {
+
+                },
+                {
+                    {// Error
+                        ProcedureDefinition::Action::Executable::Error,
+                        {"While procedure requires only 2 parameters"}
+                    }
+                }
+            },
+        }
+    },  // End of Definition ================================================,
 };
 
 TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefinitions = {
