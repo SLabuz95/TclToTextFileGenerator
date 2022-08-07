@@ -1,4 +1,5 @@
 #include"controller.hpp"
+#include"Result/tcl2caplresult.hpp"
 #include<QFileDialog>
 #include<QDirIterator>
 #include"TcFileModifier/tcfilemodifier.hpp"
@@ -154,7 +155,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
         // If file
         if(QFileInfo(*definitionPath).isFile()){
             //Use Interpreter
-            Tcl2CaplResult::Tcl2CaplReadData tcFileData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions);
+            Tcl2CaplReadData tcFileData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions);
             TcFileModifier::Config tcFileModifier(tcFileData);
             QStringList blackList;
             QString filePath;
@@ -182,7 +183,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
                 dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
                 dir.setSorting(QDir::Name);
                 QVector<QDirIterator*> dirs({new QDirIterator(dir)});
-                QVector<Tcl2CaplResult::Tcl2CaplReadData*> tcFileData{new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions)};
+                QVector<Tcl2CaplReadData*> tcFileData{new Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions)};
                 using NameFilters = const QStringList;
                 NameFilters permittedFileSuffixes = QStringList{"tcl"};
 
@@ -196,7 +197,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
                             dir.setSorting(QDir::Name);
                             if(dir.dirName() != tcFileData.at(0)->dir().dirName()){ // Ignore if dir name == first output dir name
                                 dirs.append(new QDirIterator(dir));
-                                tcFileData.append(new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions));
+                                tcFileData.append(new Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions));
                             }
                         }else{
                             if(fileInfo.isFile() and permittedFileSuffixes.contains(fileInfo.completeSuffix())){
@@ -293,7 +294,7 @@ bool Tcl2CaplController::generateCapls_impl(){
         }else{
             // If file
             if(inputFile.isFile()){
-                Tcl2CaplResult::Tcl2CaplReadData tcFileData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions);
+                Tcl2CaplReadData tcFileData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions);
                 TcFileModifier::Config tcFileModifier(tcFileData);
                 QStringList blackList;
                 QString filePath;
@@ -342,7 +343,7 @@ bool Tcl2CaplController::generateCapls_impl(){
                 dir.setSorting(QDir::Name);
 
                 QVector<QDirIterator*> dirs({new QDirIterator(dir)});
-                QVector<Tcl2CaplResult::Tcl2CaplReadData*> tcFileData{new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions)};
+                QVector<Tcl2CaplReadData*> tcFileData{new Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions)};
                 using NameFilters = const QStringList;
                 NameFilters permittedFileSuffixes = QStringList{"tc"};
 
@@ -367,7 +368,7 @@ bool Tcl2CaplController::generateCapls_impl(){
                                     return errorMsg.isEmpty();
                                 }
                                 dirs.append(new QDirIterator(dir));
-                                tcFileData.append(new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions));
+                                tcFileData.append(new Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions));
                             }
                         }else{
                             if(fileInfo.isFile() and permittedFileSuffixes.contains(fileInfo.completeSuffix())){

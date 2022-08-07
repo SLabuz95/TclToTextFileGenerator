@@ -4,6 +4,7 @@
 #include"TclInterpreter/tclToCAPL.hpp"
 #include"Tcl2Capl/Config/Parameters/FCT_products.hpp"
 #include"Tcl2Capl/Config/Rules/FCT_products.hpp"
+#include"TcFileModifier/Config/Rules/FCT_products.hpp"
 
 class Tcl2CaplControllerConfig{
 public:
@@ -25,9 +26,14 @@ public:
 
 public:    
 
-    using RawRule = RulesFactory::Product<RulesTypes::RawRule>;
-    using RulesForArgument = RulesFactory::Product<RulesTypes::RulesForArgument>;
 
+    using ModifierConfigRawRule = ModifierRulesFactory::Product<ModifierRulesTypes::RawRule>;
+    using ModifierConfigRawRules = ModifierRulesFactory::List<ModifierRulesTypes::RawRule>;
+    using ModifierConfigRules = ModifierRulesFactory::ListOfBases;
+    using ModifierConfigActions = ModifierActionsFactory::ListOfBases;
+
+    using RulesForArgument = RulesFactory::Product<RulesTypes::RulesForArgument>;
+    using RawRule = RulesFactory::Product<RulesTypes::RawRule>;
     using RawRules = RulesFactory::List<RulesTypes::RawRule>; // Stack oriented
     using DynamicRawRules = RulesFactory::ListOfBases; // Heap oriented
     using RulesForArguments = RulesFactory::List<RulesTypes::RulesForArgument>;

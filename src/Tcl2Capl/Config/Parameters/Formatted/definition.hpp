@@ -14,7 +14,7 @@ using ControlFlag = UserProcedureRule::Control;
 
 
 namespace FormatParameters {
-    enum Type : int{
+    enum class Type : int{
         FCT_Begin,
 
         TextItem = FCT_Begin,

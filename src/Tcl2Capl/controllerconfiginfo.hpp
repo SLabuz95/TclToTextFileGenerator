@@ -20,6 +20,13 @@ public:
         // 0 > - Argument index value
     };
 
+    enum ModifierRulesCategories : qsizetype{
+        OnNoRulesSatisfied = -2,
+        LowestValue = OnNoRulesSatisfied,
+        OnEndOfRulesCheck = -1,
+        PhaseRules = 0
+    };
+
 private:
     struct ProcedureRuleCategoryKey : public QPair<QString, RulesCategories>{
     public:
@@ -29,10 +36,36 @@ private:
                     or lhs.first < rhs.first;
         }
     };
+
+    struct PhaseModifierRuleCategoryKey : public QPair<QString, ModifierRulesCategories>{
+    public:
+        using QPair<QString, ModifierRulesCategories>::QPair;
+        friend bool operator<(const PhaseModifierRuleCategoryKey& lhs, const PhaseModifierRuleCategoryKey& rhs){
+            return (lhs.second < rhs.second and rhs.first == lhs.first)
+                    or lhs.first < rhs.first;
+        }
+    };
 public:
+    using Config = Tcl2CaplControllerConfig;
+
+    using ModifierPhaseMap = QMap<PhaseModifierRuleCategoryKey, qsizetype>;
+    using ModifierSavedRules = Config::ModifierConfigRawRules;
+    using ModifierNewRules = Config::ModifierConfigRules;
+    using ModifierActions = Config::ModifierConfigActions;
+    using ModifierRulesView = QPair<ModifierNewRules::Iterator, ModifierNewRules::Iterator>;
+
+    struct ModifierRulesFromConfigFileView{
+        ModifierRulesCategories index;
+        ModifierNewRules rules;
+    };
+
+    struct PhaseView{
+        ModifierPhaseMap::Iterator phase;
+        ModifierRulesView rulesView;
+    };
+
     using ProcedureMap = QMap<ProcedureRuleCategoryKey, qsizetype>;
     using DefaultProcedureMap = QMap<RulesCategories, qsizetype>;
-    using Config = Tcl2CaplControllerConfig;
     using SavedRules = Config::RawRules;
     using NewRules = Config::DynamicRawRules;
     using RulesView = QPair<NewRules::Iterator, NewRules::Iterator>;
@@ -48,13 +81,20 @@ public:
     using ConfigFile = ControllerConfigManager::ConfigFile;
 
 protected:
+    qsizetype numbOfExistingPhases = 0;
+    qsizetype numbOfAllPhases = 0;
+
     qsizetype numbOfExistingProcedures = 0;
     qsizetype numbOfAllProcedures = 0;
+
+    inline void countUp_NewPhase(){numbOfAllPhases++; numbOfExistingPhases++;}
+    inline void countUp_RestoredPhase(){numbOfExistingPhases++;}
+    inline void countDown_HidePhase(){numbOfExistingPhases--;}
+    inline void countDown_RemoveHiddenPhase(){numbOfAllPhases--;}
 
     inline void countUp_NewProcedure(){numbOfAllProcedures++; numbOfExistingProcedures++;}
     inline void countUp_RestoredProcedure(){numbOfExistingProcedures++;}
     inline void countDown_HideProcedure(){numbOfExistingProcedures--;}
-    //inline void countDown_RemoveExistingProcedure(){numbOfAllProcedures--;numbOfExistingProcedures--;}
     inline void countDown_RemoveHiddenProcedure(){numbOfAllProcedures--;}
 public:
     ControllerConfigInfo();
@@ -68,6 +108,8 @@ public:
         // - to new Procedure (not in config), change names in newConfig
         // - to removed procedure in Config,change names in newConfig -> merge (OnEnd - unset removed flag -> uneditted dont exist in newConfig (set removed if not)
         // -> noteditted exist in newConfig (unset removed)) -> editted exist and new index exist in newConfig (remove from editted ) and old index)
+
+        // -------------------------- INTERFACE OF TCL CONFIG ------------------------------------------------
 
         bool addProcedure(QString name);
         void clearAllNewRules(QString procedureName);
@@ -131,9 +173,42 @@ public:
         void writeDefaultProcedureToXML(QXmlStreamWriter&);
 
         void changeConfigFile(QString newPath){configFile.changeConfigPath(newPath);}
+
+        // -------------------------- INTERFACE OF MODIFIER CONFIG ------------------------------------------------
+        bool addPhase(QString name);
+        void clearAllNewModifierRules(QString name);
+        void clearAllNewModifierRules(QString name, ModifierRulesCategories index);
+        void moveAllNewModifierRules(QString oldName, QString newName);
+        bool editPhaseName(QString oldName, QString newName);
+        bool removePhase(QString name);
+        void clearPhases();
+
+        inline bool isPhaseExist(QString phase){return newPhasesMap.contains({phase, ModifierRulesCategories()});}
+
+        void loadNewModifierRules(QString, ModifierRulesCategories, ModifierNewRules&);
+        ModifierRulesView readModifierRules(QString, ModifierRulesCategories);
+
+        using PhasesView = ModifierPhaseMap;
+        PhasesView readPhasesInfo(){
+            return PhasesView{newPhasesMap};
+        }
+
+        inline qsizetype getNumbOfExistingPhases(){return numbOfExistingPhases;}
+        inline qsizetype getNumbOfAllPhases(){return numbOfAllPhases;}
+
+
+        void readPhases(TcFileModifierConfigBase::ModifierPhases&);
+        // XML Section
+        bool addCategory(QString name, ModifierRulesFromConfigFileView& rulesView);
+
     protected:
         ConfigFile configFile;
 
+        // --------------------- DATA OF MODIFIER CONFIG -------------------------------------------
+        ModifierPhaseMap newPhasesMap;// phases map
+        ModifierNewRules newModifierRules;
+
+        // --------------------- DATA OF TCL CONFIG -------------------------------------------
         // Local changes
         Settings _settings;
         ProcedureMap newProceduresMap;// procedures map

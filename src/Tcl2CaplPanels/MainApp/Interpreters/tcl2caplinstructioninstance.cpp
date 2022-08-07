@@ -179,7 +179,7 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     UserInputConfig userInputConfig(configEditor.config());
     TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
     QFile file_DONT_USE_PH_ONLY;
-    Tcl2CaplResult::Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, userInputConfig, caplFunctionDefinitions);
+    Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, userInputConfig, caplFunctionDefinitions);
     QString inputTclText = inputTclConfig.toPlainText();
     QString outputCaplText;
     QString errorText;
@@ -288,7 +288,7 @@ void Tcl2CaplInstructionInstance::generateCaplRaportMode(){
     UserInputConfig userInputConfig(configEditor.config());
     //TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
     //QFile file_DONT_USE_PH_ONLY;
-    //Tcl2CaplResult::Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, tempUserProceduresConfig_);
+    //Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, tempUserProceduresConfig_);
     QString inputTclText = inputTclConfig.toPlainText();
     QString outputCaplText;
     QString errorText;
