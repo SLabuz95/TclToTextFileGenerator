@@ -2,7 +2,7 @@
 //#include"External/FileReader/FilesSpecificData/CANoeFilesFormat/TestEnvironment/FRI_FSD_CANoe_TestEnvironment.hpp"
 //#include"External/FileReader/FilesSpecificData/XML/VSysvar/FRI_FSD_XML_VSysVar.hpp"
 #include"External/RegExpCore/regexprcore.hpp"
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 
 
 template <>
@@ -11,12 +11,12 @@ QString FSD_ByLine_TcFileModifierData::Config::fileFilter(){
 }
 // TODO: Upewnij sie ze dla tcl nie beda generowane testy
 
-using Format = FSD_ByLine_TcFileModifierData::Data::Format;
-using ActionStat = FSD_ByLine_TcFileModifierData::Data::ActionStat;
-using TC_Info_Data = FSD_ByLine_TcFileModifierData::Data::TC_Info_Data;
-using Phase = FSD_ByLine_TcFileModifierData::Data::Phase;
-using RuleControl = FSD_ByLine_TcFileModifierData::Data::ModifierRuleControl;
-using CAN = FSD_ByLine_TcFileModifierData::Data::CAN;
+using Format = Format;
+using ActionStat = ActionStat;
+using TC_Info_Data = TC_Info_Data;
+using Phase = Phase;
+using RuleControl = ModifierRuleControl;
+using CAN = CAN;
 
 
 
@@ -100,7 +100,7 @@ CAN::VtSignals CAN::_signals =
 // PHASES ---------------------------------------------
 //const FSD_ByLine_TcFileModifierData::Data::ModifierPhases FSD_ByLine_TcFileModifierData::Data::phases =
 //{
-const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_TEST_CASE_INFO =
+const ModifierPhase _PHASE_TEST_CASE_INFO =
 {
     { // Phase 1: BugFinder Testcase Description
         { // #@NAME (arg1 = String)
@@ -327,7 +327,7 @@ const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_TEST_CASE_INFO =
 }
 ;
 //,
-const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_STANDARD =
+const ModifierPhase _PHASE_STANDARD =
 {
     {   // Phase 2 ___
         /*{   // Rule 1 (Comment # -> Comment //)
@@ -1654,7 +1654,7 @@ const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_IGNORE_UNTIL_END
 };*/
 // --------------------------------------------------
 
-const FSD_ByLine_TcFileModifierData::Data::ModifierPhases FSD_ByLine_TcFileModifierData::Data::phases =
+const ModifierPhases FSD_ByLine_TcFileModifierData::Data::phases =
 {
     _PHASE_TEST_CASE_INFO,
     _PHASE_STANDARD,/*
@@ -1733,9 +1733,9 @@ bool FSD_ByLine_TcFileModifierData::Config::deinitialize(){
 
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::REPLACE_BY_MAPPING>(){
-    using ModifierPhases = FSD_ByLine_TcFileModifierData::Data::ModifierPhases;
+    using ModifierPhases = ModifierPhases;
     using ModifierPhase = ModifierPhases::value_type;
-    using ModifierRules = FSD_ByLine_TcFileModifierData::Data::ModifierRules;
+    using ModifierRules = ModifierRules;
     using ModifierRule = ModifierRules::value_type;
     bool ruleCondtionsPassed = false;
     ModifierPhases::ConstIterator phase = interpreterData->phases.constBegin() + static_cast<uint>(interpreterData->curPhase);
@@ -1812,7 +1812,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 */
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_WRITE_TO_TC_INFO>(){
-    using TCInfoData = FSD_ByLine_TcFileModifierData::Data::TC_Info_Data;
+    using TCInfoData = TC_Info_Data;
     const QString PRE_ERROR_MSG = "Internal Error: Action WriteToTcInfo";
     TCInfoData tcDataSelector = TCInfoData::SIZE;
     QString str;
@@ -1956,11 +1956,11 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_CHANGE_PHASE>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action ChangePhase";
-    FSD_ByLine_TcFileModifierData::Data::Phase phase;
+    Phase phase;
     bool checkRulesAgain = false;
     bool ok = false;
     if(interpreterData->arguments.size() != 2 ||
-            (phase = static_cast<FSD_ByLine_TcFileModifierData::Data::Phase>(interpreterData->arguments.at(0).toUInt(&ok)), !ok) ||
+            (phase = static_cast<Phase>(interpreterData->arguments.at(0).toUInt(&ok)), !ok) ||
             (checkRulesAgain = interpreterData->arguments.at(1).toUInt(&ok), !ok))
         return config.ERROR_CALL(PRE_ERROR_MSG);
     interpreterData->curPhase = phase;
@@ -2053,8 +2053,8 @@ template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INTERPRET>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Interpret";
     if(not interpreterData->lineData.isEmpty())
-        if(interpreterData->tclToCaplInterpreter_.toCAPL(interpreterData->lineData) == TCLInterpreter::Error::Error){
-            qDebug() << "CRITICAL_ERROR" + interpreterData->tclToCaplInterpreter_.error();
+        if(interpreterData->tclToCaplInterpreter_.toCAPL(interpreterData->lineData) == Core::Error::Error){
+            interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: File is not interpreted by TCL Interpreter after previous TCL interpreter error.");
             return config.ERROR_CALL(PRE_ERROR_MSG + " - TCL Interpreter Critical Error");
         }
     return true;
@@ -2421,7 +2421,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 */
 
 void FSD_ByLine_TcFileModifierData::Data::writeTCInfo(FSD_ByLine_TcFileModifierData::DataModel& dataModel){
-    if(not tclToCaplInterpreter_.isPredefinitionMode()){
+     if(not tclToCaplInterpreter_.isPredefinitionMode()){
         QString tcInfo;
         tcInfo += "testcase " + tcData.name +"(){\n"
       "// " + tcData.name + "\n"
@@ -2457,8 +2457,8 @@ void FSD_ByLine_TcFileModifierData::Data::writeTCInfo(FSD_ByLine_TcFileModifierD
     "//  /*version   */  \"" + tcData.version + "\",\n"
     "//  /*author    */  \"" + tcData.author + "\"\n"
     "//  );\n\n ";
-        dataModel.write(tcInfo + tclToCaplInterpreter_.readCaplCommand() + "\n}\n\n");
-    }
+        dataModel.write(tcInfo + tclToCaplInterpreter_.readCommand() + "\n}\n\n");
+   }
 }
 
 

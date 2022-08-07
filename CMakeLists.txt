@@ -46,10 +46,6 @@ target_link_libraries(TclCaplParserCMake
     Qt6::Core
     )
 
-target_precompile_headers(TclCaplParserCMake
-    PRIVATE
-    ${headers}
-    )
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set_property(TARGET TclCaplParserCMake PROPERTY WIN32_EXECUTABLE true)
 endif()

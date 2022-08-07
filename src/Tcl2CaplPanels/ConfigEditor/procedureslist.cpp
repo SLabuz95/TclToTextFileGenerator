@@ -4,7 +4,7 @@
 #include<QMenu>
 #include<QMessageBox>
 
-
+/*
 ProceduresList::ProceduresList()
 {
     // ToolBar Setup
@@ -85,7 +85,7 @@ bool ProceduresList::tryToManageProceduresName(QString oldName, QString newName)
                     (savedProcedures->contains(newName)))
                 return false;   // DUPLICATED
         }
-        newProcedures.append(Procedures::Type(newName));
+        newProcedures.append(new Procedures::Type(newName));
     }else{  // Old Name isnt empty
         if(newName.isEmpty()){  // NewName is empty and oldName isnt empty - Remove Procedure
             removedProcedures.append(oldName);
@@ -246,3 +246,4 @@ void ProceduresList::reloadGui(){
     list.clear();
     list.addItems((*savedProcedures));
 }
+*/

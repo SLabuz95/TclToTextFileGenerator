@@ -1,12 +1,12 @@
 #ifndef DEFINITION_PARAMETERS_HPP
 #define DEFINITION_PARAMETERS_HPP
 
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/CommandsCont/commandsCont.hpp"
 #include"External/Factory/factory.hpp"
 
-using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
-using Settings = TclProcedureInterpreter::ProdecuresSettings;
-using UserProcedure = TclProcedureInterpreter::ProcedureDefinition;
+using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
+using Settings = Tcl::Interpreter::Command::Settings;
+using UserProcedure = Tcl::Interpreter::Command::Definition;
 using UserProcedureRule = UserProcedure::Rule;
 using UserProcedureRules = QList<UserProcedureRule>;
 using Mode = Settings::InterpreterMode;
@@ -38,14 +38,16 @@ struct ParametersProductDefinition::ImplementationData::Properties{
 };
 
 template <>
-class ParametersProductDefinition::ImplementationData::Methods : protected ParametersProductDefinition::ImplementationData::Properties{
+class ParametersProductDefinition::ImplementationData::Methods
+{
 
 };
 
 template <>
-class ParametersProductDefinition::InterfaceData::Methods : public ParametersProductDefinition::Implementation{
-
-    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){};
+class ParametersProductDefinition::InterfaceData::Methods
+{
+public:
+    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){}
     //inline virtual RawFormatType rawFormatType() const = 0;
 };
 

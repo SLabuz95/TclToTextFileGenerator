@@ -31,13 +31,12 @@ namespace NS_FRI_COM_Manager {
     using ChannelDatasIter = ChannelDatas::Iterator;
 
 }
-using namespace NS_FRI_COM_Manager;
 
 class FRI_COM_Manager{
 
     struct Channel{
-        QVector<ChannelData>* data = nullptr;
-        ChannelDatasIter iter;
+        QVector<NS_FRI_COM_Manager::ChannelData>* data = nullptr;
+        NS_FRI_COM_Manager::ChannelDatasIter iter;
     };
 
 public:
@@ -52,14 +51,14 @@ public:
     static void deactivate(Channel *const channel){
         delete channel;
     }
-    static inline Commands nonPrivCommand(int cmd){
-        return static_cast<Commands>(cmd + static_cast<int>(NS_FRI_COM_Manager::Commands::SIZE));
+    static inline NS_FRI_COM_Manager::Commands nonPrivCommand(int cmd){
+        return static_cast<NS_FRI_COM_Manager::Commands>(cmd + static_cast<int>(NS_FRI_COM_Manager::Commands::SIZE));
     }
-    static void send(Channel *const channel, QVector<ChannelData>& cmd){
+    static void send(Channel *const channel, QVector<NS_FRI_COM_Manager::ChannelData>& cmd){
         channel->data = &cmd;
         channel->iter = cmd.begin();
     }
-    static ChannelData& receive(Channel *const channel){
+    static NS_FRI_COM_Manager::ChannelData& receive(Channel *const channel){
         return *(channel->iter);
     }
     static bool next(Channel *const channel){

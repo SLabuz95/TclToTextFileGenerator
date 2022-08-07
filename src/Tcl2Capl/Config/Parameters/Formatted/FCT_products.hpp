@@ -3,8 +3,9 @@
 
 #include"argsAfterIndex.hpp"
 #include"indexOrFullLine.hpp"
-#include"separator.hpp"
 #include"target.hpp"
+#include"name.hpp"
+#include"text.hpp"
 #include"External/Factory/factory.hpp"
 
 using FormatParametersFactory = Factory<FormatParametersType>;

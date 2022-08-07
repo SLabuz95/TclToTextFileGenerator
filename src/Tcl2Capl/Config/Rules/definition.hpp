@@ -1,13 +1,13 @@
 #ifndef DEFINITION_RULES_HPP
 #define DEFINITION_RULES_HPP
 
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include"External/Factory/productdef.hpp"
 //#include"External/Factory/factory.hpp"
 
-using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
-using Settings = TclProcedureInterpreter::ProdecuresSettings;
-using UserProcedure = TclProcedureInterpreter::ProcedureDefinition;
+using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
+using Settings = Tcl::Interpreter::Command::Settings;
+using UserProcedure = Tcl::Interpreter::Command::Definition;
 using UserProcedureRule = UserProcedure::Rule;
 using UserProcedureRules = QList<UserProcedureRule>;
 using Mode = Settings::InterpreterMode;
@@ -18,8 +18,8 @@ namespace Rules {
     enum class Type : uint{
         FCT_Begin,
 
-        QuickRule = FCT_Begin, // To generate raw rule
-        RawRule,    // Like in Interpreter
+        //QuickRule = FCT_Begin, // To generate raw rule
+        RawRule  = FCT_Begin,   // Like in Interpreter
         RulesForArgument, // Raw Rule but for specific argument index only
 
         FCT_End,
@@ -35,24 +35,30 @@ using RulesProductDefinition = ProductDefinition<RulesTypes>;
 template <>
 struct RulesProductDefinition::ImplementationData::Properties{
 protected:
-    inline Properties(ControlFlag cf) : controlFlag_(cf){}
+    //inline Properties(ControlFlag cf) : controlFlag_(cf){}
     ControlFlag controlFlag_;
 };
 
 template <>
-class RulesProductDefinition::ImplementationData::Methods : public RulesProductDefinition::ImplementationData::Properties{
+class RulesProductDefinition::ImplementationData::Methods
+        : public RulesProductDefinition::ImplementationData::Properties
+{
 public:
-    Methods(ControlFlag flag) : Properties(flag){}
+    //Methods(ControlFlag flag) : Properties(flag){}
 
 };
 
 template <>
-class RulesProductDefinition::InterfaceData::Methods : public RulesProductDefinition::Implementation{
+class RulesProductDefinition::InterfaceData::Methods
+    : public RulesProductDefinition::Implementation
+{
 
-    inline void changeControlFlag(ControlFlag cf){controlFlag_ = cf;}
+public:
+    inline void setControlFlag(ControlFlag cf){controlFlag_ = cf;}
     inline ControlFlag controlFlag()const{return controlFlag_;}
-   // virtual void toRule(UserProcedureRule&) = 0;
-    //virtual void toXmlContent(QXmlStreamWriter& xmlWriter);
+
+    virtual void toRule(UserProcedureRule&) = 0;
+    virtual void toXmlContent(QXmlStreamWriter& xmlWriter) = 0;
 };
 
 using RulesProducts = ProductsConfiguration<RulesTypes>;

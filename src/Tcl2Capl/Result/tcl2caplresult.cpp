@@ -1,6 +1,9 @@
+#include"tcl2caplreaddata.hpp"
 #include"tcl2caplresult.hpp"
+#include"Tcl2Capl/controller.hpp"
 
-Tcl2CaplResult::Tcl2CaplReadData::InitializeStatus Tcl2CaplResult::Tcl2CaplReadData::initialize(){
+using Predefinitions = Tcl::Interpreter::PredefinitionsController::Predefinitions;
+Tcl2CaplReadData::InitializeStatus Tcl2CaplReadData::initialize(){
     if(initializeStatus == InitializeStatus::NOT_INITIALIZED){
         if(userConfig_.proceduresSettings().isWriteToFileMode()){
             _file.setFileName(_dir.path() + "/" + _dir.dirName() + ".can");
@@ -12,7 +15,13 @@ Tcl2CaplResult::Tcl2CaplReadData::InitializeStatus Tcl2CaplResult::Tcl2CaplReadD
     return InitializeStatus::ALREADY_INITIALIZED;
 }
 
-Tcl2CaplResult& Tcl2CaplResult::Tcl2CaplReadData::generateResult(){
+
+Predefinitions& Tcl2CaplReadData::predefinitions()
+{
+    return userConfig_.predefinitions();
+}
+
+Tcl2CaplResult& Tcl2CaplReadData::generateResult(){
     Tcl2CaplResult& tcl2CaplResult = *(new Tcl2CaplResult(_file, _fileContent));
 
     return tcl2CaplResult;
