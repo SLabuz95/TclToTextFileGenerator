@@ -191,7 +191,8 @@ Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::Test
     // If not commandSubbing (procedureCall in Script) and outputCommand is not Empty
     if(isNotCommandSubbing()){
         if(lastProcedureCall().lastParameter().stat() != Stat::Script){
-            lastProcedureCall().outputCommand().append(";");
+            if(not lastProcedureCall().outputCommand().isEmpty())
+                lastProcedureCall().outputCommand().append(";");
         }
         if(lastProcedureCall().outputCommand().indexOf(QRegularExpression("\\R[\\s]{0,}\\z")) == -1)
         {
