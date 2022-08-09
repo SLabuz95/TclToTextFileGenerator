@@ -180,7 +180,7 @@ void ControllerConfigInfo::moveAllNewModifierRules(QString oldName, QString newN
         // Up or down
         if(tempIter != newPhasesMap.end()){
             if(abs(tempIter.value()) - numbOfRules != position){
-                if(abs(tempIter.value()) < position){ // Up
+                if(abs(tempIter.value()) <= position){ // Up
                     diff = position - abs(tempIter.value());
                     tempIter = newBeginIter;
                     while(tempIter != newEndIter){

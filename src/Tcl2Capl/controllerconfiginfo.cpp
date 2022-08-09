@@ -249,7 +249,7 @@ void ControllerConfigInfo::moveAllNewRules(QString oldName, QString newName){
         // Up or down
         if(tempIter != newProceduresMap.end()){
             if(abs(tempIter.value()) - numbOfRules != position){
-                if(abs(tempIter.value()) < position){ // Up
+                if(abs(tempIter.value()) <= position){ // Up
                     diff = position - abs(tempIter.value());
                     tempIter = newBeginIter;
                     while(tempIter != newEndIter){
@@ -354,7 +354,7 @@ void ControllerConfigInfo::moveAllNewRules(QString name, qsizetype oldIndex, qsi
         // Up or down
         if(tempIter != newProceduresMap.end()){
             if(abs(tempIter.value()) - numbOfRules != position){
-                if(abs(tempIter.value()) < position){ // Up
+                if(abs(tempIter.value()) <= position){ // Up
                     diff = position - abs(tempIter.value());
                     tempIter = newBeginIter;
                     tempIter.value() -= (tempIter.value() < 0)? -diff : diff;
@@ -451,7 +451,7 @@ void ControllerConfigInfo::moveAllNewRules( qsizetype oldIndex, qsizetype newInd
         // Up or down
         if(tempIter != newDefaultProcedureMap.end()){
             if(abs(tempIter.value()) - numbOfRules != position){
-                if(abs(tempIter.value()) < position){ // Up
+                if(abs(tempIter.value()) <= position){ // Up
                     diff = position - abs(tempIter.value());
                     tempIter = newBeginIter;
                     tempIter.value() -= (tempIter.value() < 0)? -diff : diff;
@@ -512,115 +512,7 @@ void ControllerConfigInfo::moveAllNewRules( qsizetype oldIndex, qsizetype newInd
     }
     qDebug() << "moveAllNewRules end" << newProceduresMap;
 }
-/*
-void moveSavedProcedureToNewRules(QString name){
-    using Config = decltype(configMap);
-    using ConfigKeyIter = Config::Iterator;
-    ConfigKeyIter beginIter;
-    ConfigKeyIter endIter;
-    beginIter = newConfigMap.lowerBound({oldName, RulesCategories::OnEndOfCall});
-    if(beginIter != newConfigMap.end() and beginIter.key().first == oldName){
-        endIter = newConfigMap.lowerBound({oldName, static_cast<RulesCategories>(LONG_LONG_MAX)});
-        qsizetype position = abs(beginIter.value());
-        qsizetype numbOfRules = 0;
-        if(endIter != newConfigMap.end()){
-            numbOfRules = abs(endIter.value()) - position;
-        }else{
-            numbOfRules = newRules.size() - position;
-        }
 
-        // Erase Keys
-        QList<QPair<RulesCategories, qsizetype>> tempMapPairs;
-        for(ConfigKeyIter tempIter = beginIter; tempIter != endIter; tempIter++){
-            tempMapPairs.append({tempIter.key().second, tempIter.value()});
-        }
-        endIter = newConfigMap.erase(beginIter, endIter);
-
-        // Setup new keys
-        // 1. Add new Keys:
-        ConfigKeyIter newBeginIter = newConfigMap.insert({newName, tempMapPairs.first().first}, tempMapPairs.first().second);
-        ConfigKeyIter tempIter = newBeginIter;
-        for(decltype(tempMapPairs)::Iterator tempPairsIter = tempMapPairs.begin()+1; tempPairsIter != tempMapPairs.end(); tempPairsIter++){
-            tempIter = newConfigMap.insert({newName, tempPairsIter->first}, tempPairsIter->second);
-        }
-        // <name, Settings>, - Value - No User Iteraction as Default = 0
-        tempIter++;
-        ConfigKeyIter newEndIter = tempIter;
-        bool changed = true;
-        qsizetype diff = 0;
-
-        // Up or down
-        if(tempIter != newConfigMap.end()){
-            if(abs(tempIter.value()) - numbOfRules != position){
-                if(abs(tempIter.value()) < position){ // Up
-                    diff = position - abs(tempIter.value());
-                    tempIter = newBeginIter;
-                    while(tempIter != newEndIter){
-                        tempIter.value() -= (tempIter.value() < 0)? -diff : diff;
-                        tempIter++;
-                    }
-                    while(tempIter != endIter){
-                        tempIter.value() += (tempIter.value() < 0)? -numbOfRules : numbOfRules;
-                        tempIter++;
-                    }
-                }else{ // Down
-                    newBeginIter--;
-                    endIter--;
-                    diff = position - abs(tempIter.value()) + numbOfRules;
-                    tempIter = newEndIter;
-                    tempIter--;
-                    while(tempIter != newBeginIter){
-                        tempIter.value() -= (tempIter.value() < 0)? -diff : diff;
-                        tempIter--;
-                    }
-                    while(tempIter != endIter){
-                        tempIter.value() -= (tempIter.value() < 0)? -numbOfRules : numbOfRules;
-                        tempIter--;
-                    }
-                }
-            }else{
-                // No change
-                changed = false;
-            }
-        }else{
-            if(newConfigMap.size() - numbOfRules != position){ // Up impossible? Only Down
-                newBeginIter--;
-                endIter--;
-                diff = position - newConfigMap.size() + numbOfRules;
-                tempIter = newEndIter;
-                tempIter--;
-                while(tempIter != newBeginIter){
-                    tempIter.value() -= (tempIter.value() < 0)? -diff : diff;
-                    tempIter--;
-                }
-                while(tempIter != endIter){
-                    tempIter.value() -= (tempIter.value() < 0)? -numbOfRules : numbOfRules;
-                    tempIter--;
-                }
-                newBeginIter++;
-            }else{// No change
-                changed = false;
-            }
-        }
-
-        // If Rules to move
-        if(changed){
-            QList<void*> tempRules;
-            if(numbOfRules != 0){   // If rules to move
-                tempRules = newRules.mid(position, numbOfRules);
-                newRules.remove(position, numbOfRules);
-                QList<void*>::Iterator tempRulesIter = tempRules.begin();
-                QList<void*>::Iterator newRulesIter;
-                newRules.insert(newBeginIter.value(), tempRules.size(), nullptr);
-                newRulesIter = newRules.begin() + newBeginIter.value();
-                for( ; tempRulesIter < tempRules.end(); tempRulesIter++, newRulesIter++){
-                    *newRulesIter = *tempRulesIter;
-                }
-            }
-        }
-    }
-}
-*/
 bool ControllerConfigInfo::editProcedureName(QString oldName, QString newName){
     // NewName verification
     using Config = decltype(newProceduresMap);
