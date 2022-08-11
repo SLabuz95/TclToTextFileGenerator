@@ -905,7 +905,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG + "RulesOnMove token already defined.");
     }
     interpreterData->onMoveRulesUsed = true;
-    interpreterData->dmStats.append({&rulesView->rules, Stat::RulesOnMove});
+    interpreterData->dmStats.append({rulesView, Stat::RulesOnMove});
     return true;
 }
 

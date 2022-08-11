@@ -28,15 +28,9 @@ Error Controller::addPreExpressionForUserInteraction(QString userText)
 {
     ExecutableActionsParameters parameters =
     {
-      QString("// _UI_") + QString::number(tclInterpreter.userInteraction.nextUserInteractionNumber()) ,
-      Definition::Format::FORMAT_RULE_CALL(),
-      "=",
-      " ",
-      Definition::Format::FORMAT_RULE_CALL(),
-       "@ ",
-      Definition::Format::FORMAT_RULE_CALL(),
-        ">0",
-        (not userText.isEmpty())? " - " + userText : QString()
+      QString("/* _UI_") + QString::number(tclInterpreter.userInteraction.nextUserInteractionNumber()) ,
+        (not userText.isEmpty())? " - " + userText : QString(),
+        " */"
     };
     //command = QString("/* _UI_") + QString::number(tclInterpreter.userInteraction.nextUserInteractionNumber()) + " */";
     (this->*(executableInterpretFunctions[static_cast<std::underlying_type_t<Definition::Action::Executable>>(Definition::Action::Executable::AddPreExpression)]))(parameters);
@@ -67,13 +61,13 @@ Error TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::Te
     using Definition = CommandDefinitions::Iterator;
     Definition definition;    
 
-    for(definition = hardcodedProcedureDefinitions.begin(); definition < hardcodedProcedureDefinitions.end(); definition++){
+    for(definition = hardcodedProcedureDefinitions.begin(); definition != hardcodedProcedureDefinitions.end(); definition++){
         if(definition->name == name)
             break;
     }
 
     if(definition == hardcodedProcedureDefinitions.end()){
-        for(definition = procedureDefinitions.begin(); definition < procedureDefinitions.end(); definition++){
+        for(definition = procedureDefinitions.begin(); definition != procedureDefinitions.end(); definition++){
             if(definition->name == name)
                 break;
         }
@@ -190,15 +184,14 @@ Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::Test
 
     // If not commandSubbing (procedureCall in Script) and outputCommand is not Empty
     if(isNotCommandSubbing()){
-        if(lastProcedureCall().lastParameter().stat() != Stat::Script){
-            if(not lastProcedureCall().outputCommand().isEmpty())
-                lastProcedureCall().outputCommand().append(";");
-        }
+
         if(lastProcedureCall().outputCommand().indexOf(QRegularExpression("\\R[\\s]{0,}\\z")) == -1)
         {
             // Pattern not found
             lastProcedureCall().outputCommand().append("\n");
         }
+    }else{
+        lastProcedureCall().outputCommand().remove(QRegularExpression(";*\\Z"));
     }
 
 
@@ -277,7 +270,6 @@ Error TclProcedureInterpreter::interpret_mode<Stat::CommandSubbing>(){
         // Call from main TclInterpreter or CommandsCall
         return newCallProcessing();
     case Stat::Whitespace:
-        return newParameterProcessing();
     case Stat::CommandSubbingEnd:
     case Stat::EndOfString:
     case Stat::Semicolon:
@@ -419,7 +411,7 @@ Error TclProcedureInterpreter::newCall_mode<Stat::CommandSubbing>(){
             return createCall(Stat::CommandSubbing);
         }
     }
-        break;
+        break;    
     case Stat::DoubleQuotes:
     case Stat::BracesStart:
     {
@@ -470,7 +462,7 @@ Error TclProcedureInterpreter::newCall_mode<Stat::CommandSubbing>(){
         break;
     case Stat::BackslashSubbing:
     {
-        if(not lastProcedureCall().isLastParameterEmpty()){
+        if(not lastProcedureCall().isLastParameterEmpty()){            
             switch(lastProcedureCall().rawParameters().last().stat()){            
             // Error Cases
             case Stat::ComplexWord:
@@ -478,10 +470,16 @@ Error TclProcedureInterpreter::newCall_mode<Stat::CommandSubbing>(){
             default:
                 break;
             }
-            if(createCallAndMoveLastParameterToOne(Stat::ComplexWord) == Error::Error
-                    or interpret() == Error::Error)
-            {
-                return throwError(ERROR_PREFIX + error());
+            // Preverification - to not trigger possible errors in dynamic rules
+            if(backslashSubbingComplexWordPreverification() == true){ // Create Complex Word - Process BashslashSubbing will be perfomed in ComplexWord processing procedure
+                if(createCallAndMoveLastParameterToOne(Stat::ComplexWord) == Error::Error
+                        or interpret() == Error::Error)
+                {
+                    return throwError(ERROR_PREFIX + error());
+                }
+            }else{ // If false - no ComplexWord is nessesary - example backslash subbing with end of line
+                if(processBackslashSubbing() == Error::Error)
+                    return throwError(ERROR_PREFIX + error());
             }
         }else{
             if(processBackslashSubbing() == Error::Error)
@@ -524,6 +522,9 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::CommandSubbing>(){
         }
     }
         break;
+    case Stat::Whitespace:
+    if(tclInterpreter.readCurrentKeyword() != "\n")
+        return newParameterProcessing();
     case Stat::Semicolon:
     case Stat::EndOfString:
     {
@@ -533,7 +534,9 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::CommandSubbing>(){
                 // - Act as whitespace for 0 parameters (check newParameterProcedure)
             }
             // - Just finalize call (default complete call)
-            return finalizeCall();
+            if(finalizeCall() == Error::Error or interpret() == Error::Error){
+                return Error::Error;
+            }
         }else{
             if(lastProcedureCall().isLastParameterEmpty()){
                 if(lastProcedureCall().rawParameters().length() > 1){
@@ -708,7 +711,7 @@ Error TclProcedureInterpreter::newParameterProcessing_mode<Stat::BracesStart>(){
     case Stat::BracesStart:
         if(tclInterpreter.listController().incrementListLevel() == Error::Error)
             return throwError(ERROR_PREFIX + error());
-    break; case Stat::VariableSubbing:
+    case Stat::VariableSubbing:
     case Stat::Word:
     case Stat::CommandSubbingStart:
     case Stat::CommandSubbingEnd:
@@ -805,8 +808,13 @@ Error TclProcedureInterpreter::destructor_mode<Stat::BracesStart>(){
             lastProcedureCall().parameters().removeFirst();
             lastProcedureCall().changeStat(Stat::VariableSubbing);
             tclInterpreter.listController().activateListLevelControl();
-            activateBackslashSubbing();
+            activateBackslashSubbing();            
             lastProcedureCall().setOutputCommand(tclInterpreter.variableController().prepareTclVariableNameFromStr(lastProcedureCall().outputCommand()));
+            if(lastProcedureCall().outputCommand().lastIndexOf(QRegularExpression(RegExpCore::regExprForCaplName)) == -1)// Verify if name is acceptable by CAPL ()
+                tclInterpreter.addIgnoreMessage(ErrorController::ErrorMessage(
+                                                    "Write rule to change variable name cause CAPL doesnt support this variable name \"" + lastProcedureCall().outputCommand() +"\"",
+                                                 tclInterpreter.textInterpreter().readTclCommand(), tclInterpreter.textInterpreter().restOfString()
+                                                ));
             lastProcedureCall().setRawCommand("${" + lastProcedureCall().rawCommand() + "}");
         }else{
             lastProcedureCall().setRawCommand("{" + lastProcedureCall().rawCommand() + "}");
@@ -1288,6 +1296,13 @@ template<>
 Error TclProcedureInterpreter::constructor_mode<Stat::BracesStartExprOnly>(){
     const QString ERROR_PREFIX = "Constructor Special Command <Stat::BracesStartExprOnly>: ";
 
+    // In case of Variable subbing in Braces form ${...} which can be recognized by processing Stat == VariableSubbing -> change stat back to BracesStart
+    if(isVariableSubbingProcessingJustActivated()){
+        lastProcedureCall().changeStat(Stat::BracesStart);
+        updateCurrentCallProcedures();
+    }
+    // Otherwise if changed BracesStart constructor is called or in case of VariableSubbing which would be first parameter of BracesStartExprOnly -> this constructor is called with BracesStat processing stat
+
     return Error::NoError;
 }
 
@@ -1311,16 +1326,8 @@ Error TclProcedureInterpreter::destructor_mode<Stat::BracesStartExprOnly>(){
     lastProcedureCall().parameters().removeLast(); // Shall be empty after previous procedure
 
     // If first parameter is VariableSubbing, change call to VariableSubbing ,remove that parameter and activate bracesListControl
-    lastProcedureCall().setOutputCommand(lastProcedureCall().rawCommand());
-    if(not lastProcedureCall().parameters().isEmpty()){
-        if(lastProcedureCall().parameters().front().stat() == Stat::VariableSubbing){
-            lastProcedureCall().parameters().removeFirst();
-            lastProcedureCall().changeStat(Stat::VariableSubbing);
-            tclInterpreter.listController().activateListLevelControl();
-            activateBackslashSubbing();
-            lastProcedureCall().setOutputCommand(tclInterpreter.variableController().prepareTclVariableNameFromStr(lastProcedureCall().outputCommand()));
-        }
-    }
+    lastProcedureCall().setOutputCommand(lastProcedureCall().outputCommand());
+
 
     return Error::NoError;
 }
@@ -1537,7 +1544,8 @@ Error TclProcedureInterpreter::interpret_mode<Stat::Script>(){
         return finalizeCallProcessing();
     case Stat::Semicolon:    
     case Stat::Whitespace:
-        break;
+        if(tclInterpreter.readCurrentKeyword() != "\n")
+            break;
     case Stat::EndOfString:
         if(isMainScript()){
             if(userConfig.proceduresSettings().mode() != Settings::InterpreterMode::TestCaseReport){
@@ -1594,7 +1602,10 @@ Error TclProcedureInterpreter::finalizeCall_mode<Stat::Script>(){
 template<>
 Error TclProcedureInterpreter::constructor_mode<Stat::Script>(){
     const QString ERROR_PREFIX = "Constructor Special Command <Stat::Script>: ";
-
+    if(isVariableSubbingProcessingJustActivated()){
+        lastProcedureCall().changeStat(Stat::BracesStart);
+        updateCurrentCallProcedures();
+    }
     return Error::NoError;
 }
 
@@ -1642,8 +1653,13 @@ Error TclProcedureInterpreter::destructor_mode<Stat::Script>(){
 
     lastProcedureCall().parameters().removeLast(); // Shall be empty after previous procedure
 
+
     lastProcedureCall().setOutputCommand("{\n" + lastProcedureCall().outputCommand() + "}");
     lastProcedureCall().setRawCommand("{" + lastProcedureCall().rawCommand() + "}");
+
+    lastProcedureCall().rawCommand().replace(QRegularExpression("\n(?=\\S*)(?!\\S*}\\Z)"), "\n\t");
+    lastProcedureCall().outputCommand().replace(QRegularExpression("\n(?=\\S*)(?!\\S*}\\Z)"), "\n\t");
+
     return Error::NoError;
 }
 
@@ -2083,6 +2099,7 @@ Error TclProcedureInterpreter::interpret_mode<Stat::VariableSubbing>(){
         switch(processingStat()){
         case Stat::BracesStart:
         {
+            tclInterpreter.listController().deactivateListLevelControl();
             // Variable Subbing confirmed -> Return to "true" call to confirm previous parameter -> return back to VariableSubbing
             updateCurrentCallProcedures();
             if(addNewParameter() == Error::Error){
@@ -2098,12 +2115,13 @@ Error TclProcedureInterpreter::interpret_mode<Stat::VariableSubbing>(){
                 return throwError(ERROR_PREFIX + error());
             }
             deactivateBackslashSubbing();   // Backslash subbing doesnt work for VariableSubbing Braces pattern
-            break;
+            tclInterpreter.variableController().setJustActivated(false);
         }
+            break;
         default:
-            if(lastProcedureCall().lastParameter().stat() == Stat::Word
+            /*if(lastProcedureCall().lastParameter().stat() == Stat::Word
                     and not lastProcedureCall().lastParameter().isEmpty()) // Not empty Word
-            {
+            {*/
                 if(not isFirstSignOk(tclInterpreter.readCurrentKeyword())) // First incorrect - Dont create VariableSubbing
                 {   // Save current ProcessingStat -> Set processingStat = Word , savedStr = "$" and setSavedKeywordMode
                     // Update and interpret for above conditions
@@ -2120,13 +2138,14 @@ Error TclProcedureInterpreter::interpret_mode<Stat::VariableSubbing>(){
                     }
                     tclInterpreter.setProcessingStat(currentProcessingStat);
                     tclInterpreter.setStandardReadKeywordMode();
+                    tclInterpreter.variableController().setJustActivated(false);
                     if(interpret() == Error::Error){
                         tclInterpreter.setStandardReadKeywordMode();
                         return throwError(ERROR_PREFIX + error());
                     }
                     break; // Processing is over
                 }
-            }
+            //}
             // Variable Subbing confirmed -> Return to "true" call to confirm previous parameter -> return back to VariableSubbing
             updateCurrentCallProcedures();
             if(addNewParameter(Stat::VariableSubbing) == Error::Error){
@@ -2139,8 +2158,8 @@ Error TclProcedureInterpreter::interpret_mode<Stat::VariableSubbing>(){
                 updateCurrentCallProcedures(); // Error Recovery
                 return throwError(ERROR_PREFIX + error());
             }
+            tclInterpreter.variableController().setJustActivated(false);
         }
-        tclInterpreter.variableController().setJustActivated(false);
     }else{
         if(processVariableSubbing() == Error::Error){
             updateCurrentCallProcedures(); // Error Recovery
@@ -2187,14 +2206,14 @@ Error TclProcedureInterpreter::interpret_mode<Stat::BackslashSubbing>(){
         }
     }
 
-    if(addNewParameter() == Error::Error/*
-            or addNewParameter(Stat::BackslashSubbing, specialSignStr) == Error::Error*/)
+    updateCurrentCallProcedures();
+    /*if(addNewParameter() == Error::Error/*
+            or addNewParameter(Stat::BackslashSubbing, specialSignStr) == Error::Error*//*)
     {
         updateCurrentCallProcedures();
         tclInterpreter.setStandardInterpreterMode(); // Recovery
         return throwError(ERROR_PREFIX + error());
-    }
-    updateCurrentCallProcedures();
+    }*/
 
     return Error::NoError;
 }
@@ -2447,7 +2466,9 @@ Error Controller::createCall(Stat stat, Call::Parameter&& parameter){
     // - check result and proceed
     using CallReplacerData = CallReplacer::Controller::ControllerData;
     CallReplacerData callReplacerData(stat);
-    callReplacerController.performReplacerRuleCheckForNewCall(*this, callReplacerData);
+    if(callReplacerController.performReplacerRuleCheckForNewCall(*this, callReplacerData) == Error::Error){
+        return Error::Error;
+    }
     stat = callReplacerData.stat();
     // ------------------------------------
 
@@ -2510,8 +2531,13 @@ Error Controller::processVariableSubbing(){
         // If last parameter(VariableSubbing) is empty, recovery procedure is required
         if(procedureCalls.last().isLastParameterEmpty()){ // Variable Subbing Empty
             return throwError("Impossible case. Empty Variable Subbing");
-        }else{
+        }else{            
             lastProcedureCall().lastParameter().setOutputCommand(tclInterpreter.variableController().prepareTclVariableNameFromStr(lastProcedureCall().lastParameter().rawCommand()));
+            if(lastProcedureCall().lastParameter().outputCommand().lastIndexOf(QRegularExpression(RegExpCore::regExprForCaplName)) == -1)// Verify if name is acceptable by CAPL ()
+                tclInterpreter.addIgnoreMessage(ErrorController::ErrorMessage(
+                                                    "Write rule to change variable name cause CAPL doesnt support this variable name \"" + lastProcedureCall().lastParameter().outputCommand() +"\"",
+                                                 tclInterpreter.textInterpreter().readTclCommand(), tclInterpreter.textInterpreter().restOfString()
+                                                ));
             lastProcedureCall().lastParameter().rawCommand().prepend("$");
             // Otherwise New parameter required
             if(processingStat() == Stat::Word){
@@ -2540,6 +2566,28 @@ bool Controller::isFirstSignOk(QString str){
 void Controller::startVariableSubbing(){
     updateCurrentCallProcedures(Stat::VariableSubbing);
     tclInterpreter.variableController().setJustActivated(true);
+}
+
+bool Controller::backslashSubbingComplexWordPreverification(){
+    if(backslashSubbingActive == false){
+        return true;
+    }
+    if(tclInterpreter.textInterpreter().isCurrentChar()) // If not accesible -> End of string that means EndOfLine-BackslashSubbing is required
+    {
+        switch(lastProcedureCall().lastParameter().stat()){
+        // Error Cases
+        case Stat::BracesStart:
+        case Stat::DoubleQuotes:
+        case Stat::Script:
+        case Stat::ComplexWord:
+            return false; // Do not create ComplexWord - error will occur in processBackslashSubbing procedure
+        default:
+            break;
+        }
+    }else{
+        return false;
+    }
+    return true;
 }
 
 Error Controller::processBackslashSubbing(){
@@ -3016,6 +3064,7 @@ Error TclProcedureInterpreter::dynamicRulesCheck(){
 
 Error TclProcedureInterpreter::processCallsForError(){
     if(isIgnoreModeActive()){
+        tclInterpreter.addIgnoreMessage();
         return Error::Error;
     }
     activateIgnoreMode();

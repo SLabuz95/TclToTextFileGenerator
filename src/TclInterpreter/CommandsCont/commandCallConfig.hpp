@@ -109,6 +109,9 @@ namespace Tcl::Interpreter::Command{
         CommandCallControlFunctions const* controlFunctionsForStat(const Stat stat){
             return &commandCallSpecialFunctions[Settings::specialCallStat2number(stat)];
         }        
+        Stat getStatForControlFunctions(CommandCallControlFunctions const* controlFunctions){
+            return (controlFunctions == nullptr)? Stat::Size : Tcl::Interpreter::Core::statForSpecialCommandCall(controlFunctions - commandCallSpecialFunctions);
+        }
         static const QString& parameterSeparators(const Stat stat){
             return commandCallParameterSeparators[Settings::specialCallStat2number(stat)];
         }

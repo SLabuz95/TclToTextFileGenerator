@@ -160,6 +160,7 @@ namespace Tcl::Interpreter::Command{
         bool isFirstSignOk(QString str);
         //Error performVariableSubbingRecoveryProcedure(){};
         Error prepareSnprintf();
+        bool backslashSubbingComplexWordPreverification();
         Error processBackslashSubbing();
         inline void activateBackslashSubbing(){backslashSubbingActive = true;}
         inline void deactivateBackslashSubbing(){backslashSubbingActive = false;}

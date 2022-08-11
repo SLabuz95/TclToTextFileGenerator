@@ -129,6 +129,7 @@ namespace Tcl::Interpreter::Command{
             enum class Rule : char{
                INDEX_OR_FULL_LINE = '=',
                ARGS_AFTER_INDEX = '>',
+               ARGS_AFTER_INDEX_REVERSE = '<',
                //ARG_IN_RANGE_P1 = '<',
                //ARG_IN_RANGE_P2 = '>',
                //CUT_INDEX = '/',  // / - arguments (1: index to cut, 2: numb of signs to cut)

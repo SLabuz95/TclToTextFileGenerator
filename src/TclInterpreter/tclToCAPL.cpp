@@ -51,7 +51,8 @@ KeywordsMap KeywordsController::keywordsMap ={
         {"?", Stat::Word},
         {":", Stat::Word},
         {" ", Stat::Whitespace},
-        {"\t", Stat::Whitespace},
+        {"\t", Stat::Whitespace},        
+        {"\n", Stat::Whitespace},
         {"$", Stat::VariableSubbing},
         {"\"", Stat::DoubleQuotes},
         {";", Stat::Semicolon},
@@ -191,28 +192,56 @@ bool TCLInterpreter::checkInterpretFunctions(){
     return true;
 }*/
 using ProcedureDefinition = TclCommand_NS::Definition;
-const TclCommand_NS::Definition::Rule defaultRuleForUnknownProcedureDefinition_onEndOfCall =
-{   // Rule 1
-    { // Conditions
-
-    },
-    {   // Action 1: For Any Procedure write call like ProcedureName(args, ...); // Default Call
-        {
-            ProcedureDefinition::Action::Executable::Write,
-            QStringList{    // Arguments
-            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-            "=",
-            "(",
-            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-            "@, ",
-            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-            ">0",
-            ")"
-            }
+const TclCommand_NS::Definition::Rules defaultRulesForUnknownProcedureDefinition_onEndOfCall =
+{
+    // Rule 1 - 0 arguments version
+    {
+        { // Conditions
+          {
+              ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+              {
+                  QString::number(0)
+              }
+          }
         },
-        {   // Action 2: Add to FunctionDefinitions
-            ProcedureDefinition::Action::Executable::AddFunctionDefinition,
-            {}
+        {   // Action 1: For Any Procedure write call like ProcedureName(); // Default Call
+            {
+                ProcedureDefinition::Action::Executable::Write,
+                QStringList{    // Arguments
+                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                "=",
+                "();"
+                }
+            },
+            {   // Action 2: Add to FunctionDefinitions
+                ProcedureDefinition::Action::Executable::AddFunctionDefinition,
+                {}
+            }
+        }
+    },
+    // Rule 1
+    {
+        { // Conditions
+
+        },
+        {   // Action 1: For Any Procedure write call like ProcedureName(args, ...); // Default Call
+            {
+                ProcedureDefinition::Action::Executable::Write,
+                QStringList{    // Arguments
+                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                "=",
+                "(",
+                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                "@, ",
+                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                ">0",
+                ");"
+                }
+            },
+            {   // Action 2: Add to FunctionDefinitions
+                ProcedureDefinition::Action::Executable::AddFunctionDefinition,
+                {}
+            }
         }
     }
 };
@@ -281,7 +310,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
               { // Rule 1: Expr Argument Control
                 {},// No Conditions
                 {
-                     ProcedureDefinition::Action::Executable::ExprProcessParameter
+                    {ProcedureDefinition::Action::Executable::ExprProcessParameter}
                 }
               }
           }
@@ -290,7 +319,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
           { // Rule 1: Finalize Expr
             {},// No Conditions
             {
-                 ProcedureDefinition::Action::Executable::ExprFinalize
+                {ProcedureDefinition::Action::Executable::ExprFinalize},
             }
           }
         }
@@ -301,7 +330,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
             {
                 0,
                 {   // Dynamic Rules
-                    {   // Rule 1: If lastSavedStat stat == List or EndOfList or FunctionCall or Whitespace -> Do nothing (Break)
+                    {   // Rule 1: If lastSavedStat stat == BracesStart -> Change to BracesStartExprOnly
                         {
                             {
                              ProcedureDefinition::Action::Conditional::CompareArgumentStat,
@@ -318,7 +347,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                            }
                         }
                     },
-                    {   // Rule 1: If lastSavedStat stat == ComplexWord -> ChangeTo
+                    {   // Rule 2: If lastSavedStat stat ==  ComplexWord -> Change to ComplexWordExprOnly
                         {
                             {
                              ProcedureDefinition::Action::Conditional::CompareArgumentStat,
@@ -335,7 +364,24 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                            }
                         }
                     },
-                    {   // Rule 3: Error if no rules have been executed
+                    {   // Rule 3: If lastSavedStat stat ==  DoubleQuotes -> Change to DoubleQuotesExprOnly
+                        {
+                            {
+                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                             {
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::DoubleQuotes))
+                             }
+                            },
+
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::DoubleQuotesExprOnly))}
+                           }
+                        }
+                    },
+                    {   // Rule 4: Error if no rules have been executed
                         {
                             // No Conditions
                         },
@@ -351,7 +397,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 },
                 {   // Rules on moveArgument
                    { // Rule 1
-                       {                         
+                       {
                        },
                        {
                          {   // Finalize expr
@@ -435,20 +481,20 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
         { // On 3rd argument (script or else or elseif or nothing)
             2,
             {   // Dynamic Rules
-                {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
-                    {   // Conditions:  If SavedStat stat == List
-                        {   // Condition 1:  If SavedStat stat == List
-                            ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
-                        },
-                    },
-                    {
-                       {    // Action 1: Change stat to CodeBlock
-                             ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                       }
-                    }
-                }
+                { // Rule 1: If argument 1 == "then"
+                  {   // Conditions:  If SavedStat stat == List
+                      {   // Condition 1:  If SavedStat stat == List
+                          ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                          {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                      },
+                  },
+                  {
+                     {    // Action 1: Change stat to CodeBlock
+                           ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                          {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                     }
+                  }
+                },
             },
             {   // Rules on moveArgument
                 {   // Rule 1: If Script and prelast parameter is then
@@ -520,7 +566,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                                 ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
                                     ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                "=-1"
+                                "=-2"
                             }
                             ),
                         },
@@ -560,30 +606,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 },
 
             },
-            {   // Rules on moveArgument
-                {   // Rule 1: if lastSavedStat command == (elseif) -> Error
-                    {
-                        TclProcedureInterpreter::newCompareRule(
-                        {"elseifelseif"},
-                        {
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                             "=-2",
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                             "=-3"
-                        }
-                        ),
-                    },
-                    {
-                        {// Error
-                            ProcedureDefinition::Action::Executable::Error,
-                            {"Elseif elseif sequance"}
-                        }
-                    }
-                },
-                {   // Rule 2: if lastSavedStat command == (elseif) -> P
+            {   // Rules on moveArgument                
+                {   // Rule 1: if lastSavedStat command == (elseif) -> P
                     {
                         TclProcedureInterpreter::newCompareRule(
                         {"elseif"},
@@ -599,7 +623,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                     {
                         { // Parse [expr_parser =-1]
                            ProcedureDefinition::Action::Executable::TclParse,
-                           {"expr_parser ",
+                           {"expr ",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
                                 ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
@@ -673,6 +697,27 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
         },
         {   // Rules on End of Call
             {   // Rule 1
+
+                {
+                    // No conditions
+                    {
+                        ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                        {
+                            QString::number(0)
+                        }
+                    }
+                },
+                {
+                    {
+                        ProcedureDefinition::Action::Executable::Error,
+                        {
+                            "If procedure without arguments",
+                        }
+                    }
+                }
+
+            },
+            {   // Rule 2
 
                 {
                     // No conditions
@@ -859,9 +904,488 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
             },
         }
     },  // End of Definition ================================================,
+    {   // Definition --------------------------------------------------------
+        "for",
+        {   // Rules for Arguments
+            {
+                0,
+                {   // Dynamic Rules
+                    {   // Rule 1: If lastSavedStat stat == List or EndOfList or FunctionCall or Whitespace -> Do nothing (Break)
+                        {
+                            {
+                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                             {
+                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))
+                             }
+                            },
+
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                           }
+                        }
+                    },
+                    {   // Rule 2: Error if no rules have been executed
+                        {
+                            // No Conditions
+                        },
+                        {
+                            {   // Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {
+                                    "\"For\" initialization expression (argument 1) isnt list"
+                                }
+                            }
+                        }
+                    }
+                },
+                {   // Rules on moveArgument
+                    {   // Rule 1: If Script
+                        {
+                            {   // Condition 1:  If SavedStat stat == List
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                            },
+                        },
+                        {
+
+                        }
+                    },
+                    {   // Rule 3: Error
+                        {
+
+                        },
+                        {
+                            {// Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {"For procedure incorrect 1st argument"}
+                            }
+                        }
+                    },
+                }
+            },
+            { // On 2nd argument (then or script)
+                1,
+                {   // Dynamic Rules
+                    {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
+                        {   // Conditions:  If SavedStat stat == List
+                            {   // Condition 1:  If SavedStat stat == List
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                            },
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
+                           }
+                        }
+                    },
+                    {   // Rule 2: Error if no rules have been executed
+                        {
+                            // No Conditions
+                        },
+                        {
+                            {   // Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {
+                                    "\"For\" conditional expression (argument 2) isnt list"
+                                }
+                            }
+                        }
+                    }
+                },
+                {   // Rules on moveArgument
+                      {   // Rule 1: If Script
+                          {
+                              {   // Condition 1:  If SavedStat stat == List
+                                  ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                  {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
+                              },
+                          },
+                          {
+                              {   // Finalize expr
+                                  ProcedureDefinition::Action::Executable::ExprFinalize,
+                                  {}
+                              },
+                          }
+                      },
+                      {   // Rule 3: Error
+                          {
+
+                          },
+                          {
+                              {// Error
+                                  ProcedureDefinition::Action::Executable::Error,
+                                  {"For procedure incorrect 2nd argument"}
+                              }
+                          }
+                      },/*
+                        {
+                        },
+                        {
+                          {   // Finalize expr
+                              ProcedureDefinition::Action::Executable::ExprFinalize,
+                              {}
+                          },/*
+                          {   // Write as ( =-1 )
+                              ProcedureDefinition::Action::Executable::Write,
+                              {
+                                  "( ",
+                                  ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                  "=-1",
+                                  " )"
+                              }
+                          }
+                        }
+                     }, */
+                }
+            },
+            { // On 3nd argument (then or script)
+                2,
+                {   // Dynamic Rules
+                    {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
+                        {   // Conditions:  If SavedStat stat == List
+                            {   // Condition 1:  If SavedStat stat == List
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                            },
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                           }
+                        }
+                    },
+                    {   // Rule 2: Error if no rules have been executed
+                        {
+                            // No Conditions
+                        },
+                        {
+                            {   // Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {
+                                    "\"For\" increment expression (argument 3) isnt list"
+                                }
+                            }
+                        }
+                    }
+                },
+                {   // Rules on moveArgument
+                    {   // Rule 1: If Script
+                        {
+                            {   // Condition 1:  If SavedStat stat == List
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                            },
+                        },
+                        {
+
+                        }
+                    },
+                    {   // Rule 3: Error
+                        {
+
+                        },
+                        {
+                            {// Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {"For procedure incorrect 3nd argument"}
+                            }
+                        }
+                    },
+                }
+            },
+            { // On 3nd argument (then or script)
+                3,
+                {   // Dynamic Rules
+                    {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
+                        {   // Conditions:  If SavedStat stat == List
+                            {   // Condition 1:  If SavedStat stat == List
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                            },
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                           }
+                        }
+                    },
+                    {   // Rule 2: Error if no rules have been executed
+                        {
+                            // No Conditions
+                        },
+                        {
+                            {   // Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {
+                                    "\"For\" increment expression (argument 4) isnt list"
+                                }
+                            }
+                        }
+                    }
+                },
+                {   // Rules on moveArgument
+                    {   // Rule 1: If Script
+                        {
+                            {   // Condition 1:  If SavedStat stat == List
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                            },
+                        },
+                        {
+
+                        }
+                    },
+                    {   // Rule 3: Error
+                        {
+
+                        },
+                        {
+                            {// Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {"For procedure incorrect 4nd argument"}
+                            }
+                        }
+                    },
+                }
+            },
+        },
+        {   // Rules for Unspecified Argument
+
+        },
+        {   // Rules on End of Call
+            {   // Rule 1
+
+                {
+                    {
+                        ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                        {
+                            QString::number(4)
+                        }
+                    }
+                },
+                {
+                    {
+                        ProcedureDefinition::Action::Executable::AddUserInteraction,
+                        {
+                            "Prepare for control"
+                        }
+                    },
+                    {
+                        ProcedureDefinition::Action::Executable::AddPreExpression,
+                        {
+                            "// Initialization expression\n",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            "=0",
+                        }
+                    },
+                    {
+                        ProcedureDefinition::Action::Executable::AddPreExpression,
+                        {
+                            "// Incrementing expression\n",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            "=2",
+                        }
+                    },
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            "=",
+                            "(/* Initialization */ ; ",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            "=1",
+                            " ; /* Incrementation */ )",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            "=3"
+                            //ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            //ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                            //+ ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                        }
+                    }
+                }
+
+            },
+            {   // Rule 2: Error
+                {
+
+                },
+                {
+                    {// Error
+                        ProcedureDefinition::Action::Executable::Error,
+                        {"For procedure requires only 4 parameters"}
+                    }
+                }
+            },
+        }
+    },  // End of Definition ================================================,
 };
 
 TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefinitions = {
+       {   // Definition --------------------------------------------------------
+           "_script_parser",
+           {   // Rules for Arguments
+               {
+                   0,
+                   { // Dynamic Rules
+                     { // Rule 1
+                         {   // Conditions:  If SavedStat stat == List
+                             {   // Condition 1:  If SavedStat stat == List
+                                 ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                 {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                             },
+                         },
+                         {
+                             {    // Action 1: Change stat to CodeBlock
+                                  ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                  {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                             }
+                         }
+                     }
+                   }
+               }
+           },
+           {   // Rules for Unspecified Argument
+
+           },
+           {   // Rules on End of Call
+               {   // Rule 1: Error when 0 or 1 or 2 parameters
+                   {
+                       {
+                           ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                           {
+                               QString::number(1),
+                           }
+                       },
+                       {
+                           ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                       }
+                   },
+                   {
+                       {
+                           ProcedureDefinition::Action::Executable::Write,
+                           {
+                               ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                               "=0",
+                           }
+                       }
+                   }
+               },
+               {   // Rule 1
+
+                   {
+
+                   },
+                   {
+                       {// Error
+                           ProcedureDefinition::Action::Executable::Error,
+                           {"Rules not satisfied: _script_parser procedure expects only 1 parameter"}
+                       }
+                   }
+
+               },
+           }
+       },
+    // End of Definition ================================================,
+       {   // Definition --------------------------------------------------------
+           "foreach",
+           {   // Rules for Arguments
+
+           },
+           {   // Rules for Unspecified Argument
+
+           },
+           {   // Rules on End of Call
+               {   // Rule 0.5: Error when 0 or 1 or 2 parameters
+                   {
+                       {
+                           ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                           {
+                               QString::number(0),
+                               QString::number(1),
+                               QString::number(2),
+                           }
+                       }
+                   },
+                   {
+                       {// Error
+                           ProcedureDefinition::Action::Executable::Error,
+                           {"Foreach procedure requires at least 3 parameters"}
+                       }
+                   }
+               },
+               {   // Rule 1
+
+                   {
+                       {
+                           ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                       }
+                   },
+                   {
+                       {
+                           ProcedureDefinition::Action::Executable::AddUserInteraction,
+                           {
+                               "Prepare foreach procedure control"
+                           }
+                       },
+                       {
+                           ProcedureDefinition::Action::Executable::AddPreExpression,
+                           {
+                               "// Details about foreach procedure behaviour: https://www.tcl.tk/man/tcl/TclCmd/foreach.html\n",
+                               "// First Comment \"LIST\": Variables List -> Second Command \"LIST\": Values List , etc \n",
+                               "// LIST\n",
+                               ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                               ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                               + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
+                               ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                               "@\n// LIST\n",
+                               ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                               "><0;-2",
+                           }
+                       },
+                       {
+                           ProcedureDefinition::Action::Executable::AddPreExpression,
+                           {
+                               "// Procedure template\n",
+                               "// foreach ()",
+                           }
+                       },
+                       {
+                           ProcedureDefinition::Action::Executable::TclParse,
+                           {
+                               ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                               ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                               + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
+                               "_script_parser ",
+                               ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                               "=-1",
+                           }
+                       }
+                   }
+
+               },
+               {   // Rule 2: Error when -1 parameter isnt BracesStart
+                   {
+
+                   },
+                   {
+                       {// Error
+                           ProcedureDefinition::Action::Executable::Error,
+                           {"Rules not satisfied: Expected last parameter as BracesStart (script like parameter)"}
+                       }
+                   }
+               },
+
+           }
+       },  // End of Definition ================================================,
     {
         "set",
         {
@@ -912,7 +1436,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             "",
                             "@ ",
                             "",
-                            ">1"
+                            ">1",
+                            ";"
                         }
                     }
                 }
@@ -943,7 +1468,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     {
                         ProcedureDefinition::Action::Executable::Write,
                         {
-                            "continue",
+                            "continue;",
                         }
                     }
                 }
@@ -983,7 +1508,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     {
                         ProcedureDefinition::Action::Executable::Write,
                         {
-                            "return",
+                            "return;",
                         }
                     }
                 }
@@ -996,7 +1521,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         {
                             "return ",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=0"
+                            "=0",
+                            ";"
                         }
                     }
                 }
@@ -1029,7 +1555,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             "(",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=0",
-                            ")"
+                            ");"
                         }
                     }
                 }
@@ -1077,7 +1603,28 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     }
                 }
             },
-            {   // Rule 2
+            {   // Rule 2 - Call procedure without arguments
+                {
+
+                },
+                {
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                            + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            "=0",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                            + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::CaplFormat),
+                            "();"
+                        }
+                    }
+                }
+            },
+            {   // Rule 3 - Call procedure with some arguments
                 {
 
                 },
@@ -1098,26 +1645,167 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             "@, ",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ">1",
-                            ")"
+                            ");"
                         }
                     }
                 }
             }
         }
     },
+    // End of Definition ================================================,
     {
-        "open", UserInteraction::Required,
+        "open",
+        {   // Dynamic Rules
+        },
+        {   // On move
+        },
+        {   // On Finalize
+
+                        {   // Rule 3:
+                            {
+                                {
+                                    ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                                    {QString::number(0)}
+                                },
+                            }, // No Conditions
+                            {
+                                {
+                                    ProcedureDefinition::Action::Executable::AddUserInteraction,
+                                    {"open procedure requires manual modification"}
+                                },
+                                {
+                                    ProcedureDefinition::Action::Executable::Write,
+                                    {"open();"}
+                                },
+                            }
+                        },
+                        {   // Rule 3:
+                            {}, // No Conditions
+                            {
+                                {
+                                    ProcedureDefinition::Action::Executable::AddUserInteraction,
+                                    {"open procedure requires manual modification"}
+                                },
+                                {
+                                    ProcedureDefinition::Action::Executable::Write,
+                                    {
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "=",
+                                     "(",
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "@, ",
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     ">0",
+                                     ");"
+                                    }
+                                },
+                            }
+            }
+        }
 
     },
     // End of Definition ================================================,
     {
-        "close", UserInteraction::Status::Required,
+        "close",
+        {   // Dynamic Rules
+        },
+        {   // On move
+        },
+        {   // On Finalize
+
+                        {   // Rule 3:
+                            {
+                                {
+                                    ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                                    {QString::number(0)}
+                                },
+                            }, // No Conditions
+                            {
+                                {
+                                    ProcedureDefinition::Action::Executable::AddUserInteraction,
+                                    {"close procedure requires manual modification"}
+                                },
+                                {
+                                    ProcedureDefinition::Action::Executable::Write,
+                                    {"close();"}
+                                },
+                            }
+                        },
+                        {   // Rule 3:
+                            {}, // No Conditions
+                            {
+                                {
+                                    ProcedureDefinition::Action::Executable::AddUserInteraction,
+                                    {"close procedure requires manual modification"}
+                                },
+                                {
+                                    ProcedureDefinition::Action::Executable::Write,
+                                    {
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "=",
+                                     "(",
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "@, ",
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     ">0",
+                                     ");"
+                                    }
+                                },
+                            }
+            }
+        }
 
     },
     // End of Definition ================================================,
     {
-        "eval", UserInteraction::Status::Required,
+        "eval",
+        {   // Dynamic Rules
+        },
+        {   // On move
+        },
+        {   // On Finalize
 
+                        {   // Rule 3:
+                            {
+                                {
+                                    ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                                    {QString::number(0)}
+                                },
+                            }, // No Conditions
+                            {
+                                {
+                                    ProcedureDefinition::Action::Executable::AddUserInteraction,
+                                    {"eval procedure requires manual modification"}
+                                },
+                                {
+                                    ProcedureDefinition::Action::Executable::Write,
+                                    {"eval();"}
+                                },
+                            }
+                        },
+                        {   // Rule 3:
+                            {}, // No Conditions
+                            {
+                                {
+                                    ProcedureDefinition::Action::Executable::AddUserInteraction,
+                                    {"eval procedure requires manual modification"}
+                                },
+                                {
+                                    ProcedureDefinition::Action::Executable::Write,
+                                    {
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "=",
+                                     "(",
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "@, ",
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     ">0",
+                                     ");"
+                                    }
+                                },
+                            }
+            }
+        }
     },
     // End of Definition ================================================,
     {
@@ -1153,7 +1841,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             "fileSize(",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=1",
-                            ")"
+                            ");"
                         }
                     }
                 }
@@ -1184,9 +1872,27 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             "fileExists(",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=1",
-                            ")"
+                            ");"
                         }
                     }
+                }
+            },
+            {   // Rule 3:
+                {
+                    {
+                        ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                        {QString::number(0)}
+                    },
+                }, // No Conditions
+                {
+                    {
+                        ProcedureDefinition::Action::Executable::AddUserInteraction,
+                        {"file procedure requires manual modification"}
+                    },
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {"file();"}
+                    },
                 }
             },
             {   // Rule 3:
@@ -1194,8 +1900,21 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                 {
                     {
                         ProcedureDefinition::Action::Executable::AddUserInteraction,
-                        {}
-                    }
+                        {"file procedure requires manual modification"}
+                    },
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {
+                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         "=",
+                         "(",
+                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         "@, ",
+                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         ">0",
+                         ");"
+                        }
+                    },
                 }
             }
         }
@@ -1204,9 +1923,34 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
     // End of Definition ================================================,
     {
         "incr",
-        {   // Dynamic Rules
+        {   // On arguments
+            {
+                0,
+                { // Dynamic
+
+                },
+                { // On move
+                  { // Rule 1
+                    {},
+                    {
+                        { // Action 1
+                            ProcedureDefinition::Action::Executable::TclParse,
+                            {
+                                "________incr_parser_____ $",
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=0"
+                            }
+                        }
+                    }
+                  }
+                }
+            }
         },
-        {   // On move
+        {   // On Unspecified argument
+
         },
         {   // On Finalize
             {   // Rule 1:
@@ -1217,7 +1961,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                     },
                 },
                 {   // Actions
-                    {
+                    {                        
                         ProcedureDefinition::Action::Executable::Write,
                         {
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
@@ -1225,7 +1969,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             " += ",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=1",
-
+                            ";"
                         }
                     }
                 }
@@ -1249,11 +1993,68 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                 }
             },
             {   // Rule 3:
+                {
+                    {
+                        ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                        {QString::number(0)}
+                    },
+                }, // No Conditions
+                {
+                    {
+                        ProcedureDefinition::Action::Executable::AddUserInteraction,
+                        {"incr procedure requires manual modification"}
+                    },
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {"incr();"}
+                    },
+                }
+            },
+            {   // Rule 3:
                 {}, // No Conditions
                 {
                     {
                         ProcedureDefinition::Action::Executable::AddUserInteraction,
-                        {}
+                        {"incr procedure requires manual modification"}
+                    },
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {
+                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         "=",
+                         "(",
+                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         "@, ",
+                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         ">0",
+                         ");"
+                        }
+                    },
+                },
+            }
+        }
+
+    },
+    // End of Definition ================================================,
+    {
+        "________incr_parser_____",
+        {   // On arguments
+
+        },
+        {   // On Unspecified argument
+
+        },
+        {   // On Finalize
+            {   // Rule 1:
+                {   // Condtions
+                },
+                {   // Actions
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            "=0",
+                        }
                     }
                 }
             }
@@ -1282,19 +2083,50 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             "elcount(",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=0",
-                            ")"
+                            ");"
                         }
                     }
                 }
             },
-            {   // Rule 2:
-                {}, // No Conditions
-                {
-                    {
-                        ProcedureDefinition::Action::Executable::AddUserInteraction,
-                        {}
-                    }
-                }
+                        {   // Rule 3:
+                            {
+                                {
+                                    ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                                    {QString::number(0)}
+                                },
+                            }, // No Conditions
+                            {
+                                {
+                                    ProcedureDefinition::Action::Executable::AddUserInteraction,
+                                    {"llength procedure requires manual modification"}
+                                },
+                                {
+                                    ProcedureDefinition::Action::Executable::Write,
+                                    {"llength();"}
+                                },
+                            }
+                        },
+                        {   // Rule 3:
+                            {}, // No Conditions
+                            {
+                                {
+                                    ProcedureDefinition::Action::Executable::AddUserInteraction,
+                                    {"llength procedure requires manual modification"}
+                                },
+                                {
+                                    ProcedureDefinition::Action::Executable::Write,
+                                    {
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "=",
+                                     "(",
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "@, ",
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     ">0",
+                                     ");"
+                                    }
+                                },
+                            }
             }
         }
 
@@ -1321,9 +2153,27 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             "write(",
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=0",
-                            ")"
+                            ");"
                         }
                     }
+                }
+            },
+            {   // Rule 3:
+                {
+                    {
+                        ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                        {QString::number(0)}
+                    },
+                }, // No Conditions
+                {
+                    {
+                        ProcedureDefinition::Action::Executable::AddUserInteraction,
+                        {"puts procedure requires manual modification"}
+                    },
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {"puts();"}
+                    },
                 }
             },
             {   // Rule 3:
@@ -1331,8 +2181,21 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                 {
                     {
                         ProcedureDefinition::Action::Executable::AddUserInteraction,
-                        {}
-                    }
+                        {"puts procedure requires manual modification"}
+                    },
+                    {
+                        ProcedureDefinition::Action::Executable::Write,
+                        {
+                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         "=",
+                         "(",
+                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         "@, ",
+                         ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                         ">0",
+                         ");"
+                        }
+                    },
                 }
             }
         }
@@ -1396,7 +2259,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                                 ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::CaplFormat),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=1",
-                            ")"
+                            ");"
                         }
                     }
                 }
@@ -1998,9 +2861,9 @@ ProcedureDefinition(
     {
 
     },
-    {   // Rules on End
-        defaultRuleForUnknownProcedureDefinition_onEndOfCall
-    }
+       // Rules on End
+    defaultRulesForUnknownProcedureDefinition_onEndOfCall
+
 );
 
 
@@ -3072,6 +3935,9 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
         // For Empty String next arg is "special", "control string":
         // - "=<number>", ex. "=2" - take string from lastActionResponse at index 2
         // - "><number>", ex. ">2" - take all string from lastActionResponse in index range: 2 ...
+        // - "<<number>", ex. ">2" - take in reverse all string from lastActionResponse in index range: 2 ...
+        // - "><<number>;<number>", ex. "><2;-1" - take all string from lastActionResponse in index range: 2 ... -1 (last)
+        // - "<><number>;<number>", ex. "><2;-1" - take in reverse all string from lastActionResponse in index range: 2 ... -1 (last)
         // - "<sign><number>@", ex. ">2@ " - after @ place separator between arguments
         int index = INT_MAX;
         bool ok = false;
@@ -3134,31 +4000,183 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                         break;
                     case Rule::ARGS_AFTER_INDEX:
                     {
-                        // ALL ARGUMENTS AFTER INDEX -------------------------------
-                        if((static_cast<void>(index = arg->toInt(&ok)), !ok))
-                            return (arg - args.begin());
-                        if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
-                            index = lastProcedureCall().parametersLength() + index; // Index is negative
-                        }
-                        if(index < 0)
-                            return (arg - args.begin());
-                        index++; // Ignore procedure name
-                        switch(target){
-                        case Target::CaplFormat:
-                        case Target::TclFormat:
-                        case Target::Raw:
-                        case Target::Stat:
+                        switch(formatRule = static_cast<Rule>(arg->at(0).toLatin1())){
+                        case Rule::ARGS_AFTER_INDEX_REVERSE:
                         {
-                            for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + index; responseArg != lastProcedureCall().parameters().end(); responseArg++){
-                                dest += responseArg->toString(target) + seperator;
-                                separatorUsed = true;
+                            // ALL ARGUMENTS IN RANGE  -------------------------------
+                            *arg = arg->mid(1);
+                            QStringList&& splitted = arg->split(";", Qt::SkipEmptyParts);
+                            int indexLowRange = INT_MAX;
+                            int indexHighRange = INT_MAX;
+                            if(splitted.size() != 2 or
+                                    (static_cast<void>(indexLowRange = splitted.at(0).toInt(&ok)), not ok) or
+                                    (static_cast<void>(indexHighRange = splitted.at(1).toInt(&ok)), not ok)){
+                                return (arg - args.begin());
                             }
+                            // Check range
+                            // Low Range
+                            if(indexLowRange < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
+                                indexLowRange = lastProcedureCall().parametersLength() + indexLowRange; // Index is negative
+                            }
+                            if(indexLowRange < 0 or indexLowRange >= lastProcedureCall().parametersLength())
+                                return (arg - args.begin());
+                            indexLowRange++; // Ignore procedure name
+                            // High Range
+                            if(indexHighRange < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
+                                indexHighRange = lastProcedureCall().parametersLength() + indexHighRange; // Index is negative
+                            }
+                            if(indexHighRange < 0 or indexHighRange >= lastProcedureCall().parametersLength())
+                                return (arg - args.begin());
+                            indexHighRange++; // Ignore procedure name
+                            if(indexHighRange < 0 or indexHighRange >= lastProcedureCall().parametersLength())
+                                return (arg - args.begin());
+                            // Preverification
+                            if(indexLowRange > indexHighRange){
+                                return (arg - args.begin());
+                            }
+                            // Get Range
+                            indexHighRange++; // High index is inclusive
+                            switch(target){
+                            case Target::CaplFormat:
+                            case Target::TclFormat:
+                            case Target::Raw:
+                            case Target::Stat:
+                            {
+                                for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + indexLowRange;
+                                    responseArg != lastProcedureCall().parameters().begin() + indexHighRange and
+                                    responseArg != lastProcedureCall().parameters().end() ; responseArg++)
+                                {
+                                    dest += responseArg->toString(target) + seperator;
+                                    separatorUsed = true;
+                                }
+                            }
+                                break;
+                            default:
+                                return (arg - args.begin());
+                            }
+                            // END ALL ARGUMENTS IN RANGE  -------------------------------
                         }
                             break;
                         default:
-                            return (arg - args.begin());
+                        {
+                            // ALL ARGUMENTS AFTER INDEX -------------------------------
+                            if((static_cast<void>(index = arg->toInt(&ok)), !ok))
+                                return (arg - args.begin());
+                            if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
+                                index = lastProcedureCall().parametersLength() + index; // Index is negative
+                            }
+                            if(index < 0 or index >= lastProcedureCall().parametersLength())
+                                return (arg - args.begin());
+                            index++; // Ignore procedure name
+                            switch(target){
+                            case Target::CaplFormat:
+                            case Target::TclFormat:
+                            case Target::Raw:
+                            case Target::Stat:
+                            {
+                                for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + index; responseArg != lastProcedureCall().parameters().end(); responseArg++){
+                                    dest += responseArg->toString(target) + seperator;
+                                    separatorUsed = true;
+                                }
+                            }
+                                break;
+                            default:
+                                return (arg - args.begin());
+                            }
+                            // ALL ARGUMENTS AFTER INDEX -------------------------------
+                            }
                         }
-                        // ALL ARGUMENTS AFTER INDEX -------------------------------
+                    }
+                        break;
+                    case Rule::ARGS_AFTER_INDEX_REVERSE:
+                    {
+                        switch(formatRule = static_cast<Rule>(arg->at(0).toLatin1())){
+                        case Rule::ARGS_AFTER_INDEX:
+                        {
+                            // ALL ARGUMENTS IN RANGE  -------------------------------
+                            *arg = arg->mid(1);
+                            QStringList&& splitted = arg->split(";", Qt::SkipEmptyParts);
+                            int indexLowRange = INT_MAX;
+                            int indexHighRange = INT_MAX;
+                            if(splitted.size() != 2 or
+                                    (static_cast<void>(indexLowRange = splitted.at(1).toInt(&ok)), not ok) or
+                                    (static_cast<void>(indexHighRange = splitted.at(0).toInt(&ok)), not ok))
+                            {
+                                return (arg - args.begin());
+                            }
+                            // Check range
+                            // Low Range
+                            if(indexLowRange < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
+                                indexLowRange = lastProcedureCall().parametersLength() + indexLowRange; // Index is negative
+                            }
+                            if(indexLowRange < 0 or indexLowRange >= lastProcedureCall().parametersLength())
+                                return (arg - args.begin());
+                            indexLowRange++; // Ignore procedure name
+                            // High Range
+                            if(indexHighRange < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
+                                indexHighRange = lastProcedureCall().parametersLength() + indexHighRange; // Index is negative
+                            }
+                            if(indexHighRange < 0 or indexHighRange >= lastProcedureCall().parametersLength())
+                                return (arg - args.begin());
+                            indexHighRange++; // Ignore procedure name
+                            // Preverification
+                            if(indexLowRange < indexHighRange){
+                                return (arg - args.begin());
+                            }
+                            indexLowRange--; // Low index is inclusive
+                            // Get Range
+                            switch(target){
+                            case Target::CaplFormat:
+                            case Target::TclFormat:
+                            case Target::Raw:
+                            case Target::Stat:
+                            {
+                                for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + indexHighRange;
+                                    responseArg != lastProcedureCall().parameters().begin() + indexLowRange and
+                                    responseArg != lastProcedureCall().parameters().begin() - 1; responseArg--)
+                                {
+                                    dest += responseArg->toString(target) + seperator;
+                                    separatorUsed = true;
+                                }
+                            }
+                                break;
+                            default:
+                                return (arg - args.begin());
+                            }
+                            // END ALL ARGUMENTS IN RANGE  -------------------------------
+                        }
+                            break;
+                        default:
+                        {
+                            // ALL ARGUMENTS AFTER INDEX -------------------------------
+                            if((static_cast<void>(index = arg->toInt(&ok)), !ok))
+                                return (arg - args.begin());
+                            if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
+                                index = lastProcedureCall().parametersLength() + index; // Index is negative
+                            }
+                            if(index < 0 or index >= lastProcedureCall().parametersLength())
+                                return (arg - args.begin());
+                            index++; // Ignore procedure name
+                            switch(target){
+                            case Target::CaplFormat:
+                            case Target::TclFormat:
+                            case Target::Raw:
+                            case Target::Stat:
+                            {
+                                for(Call::Parameters::Iterator responseArg = lastProcedureCall().parameters().begin() + index;
+                                    responseArg != lastProcedureCall().parameters().begin() - 1; responseArg--)
+                                {
+                                    dest += responseArg->toString(target) + seperator;
+                                    separatorUsed = true;
+                                }
+                            }
+                                break;
+                            default:
+                                return (arg - args.begin());
+                            }
+                            // ALL ARGUMENTS AFTER INDEX -------------------------------
+                            }
+                        }
                     }
                         break;
                     case Rule::TARGET:

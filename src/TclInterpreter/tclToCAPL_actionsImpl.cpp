@@ -242,13 +242,17 @@ TclProcedureCommand::Definition::Action::Executable::TclParse> (ExecutableAction
     TCLInterpreter newTclInterpreter(userConfig, tclInterpreter.functionDefinitions);
     if(newTclInterpreter.toCAPL(str) == Error::Error or newTclInterpreter.anyErrors())
     {
-        throwError(ERROR_PREFIX + "TclParsing Failed:" + " {Current Result: " + newTclInterpreter.error() +"}");
+        tclInterpreter.errorMsgsRaw().append(newTclInterpreter.errorMsgsRaw());
+        throwError(ERROR_PREFIX + "TclParsing Failed:" + " {Current Result: " + newTclInterpreter.errorMsgs() +"}");
         return;
-    }
+    }    
+    // Or any warning messages
+    tclInterpreter.errorMsgsRaw().append(newTclInterpreter.errorMsgsRaw());
+
     if(finalizeOn){ // Used for procedure
-        lastProcedureCall().setOutputCommand(newTclInterpreter.readCommand().remove("\n"));
+        lastProcedureCall().setOutputCommand(newTclInterpreter.readCommand());
     }else{  // For last argument
-        lastProcedureCall().lastParameter().setOutputCommand(newTclInterpreter.readCommand().remove("\n"));
+        lastProcedureCall().lastParameter().setOutputCommand(newTclInterpreter.readCommand());
     }
 }
 
@@ -330,8 +334,6 @@ void TCLCommandsController::executeAction
         return;
     }
 
-    if(not str.endsWith(";\n"))
-        str.append(";");
     tclInterpreter.preexpressions().append(str);
 }
 
@@ -395,6 +397,18 @@ void TCLCommandsController::executeAction
     TCLCommandsController::Definition::Action::Executable::ExprFinalize>: ";
 
     // Just prepare output
+    // If not commandSubbing (procedureCall in Script) and outputCommand is not Empty
+    if(isNotCommandSubbing()){
+
+        lastProcedureCall().outputCommand().append(";");
+        if(lastProcedureCall().outputCommand().indexOf(QRegularExpression("\\R[\\s]{0,}\\z")) == -1)
+        {
+            // Pattern not found
+            lastProcedureCall().outputCommand().append("\n");
+        }
+    }else{
+        lastProcedureCall().outputCommand().remove(QRegularExpression(";*\\Z"));
+    }
 
 }
 

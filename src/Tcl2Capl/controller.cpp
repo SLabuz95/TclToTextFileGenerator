@@ -131,6 +131,7 @@ void Tcl2CaplController::run(){
 }
 
 bool Tcl2CaplController::generateDefinitions_impl(){
+    using TCLCommandsController = Tcl::Interpreter::Command::Controller;
     //TODO: Memory Leaks
     using ErrorMsg = QString;
     const ErrorMsg ERROR_PREFIX = "Definition File Error: ";
@@ -138,6 +139,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
     // Preconditions
     UserInputConfig::Settings::InterpreterMode savedMode = userInputConfig_.proceduresSettings().mode();
     userInputConfig_.proceduresSettings().setMode(Settings::InterpreterMode::PredefinitionsOnly);
+    TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(userInputConfig_);
 
     FunctionDefinitions caplFunctionDefinitions;
 

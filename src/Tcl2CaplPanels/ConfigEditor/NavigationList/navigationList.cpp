@@ -283,9 +283,17 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
 
 void List::loadData(ControllerConfigInfo::ProceduresView& proceduresView){
     ProceduresElement& dPE = *static_cast<ProceduresElement*>(topLevelItem(panelType2number(PanelType::Procedures)));
-    dPE.execRequest_ContextMenu<ProceduresElement::Request_ContextMenu::ClearProcedures>(nullptr);
+    closePersistentEditor();
+    deactivateProcedureCategory();
+    auto children = dPE.takeChildren();
+    for(auto child = children.begin(); child < children.end(); child++)
+        delete *child;
+
     DefaultProcedureElement& defPE = *static_cast<DefaultProcedureElement*>(topLevelItem(panelType2number(PanelType::DefaultProcedure)));
-    defPE.execRequest_ContextMenu<DefaultProcedureElement::Request_ContextMenu::ClearIndexes>(nullptr);
+    deactivateDefaultProcedureCategory();
+    while(defPE.childCount() != 2){
+        delete defPE.child(2); // Remove First index
+    }
 
     using ConfigMap = ControllerConfigInfo::ProceduresView::first_type;
     using DefaultConfigMap = ControllerConfigInfo::ProceduresView::second_type;
@@ -320,12 +328,13 @@ void List::loadData(ControllerConfigInfo::ProceduresView& proceduresView){
                     {
                         // Set Index
                         ProceduresElement::ListItem::ChildType* indexItem = new ProceduresElement::ListItem::ChildType();
-                        indexItem->addChild(item);
+                        item->addChild(indexItem);
                         indexItem->setText(0, QString::number(configMapIter.key().second));
                     }
                     configMapIter++;
                 }
             }else{ // Not exist - move to next procedure
+                configMapIter++; // Undefined
                 while(configMapIter != newProceduresMap.end() and configMapIter.key().second != ControllerConfigInfo::RulesCategories::OnEndOfCall){
                     configMapIter++;
                 }

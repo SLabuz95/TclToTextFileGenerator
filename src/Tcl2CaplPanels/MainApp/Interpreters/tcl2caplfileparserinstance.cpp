@@ -167,6 +167,7 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readNewInputConfig
 }
 
 Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readNewInputConfig(QFileInfo& file){
+
     if(not file.filePath().isEmpty()){
         if(not file.exists()){return ("File Dont Exist");}
 

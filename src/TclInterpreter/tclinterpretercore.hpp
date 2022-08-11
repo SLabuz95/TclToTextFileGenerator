@@ -68,6 +68,13 @@ namespace Tcl::Interpreter::Core {
         return numbOfSpecialCommandCalls() + 1;
     }
 
+    static constexpr Stat statForSpecialCommandCall(std::underlying_type_t<Stat> callTableId)
+    {
+        // Safeguard is special interpreter method which throws error in case of wrong stat passed to interpret method
+        // Safeguard is always at the end of interpret method list
+        return static_cast<Stat>(static_cast<std::underlying_type_t<Stat>>(Stat::CommandSubbing) + callTableId) ;
+    }
+
     using Stats = QVector<Stat>;
 }
 

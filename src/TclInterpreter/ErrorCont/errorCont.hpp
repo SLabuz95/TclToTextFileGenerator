@@ -8,6 +8,7 @@ namespace Tcl::Interpreter{
 
     class ErrorController{
         QString _error;
+        uint errorCounter = 0;
     public:
         class ErrorMessage{
         public:
@@ -21,10 +22,11 @@ namespace Tcl::Interpreter{
             QString toString(){return "<b>Message:</b> " + message + "<br>\n<b>Line:</b> " + fullLineData + "<br>\n<b>Rest of Line:</b> " + restOfLineData;}
         };
 
-        inline Error throwError(const QString& str =  "TCL Interpreter: Unspecified Error\n"){return (_error = str).isEmpty()? Error::NoError : Error::Error;}
+        inline Error throwError(const QString& str =  "TCL Interpreter: Unspecified Error\n"){errorCounter++; return (_error = str).isEmpty()? Error::NoError : Error::Error;}
         inline bool isError(){return not _error.isEmpty();}
         inline void clearError(){_error.clear();}
         inline const QString& error(){return _error;}
+        inline uint errorsNumb()const{return errorCounter;}
 
     };
 

@@ -54,7 +54,8 @@ Tcl2CaplInstructionInstance::Tcl2CaplInstructionInstance()
 
     // - outputText
     outputText.setAutoFormatting(InputTextEdit::AutoAll);
-    outputText.setWordWrapMode(QTextOption::NoWrap);
+    outputText.setWordWrapMode(QTextOption::NoWrap);    
+    outputText.setTabStopDistance(TAB_NUMB_OF_CHARACKTERS * QFontMetricsF(inputTclConfig.font()).maxWidth());
 
     // - inputTclConfigBox
     inputTclBoxLayout.addWidget(&inputTclConfig);
@@ -160,7 +161,7 @@ Tcl2CaplInstructionInstance::readInputConfig(){
         }
         parserConfigInterpreter.deinitialize();
         //tempUserProceduresConfig_ = tempUserDefinitionsData;
-        //TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(tempUserProceduresConfig_);
+        TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(tempUserProceduresConfig_);
     }else{
         //tempUserProceduresConfig_ = UserProceduresConfig();
     }
@@ -170,6 +171,7 @@ Tcl2CaplInstructionInstance::readInputConfig(){
 }
 
 void Tcl2CaplInstructionInstance::generateCapl(){
+    using TCLCommandsController = Tcl::Interpreter::Command::Controller;
     //if(not readInputConfig())
       //  return;
 
@@ -177,6 +179,7 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     MainWindow::ConfigEditor& configEditor =  mainWindow().getConfigEditor(&subWindow());
     configEditor.syncConfig();
     UserInputConfig userInputConfig(configEditor.config());
+    TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(userInputConfig);
     TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
     QFile file_DONT_USE_PH_ONLY;
     Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, userInputConfig, caplFunctionDefinitions);
@@ -193,6 +196,11 @@ void Tcl2CaplInstructionInstance::generateCapl(){
             QMessageBox::critical(nullptr, QString("Tcl Interpreter"), QString("Internal Critical Error"));
             return;
         }
+    }
+    data.lineData = QString();
+    if(data.tclToCaplInterpreter_.toCAPL(data.lineData) == Tcl::Error::Error){
+        QMessageBox::critical(nullptr, QString("Tcl Interpreter"), QString("Internal Critical Error"));
+        return;
     }
     errorsText.clear();
     outputText.clear();

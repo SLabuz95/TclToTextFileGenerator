@@ -40,6 +40,16 @@ namespace Tcl{
         inline Error throwError(const QString str){return errorController.throwError(str);}
         inline bool isError(){return errorController.isError();}
         inline const QString& error(){return errorController.error();}
+        inline const QString errorMsgs(){
+            QString errorReport;
+            for(decltype (ignoreMessages)::Iterator message = ignoreMessages.begin();
+                message < ignoreMessages.end();
+                message++)
+            {
+                errorReport.append(message->toString() + "\n");
+            }
+            return errorReport;
+        }
     private:
         //
         using AddExpressionToCodeBlockFunction = void (TCLInterpreter::*)(const OutputCommands&, QString);
@@ -302,7 +312,8 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
             }
 
 //            static bool checkInterpretFunctions();
-            inline bool anyErrors(){return ignoreMessages.size();}
+            inline bool anyErrors(){return errorController.errorsNumb() != 0;}
+            inline ErrorMessages& errorMsgsRaw(){return ignoreMessages;}
             void printErrorReport(QFile& reportFile, QString inputFileName);
             void printErrorReport(QString& inputFileName);
             OutputCommand& readCommand(){return command;}
