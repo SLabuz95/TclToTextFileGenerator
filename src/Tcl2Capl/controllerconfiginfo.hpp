@@ -55,7 +55,7 @@ public:
     using ModifierRulesView = QPair<ModifierNewRules::Iterator, ModifierNewRules::Iterator>;
 
     struct ModifierRulesFromConfigFileView{
-        ModifierRulesCategories index;
+        ModifierRulesCategories category;
         ModifierNewRules rules;
     };
 
@@ -200,6 +200,7 @@ public:
         void readPhases(TcFileModifierConfigBase::ModifierPhases&);
         // XML Section
         bool addCategory(QString name, ModifierRulesFromConfigFileView& rulesView);
+        void writePhasesToXML(QXmlStreamWriter&);
 
     protected:
         ConfigFile configFile;
