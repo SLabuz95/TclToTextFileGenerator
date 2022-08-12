@@ -68,7 +68,7 @@ namespace Tcl::Interpreter{
         // End of Concept Definition ||||||||||||||||||||||||||||||||||
         // Objects ----------------------------------------------------
         Keywords::ConstIterator lastKeyword;
-        const Keyword endOfStringKeyword = {"\n", {Stat::EndOfString}, Keyword::UnknownStringRule::Permitted};
+        const Keyword endOfStringKeyword = {"", {Stat::EndOfString}, Keyword::UnknownStringRule::Permitted};
 
         String savedStr; // Appended at end of String
         Chars ignoreReadUntilCondtions;

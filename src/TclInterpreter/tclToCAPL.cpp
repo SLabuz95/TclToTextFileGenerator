@@ -3700,6 +3700,7 @@ CheckingResult KeywordsController::checkingPriv(){
                 }else{
                     savedFirstKeywordCharPos = currentChar;
                     lastKeyword = &endOfStringKeyword;
+                    //return CheckingResult::EndOfString;
                 }
                 return CheckingResult::StatFound;
             }
@@ -3723,6 +3724,7 @@ CheckingResult KeywordsController::checkingPriv(){
     }else{
         savedFirstKeywordCharPos = currentChar;
         lastKeyword = &endOfStringKeyword;
+        //return CheckingResult::EndOfString;
     }
     return CheckingResult::StatFound;;
 }
@@ -3783,6 +3785,28 @@ Error TCLInterpreter::toCAPL(TclCommand &tclCommand){
     return Error::NoError;
 }
 
+
+Error TCLInterpreter::deinitialize(){
+    QString tclCommand = QString();
+    if(isError())
+        return Error::Error;
+    textInterpreter().initialize(tclCommand);
+    setProcessingStat(Stat::None);
+
+    while(processingStat() != Stat::EndOfString)
+        if(callCurrentInterpreterProcedure() == Error::Error)
+            return Error::Error;
+
+    setProcessingStat(Stat::EndOfString);
+
+    if(callInterpretFunction() == Error::Error){
+        if(processError() == Error::Error)
+            return Error::Error;
+    }
+
+    return Error::NoError;
+}
+
 Error TCLInterpreter::interpreterProcedure_standard(){
     while(textInterpreter().runSearchingMode() == Result::StatFound){
 
@@ -3792,10 +3816,19 @@ Error TCLInterpreter::interpreterProcedure_standard(){
         }
 
         setProcessingStat(textInterpreter().lastKeywordStat());
+        if(processingStat() == Stat::EndOfString){
+            textInterpreter().deinitialize();
+            return Error::NoError;
+        }
 
         if(callInterpretFunction() == Error::Error){
             if(processError() == Error::Error)
                 return Error::Error;
+        }
+
+        if(processingStat() == Stat::EndOfString){
+            textInterpreter().deinitialize();
+            return Error::NoError;
         }
         /*
         if(commandsController.performDynamicRulesCheck() == Error::Error){
@@ -3803,10 +3836,7 @@ Error TCLInterpreter::interpreterProcedure_standard(){
                 return Error::Error;
         }
         */
-        if(processingStat() == Stat::EndOfString){
-            textInterpreter().deinitialize();
-            return Error::NoError;
-        }
+
     }
 
     return isError()? Error::Error : Error::NoError;
@@ -3842,13 +3872,19 @@ Error TCLInterpreter::interpreterProcedure_commentSpecial(){
 
     if(tempStr.endsWith("\\")){
         tempStr.chop(1);
+        tempStr.append("\n");
     }else{
-        setStandardInterpreterMode();
+        if(tempStr.endsWith("\\\n")){
+            tempStr.chop(2);
+            tempStr.append("\n");
+        }else{
+            setStandardInterpreterMode();
+        }
     }
     if(commandsController.isMainScript())
-        addExpressionToMainCodeBlock({"//" + tempStr + "\n"});
+        addExpressionToMainCodeBlock({"//" + tempStr});
     else
-        addExpressionToCodeBlock({"//" + tempStr + "\n"});
+        commandsController.addNewParameter({"//" + tempStr});
 
     setProcessingStat(Stat::EndOfString);
     return Error::NoError;

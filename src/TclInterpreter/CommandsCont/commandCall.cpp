@@ -17,7 +17,7 @@ Call::Call(Stat stat, Parameter& parameter, ProcedureDefinitionIterator definiti
 Error Call::newParameter(Stat stat,QString rawParameter, OutputCommand outputCommand){
     if(rawParametersLength() == 0)
     {
-        rawCommand().clear();
+        //rawCommand().clear();
     }else{
         rawCommand().append(lastParameter().toString(Definition::Format::Target::TclFormat) + CallConfig::parameterSeparators(stat));
     }

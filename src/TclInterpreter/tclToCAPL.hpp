@@ -299,6 +299,7 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
             inline Stat processingStat()const{return _processingStat;}
 
             Error toCAPL(TclCommand&);
+            Error deinitialize();
             //Error addReadyCommand(TclCommand&);
             inline void activateWriteOnlyProcedureMode(){
                 removeProcedureCallFunction = &TCLInterpreter::removeProcedureCall_writeOnlyProcedure;

@@ -191,14 +191,13 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     QTextStream textStream(&inputTclText, QIODevice::ReadOnly);
     while(not textStream.atEnd())
     {
-        data.lineData = textStream.readLine();
+        data.lineData = textStream.readLine() + "\n";
         if(data.tclToCaplInterpreter_.toCAPL(data.lineData) == Tcl::Error::Error){
             QMessageBox::critical(nullptr, QString("Tcl Interpreter"), QString("Internal Critical Error"));
             return;
         }
     }
-    data.lineData = QString();
-    if(data.tclToCaplInterpreter_.toCAPL(data.lineData) == Tcl::Error::Error){
+    if(data.tclToCaplInterpreter_.deinitialize() == Tcl::Error::Error){
         QMessageBox::critical(nullptr, QString("Tcl Interpreter"), QString("Internal Critical Error"));
         return;
     }
