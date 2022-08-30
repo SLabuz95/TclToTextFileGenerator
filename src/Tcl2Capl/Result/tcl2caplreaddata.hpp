@@ -22,6 +22,10 @@ protected:
         INITIALIZE_FAIL,
         ALREADY_INITIALIZED
     };
+    enum class _ReadMode{
+        FileMode,
+        DirectoryMode
+    };
 
     QDir _dir;
     ScriptFile _file;
@@ -29,6 +33,7 @@ protected:
     QString _currentTCLFileName;
     QString _fileContent;
     _InitializeStatus initializeStatus = _InitializeStatus::NOT_INITIALIZED;
+    _ReadMode _readMode;
     UserInputConfig& userConfig_;
     FunctionDefinitionsRef caplFunctionDefinitionsRef_;
     TestCaseErrors testCaseErrors_ = 0;
@@ -36,8 +41,10 @@ protected:
     //inline QFile& file(){return _file;}
 public:
     using InitializeStatus = _InitializeStatus;
-    Tcl2CaplReadData(QDir outputDir, QFile& reportFile, UserInputConfig& userConfig, FunctionDefinitionsRef caplFunctionDefinitionsRef)
-        : _dir(outputDir), _reportFile(reportFile), userConfig_(userConfig), caplFunctionDefinitionsRef_(caplFunctionDefinitionsRef){}
+    using ReadMode = _ReadMode;
+
+    Tcl2CaplReadData(QDir outputDir, QFile& reportFile, UserInputConfig& userConfig, FunctionDefinitionsRef caplFunctionDefinitionsRef, ReadMode readMode)
+        : _dir(outputDir), _reportFile(reportFile), userConfig_(userConfig), caplFunctionDefinitionsRef_(caplFunctionDefinitionsRef), _readMode(readMode){}
     ~Tcl2CaplReadData(){
         _file.close();
     }

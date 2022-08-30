@@ -182,7 +182,7 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(userInputConfig);
     TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
     QFile file_DONT_USE_PH_ONLY;
-    Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, userInputConfig, caplFunctionDefinitions);
+    Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, userInputConfig, caplFunctionDefinitions, Tcl2CaplReadData::ReadMode::DirectoryMode);
     QString inputTclText = inputTclConfig.toPlainText();
     QString outputCaplText;
     QString errorText;
