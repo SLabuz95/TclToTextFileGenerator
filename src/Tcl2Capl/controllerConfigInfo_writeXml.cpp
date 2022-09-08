@@ -64,6 +64,7 @@ void ControllerConfigInfo::writePhasesToXML(QXmlStreamWriter& xmlWriter){
             xmlWriter.writeEndElement(); // --- phase --------------
 
         }else{ // Not exist - move to next procedure
+            configMapIter++;
             while(configMapIter != newPhasesMap.end() and configMapIter.key().second != ModifierRulesCategories::LowestValue){
                 configMapIter++;
             }
@@ -174,6 +175,7 @@ void ControllerConfigInfo::writeProceduresToXML(QXmlStreamWriter& xmlWriter){
             xmlWriter.writeEndElement(); // --- procedure --------------
 
         }else{ // Not exist - move to next procedure
+            configMapIter++;
             while(configMapIter != newProceduresMap.end() and configMapIter.key().second != RulesCategories::OnEndOfCall){
                 configMapIter++;
             }

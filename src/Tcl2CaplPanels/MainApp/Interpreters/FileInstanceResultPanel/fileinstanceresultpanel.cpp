@@ -373,7 +373,6 @@ void FileInstanceResultPanel::generateCapl(UserProceduresConfig& userConfig){
 void FileInstanceResultPanel::generateCaplInWriteOnlyMode(UserProceduresConfig& userConfig){
     //using Mode = UserProceduresConfig::ProceduresSettings::InterpreterMode;
     prepareGeneratorControl();
-    userConfig.writeOnlyProcedures() = {"stc_section"};
     tcl2Capl.generateCaplsFromFolderWithTcls(this, userConfig, Mode::TestCaseReport);
 }
 

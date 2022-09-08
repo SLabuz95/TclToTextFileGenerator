@@ -2448,25 +2448,26 @@ void FSD_ByLine_TcFileModifierData::Data::writeTCInfo(FSD_ByLine_TcFileModifierD
 
         tcInfo += "\n"
       "// Test Case description and attributes:\n"
-    "//  AddTcInformation(\n"
-    "//  /*ident     */  \"" + tcData.name +"\",\n"
-    "//  /*title     */  \"" + ((tcData.title.isEmpty())? tcData.description : tcData.title)  + "\",\n"
-    "//  /*descr     */  \"" + tcData.description + "\"\n"
-    "//  );\n"
-    "//  AddTcInAttributes(\n"
-    "//  /*domain    */  \"" + tcData.domain + "\",\n"
-    "//  /*reqs      */  \"" + tcData.requirements + "\",\n"
-    "//  /*doc       */  \"" + tcData.documents + "\",\n"
-    "//  /*reviewed  no/yes */  \"no\",\n"
-    "//  /*automated no/yes */  \"" + ((tcData.type == "AUTO")? "yes" : "no") + "\",\n"
-    "//  /*priority  1/2/3  */  \"1\",\n"
-    "//  /*intg      no/yes */  \"" + ((tcData.integration == "NO")? "no" : "yes") + "\",\n"
-    "//  /*variant   */  \"" + fileDir.dirName() + "\",\n"
-    "//  /*version   */  \"" + tcData.version + "\",\n"
-    "//  /*author    */  \"" + tcData.author + "\"\n"
-    "//  );\n\n ";
-        dataModel.write(tcInfo + tclToCaplInterpreter_.readCommand() + "\n}\n\n");
+    "  AddTcInformation(\n"
+    "  /*ident     */  \"" + tcData.name +"\",\n"
+    "  /*title     */  \"" + ((tcData.title.isEmpty())? tcData.description : tcData.title)  + "\",\n"
+    "  /*descr     */  \"" + tcData.description + "\"\n"
+    "  );\n"
+    "  AddTcInAttributes(\n"
+    "  /*domain    */  \"" + tcData.domain + "\",\n"
+    "  /*reqs      */  \"" + tcData.requirements + "\",\n"
+    "  /*doc       */  \"" + tcData.documents + "\",\n"
+    "  /*reviewed  no/yes */  \"no\",\n"
+    "  /*automated no/yes */  \"" + ((tcData.type == "AUTO")? "yes" : "no") + "\",\n"
+    "  /*priority  1/2/3  */  \"1\",\n"
+    "  /*intg      no/yes */  \"" + ((tcData.integration == "NO")? "no" : "yes") + "\",\n"
+    "  /*variant   */  \"" + fileDir.dirName() + "\",\n"
+    "  /*version   */  \"" + tcData.version + "\",\n"
+    "  /*author    */  \"" + tcData.author + "\"\n"
+    "  );\n\n ";
+        dataModel.write(tcInfo + tclToCaplInterpreter_.readCommand().replace(QRegularExpression("\n(?=\\S*)(?!\\S*}\\Z)"), "\n\t") + "\n}\n\n");
    }
+
 }
 
 

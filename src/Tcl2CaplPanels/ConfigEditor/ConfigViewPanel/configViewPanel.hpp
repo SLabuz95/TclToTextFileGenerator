@@ -121,7 +121,7 @@ namespace Panels::Configuration{
                 configTabsPanel.tabBar()->show();
 
             }
-            void loadConfigData(ControllerConfigInfo::ProceduresView& view);
+            void loadConfigData(QStringList& writeOnlyProcedures, ControllerConfigInfo::ProceduresView& view);
         };
     }
 

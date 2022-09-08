@@ -33,38 +33,51 @@ bool ControllerConfigManager::loadConfig(ControllerConfigInfo& configRef){
 
 bool ControllerConfigManager::saveConfig(ControllerConfigInfo& configRef){
     QFile file(configRef.filePath());
-    QXmlStreamWriter xmlWriter(&file);
+    QFile tempFile("tempConfig.xml");
+    QXmlStreamWriter xmlWriter(&tempFile);
     xmlWriter.setAutoFormatting(true);
+    tempFile.remove();
 
     lastErrorMsg_.clear();
-    if(file.open(QIODevice::Text | QIODevice::WriteOnly)){
+    if(tempFile.open(QIODevice::Text | QIODevice::WriteOnly)){
         configRef.toXmlContent(xmlWriter);
+        tempFile.close();
+
+        file.remove();
+        tempFile.rename(QFileInfo(file).filePath());
+
     }else{
-        lastErrorMsg_ = QString("Open File Error: ") + file.fileName();
+        lastErrorMsg_ = QString("Open File Error: ") + tempFile.fileName();
         qDebug() << lastErrorMsg_;
     }
-    file.close();
 
     return lastErrorMsg_.length() == 0;
 }
 
 bool ControllerConfigManager::saveConfigAs(ControllerConfigInfo& configRef, QString newPath){
     // Save file
+    QFile tempFile("tempConfig.xml");
+    tempFile.remove();
+
     QFile file(newPath);
 
-    QXmlStreamWriter xmlWriter(&file);
+    QXmlStreamWriter xmlWriter(&tempFile);
     xmlWriter.setAutoFormatting(true);
 
     lastErrorMsg_ = QString();
 
-    if(file.open(QIODevice::Text | QIODevice::WriteOnly)){
+    if(tempFile.open(QIODevice::Text | QIODevice::WriteOnly)){
         configRef.toXmlContent(xmlWriter);
+        tempFile.close();
+
+        file.remove();
+        tempFile.rename(QFileInfo(file).filePath());
+
     }else{
-        lastErrorMsg_ = QString("Open File Error: ") + file.fileName();
+        lastErrorMsg_ = QString("Open File Error: ") + tempFile.fileName();
         qDebug() << lastErrorMsg_;
     }
 
-    file.close();
     return lastErrorMsg_.length() == 0;
 }
 

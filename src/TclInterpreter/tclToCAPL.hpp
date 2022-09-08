@@ -125,6 +125,10 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
             }
         }
 
+        inline void clearPreexpressions(){
+            _preexpressions.clear();
+        }
+
  //         inline bool isCurrentKeywordProcessing()const{return proccessingStats.isEmpty();}
 //        inline bool isUnknownStringProcessing()const{return not isCurrentKeywordProcessing();}
 
@@ -301,16 +305,7 @@ If not empty (command.append(((!command.isEmpty())? QString(";\n") : QString()) 
             Error toCAPL(TclCommand&);
             Error deinitialize();
             //Error addReadyCommand(TclCommand&);
-            inline void activateWriteOnlyProcedureMode(){
-                removeProcedureCallFunction = &TCLInterpreter::removeProcedureCall_writeOnlyProcedure;
-                addExpressionToCodeBlockFunction = &TCLInterpreter::addExpressionToCodeBlock_writeOnlyProcedure;
-            }
 
-            inline void deactivateWriteOnlyProcedureMode(){
-                removeProcedureCallFunction = &TCLInterpreter::removeProcedureCall_standard;
-                addExpressionToCodeBlockFunction = &TCLInterpreter::addExpressionToCodeBlock_standard;
-
-            }
 
 //            static bool checkInterpretFunctions();
             inline bool anyErrors(){return errorController.errorsNumb() != 0;}

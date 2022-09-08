@@ -96,7 +96,7 @@ namespace Panels::Configuration{
             //writeOnlyProceduresList.reloadGui();
             ConfigInfo::ProceduresView proceduresView = config().readProceduresInfo();
             deactivateRulesPanel();
-            configViewPanel.loadConfigData(proceduresView);
+            configViewPanel.loadConfigData(config().writeOnlyProcedures(), proceduresView);
         }
 
         inline App& app()const{return app_;}

@@ -240,7 +240,7 @@ TclProcedureCommand::Definition::Action::Executable::TclParse> (ExecutableAction
     }
 
     TCLInterpreter newTclInterpreter(userConfig, tclInterpreter.functionDefinitions);
-    if(newTclInterpreter.toCAPL(str) == Error::Error or newTclInterpreter.anyErrors())
+    if(newTclInterpreter.toCAPL(str) == Error::Error or newTclInterpreter.deinitialize() == Error::Error or newTclInterpreter.anyErrors())
     {
         tclInterpreter.errorMsgsRaw().append(newTclInterpreter.errorMsgsRaw());
         throwError(ERROR_PREFIX + "TclParsing Failed:" + " {Current Result: " + newTclInterpreter.errorMsgs() +"}");
@@ -359,9 +359,14 @@ void TCLCommandsController::executeAction
             /*if(not tclInterpreter.isStringConstNumber(lastProcedureCall().lastParameter().outputCommand())){
                 lastProcedureCall().outputCommand().append("\"" + lastProcedureCall().lastParameter().outputCommand() + "\"");
             }else{*/
-                lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+            if(not lastProcedureCall().lastParameter().outputCommand().isEmpty() and
+               lastProcedureCall().lastParameter().outputCommand().first(1) == "\""){
+                lastProcedureCall().lastParameter().outputCommand().remove("\"");
+            }
+            lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
             //}
-        }
+
+        }            
         break;
         /*case Stat::BackslashSubbing:
         {
@@ -398,7 +403,7 @@ void TCLCommandsController::executeAction
 
     // Just prepare output
     // If not commandSubbing (procedureCall in Script) and outputCommand is not Empty
-    if(isNotCommandSubbing()){
+    if(isNotCommandSubbing() and lastProcedureCall()._name() == "expr"){
 
         lastProcedureCall().outputCommand().append(";");
         if(lastProcedureCall().outputCommand().indexOf(QRegularExpression("\\R[\\s]{0,}\\z")) == -1)

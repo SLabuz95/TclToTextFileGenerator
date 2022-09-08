@@ -754,7 +754,22 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                 not (userConfig = static_cast<DataModel*>(interpreterData->dmStats.last().dataModel)))
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
-    interpreterData->dmStats.append({userConfig, Stat::Procedure });
+    if(interpreterData->dmStats.last().stat == Stat::WriteOnlyFunctions){
+        // Prepare name
+        interpreterData->procedureName = config.data->reader->readElementText(QXmlStreamReader::IncludeChildElements);
+
+        if(interpreterData->procedureName != UserProcedure::prepareTclProcedureNameFromStr(interpreterData->procedureName)){
+            qDebug() << "Add Procedure failed - procedure name corrupted (Procedure Name does not support TclProcedureName)";
+            return config.ERROR_CALL(PRE_ERROR_MSG + " - Procedure name corrupted (Procedure Name does not support TclProcedureName)");
+        }
+
+        QStringList& procedures = *static_cast<QStringList*>(interpreterData->dmStats.last().dataModel);
+        procedures.append(interpreterData->procedureName);
+
+    }else{
+        interpreterData->dmStats.append({userConfig, Stat::Procedure });
+    }
+
     return true;
 }
 

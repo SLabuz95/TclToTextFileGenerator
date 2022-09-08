@@ -202,6 +202,7 @@ public:
         bool addCategory(QString name, ModifierRulesFromConfigFileView& rulesView);
         void writePhasesToXML(QXmlStreamWriter&);
 
+        // Settings
     protected:
         ConfigFile configFile;
 

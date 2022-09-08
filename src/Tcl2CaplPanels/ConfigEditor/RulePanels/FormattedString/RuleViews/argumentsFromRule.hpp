@@ -2,7 +2,7 @@
 #define ARGUMENTSFROMRULE_HPP
 
 #include"../formattedString.hpp"
-#include<QSpinBox>
+#include"External/Improvements/spinBoxNoWheel.hpp"
 #include<QLineEdit>
 
 namespace Panels::Configuration::View::FormattedString{
@@ -30,7 +30,7 @@ namespace Panels::Configuration::View::FormattedString{
     protected:
         //QSpinBox* indexSpinBox = nullptr;
         //QLineEdit* separatorLineEdit = nullptr;
-        QSpinBox indexSpinBox;// = nullptr;
+        SpinBoxNoWheel indexSpinBox;// = nullptr;
         QLineEdit separatorLineEdit;// = nullptr;
     public:
         constexpr FormatRuleType type()const override{return ruleType;}

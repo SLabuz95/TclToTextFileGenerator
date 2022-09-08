@@ -207,7 +207,7 @@ void Tcl2CaplInstructionInstance::generateCapl(){
     if(not errorText.isEmpty()){
         errorText.append(QString("</table>\n</div>\n</div>\n<hr>\n</body></html>").toUtf8());
         errorsText.setHtml(errorText);
-        return;
+
     }
 
     // No Errors
@@ -293,34 +293,39 @@ void Tcl2CaplInstructionInstance::generateCaplRaportMode(){
     MainWindow::ConfigEditor& configEditor =  mainWindow().getConfigEditor(&subWindow());
     configEditor.syncConfig();
     UserInputConfig userInputConfig(configEditor.config());
-    //TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
-    //QFile file_DONT_USE_PH_ONLY;
-    //Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, tempUserProceduresConfig_);
+    userInputConfig.proceduresSettings().setMode(Mode::TestCaseReport);
+    TcFileModifier::Data data(userInputConfig, caplFunctionDefinitions);
+    QFile file_DONT_USE_PH_ONLY;
+    Tcl2CaplReadData resultData(QDir(), file_DONT_USE_PH_ONLY, userInputConfig, caplFunctionDefinitions, Tcl2CaplReadData::ReadMode::DirectoryMode);
     QString inputTclText = inputTclConfig.toPlainText();
     QString outputCaplText;
     QString errorText;
     if(inputTclText.isEmpty())
         return;
-    QTextStream textStream(&inputTclText, QIODevice::ReadOnly);
+    QTextStream textStream(&inputTclText, QIODevice::ReadOnly);    
     while(not textStream.atEnd())
     {
-        //data.lineData = textStream.readLine();
-        //if(data.tclToCaplInterpreter_.toCAPL(data.lineData) == TCLInterpreter::Error::Error){
+        data.lineData = textStream.readLine() + "\n";
+        if(data.tclToCaplInterpreter_.toCAPL(data.lineData) == Tcl::Error::Error){
             QMessageBox::critical(nullptr, QString("Tcl Interpreter"), QString("Internal Critical Error"));
             return;
-        //}
+        }
+    }
+    if(data.tclToCaplInterpreter_.deinitialize() == Tcl::Error::Error){
+        QMessageBox::critical(nullptr, QString("Tcl Interpreter"), QString("Internal Critical Error"));
+        return;
     }
     errorsText.clear();
     outputText.clear();
-    //data.tclToCaplInterpreter_.printErrorReport(errorText);
+    data.tclToCaplInterpreter_.printErrorReport(errorText);
     if(not errorText.isEmpty()){
         errorText.append(QString("</table>\n</div>\n</div>\n<hr>\n</body></html>").toUtf8());
         errorsText.setHtml(errorText);
-        return;
+
     }
 
     // No Errors
-    //outputCaplText.append(data.tclToCaplInterpreter_.printPredefinitions() + "\n" + data.tclToCaplInterpreter_.readCaplCommand());
+    outputCaplText.append(data.tclToCaplInterpreter_.printPredefinitions() + data.tclToCaplInterpreter_.readCommand());
     outputText.setText(outputCaplText);
 
 
