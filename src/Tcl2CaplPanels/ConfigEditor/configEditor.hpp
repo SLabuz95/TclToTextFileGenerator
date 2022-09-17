@@ -26,6 +26,7 @@
 #include"loadconfigsettings.hpp"
 #include"Tcl2Capl/controllerconfiginfo.hpp"
 #include"Tcl2CaplPanels/ConfigEditor/ConfigViewPanel/configViewPanel.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/rulesPhasePanel.hpp"
 
 class App;
 
