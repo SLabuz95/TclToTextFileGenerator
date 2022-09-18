@@ -152,9 +152,19 @@ namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
             return (Super::count() > 0)? s: QSize(0, 40);
         }
 
-
         void extendContextMenu(ContextMenuConfig&)const override;
         void interpretContextMenuResponse(ContextMenuConfig::ActionIndex, QContextMenuEvent*)override;
+
+        bool executableActionsListMode_ = false;
+        void activateExecutableActionsListMode(){
+            executableActionsListMode_ = true;
+        }
+        void deactivateExecutableActionsListMode(){
+            executableActionsListMode_ = false;
+        }
+        bool isExecutableActionsListModeActive()const{
+            return executableActionsListMode_;
+        }
     };
 
     class RulesPanel : public QWidget{
@@ -165,6 +175,11 @@ namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
         QVBoxLayout mainLayout;
         RulesList rulesList;
         QPushButton addRuleButton;
+
+        bool executableActionsListMode_ = false;
+        bool activateExecutableActionsListModeImpl();
+        bool deactivateExecutableActionsListModeImpl();
+
     public:
         RulesPanel(){
             addRuleButton.setText("Dodaj nowa regułę");
@@ -199,6 +214,17 @@ namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
                 break;
             }
             return QWidget::eventFilter(obj, ev);
+        }
+        void activateExecutableActionsListMode(){
+            rulesList.activateExecutableActionsListMode();
+            activateExecutableActionsListModeImpl();
+        }
+        void deactivateExecutableActionsListMode(){
+            rulesList.deactivateExecutableActionsListMode();
+            deactivateExecutableActionsListModeImpl();
+        }
+        bool isExecutableActionsListModeActive()const{
+            return rulesList.isExecutableActionsListModeActive();
         }
     };
 

@@ -31,7 +31,6 @@ public:
     void setText(QString str){text_ = str;}
     const QString& text()const{return text_;}
     void toActionParameters(QStringList& parameters)override{
-        using Format = Tcl::Interpreter::Command::Definition::Format;
         if(not text().isEmpty()){
             parameters << text();
         }

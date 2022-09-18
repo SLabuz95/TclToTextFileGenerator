@@ -1,15 +1,12 @@
 #ifndef MODIFIER_ACTION_VIEW_EXECUTABLES_HPP
 #define MODIFIER_ACTION_VIEW_EXECUTABLES_HPP
 
-#include"TcFileModifier/Config/Actions/Conditional/conditionals.hpp"
+#include"TcFileModifier/Config/Actions/FCT_products.hpp"
 
 // List of all views for executables
-//#include"addPredefinition.hpp"
-//#include"addPreexpression.hpp"
-//#include"addUserInteraction.hpp"
-//#include"error.hpp"
-//#include"tclParse.hpp"
-//#include"write.hpp"
+#include"write.hpp"
+#include"interpret.hpp"
+#include"changePhase.hpp"
 // ---------------------------
 
 //using namespace Panels::Configuration::View;

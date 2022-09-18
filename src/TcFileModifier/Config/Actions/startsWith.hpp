@@ -3,6 +3,7 @@
 
 #include"External/Factory/products.hpp"
 #include"TcFileModifier/Config/Actions/definition.hpp"
+#include"TcFileModifier/Config/Parameters/Formatted/FCT_products.hpp"
 
 template<>
 template<>
@@ -10,8 +11,11 @@ struct ModifierActionProducts::ImplementationData<ModifierActionTypes::StartsWit
 : public ModifierActionProductDefinition::Definition
 {
 public:
-
+    using FormattedString = ModifierFormatParametersFactory::ListOfBases;
 protected:
+     //FormattedString inputFormattedString_;
+     QStringList stringsToCompare_;
+
 
 };
 
@@ -28,8 +32,23 @@ class ModifierActionProducts::InterfaceData<ModifierActionTypes::StartsWith>::Me
 : public ModifierActionProducts::Implementation<ModifierActionTypes::StartsWith>
 {
 public:
+    QStringList& stringsToCompare(){return stringsToCompare_;}
+    //FormattedString& inputFormattedString(){return inputFormattedString_;}
     void toAction(ModifierAction& action)override{
+        using Parameters = QStringList;
+        //Parameters formattedStringParameters;
+        // Temp for no parameter definitions for ModifierRules
+        //inputFormattedString().toActionParameters(formattedStringParameters);
+        //FormattedString::Iterator parameter = inputFormattedString().begin();
+        //for( ; parameter < inputFormattedString().end(); parameter++)
+       //     (*parameter)->toActionParameters(formattedStringParameters);
 
+        action = ModifierAction{static_cast<RawModifierActionType>(type()),
+                        Parameters({QString::number(stringsToCompare_.size())})
+                            <<  stringsToCompare_
+                            //<< QStringList{QString::number(formattedStringParameters.size())}
+                            //<< formattedStringParameters
+                                           };
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{

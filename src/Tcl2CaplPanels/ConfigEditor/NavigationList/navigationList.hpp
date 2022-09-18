@@ -22,6 +22,7 @@ namespace Panels::Configuration::Navigation{
         WriteOnlyProceduresList,
         Procedures,
         DefaultProcedure,
+        Phases,
         Size,
         Invalid = Size,
         NoFound = -1
@@ -108,6 +109,7 @@ namespace Panels::Configuration::Navigation{
 
         bool requestMultiLineEditorAccess = false;
 
+        NavigationElement* activePhaseItem = nullptr;
         NavigationElement* activeProcedureCategoryItem = nullptr;
         NavigationElement* activeDefaultProcedureCategoryItem = nullptr;
     public:
@@ -125,6 +127,10 @@ namespace Panels::Configuration::Navigation{
         void closePersistentEditor();
         void editItem( NavigationElement* item);
 
+        inline bool isProcedurePanel(NavigationElement* item)const{
+            return item == topLevelItem(panelType2number(PanelType::Procedures));
+        }
+
         inline bool isDefaultProcedurePanel(NavigationElement* item)const{
             return item == topLevelItem(panelType2number(PanelType::DefaultProcedure));
         }
@@ -134,6 +140,23 @@ namespace Panels::Configuration::Navigation{
 
         inline void requestMultiLineAccess(){requestMultiLineEditorAccess = true;}
         WIDGET_ADD_EVENT_FILTER
+
+        void deactivatePhase(){
+            if(activePhaseItem){
+                while(activePhaseItem->parent() != nullptr){
+                    activePhaseItem->setIcon(0, QIcon());
+                    activePhaseItem = activePhaseItem->parent();
+                }
+            }
+        }
+        void activatePhase(NavigationElement* element){
+            deactivatePhase();
+            activePhaseItem = element;
+            while(element->parent() != nullptr){
+                element->setIcon(0, QApplication::style()->standardIcon(QStyle::SP_ArrowRight));
+                element = element->parent();
+            }
+        }
 
         void deactivateProcedureCategory(){
             if(activeProcedureCategoryItem){
@@ -169,7 +192,7 @@ namespace Panels::Configuration::Navigation{
             }
         }
 
-        void loadData(ControllerConfigInfo::ProceduresView&);
+        void loadData(ControllerConfigInfo::PhasesView&,ControllerConfigInfo::ProceduresView&);
 
     };
 

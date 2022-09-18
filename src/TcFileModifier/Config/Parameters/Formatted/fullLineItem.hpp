@@ -29,7 +29,8 @@ class ModifierFormatParametersProducts::InterfaceData<ModifierFormatParametersTy
 {
 public:
     void toActionParameters(QStringList& parameters)override{
-
+        using Format = ModifierFormatParameters::Format;
+        Format::addFormatRule(parameters, Format::Rule::INDEX_OR_FULL_LINE, QString());
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{

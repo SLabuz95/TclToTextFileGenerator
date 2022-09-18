@@ -3,6 +3,7 @@
 
 #include"External/Factory/products.hpp"
 #include"TcFileModifier/Config/Actions/definition.hpp"
+#include"TcFileModifier/Config/Parameters/Formatted/FCT_products.hpp"
 
 template<>
 template<>
@@ -10,8 +11,9 @@ struct ModifierActionProducts::ImplementationData<ModifierActionTypes::Write>::P
 : public ModifierActionProductDefinition::Definition
 {
 public:
-
+    using FormattedString = ModifierFormatParametersFactory::ListOfBases;
 protected:
+     FormattedString inputFormattedString_;
 
 };
 
@@ -28,8 +30,20 @@ class ModifierActionProducts::InterfaceData<ModifierActionTypes::Write>::Methods
 : public ModifierActionProducts::Implementation<ModifierActionTypes::Write>
 {
 public:
+    FormattedString& inputFormattedString(){return inputFormattedString_;}
     void toAction(ModifierAction& action)override{
+        using Parameters = QStringList;
+        Parameters formattedStringParameters;
+        // Temp for no parameter definitions for ModifierRules
+        //inputFormattedString().toActionParameters(formattedStringParameters);
+        FormattedString::Iterator parameter = inputFormattedString().begin();
+        for( ; parameter < inputFormattedString().end(); parameter++)
+            (*parameter)->toActionParameters(formattedStringParameters);
 
+        action = ModifierAction{static_cast<RawModifierActionType>(type()),
+                            Parameters({QString::number(formattedStringParameters.size())})
+                            << formattedStringParameters
+                                           };
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{

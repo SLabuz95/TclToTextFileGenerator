@@ -33,7 +33,9 @@ namespace Panels::Configuration::View::ModifierActionsList{
     template<class Actions>
     class ListItem;
     template<class Actions>
-    class ActionView;
+    class ActionView;    
+    template<class Actions>
+    class Panel;
 
     template<class Actions>
     class ActionDataView : public QVBoxLayout{
@@ -93,17 +95,13 @@ namespace Panels::Configuration::View::ModifierActionsList{
                 // Pass to parent
             }
         public:
-            ActionTypeComboBox(){
-
-                if constexpr (std::is_same_v<ActionType, Tcl::Command::Definition::Action::Conditional>)
-                        addItems({"Placeholder"});
-                else
-                addItems({"Placeholder"});
+            ActionTypeComboBox(const QStringList& typeCBItems){
+                addItems(typeCBItems);
             }
 
         };
         public:
-            ActionView(List& , ActionPtr);
+            ActionView(List& ,const QStringList& typeCBItems, ActionPtr);
             ~ActionView()override{
 
             }
@@ -144,6 +142,7 @@ namespace Panels::Configuration::View::ModifierActionsList{
         inline void readAction(ActionPtr& action){view_.readAction(action);}
         List &list() const; //{ return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }
         inline View& view(){return view_;}
+        using Panel = Panel<Actions>;
     };
 
     template<class Actions>
@@ -152,6 +151,7 @@ namespace Panels::Configuration::View::ModifierActionsList{
         using ActionPtr = typename Actions::Type;
     public:
         using ListItem = ListItem<Actions>;
+        using Panel = typename ListItem::Panel;
         using RawRuleView = ModifierRules::RawRuleView;
         using Request_ContextMenu_Func = void (List::*)(ListItem*);
         using Super = ContextMenuInterface<QListWidget>;
@@ -178,6 +178,7 @@ namespace Panels::Configuration::View::ModifierActionsList{
 
     public:
         RawRuleView& parentWidget()const;
+        Panel& parentWidget_panel()const;
         inline ListItem* currentItem()const{return static_cast<ListItem*>(Super::currentItem());}
         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(Super::itemAt(p));}
 
@@ -292,7 +293,8 @@ namespace Panels::Configuration::View::ModifierActionsList{
         List<Actions> actionsList;
         QPushButton addActionButton;
     public:
-        Panel(){
+        Panel()
+        {
             addActionButton.setText("Dodaj akcje");
 
             mainLayout.setSpacing(0);

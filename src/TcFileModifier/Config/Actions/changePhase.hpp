@@ -9,9 +9,9 @@ template<>
 struct ModifierActionProducts::ImplementationData<ModifierActionTypes::ChangePhase>::Properties
 : public ModifierActionProductDefinition::Definition
 {
-public:
-
 protected:
+
+    QString phaseName_;
 
 };
 
@@ -28,8 +28,13 @@ class ModifierActionProducts::InterfaceData<ModifierActionTypes::ChangePhase>::M
 : public ModifierActionProducts::Implementation<ModifierActionTypes::ChangePhase>
 {
 public:
+    QString phaseName(){return phaseName_;}
+    void setPhaseName(QString phaseName){phaseName_ = phaseName;}
     void toAction(ModifierAction& action)override{
-
+        using Parameters = QStringList;
+        action = ModifierAction{static_cast<RawModifierActionType>(type()),
+                        Parameters({phaseName_})
+                                           };
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{

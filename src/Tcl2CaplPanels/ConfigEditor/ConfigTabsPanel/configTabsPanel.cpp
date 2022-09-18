@@ -3,9 +3,11 @@
 #include "Panels/attributesPanel.hpp"
 #include "Tcl2CaplPanels/ConfigEditor/writeOnlyProceduresList.hpp"
 #include "Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
+#include "Tcl2CaplPanels/ConfigEditor/rulesphasepanel.hpp"
 
 using namespace Panels::Configuration;
 using RulesProcedurePanel = View::Rules::RulesProcedurePanel::Panel;
+using RulesPhasePanel = View::ModifierRules::RulesPhasePanel::Panel;
 using ConfigViewPanel = Panels::Configuration::View::ConfigViewPanel;
 
 
@@ -16,6 +18,7 @@ ConfigTabsPanel::ConfigTabsPanel(ConfigViewPanel& parent)
     panels[1] = new WriteOnlyProceduresList(*this);
     panels[2] = new RulesProcedurePanel();
     panels[3] = new RulesProcedurePanel();
+    panels[4] = new RulesPhasePanel();
 
     for(int panelNameIndex = 0; panelNameIndex < panelType2number(PanelType::Size) ; panelNameIndex++){
         addTab(panels[panelNameIndex], Navigation::List::navigationPanelNames[panelNameIndex]);
@@ -41,4 +44,7 @@ RulesProcedurePanel& ConfigTabsPanel::rulesProcedureList(){
 }
 RulesProcedurePanel& ConfigTabsPanel::rulesDefaultProcedureList(){
     return *static_cast<RulesProcedurePanel*>(panels[3]);
+}
+RulesPhasePanel& ConfigTabsPanel::rulesPhaseList(){
+    return *static_cast<RulesPhasePanel*>(panels[4]);
 }

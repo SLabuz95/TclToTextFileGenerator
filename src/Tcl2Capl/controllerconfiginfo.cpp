@@ -9,6 +9,8 @@ ControllerConfigInfo::ControllerConfigInfo(ConfigPath path, RegisterFileModifica
 ControllerConfigInfo::ControllerConfigInfo()
 
 {
+    addPhase("Default");
+
     newDefaultProcedureMap.insert(RulesCategories::OnEndOfCall, 0);
     newDefaultProcedureMap.insert(RulesCategories::UndefinedArgument, 0);
 }

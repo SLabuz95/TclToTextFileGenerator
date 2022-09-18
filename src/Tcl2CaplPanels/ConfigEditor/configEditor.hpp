@@ -72,6 +72,7 @@ namespace Panels::Configuration{
     public:
         void deactivateRulesPanel();
         void syncConfig();
+        void loadModifierRules(QString , QString rulesCategory);
         void loadRules(QString procedureName, QString rulesCategory);
         void loadDefaultRules(QString rulesCategory);
 
@@ -87,6 +88,11 @@ namespace Panels::Configuration{
         void clearIndexes(QString);
         void clearIndexes(); // DefaultProcedure
 
+
+        bool editPhase(QString, QString);
+        void removePhase(QString);
+        void clearPhases();
+
         //inline ConfigInfoPtr getConfigInfoPtr()const{return configInfoPtr;}
         inline bool request_newConfig(){return newConfig();}
         inline bool request_readConfig(){return readConfig();}
@@ -95,9 +101,10 @@ namespace Panels::Configuration{
 
         inline void reloadGui(){
             //writeOnlyProceduresList.reloadGui();
+            ConfigInfo::PhasesView phasesView = config().readPhasesInfo();
             ConfigInfo::ProceduresView proceduresView = config().readProceduresInfo();
             deactivateRulesPanel();
-            configViewPanel.loadConfigData(config().writeOnlyProcedures(), proceduresView);
+            configViewPanel.loadConfigData(config().writeOnlyProcedures(), phasesView, proceduresView);
         }
 
         inline App& app()const{return app_;}

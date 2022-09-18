@@ -2,6 +2,7 @@
 #include "Tcl2CaplPanels/ConfigEditor/ConfigViewPanel/configViewPanel.hpp"
 #include "Tcl2CaplPanels/ConfigEditor/ConfigTabsPanel/configTabsPanel.hpp"
 #include "Elements/procedureElement.hpp"
+#include "Elements/phaseElement.hpp"
 #include<QMouseEvent>
 #include<QMessageBox>
 #include<QResizeEvent>
@@ -11,6 +12,8 @@
 using namespace Panels::Configuration::Navigation;
 using ConfigEditor = Panels::Configuration::Panel;
 using ConfigViewPanel = Panels::Configuration::View::ConfigViewPanel;
+using PhasesElement = Phase::PhasesElement;
+using PhaseElement = Phase::PhaseElement;
 using ProceduresElement = Procedure::ProceduresElement;
 using DefaultProcedureElement = Procedure::DefaultProcedureElement;
 
@@ -18,7 +21,8 @@ const QString List::navigationPanelNames[panelType2number(PanelType::Size)]{
             QString("Atrybuty"),
             QString("Procedury - tryb raportowy"),
             QString("Procedury"),
-            QString("Procedura domyślna")
+            QString("Procedura domyślna"),
+            QString("Fazy")
             //QString("Priorytety"),
 };
 
@@ -36,6 +40,11 @@ List::List(View::ConfigViewPanel& parent)
     QList<QTreeWidgetItem*> items(panelType2number(PanelType::Size), nullptr);
     for(decltype(items)::Iterator item = items.begin(); item < items.end(); item++){
         switch(number2panelType(item - items.begin())){
+        case PanelType::Phases:
+        {
+            *item = new PhasesElement(this, {navigationPanelNames[item - items.begin()]});
+        }
+            break;
         case PanelType::Procedures:
         {
             *item = new ProceduresElement(this, {navigationPanelNames[item - items.begin()]});
@@ -88,6 +97,7 @@ createEditor(QWidget* parent,
         }
             break;
         case PanelType::Procedures: // All are editable
+        case PanelType::Phases:
         default:
             break;
         }
@@ -132,11 +142,14 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
                 // it can only be child of MainNavigation panel:
                 // - child of DefaultProcedure element (Category of Rules element),
                 // - child of Procedures element (Procedure name element)
+                // - child of Phases element (Phase name element)
                 // OR
                 // - child of Procedure element (Category of Rules element)
+                // - child of Phase element (Category of Rules element - all are not edittable)
                 const PanelType& panelType = static_cast<PanelType>(indexOf(nitem->parent()));
                 switch(panelType){
                 case PanelType::Procedures:
+                case PanelType::Phases:
                 {
                     // No navigation
                     navigateMainPanel(panelType);
@@ -145,17 +158,39 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
 
                 case PanelType::NoFound:
                     // - child of Procedure element (Category of Rules element)
+                    // - child of Phase element (Category of Rules element - all are not edittable)
                 {
-                    DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(item->parent());
-                    int index = dPE.indexOfChild(item);
-                    if(index < 2) {
-                        // First 2 categories (index 0 and 1) are FIXED - act like MainNavigationElement clicked (OnEndOfCall oraz OnArgument)
-                        configEditor().loadRules(dPE.text(0), QString::number(index - 2));
-                    }else{
-                        configEditor().loadRules(dPE.text(0), item->text(0));
+                    NavigationElement* ncpitem = static_cast<NavigationElement*>(item->parent()); // Navigation Parent Item (Procedure or Phase)
+                    const PanelType& panelType = static_cast<PanelType>(indexOf(ncpitem->parent()));
+                    switch(panelType){
+                    case PanelType::Procedures:
+                    {
+                        DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(item->parent());
+                        int index = dPE.indexOfChild(item);
+                        if(index < 2) {
+                            // First 2 categories (index 0 and 1) are FIXED - act like MainNavigationElement clicked (OnEndOfCall oraz OnArgument)
+                            configEditor().loadRules(dPE.text(0), QString::number(index - 2));
+                        }else{
+                            configEditor().loadRules(dPE.text(0), item->text(0));
+                        }
+                        activateProcedureCategory(nitem);
+                        navigateMainPanel(PanelType::Procedures);
                     }
-                    activateProcedureCategory(nitem);
-                    navigateMainPanel(PanelType::Procedures);
+                        break;
+                    case PanelType::Phases:
+                    {
+                        PhaseElement& dPE = *static_cast<PhaseElement*>(item->parent());
+                        int index = dPE.indexOfChild(item);
+
+                        // First 3 categories (index 0 1 and 2) are FIXED - act like MainNavigationElement clicked
+                        configEditor().loadModifierRules(dPE.text(0), QString::number(index - 2));
+                        activatePhase(nitem);
+                        navigateMainPanel(PanelType::Phases);
+                    }
+                        break;
+                    default:
+                        break;
+                    }
                 }
                     break;
                 case PanelType::DefaultProcedure:
@@ -179,8 +214,10 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
             }else{// Main navigation panel clicked
                 const PanelType& panelType = static_cast<PanelType>(indexOfMainNavigationElement);
                 switch(panelType){
+
                 case PanelType::Procedures:
                 case PanelType::DefaultProcedure:
+                case PanelType::Phases:
                     break;
                 default:
                     navigateMainPanel(panelType);
@@ -221,8 +258,10 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
                     // it can only be child of MainNavigation panel:
                     // - child of DefaultProcedure element (Category of Rules element),
                     // - child of Procedures element (Procedure name element)
+                    // - child of Phases element (Phase name element)
                     // OR
                     // - child of Procedure element (Category of Rules element)
+                    // - child of Phase element (Category of Rules element - all are not edittable)
                     const PanelType& panelType = static_cast<PanelType>(indexOf(nitem->parent()));
                     switch(panelType){
                     case PanelType::Procedures:
@@ -230,10 +269,41 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
                         ProceduresElement& dPE = *static_cast<ProceduresElement*>(item->parent());
                         dPE.menuControl(cev, static_cast<ProceduresElement::ListItem*>(item));
                     }
+                    case PanelType::Phases:
+                    {                        
+                        PhasesElement& dPE = *static_cast<PhasesElement*>(item->parent());
+                        dPE.menuControl(cev, static_cast<PhasesElement::ListItem*>(item)); // Simulate no item choosed
+                    }
                         break;
 
                     case PanelType::NoFound:
+                    {
                         // - child of Procedure element (Category of Rules element)
+                        bool nextCase = false;
+                        NavigationElement* ncpitem = static_cast<NavigationElement*>(item->parent()); // Navigation Parent Item (Procedure or Phase)
+                        const PanelType& panelType = static_cast<PanelType>(indexOf(ncpitem->parent()));
+
+                        switch(panelType){
+                        case PanelType::Procedures:{
+                            // Continue to next case
+                            nextCase = true;
+                        }
+                            break;
+                        case PanelType::Phases:
+                        {
+                            PhaseElement& dPE = *static_cast<PhaseElement*>(item->parent());
+
+                            // First 3 categories (index 0 1 and 2) are FIXED - act like MainNavigationElement clicked
+                            dPE.menuControl(cev, nullptr); // Simulate no item choosed
+                        }
+                            break;
+                        default:
+                            break;
+                        }
+                        if(not nextCase) // CONDITIONAL FALLTHROUGH
+                            break;
+                    }
+                        Q_FALLTHROUGH();
                     case PanelType::DefaultProcedure:
                     {
                         DefaultProcedureElement& dPE = *static_cast<DefaultProcedureElement*>(item->parent());
@@ -252,6 +322,12 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
                 }else{// Main navigation panel clicked
                     const PanelType& panelType = static_cast<PanelType>(indexOfMainNavigationElement);
                     switch(panelType){
+                    case PanelType::Phases:
+                    {
+                        PhasesElement& dPE = *static_cast<PhasesElement*>(nitem);
+                        dPE.menuControl(cev, nullptr); // Simulate no item choosed
+                    }
+                        break;
                     case PanelType::Procedures:
                     {
                         ProceduresElement& dPE = *static_cast<ProceduresElement*>(nitem);
@@ -281,11 +357,19 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
 }
 
 
-void List::loadData(ControllerConfigInfo::ProceduresView& proceduresView){
+void List::loadData(ControllerConfigInfo::PhasesView& phasesView, ControllerConfigInfo::ProceduresView& proceduresView){
+    PhasesElement& pE = *static_cast<PhasesElement*>(topLevelItem(panelType2number(PanelType::Phases)));
+    closePersistentEditor();
+    deactivatePhase();
+    auto children = pE.takeChildren();
+    while(pE.childCount() != 1){
+        delete pE.child(1); // Remove First index
+    }
+
     ProceduresElement& dPE = *static_cast<ProceduresElement*>(topLevelItem(panelType2number(PanelType::Procedures)));
     closePersistentEditor();
     deactivateProcedureCategory();
-    auto children = dPE.takeChildren();
+    children = dPE.takeChildren();
     for(auto child = children.begin(); child < children.end(); child++)
         delete *child;
 
@@ -295,14 +379,49 @@ void List::loadData(ControllerConfigInfo::ProceduresView& proceduresView){
         delete defPE.child(2); // Remove First index
     }
 
+
+    using PhaseMap = ControllerConfigInfo::PhasesView;
     using ConfigMap = ControllerConfigInfo::ProceduresView::first_type;
     using DefaultConfigMap = ControllerConfigInfo::ProceduresView::second_type;
 
     {
+        using Config = PhaseMap;
+        using ConfigKeyIter = Config::Iterator;
+
+        QString name;
+        // Prepare containers
+        // On end of Call
+        Config& newPhasesMap = phasesView;
+        ConfigKeyIter configPhaseStartIter = newPhasesMap.begin();
+        ConfigKeyIter configMapIter = configPhaseStartIter;
+
+        while(configMapIter != newPhasesMap.end()){
+            configPhaseStartIter = configMapIter;
+            name = configMapIter.key().first;
+            if(configMapIter.value() >= 0 or name != "Default"){ // Check if Exists or not name == "Default"
+                // Write Phase element
+                PhasesElement::ListItem* item = new PhasesElement::ListItem();
+                dPE.addChild(item);
+                item->setText(0, name);
+
+                configMapIter = configPhaseStartIter; // On End
+                configMapIter++;
+                configMapIter++;
+                while(configMapIter != newPhasesMap.end() and configMapIter.key().second != ControllerConfigInfo::ModifierRulesCategories::LowestValue){
+                    configMapIter++;
+                }
+            }else{ // Not exist - move to next procedure
+                configMapIter++;
+                while(configMapIter != newPhasesMap.end() and configMapIter.key().second != ControllerConfigInfo::ModifierRulesCategories::LowestValue){
+                    configMapIter++;
+                }
+                // Do not increment again
+            }
+        }
+    }
+    {
         using Config = ConfigMap;
         using ConfigKeyIter = Config::Iterator;
-        using ProcedureName = UserProcedure::ProcedureName;
-        using Rules = UserProcedureRules;
 
         QString name;
         // Prepare containers
@@ -345,8 +464,6 @@ void List::loadData(ControllerConfigInfo::ProceduresView& proceduresView){
     {
         using Config = DefaultConfigMap;
         using ConfigKeyIter = Config::Iterator;
-        using ProcedureName = UserProcedure::ProcedureName;
-        using Rules = UserProcedureRules;
 
         QString name;
         // Prepare containers
@@ -392,13 +509,34 @@ bool List::edit(const QModelIndex &index, QAbstractItemView::EditTrigger trigger
                 switch(panelType){
                 case PanelType::NoFound: // Not MainNavigationPanel -> Child of ProcedureElement of ProceduresElement
                 {
-                    // Interpret like DefaultProcedure child
-                    panelType = PanelType::Procedures;
+                    NavigationElement* item = item->parent();
+                    while(item->parent() != nullptr)
+                        item = item->parent();
+                    panelType = static_cast<PanelType>(indexOfTopLevelItem(item));
+                    switch(panelType){
+                    case PanelType::Procedures: // Not MainNavigationPanel -> Child of ProcedureElement of ProceduresElement
+                    {
+                        // Interpret like DefaultProcedure child
+                        panelType = PanelType::Procedures;
+                    }
+                        break;
+                    default:
+                    {
+                        break; // NO FALLTHROUGH
+                    }
+                    }
                 }
                 Q_FALLTHROUGH();
+
                 case PanelType::DefaultProcedure: // Indexes if index of child < 2 are not editable (0 and 1 are fixed categories)
                 {
                     if(item->parent()->indexOfChild(item) < 2)
+                        return false;
+                }
+                    break;
+                case PanelType::Phases:
+                {
+                    if(item->parent()->indexOfChild(item) == 0) // Default Phase
                         return false;
                 }
                     break;
@@ -421,6 +559,7 @@ bool List::edit(const QModelIndex &index, QAbstractItemView::EditTrigger trigger
                 panelType = static_cast<PanelType>(indexOfTopLevelItem(item->parent()));
                 switch(panelType){
                 case PanelType::Procedures: // All are editable
+                case PanelType::Phases:
                     break;
                 case PanelType::NoFound: // Not MainNavigationPanel -> Child of ProcedureElement of ProceduresElement
                 {
@@ -444,7 +583,8 @@ bool List::edit(const QModelIndex &index, QAbstractItemView::EditTrigger trigger
         curEditItemInfo.panelType = panelType;
         curEditItemInfo.item = item;
         curEditItemInfo.oldStr = curEditItemInfo.item->text(0);
-        if((trigger ==  Trigger::DoubleClicked or trigger == Trigger::AllEditTriggers) and curEditItemInfo.oldStr.contains("\n") or requestMultiLineEditorAccess == true){ // If multiline
+        if(((trigger == Trigger::DoubleClicked or trigger == Trigger::AllEditTriggers)
+                and curEditItemInfo.oldStr.contains("\n")) or requestMultiLineEditorAccess == true){ // If multiline
             requestMultiLineEditorAccess = false;
             QString str = curEditItemInfo.oldStr;
             MultiLineEditor editor(str);
@@ -490,9 +630,17 @@ void List::closePersistentEditor(){
 void List::editItem(NavigationElement* item){
     curEditItemInfo = {
         item,
-        (item->parent()->treeWidget()->isDefaultProcedurePanel(item))? PanelType::DefaultProcedure : PanelType::Procedures,
+        PanelType::Phases,
         item->text(0)
     };
+    if(item->parent()->treeWidget()->isDefaultProcedurePanel(item)){
+        curEditItemInfo.panelType = PanelType::DefaultProcedure;
+    }else{
+        if(item->parent()->treeWidget()->isProcedurePanel(item)){
+            curEditItemInfo.panelType = PanelType::Procedures;
+        }
+    }
+
     Super::editItem(item, 0);
 }
 
@@ -615,6 +763,33 @@ void List::processEditData(CurEditItemInfo& curEditItemInfo)
                     }else{
                         // Manage Change - if manage failed Duplicated for example, restore
                         if(not ok or configEditor().editIndex(curEditItemInfo.item->parent()->text(0) ,curEditItemInfo.oldStr.toULongLong(), newIndex) == false){
+                            curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+                        }
+                    }
+                }
+            }
+        }
+            break;
+        case PanelType::Phases:
+        {
+            using Phase = TcFileModifierConfigBase::ModifierRule;;
+            // if Procedure Element (parent == topLevelItem(Panel::Phases))
+            if(curEditItemInfo.item->parent() == topLevelItem(panelType2number(PanelType::Phases))){
+                // Prepare Name
+                curEditItemInfo.item->setText(0, curEditItemInfo.item->text(0));
+                 // Can be empty or not (New or Change)
+                if(curEditItemInfo.oldStr.isEmpty()){    // new
+                    if(curEditItemInfo.item->text(0).isEmpty()){
+                        delete curEditItemInfo.item;
+                    }else{
+                        if(config().addPhase(curEditItemInfo.item->text(0)) == false){
+                            delete curEditItemInfo.item;
+                        }
+                    }
+                }else{
+                    if(curEditItemInfo.item->text(0) != curEditItemInfo.oldStr){    // changed
+                        // Manage Change - if manage failed Duplicated for example, restore
+                        if(configEditor().editPhase(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))  == false){
                             curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
                         }
                     }

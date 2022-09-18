@@ -31,6 +31,7 @@ namespace ModifierFormatParameters {
         inline static QString toStr(Type type){return typeMap.at(std::underlying_type_t<Type>(type));}
         inline static const decltype(typeMap)& typeNames(){return typeMap;}
     };
+    using Format = TcFileModifierConfigBase::Format;
 }
 
 using ModifierFormatParametersType = ModifierFormatParameters::Type;

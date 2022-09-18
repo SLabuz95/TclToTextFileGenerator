@@ -25,7 +25,7 @@ namespace Panels::Configuration::View::ModifierRules{
         public:
             RuleControlComboBox(){
                 setFrame(false);
-                addItems({"Placeholder"});
+                addItems(FCT::ModifierRules::ModifierControlFlagInfo::flagNames());
             }
         };
 
@@ -55,9 +55,9 @@ namespace Panels::Configuration::View::ModifierRules{
         using SettingsLayout = QGridLayout;
         using ActionsSplitter = QSplitter;
         using Conditionals = ModifierActionsFactory::ListOfBases;
-        using ConditionalsList = View::ActionsList::Panel<Conditionals>;
+        using ConditionalsList = View::ModifierActionsList::Panel<Conditionals>;
         using Executables = ModifierActionsFactory::ListOfBases;
-        using ExecutablesList = View::ActionsList::Panel<Executables>;
+        using ExecutablesList = View::ModifierActionsList::Panel<Executables>;
 
         ListItem& item_;
         MainLayout centralLayout;
@@ -71,6 +71,14 @@ namespace Panels::Configuration::View::ModifierRules{
         ExecutablesList executablesList;
         bool eventFilter(QObject* obj, QEvent* ev)override;
     public:
+        inline bool isConditionalsList(QWidget *const list)const{
+            return list == &conditionalsList;
+        }
+        inline bool isExecutablesList(QWidget *const list)const{
+            return list == &executablesList;
+        }
+
+        void activateActionMode();
 
     };
 

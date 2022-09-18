@@ -21,10 +21,10 @@ public:
     };
 
     enum ModifierRulesCategories : qsizetype{
-        OnNoRulesSatisfied = -2,
-        LowestValue = OnNoRulesSatisfied,
+        PhaseRules = -2,
+        LowestValue = PhaseRules,
         OnEndOfRulesCheck = -1,
-        PhaseRules = 0
+        OnNoRulesSatisfied = 0,
     };
 
 private:

@@ -308,8 +308,12 @@ namespace Panels::Configuration::View::ActionsList{
         }
         inline void clear(){actionsList.clear();}
 
-        inline void loadActions(ActionsRef actionsRef){actionsList.loadActions(actionsRef);}
-        inline void readActions(ActionsRef actionsRef){actionsList.readActions(actionsRef);}
+        inline void loadActions(ActionsRef actionsRef){
+            actionsList.loadActions(actionsRef);
+        }
+        inline void readActions(ActionsRef actionsRef){
+            actionsList.readActions(actionsRef);
+        }
 
 
         bool eventFilter(QObject* obj, QEvent* ev)override{

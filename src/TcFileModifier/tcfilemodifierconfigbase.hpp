@@ -39,22 +39,28 @@ namespace TcFileModifierConfigBase {
         QString type;
     };
     enum class ActionStat{
+        // Config Public Stats
+        // HELPER - SUPP
+        SPLIT,  // (1): (Pattern)
+        // CONDITIONALS
         STARTS_WITH,        // "<any string>" -  just write,  "" - next argument take arguments in pattern
+        COMPARE,
+        // EXECUTABLES
+        WRITE,  // "<any string>" -  just write,  "" - next argument take arguments in pattern
+        CHANGE_PHASE,
+        INTERPRET,
+        // PRIVATE
         /*
         ENDS_WITH,  // "<any string>" -  just write,  "" - next argument take arguments in pattern
         */
         WRITE_TO_TC_INFO,   // (1): (number of stat)  (2 ...): "<any string>" -  just write,  "" - next argument take arguments in pattern
-        WRITE,  // "<any string>" -  just write,  "" - next argument take arguments in pattern
-        SPLIT,  // (1): (Pattern)
         COMMENT_OUT,
-        CHANGE_PHASE,
         /*
         SSTR_SAVE,   // Arguments like write
         SSTR_SLICE,
         */
         REPLACE_ALL,  // Works only for lineData (raw data) Arguments:(1)-before, (2)-after
         DEBUG,
-        COMPARE,
         //FORMAT,
         /*
         COMPARE_REGEX,
@@ -64,7 +70,6 @@ namespace TcFileModifierConfigBase {
         GET_MSG_BY_SIG_NAME,
         ADD_VARIABLE,
         */
-        INTERPRET
 
     };
     enum class Phase{
@@ -82,7 +87,7 @@ namespace TcFileModifierConfigBase {
 
     class Format{
     public:
-        enum class Rule{
+        enum class Rule : char{
             INDEX_OR_FULL_LINE = '=',
             ARGS_AFTER_INDEX = '>',
             /*
@@ -103,15 +108,25 @@ namespace TcFileModifierConfigBase {
             SPLITTED_RAW,
             //SSTR,
         };
-        static inline uint cast_target(const Target t){return static_cast<uint>(t);}
         static const QString cast_target_str(const Target t){return QString::number(static_cast<uint>(t));}
+        static inline std::underlying_type_t<Target> cast_target(const Target t){return static_cast<std::underlying_type_t<Target>>(t);}
+        static inline Target castTo_target(const std::underlying_type_t<Target> t){return static_cast<Target>(t);}
 
+        static inline std::underlying_type_t<Rule> cast_format_rule(const Rule t){return static_cast<std::underlying_type_t<Rule>>(t);}
+        inline static const QString cast_format_rule_str(const Rule t){return QString(cast_format_rule(t));}
+        inline static const QString cast_format_rule_str(const Rule t, const QString& data){
+            return QString(cast_format_rule(t)) + data;
+        }
+        inline static const QString FORMAT_RULE_CALL(){return "";}
+        inline static void addFormatRule(QStringList& parameters, const Rule rule, const QString& data){
+            parameters << FORMAT_RULE_CALL() << cast_format_rule_str(rule, data);
+        }
     };
 
 
     enum class ModifierRuleControl{
-        NO_BREAK_RULE_CHECK,
         BREAK_RULE_CHECK,
+        NO_BREAK_RULE_CHECK,
         BREAK_RULE_CHECK_DONT_EXEC_ON_END_ACTIONS
     };
 

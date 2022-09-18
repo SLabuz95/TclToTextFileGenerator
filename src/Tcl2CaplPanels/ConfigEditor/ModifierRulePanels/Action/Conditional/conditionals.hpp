@@ -1,13 +1,11 @@
 #ifndef MODIFIER_ACTION_VIEW_CONDITIONALS_HPP
 #define MODIFIER_ACTION_VIEW_CONDITIONALS_HPP
 
-#include"TcFileModifier/Config/Actions/Conditional/conditionals.hpp"
+#include"TcFileModifier/Config/Actions/FCT_products.hpp"
 
 // List of all views for condtionals
-//#include"compare.hpp"
-//#include"compareArgumentStat.hpp"
-//#include"compareNumbOfArgs.hpp"
-//#include"compareAndWrite.hpp"
+#include"compare.hpp"
+#include"startsWith.hpp"
 // ---------------------------
 
 //using namespace Panels::Configuration::View;

@@ -1,13 +1,13 @@
-#ifndef FCT_PRODUCTS_PARAMETERS__MODIFIER_FORMATTED_HPP
-#define FCT_PRODUCTS_PARAMETERS__MODIFIER_FORMATTED_HPP
+#ifndef FCT_PRODUCTS_PARAMETERS_MODIFIER_FORMATTED_HPP
+#define FCT_PRODUCTS_PARAMETERS_MODIFIER_FORMATTED_HPP
 
-#include"argsAfterIndex.hpp"
-#include"indexOrFullLine.hpp"
-#include"target.hpp"
+#include"argumentsFromItem.hpp"
+#include"indexItem.hpp"
+#include"targetItem.hpp"
 #include"fullLineItem.hpp"
-#include"text.hpp"
+#include"textItem.hpp"
 #include"External/Factory/factory.hpp"
 
 using ModifierFormatParametersFactory = Factory<ModifierFormatParametersType>;
 
-#endif // FCT_PRODUCTS_PARAMETERS__MODIFIER_FORMATTED_HPP
+#endif // FCT_PRODUCTS_PARAMETERS_MODIFIER_FORMATTED_HPP
