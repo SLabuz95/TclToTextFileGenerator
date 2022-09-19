@@ -71,12 +71,12 @@ public:
     }
     void toActions(ModifierRule::Actions& actions) override{
         using Actions = ModifierRule::Actions;
-        actions.reserve(conditions().size());
-        actions.resize(conditions().size());
-        Actions::Iterator conditionalsIter_ = actions.begin();
-        ModifierActions::Iterator condition = conditions().begin();
-        for( ; conditionalsIter_ < actions.end(); conditionalsIter_++, condition++){
-            (*condition)->toAction(*conditionalsIter_);
+        actions.reserve(executables().size());
+        actions.resize(executables().size());
+        Actions::Iterator actionsIter_ = actions.begin();
+        ModifierActions::Iterator action = executables().begin();
+        for( ; actionsIter_ < actions.end(); actionsIter_++, action++){
+            (*action)->toAction(*actionsIter_);
         }
 
     } // For actions only (Rule is only container)

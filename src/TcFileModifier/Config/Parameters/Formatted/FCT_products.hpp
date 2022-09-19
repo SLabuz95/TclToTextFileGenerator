@@ -6,6 +6,7 @@
 #include"targetItem.hpp"
 #include"fullLineItem.hpp"
 #include"textItem.hpp"
+#include"attribute.hpp"
 #include"External/Factory/factory.hpp"
 
 using ModifierFormatParametersFactory = Factory<ModifierFormatParametersType>;

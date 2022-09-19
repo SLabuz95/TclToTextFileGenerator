@@ -110,6 +110,7 @@ const QList<QString> Action::conditionalMap
     QStringLiteral("AddPreExpression"),
     QStringLiteral("AddUserInteraction"),
     QStringLiteral("AddPredefinition"),
+    QStringLiteral("WriteAttribute"),
     //{QStringLiteral("FinalizeForEach"), Action::Executable::FinalizeForEach},  // private
     //{QStringLiteral("AddSnprintf"), Action::Executable::AddSnprintf},// private
 };
@@ -120,6 +121,7 @@ const QList<QString> Format::ruleMap
     QStringLiteral("ArgumentsFrom"),
     QStringLiteral("Separator"),
     QStringLiteral("Target"),
+    QStringLiteral("Attribute"),
 };
 
  const QList< QString> Format::targetMap
@@ -4058,6 +4060,16 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                     {
                         seperator = *arg;
                         separatorUsed = false;
+                    }
+                        break;
+                    case Rule::ATTRIBUTE:
+                    {
+                        if(arg->isEmpty())
+                            return false;
+                        ControllerConfigInfo::Attributes::ConstIterator attribute = userConfig.attributes().constFind(*arg);
+                        if(attribute == userConfig.attributes().constEnd())
+                            return false;
+                        dest += attribute.value().value;
                     }
                         break;
                     case Rule::INDEX_OR_FULL_LINE:

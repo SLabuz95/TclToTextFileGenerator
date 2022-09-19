@@ -85,6 +85,7 @@ void Panel::deactivateRulesPanel(){
 void Panel::syncConfig(){
     View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
     configTabsPanel.writeOnlyProceduresList().readProcedures(config().writeOnlyProcedures());
+    configTabsPanel.attributesList().readAttributes(config().attributes());
     if(configTabsPanel.rulesPhaseList().initialized()){
         ConfigInfo::Config::ModifierConfigRules newRules;
         configTabsPanel.rulesPhaseList().readRules(newRules);

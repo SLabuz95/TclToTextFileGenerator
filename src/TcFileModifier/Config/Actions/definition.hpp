@@ -16,6 +16,7 @@ namespace ModifierActions {
         Section_Helper_Begin = FCT_Begin,
 
         Split = Section_Helper_Begin,
+        WriteAttribute,
         Section_Helper_End,
 
         Section_Conditional_Begin = Section_Helper_End,

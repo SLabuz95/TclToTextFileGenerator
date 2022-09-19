@@ -31,7 +31,7 @@ public:
 
         addChild(new ListItem(flagsForNonIndexCategories, this, {"Reguły"}));
         addChild(new ListItem(flagsForNonIndexCategories, this, {"Koniec reguł"}));
-        addChild(new ListItem(flagsForNonIndexCategories, this, {"Brak spełenienia reguł"}));
+        addChild(new ListItem(flagsForNonIndexCategories, this, {"Brak spełnienia reguł"}));
         setExpanded(true);
         setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
@@ -43,8 +43,8 @@ public:
                 = Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren;
 
         addChild(new ListItem(flagsForNonIndexCategories, this, {"Reguły"}));
-        addChild(new ListItem(flagsForNonIndexCategories, this, {"Koniec procedury"}));
-        addChild(new ListItem(flagsForNonIndexCategories, this, {"Domyślny argument"}));
+        addChild(new ListItem(flagsForNonIndexCategories, this, {"Koniec reguł"}));
+        addChild(new ListItem(flagsForNonIndexCategories, this, {"Brak spełenienia reguł"}));
         setExpanded(true);
         setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 

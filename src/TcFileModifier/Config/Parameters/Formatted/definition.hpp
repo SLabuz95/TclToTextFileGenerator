@@ -17,6 +17,7 @@ namespace ModifierFormatParameters {
         IndexItem,
         ArgumentsFromItem,
         TargetItem,
+        AttributeItem,
 
         FCT_End,
         Size = FCT_End,

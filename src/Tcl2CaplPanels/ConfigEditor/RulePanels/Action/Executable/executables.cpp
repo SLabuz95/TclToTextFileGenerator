@@ -13,6 +13,7 @@ View::CreateFunctionTable View::createFunctionTable = {
     &AddPreexpressionActionView::create,
     &AddUserInteractionActionView::create,
     &AddPredefinitionActionView::create,
+    &WriteAttributeActionView::create,
 };
 
 template<>

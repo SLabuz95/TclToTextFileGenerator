@@ -8,7 +8,8 @@ const QList<QString> ModifierFormatParameters::TypeInfo::typeMap =
     "FullLine",
     "Index",
     "ArgumentsFrom",
-    "Target"
+    "Target",
+    "Attribute"
 };
 
 template<>
@@ -19,4 +20,5 @@ ModifierFormatParametersFactory::CreateFunctionTable ModifierFormatParametersFac
     &ModifierFormatParametersFactory::create<Type::IndexItem>,
     &ModifierFormatParametersFactory::create<Type::ArgumentsFromItem>,
     &ModifierFormatParametersFactory::create<Type::TargetItem>,
+    &ModifierFormatParametersFactory::create<Type::AttributeItem>,
 };

@@ -446,6 +446,41 @@ void TCLCommandsController::executeAction
 
 template <>
 void TCLCommandsController::executeAction
+<TclProcedureCommand::Definition::Action::Executable::WriteAttribute>
+(ExecutableActionsParameters parameters)
+{
+    const QString ERROR_PREFIX = "executeAction<\
+    TCLCommandsController::Definition::Action::Executable::WriteAttribute>: ";
+
+    QStringList::size_type result = 0;
+    QString formatStr;
+    bool ok = false;
+    uint numbOfFormatArgs = UINT_MAX;
+    if(parameters.size() < 2){
+        throwError(ERROR_PREFIX + "Number of Action Parameters dont match.");
+        return;
+    }
+    if(parameters.at(0).isEmpty() or
+            (numbOfFormatArgs = parameters.at(1).toUInt(&ok), !ok) or
+            numbOfFormatArgs + 2 != parameters.size())
+    {
+        throwError(ERROR_PREFIX + "Action Parameters are wrong.");
+        return;
+    }
+
+
+    ConditionalActionsParameters& params = parameters.mid(2);
+    if((result = createAndAssignString(formatStr, params)) != params.size())
+    {
+        throwError(ERROR_PREFIX + "");
+        return;
+    }
+
+    userConfig.attributes().insert(parameters.at(0), {formatStr});
+}
+
+template <>
+void TCLCommandsController::executeAction
 <TclProcedureCommand::Definition::Action::Executable::FinalizeForEach>
 (ExecutableActionsParameters parameters)
 {
@@ -878,6 +913,8 @@ TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::e
     TclProcedureCommand::Definition::Action::Executable::AddUserInteraction>,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::AddPredefinition>,
+    &TCLCommandsController::executeAction<
+    TclProcedureCommand::Definition::Action::Executable::WriteAttribute>,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::FinalizeForEach>,
     &TCLCommandsController::executeAction<

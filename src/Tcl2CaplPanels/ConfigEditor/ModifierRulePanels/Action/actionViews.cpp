@@ -12,6 +12,7 @@ template<>
 View::CreateFunctionTable View::createFunctionTable =
 {
     &SplitActionView::create,
+    &WriteAttributeActionView::create,
     &StartsWithActionDataView::create,
     &CompareActionDataView::create,
     &WriteActionView::create,

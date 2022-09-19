@@ -41,7 +41,7 @@ public:
             (*parameter)->toActionParameters(formattedStringParameters);
 
         action = ModifierAction{static_cast<RawModifierActionType>(type()),
-                            Parameters({QString::number(formattedStringParameters.size())})
+                            Parameters()
                             << formattedStringParameters
                                            };
     }

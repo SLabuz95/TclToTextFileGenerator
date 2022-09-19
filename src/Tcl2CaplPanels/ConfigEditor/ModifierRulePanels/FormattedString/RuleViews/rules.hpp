@@ -9,6 +9,7 @@
 #include"indexItem.hpp"
 #include"fullLineItem.hpp"
 #include"textItem.hpp"
+#include"attribute.hpp"
 // ---------------------------
 
 //using namespace Panels::Configuration::View;

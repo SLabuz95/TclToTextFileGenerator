@@ -44,8 +44,8 @@ public:
        //     (*parameter)->toActionParameters(formattedStringParameters);
 
         action = ModifierAction{static_cast<RawModifierActionType>(type()),
-                        Parameters({QString::number(stringsToCompare_.size())})
-                            <<  stringsToCompare_
+                        Parameters({stringsToCompare_})
+
                             //<< QStringList{QString::number(formattedStringParameters.size())}
                             //<< formattedStringParameters
                                            };

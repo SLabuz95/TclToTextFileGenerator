@@ -8,7 +8,8 @@ const QList<QString> FormatParameters::TypeInfo::typeMap =
     "Name",
     "Index",
     "ArgumentsFrom",
-    "Format"
+    "Format",
+    "Attribute"
 };
 
 template<>
@@ -19,4 +20,5 @@ FormatParametersFactory::CreateFunctionTable FormatParametersFactory::createFunc
     &FormatParametersFactory::create<Type::IndexItem>,
     &FormatParametersFactory::create<Type::ArgumentsFromItem>,
     &FormatParametersFactory::create<Type::FormatItem>,
+    &FormatParametersFactory::create<Type::AttributeItem>,
 };

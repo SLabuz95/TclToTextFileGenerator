@@ -16,8 +16,11 @@ using ActionView = ChangePhaseActionView::ActionView;
 ChangePhaseActionView::ChangePhaseActionView(QWidget* parent)
  : ActionDataView(parent)
 {
-
+    phaseNameEditor.setClearButtonEnabled(true);
+    phaseNameEditor.setPlaceholderText("Nazwa");
     addWidget(&phaseNameEditor);
+    checkRulesFlag.setText("Weryfikuj reguły");
+    addWidget(&checkRulesFlag);
 }
 
 ChangePhaseActionView::ChangePhaseActionView(QWidget* parent, ActionPtr pAction)
@@ -26,12 +29,14 @@ ChangePhaseActionView::ChangePhaseActionView(QWidget* parent, ActionPtr pAction)
     if(pAction){
         Action& action = *static_cast<Action*>(pAction);
         phaseNameEditor.setText(action.phaseName());
+        checkRulesFlag.setChecked(action.checkRule());
     }
 }
 
 void ChangePhaseActionView::readAction(ActionBase& fAction){
     Action& action = *static_cast<Action*>(&fAction);
     action.setPhaseName(phaseNameEditor.text());
+    action.setCheckRule(checkRulesFlag.isChecked());
 }
 
 ChangePhaseActionView::DataView* ChangePhaseActionView::create(QWidget* parent, ActionRef action){

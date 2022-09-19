@@ -10,7 +10,8 @@ View::CreateFunctionTable View::createFunctionTable = {
     &createNoDataView,
     &IndexItemDataView::create,
     &ArgumentsFromItemDataView::create,
-    &TargetItemDataView::create,
+    &TargetItemDataView::create,    
+    &AttributeItemDataView::create,
 };
 
 View* View::createView(QWidget* parent, FormatRuleRef data){

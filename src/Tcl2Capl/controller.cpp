@@ -9,10 +9,13 @@
 
 
 UserInputConfig::UserInputConfig(UserInputConfigData& configData)
-    : userProcedures_(UserProcedures(configData.getNumbOfExistingProcedures())),
+    : modifierPhases_(),
+      userProcedures_(UserProcedures(configData.getNumbOfExistingProcedures())),
       userDefaultProcedure_(configData.readDefaultProcedure()),
-      settings_(configData.settings())
+      settings_(configData.settings()),
+      attributes_(configData.attributes())
 {
+    configData.readPhases(modifierPhases_);
     configData.readProcedures(userProcedures_);
 }
 

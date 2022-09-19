@@ -5,6 +5,7 @@
 
 // List of all views for Supps
 #include"split.hpp"
+#include"writeAttribute.hpp"
 // ---------------------------
 
 //using namespace Panels::Configuration::View;

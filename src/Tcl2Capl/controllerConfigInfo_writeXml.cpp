@@ -263,6 +263,19 @@ void ControllerConfigInfo::writeDefaultProcedureToXML(QXmlStreamWriter& xmlWrite
 
 }
 
+void ControllerConfigInfo::writeAttributesToXML(QXmlStreamWriter& xmlWriter){
+    xmlWriter.writeStartElement("attributes");
+    for(Attributes::Iterator attribute = attributes().begin();
+        attribute != attributes().end(); attribute++)
+    {
+        xmlWriter.writeStartElement("attribute");
+        xmlWriter.writeAttribute("name", attribute.key());
+        xmlWriter.writeCharacters(attribute.value().value);
+        xmlWriter.writeEndElement();
+    }
+    xmlWriter.writeEndElement();
+}
+
 void ControllerConfigInfo::writeSettingsToXML(QXmlStreamWriter& xmlWriter){
       settings().toXmlContent(xmlWriter);
 }
@@ -272,6 +285,7 @@ void ControllerConfigInfo::toXmlContent(QXmlStreamWriter& xmlWriter){
     xmlWriter.writeStartElement("tclConfig");
 
     writeSettingsToXML(xmlWriter);
+    writeAttributesToXML(xmlWriter);
     writeProceduresToXML(xmlWriter);
     writeDefaultProcedureToXML(xmlWriter);
 

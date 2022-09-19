@@ -42,6 +42,7 @@ namespace TcFileModifierConfigBase {
         // Config Public Stats
         // HELPER - SUPP
         SPLIT,  // (1): (Pattern)
+        WRITE_ATTRIBUTE,
         // CONDITIONALS
         STARTS_WITH,        // "<any string>" -  just write,  "" - next argument take arguments in pattern
         COMPARE,
@@ -72,7 +73,7 @@ namespace TcFileModifierConfigBase {
         */
 
     };
-    enum class Phase{
+    /*enum class Phase{
         TEST_CASE_INFO,
         STANDARD,
         /*
@@ -82,8 +83,8 @@ namespace TcFileModifierConfigBase {
         PROC_E2P_CheckOrRestore,
         CALL,
         IF,
-        IGNORE_UNTIL_END_OF_BLOCK,*/
-    };
+        IGNORE_UNTIL_END_OF_BLOCK,
+    };*/
 
     class Format{
     public:
@@ -98,6 +99,7 @@ namespace TcFileModifierConfigBase {
             */
             SEPARATOR = '@',
             TARGET = 'T',
+            ATTRIBUTE = 'A',
             /*
             SPLIT = 'S',
             SLICED = '\\'
@@ -150,7 +152,7 @@ namespace TcFileModifierConfigBase {
         } onEnd;
     };
 
-    using ModifierPhases = QVector<ModifierPhase>;
+    using ModifierPhases = QMap<QString, ModifierPhase>;
 }
 
 #endif // TCFILEMODIFIERCONFIGBASE_HPP

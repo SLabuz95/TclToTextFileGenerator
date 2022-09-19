@@ -434,12 +434,10 @@ void ControllerConfigInfo::readPhases(TcFileModifierConfigBase::ModifierPhases& 
     using ConfigActions = TcFileModifierConfigBase::ModifierRule::Actions;
     using ModifierRules = ModifierNewRules;
     using ModifierActions = ModifierActions;
-    Q_ASSERT_X(userPhases.capacity() == getNumbOfExistingPhases(), "ConfigInfo", "UserProcedures list capacity is not prepared");
-    Q_ASSERT_X(userPhases.size() == getNumbOfExistingPhases(), "ConfigInfo", "UserProcedures list size is not prepared");
 
     QString name;
     qsizetype numbOfRulesOrActions;
-    TcFileModifierConfigBase::ModifierPhases::Iterator userPhaseIter = userPhases.begin();
+    TcFileModifierConfigBase::ModifierPhases::Iterator userPhaseIter;
     ModifierRules::Iterator newRule;
     ModifierRules::Iterator endRule;
     ConfigRules::Iterator ruleForInterpreter;
@@ -452,6 +450,9 @@ void ControllerConfigInfo::readPhases(TcFileModifierConfigBase::ModifierPhases& 
         configPhaseStartIter = configMapIter;
         name = configMapIter.key().first;
         if(configMapIter.value() >= 0){ // Check if Exists
+            // Add Phase
+            userPhaseIter = userPhases.insert(name, TcFileModifierConfigBase::ModifierPhase());
+
             // Rules
             newRule = newModifierRules.begin() + configMapIter.value();
             configMapIter++;

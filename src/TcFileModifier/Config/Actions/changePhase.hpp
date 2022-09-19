@@ -12,6 +12,7 @@ struct ModifierActionProducts::ImplementationData<ModifierActionTypes::ChangePha
 protected:
 
     QString phaseName_;
+    bool checkRulesAfterChange_;
 
 };
 
@@ -30,10 +31,12 @@ class ModifierActionProducts::InterfaceData<ModifierActionTypes::ChangePhase>::M
 public:
     QString phaseName(){return phaseName_;}
     void setPhaseName(QString phaseName){phaseName_ = phaseName;}
+    bool checkRule(){return checkRulesAfterChange_;}
+    void setCheckRule(bool checkRule){checkRulesAfterChange_ = checkRule;}
     void toAction(ModifierAction& action)override{
         using Parameters = QStringList;
         action = ModifierAction{static_cast<RawModifierActionType>(type()),
-                        Parameters({phaseName_})
+                        Parameters({phaseName_, QString::number(checkRulesAfterChange_)})
                                            };
     }
 

@@ -2,10 +2,8 @@
 #define MODIFIER_ACTION_PANEL_SPLIT_HPP
 
 #include"Tcl2CaplPanels/ConfigEditor/ModifierRulePanels/FormattedString/formattedString.hpp"
-#include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
 #include"../actions.hpp"
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
-#include"Tcl2CaplPanels/General/multilineEditorDialog.hpp"
 
 namespace General = Panels::Configuration::View;
 namespace Panels::Configuration::View::ModifierActionsList{
@@ -25,7 +23,7 @@ namespace Panels::Configuration::View::ModifierActionsList{
         static ActionDataView* create(QWidget*, ActionRef);
         using ActionView = ActionView;
     protected:
-        using Supps = ExecutablesFactory::ListOfBases;
+        using Supps = ModifierActionsFactory::ListOfBases;
         using SuppsList = List<Supps>;
         using ListItem = SuppsList::ListItem;
 

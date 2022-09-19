@@ -1,51 +1,50 @@
-#ifndef MODIFIER_ACTION_PANEL_CHANGEPHASE_HPP
-#define MODIFIER_ACTION_PANEL_CHANGEPHASE_HPP
+#ifndef MODIFIER_ACTION_PANEL_WRITEATTRIBUTE_HPP
+#define MODIFIER_ACTION_PANEL_WRITEATTRIBUTE_HPP
 
 #include"Tcl2CaplPanels/ConfigEditor/ModifierRulePanels/FormattedString/formattedString.hpp"
 #include"../actions.hpp"
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
-#include<QCheckBox>
 
 namespace General = Panels::Configuration::View;
 namespace Panels::Configuration::View::ModifierActionsList{
 
-    class ChangePhaseActionView
+    class WriteAttributeActionView
             : public ActionDataView<ModifierActionsFactory::ListOfBases>
     {
-
-        static constexpr ActionType actionType = ModifierActionTypes::ChangePhase;
+        static constexpr ActionType actionType = ModifierActionTypes::WriteAttribute;
         using ContextMenuConfig = Utils::ContextMenuBuilder::Configuration;
-        using ContextMenuInterface = Utils::ContextMenuBuilder::InterfaceExtended<QListWidget>;
         using Action = ModifierActionsFactory::Product<actionType>;
 
-        ChangePhaseActionView(QWidget* );
-        ChangePhaseActionView(QWidget* , ActionPtr);
+        WriteAttributeActionView(QWidget*);
+        WriteAttributeActionView(QWidget*, ActionPtr);
+        ~WriteAttributeActionView()override{
+        }
     public:
-        using ParentContextMenu = ContextMenuInterface::Interface;
-        static ActionDataView* create(QWidget* , ActionRef);
+        static ActionDataView* create(QWidget*, ActionRef);
         using ActionView = ActionView;
     protected:
-        using Executables = ModifierActionsFactory::ListOfBases;
-        using ExecutablesList = List<Executables>;
-        using ListItem = ExecutablesList::ListItem;
+        using Supps = ModifierActionsFactory::ListOfBases;
+        using SuppsList = List<Supps>;
+        using ListItem = SuppsList::ListItem;
 
         // GUI Elements
         // List of Indexes definition
-    public:
 
+    public:
     protected:
         // GUI Layout
-        QLineEdit phaseNameEditor;
-        QCheckBox checkRulesFlag;
+        QLineEdit attributeNameEditor;
+        QSplitter splitter;
+        ModifierFormattedString::Panel formattedStringList;
 
     public:
        // Action toAction()override{}
         constexpr ActionType type()const override{return actionType;}
-
         void readAction(ActionBase&) override;
+
     };
+
 
 }
 
-
-#endif // MODIFIER_ACTION_PANEL_CHANGEPHASE_HPP
+#endif // MODIFIER_ACTION_PANEL_WRITEATTRIBUTE_HPP

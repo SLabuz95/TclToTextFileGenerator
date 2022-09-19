@@ -3,7 +3,7 @@
 //#include"External/FileReader/FilesSpecificData/XML/VSysvar/FRI_FSD_XML_VSysVar.hpp"
 #include"External/RegExpCore/regexprcore.hpp"
 #include"TclInterpreter/tclToCAPL.hpp"
-
+#include"Tcl2Capl/userinputconfig.hpp"
 
 template <>
 QString FSD_ByLine_TcFileModifierData::Config::fileFilter(){
@@ -14,7 +14,6 @@ QString FSD_ByLine_TcFileModifierData::Config::fileFilter(){
 using Format = Format;
 using ActionStat = ActionStat;
 using TC_Info_Data = TC_Info_Data;
-using Phase = Phase;
 using RuleControl = ModifierRuleControl;
 using CAN = CAN;
 
@@ -316,7 +315,7 @@ const ModifierPhase _PHASE_TEST_CASE_INFO =
         {   // On No Rules Actions
             {   // Actions (2)
                 {   // (2): Phase CHANGE_PHASE
-                    ActionStat::CHANGE_PHASE, {QString::number(static_cast<uint>(Phase::STANDARD)), QString::number(true)}
+                    ActionStat::CHANGE_PHASE, { "Main", QString::number(true)}
                 }
             }
         },
@@ -1653,7 +1652,7 @@ const FSD_ByLine_TcFileModifierData::Data::ModifierPhase _PHASE_IGNORE_UNTIL_END
     }
 };*/
 // --------------------------------------------------
-
+/*
 const ModifierPhases FSD_ByLine_TcFileModifierData::Data::phases =
 {
     _PHASE_TEST_CASE_INFO,
@@ -1664,9 +1663,13 @@ const ModifierPhases FSD_ByLine_TcFileModifierData::Data::phases =
     _PHASE_PROC_E2P_CheckOrRestore,
     _PHASE_CALL,
     _PHASE_IF,
-    _PHASE_IGNORE_UNTIL_END_OF_BLOCK*/
-};
+    _PHASE_IGNORE_UNTIL_END_OF_BLOCK
+};*/
 
+bool FSD_ByLine_TcFileModifierData::Data::toDefaultPhase(){
+    curPhase = userConfig_.modifierPhases().constFind("Default");
+    return curPhase != userConfig_.modifierPhases().constEnd();
+}
 
 template<>
 bool FSD_ByLine_TcFileModifierData::Config::initialize(){
@@ -1680,34 +1683,54 @@ bool FSD_ByLine_TcFileModifierData::Config::initialize(){
     interpreterData->fileDir = QDir(*static_cast<QString*>(dataCmd.channelData));
     interpreterData->fileDir.cdUp();
     interpreterData->fileDir.cdUp();
+    if(interpreterData->toDefaultPhase() == false){ // Failed
+        return ERROR_CALL("Internal Error: Initialization Failed - No Default Phase");
+    }
     switch(dataModel.initialize()){
     case NewDataModel::InitializeStatus::INITIALIZE_SUCCESS:
-    {        
-        dataModel.write("/*@!Encoding:1250*/\n"
-"/*-------------------------------------------------------------------------------------------\n"
-"\n"
-"Project:     S71    \n"
-"Written by: \n"
-"\n"
-"Additional information:\n"
-"This file contains tests of " + dataModel.dir().dirName() + " for S71.\n"
-"\n"
-"---------------------------------------------------------------------------------------------\n"
-"Rev | Date        |Author           |Description"
-"--------------------------------------------------------------------------------------------- \n"
-"001 | 30/11/2020  |              |File has been created.\n"
-"\n"
-"-------------------------------------------------------------------------------------------*/\n"
-"\n"
-"includes{\n"
-"//    #include\"../../Libraries/Procedures/NewLib/S71_C1A_Common.cin\"\n"
-"}\n"
-"\n"
-"variables{\n"
-" \n"
-"}\n");
+    {
+
+        ControllerConfigInfo::Attributes::Iterator processStatusAttr = interpreterData->userConfig_.attributes().find("MODEL_PROCESS_STATUS");
+        if(processStatusAttr == interpreterData->userConfig_.attributes().end())
+        {
+            interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: prefix attribute not found.");
+            return ERROR_CALL("prefix attributes Critical Error");
+        }
+        processStatusAttr.value().value = "STARTED";
+//        dataModel.write("/*@!Encoding:1250*/\n"
+//"/*-------------------------------------------------------------------------------------------\n"
+//"\n"
+//"Project:     S71    \n"
+//"Written by: \n"
+//"\n"
+//"Additional information:\n"
+//"This file contains tests of " + dataModel.dir().dirName() + " for S71.\n"
+//"\n"
+//"---------------------------------------------------------------------------------------------\n"
+//"Rev | Date        |Author           |Description"
+//"--------------------------------------------------------------------------------------------- \n"
+//"001 | 30/11/2020  |              |File has been created.\n"
+//"\n"
+//"-------------------------------------------------------------------------------------------*/\n"
+//"\n"
+//"includes{\n"
+//"//    #include\"../../Libraries/Procedures/NewLib/S71_C1A_Common.cin\"\n"
+//"}\n"
+//"\n"
+//"variables{\n"
+//" \n"
+//"}\n");
     }
     case NewDataModel::InitializeStatus::ALREADY_INITIALIZED:
+    {
+        ControllerConfigInfo::Attributes::ConstIterator prefixStr = interpreterData->userConfig_.attributes().constFind("PREFIX_TEXT_FOR_FILE");
+        if(prefixStr == interpreterData->userConfig_.attributes().constEnd())
+        {
+            interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: prefix attribute not found.");
+            return ERROR_CALL("prefix attributes Critical Error");
+        }
+        dataModel.write(prefixStr.value().value);
+    }
         break;
     case NewDataModel::InitializeStatus::INITIALIZE_FAIL:
         return ERROR_CALL("Internal Error: Initialization Failed");
@@ -1726,7 +1749,14 @@ bool FSD_ByLine_TcFileModifierData::Config::deinitialize(){
         interpreterData->tclToCaplInterpreter_.printErrorReport(dataModel.reportFile(), dataModel.currentTCLFileName());
         dataModel.setTestCaseErrors(interpreterData->tclToCaplInterpreter_.getErrorsNumber());
         dataModel.predefinitions().append(interpreterData->tclToCaplInterpreter_.predefinitions());
-        interpreterData->writeTCInfo(config.dataModel);
+        ControllerConfigInfo::Attributes::ConstIterator postfixStr = interpreterData->userConfig_.attributes().constFind("POSTFIX_TEXT_FOR_FILE");
+        if(postfixStr == interpreterData->userConfig_.attributes().constEnd())
+        {
+            interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: postfix attribute not found.");
+            return config.ERROR_CALL("postfix attributes Critical Error");
+        }
+        config.dataModel.write(interpreterData->tclToCaplInterpreter_.readCommand().replace(QRegularExpression("\n(?=\\S*)(?!\\S*}\\Z)"), "\n\t") + postfixStr.value().value);
+        //interpreterData->writeTCInfo(config.dataModel);
     }
     delete data;
     data = nullptr;
@@ -1738,16 +1768,16 @@ bool FSD_ByLine_TcFileModifierData::Config::deinitialize(){
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::REPLACE_BY_MAPPING>(){
     using ModifierPhases = ModifierPhases;
-    using ModifierPhase = ModifierPhases::value_type;
+    using ModifierPhase = ModifierPhases::mapped_type;
     using ModifierRules = ModifierRules;
     using ModifierRule = ModifierRules::value_type;
     bool ruleCondtionsPassed = false;
-    ModifierPhases::ConstIterator phase = interpreterData->phases.constBegin() + static_cast<uint>(interpreterData->curPhase);
+    ModifierPhases::ConstIterator phase = interpreterData->curPhase;
     for(ModifierRules::ConstIterator rule = phase->rules.constBegin(); rule < phase->rules.constEnd(); rule++){
         ModifierRule::Actions::ConstIterator condition;
         for(condition = rule->conditions.constBegin(); condition < rule->conditions.constEnd(); condition++){
             interpreterData->arguments = condition->arguments;
-            if(!(config.*(config.processingFunctions.at(static_cast<int>(Stat::ACTION_STARTS_WITH) + static_cast<int>(condition->action))))())
+            if(!(config.*(config.processingFunctions.at(static_cast<int>(Stat::PROCESSING_ACTION_START) + static_cast<int>(condition->action))))())
                 return false;// config.ERROR_CALL(Error::ERROR); // Error already should be known
             if(!interpreterData->conditionResult)
                 break;
@@ -1756,7 +1786,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
             ruleCondtionsPassed = true;
             for(ModifierRule::Actions::ConstIterator action = rule->actions.constBegin(); action < rule->actions.constEnd(); action++){
                 interpreterData->arguments = action->arguments;
-                if(!(config.*(config.processingFunctions.at(static_cast<int>(Stat::ACTION_STARTS_WITH) + static_cast<int>(action->action))))()){
+                if(!(config.*(config.processingFunctions.at(static_cast<int>(Stat::PROCESSING_ACTION_START) + static_cast<int>(action->action))))()){
                     return false;// config.ERROR_CALL(Error::ERROR); // Error already should be known
                 }
             }
@@ -1778,7 +1808,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
         for(ModifierRule::Actions::ConstIterator action = phase->onEnd.onNoRules.constBegin(); action < phase->onEnd.onNoRules.constEnd(); action++)
         {
             interpreterData->arguments = action->arguments;
-            if(!(config.*(config.processingFunctions.at(static_cast<int>(Stat::ACTION_STARTS_WITH) + static_cast<int>(action->action))))()){
+            if(!(config.*(config.processingFunctions.at(static_cast<int>(Stat::PROCESSING_ACTION_START) + static_cast<int>(action->action))))()){
                 return false;// config.ERROR_CALL(Error::ERROR); // Error already should be known
             }
         }
@@ -1786,7 +1816,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
     for(ModifierRule::Actions::ConstIterator action = phase->onEnd.onEndOfRulesCheck.constBegin(); action < phase->onEnd.onEndOfRulesCheck.constEnd(); action++)
     {
         interpreterData->arguments = action->arguments;
-        if(!(config.*(config.processingFunctions.at(static_cast<int>(Stat::ACTION_STARTS_WITH) + static_cast<int>(action->action))))()){
+        if(!(config.*(config.processingFunctions.at(static_cast<int>(Stat::PROCESSING_ACTION_START) + static_cast<int>(action->action))))()){
             return false;// config.ERROR_CALL(Error::ERROR); // Error already should be known
         }
     }
@@ -1891,7 +1921,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
     QString str;
     if(!interpreterData->createAndAssignString(str, interpreterData->arguments))
         return config.ERROR_CALL(PRE_ERROR_MSG);
-
+    config.dataModel.write(str);
     return true;
 }
 
@@ -1903,7 +1933,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
     uint numbOfCompares = UINT_MAX;
     uint numbOfFormatArgs = UINT_MAX;
 
-    if(interpreterData->arguments.size() < 3)
+    if(interpreterData->arguments.size() < 2)
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Wrong number of action arguments");
     if((numbOfCompares = interpreterData->arguments.at(0).toUInt(&ok), !ok) ||
             numbOfCompares + 1 >= interpreterData->arguments.size()  ||
@@ -1943,9 +1973,15 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_SPLIT>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Split";
-    if(interpreterData->arguments.size() != 1)
+
+    if(interpreterData->arguments.size() > 0)
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Wrong Numb of Action Arguments");
-    interpreterData->lastActionResponse = interpreterData->lineData.split(QRegularExpression(interpreterData->arguments.at(0)), Qt::SkipEmptyParts);
+
+    QString str;
+    if(!interpreterData->createAndAssignString(str, interpreterData->arguments))
+        return config.ERROR_CALL(PRE_ERROR_MSG);
+
+    interpreterData->lastActionResponse = interpreterData->lineData.split(QRegularExpression(str), Qt::SkipEmptyParts);
 
     return interpreterData->conditionResult = true;
 }
@@ -1960,16 +1996,44 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_CHANGE_PHASE>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action ChangePhase";
-    Phase phase;
     bool checkRulesAgain = false;
     bool ok = false;
-    if(interpreterData->arguments.size() != 2 ||
-            (phase = static_cast<Phase>(interpreterData->arguments.at(0).toUInt(&ok)), !ok) ||
+    if(interpreterData->arguments.size() != 2 or
+            (interpreterData->arguments.at(0).isEmpty()) or
             (checkRulesAgain = interpreterData->arguments.at(1).toUInt(&ok), !ok))
         return config.ERROR_CALL(PRE_ERROR_MSG);
-    interpreterData->curPhase = phase;
+    interpreterData->curPhase = interpreterData->userConfig_.modifierPhases().constFind(interpreterData->arguments.at(0));
+    if(interpreterData->curPhase == interpreterData->userConfig_.modifierPhases().constEnd()){
+        return config.ERROR_CALL(PRE_ERROR_MSG + ": Phase not found");
+    }
     if(checkRulesAgain)
         config.stats.append(static_cast<int>(Stat::REPLACE_BY_MAPPING) + (int)Parent_FSD::FileSpecificInterpreterStat::SIZE);
+    return true;
+}
+
+template<>template<>template<>
+bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_WRITE_ATTRIBUTE>(){
+    const QString PRE_ERROR_MSG = "Internal Error: Action WriteAttribute";
+    QStringList& parameters = interpreterData->arguments;
+    QStringList::size_type result = 0;
+    QString formatStr;
+    bool ok = false;
+    uint numbOfFormatArgs = UINT_MAX;
+    if(parameters.size() < 2){
+        return config.ERROR_CALL(PRE_ERROR_MSG + "Number of Action Parameters dont match.");
+    }
+    if(parameters.at(0).isEmpty() or
+            (numbOfFormatArgs = parameters.at(1).toUInt(&ok), !ok) or
+            numbOfFormatArgs + 2 != parameters.size())
+    {
+        return config.ERROR_CALL(PRE_ERROR_MSG + "Action Parameters are wrong.");
+    }
+
+    QStringList&& params = parameters.mid(2);
+    if((result = interpreterData->createAndAssignString(formatStr, interpreterData->arguments.mid(2))) != params.size())
+        return config.ERROR_CALL(PRE_ERROR_MSG + " - Create Text Error");
+
+    interpreterData->userConfig_.attributes().insert(parameters.at(0), {formatStr});
     return true;
 }
 /*
@@ -2056,10 +2120,13 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INTERPRET>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Interpret";
-    interpreterData->lineData += "\n";
-    if(not interpreterData->lineData.isEmpty())
+    QString str;
+    if(!interpreterData->createAndAssignString(str, interpreterData->arguments))
+        return config.ERROR_CALL(PRE_ERROR_MSG);
+    //str += "\n";
+    if(not str.isEmpty())
     {
-        if(interpreterData->tclToCaplInterpreter_.toCAPL(interpreterData->lineData ) == Core::Error::Error){
+        if(interpreterData->tclToCaplInterpreter_.toCAPL(str ) == Core::Error::Error){
             interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: File is not interpreted by TCL Interpreter after previous TCL interpreter error.");
             return config.ERROR_CALL(PRE_ERROR_MSG + " - TCL Interpreter Critical Error");
         }
@@ -2177,6 +2244,16 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                             return false;
                         }
                         // ALL ARGUMENTS AFTER INDEX -------------------------------
+                    }
+                        break;
+                    case Rule::ATTRIBUTE:
+                    {
+                        if(arg->isEmpty())
+                            return false;
+                        ControllerConfigInfo::Attributes::ConstIterator attribute = userConfig_.attributes().constFind(*arg);
+                        if(attribute == userConfig_.attributes().constEnd())
+                            return false;
+                        dest += attribute.value().value;
                     }
                         break;
                     /*case Rule::ARG_IN_RANGE_P1:
@@ -2321,6 +2398,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                         }
                     }
                         break;
+
                     /*case Rule::SPLIT:
                     {
                         switch (target) {
@@ -2475,20 +2553,21 @@ template<>
 template<>
 QVector<ProcessingFunctions_FRI<FSD_ByLine_TcFileModifierData::Config>> FSD_ByLine_TcFileModifierData::processingFunctions = {
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::REPLACE_BY_MAPPING>,
+    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_SPLIT>,
+    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_WRITE_ATTRIBUTE>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_STARTS_WITH>,
+    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_COMPARE>,
+    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_WRITE>,
+    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_CHANGE_PHASE>,
+    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INTERPRET>,
     //&FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_ENDS_WITH>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_WRITE_TO_TC_INFO>,
-    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_WRITE>,
-    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_SPLIT>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_COMMENT_OUT>,
-    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_CHANGE_PHASE>,
     /*&FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_SSTR_SAVE>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_SSTR_SLICE>,*/
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_REPLACE_ALL>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_DEBUG>,
-    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_COMPARE>,
     //&FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_FORMAT>,
-    &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INTERPRET>,
     /*&FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_COMPARE_REGEX>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_FORMAT>,
     &FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_CONTAINS>,

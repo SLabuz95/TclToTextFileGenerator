@@ -47,6 +47,7 @@ private:
     };
 public:
     using Config = Tcl2CaplControllerConfig;
+    using Attributes = Tcl2CaplControllerConfig::Attributes;
 
     using ModifierPhaseMap = QMap<PhaseModifierRuleCategoryKey, qsizetype>;
     using ModifierSavedRules = Config::ModifierConfigRawRules;
@@ -158,6 +159,7 @@ public:
 
         void readProcedures(QList<UserProcedure>&);
         UserProcedure readDefaultProcedure();
+        inline Attributes& attributes(){return attributes_;}
         inline Settings::WriteOnlyProcedures& writeOnlyProcedures(){return _settings.writeOnlyProcedures();}
         inline Settings& settings(){return _settings;}
 
@@ -169,6 +171,7 @@ public:
 
         void toXmlContent(QXmlStreamWriter& xmlWriter);
         void writeSettingsToXML(QXmlStreamWriter&);
+        void writeAttributesToXML(QXmlStreamWriter&);
         void writeProceduresToXML(QXmlStreamWriter&);
         void writeDefaultProcedureToXML(QXmlStreamWriter&);
 
@@ -213,6 +216,7 @@ public:
         // --------------------- DATA OF TCL CONFIG -------------------------------------------
         // Local changes
         Settings _settings;
+        Attributes attributes_;
         ProcedureMap newProceduresMap;// procedures map
         NewRules newRules;
         DefaultProcedureMap newDefaultProcedureMap;// default procedure map

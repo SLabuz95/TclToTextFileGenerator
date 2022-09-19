@@ -6,6 +6,7 @@ using ActionType = ModifierActionsFactory::ProductTypeEnum;
 const QList<QString> ModifierActions::TypeInfo::typeMap =
 {
     "Split",
+    "WriteAttribute",
     "StartsWith",
     "Compare",
     "Write",
@@ -17,6 +18,7 @@ template<>
 ModifierActionsFactory::CreateFunctionTable ModifierActionsFactory::createFunctionTable =
 {
     &ModifierActionsFactory::create<ActionType::Split>,
+    &ModifierActionsFactory::create<ActionType::WriteAttribute>,
     &ModifierActionsFactory::create<ActionType::StartsWith>,
     &ModifierActionsFactory::create<ActionType::Compare>,
     &ModifierActionsFactory::create<ActionType::Write>,

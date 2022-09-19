@@ -104,7 +104,7 @@ namespace Panels::Configuration{
             ConfigInfo::PhasesView phasesView = config().readPhasesInfo();
             ConfigInfo::ProceduresView proceduresView = config().readProceduresInfo();
             deactivateRulesPanel();
-            configViewPanel.loadConfigData(config().writeOnlyProcedures(), phasesView, proceduresView);
+            configViewPanel.loadConfigData(config().writeOnlyProcedures(), config().attributes(), phasesView, proceduresView);
         }
 
         inline App& app()const{return app_;}

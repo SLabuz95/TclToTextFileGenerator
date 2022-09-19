@@ -163,8 +163,8 @@ bool operator==(const Tcl2CaplControllerConfig::Procedure& lhs, const Tcl2CaplCo
     return lhs.name() == rhs.name();
 }
 
-bool operator==(const Tcl2CaplControllerConfig::Attribute& attribute, const QString& rhs)
-{ return attribute.name == rhs; }
+//bool operator==(const Tcl2CaplControllerConfig::Attribute& attribute, const QString& rhs)
+//{ return attribute.name == rhs; }
 
 /*
 bool Tcl2CaplControllerConfig::writeToFile(QFile file){

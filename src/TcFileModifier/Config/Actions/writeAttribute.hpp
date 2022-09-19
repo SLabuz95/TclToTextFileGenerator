@@ -1,5 +1,5 @@
-#ifndef FILE_MODIFIER_ACTION_SPLIT_HPP
-#define FILE_MODIFIER_ACTION_SPLIT_HPP
+#ifndef FILE_MODIFIER_ACTION_WRITEATTRIBUTE_HPP
+#define FILE_MODIFIER_ACTION_WRITEATTRIBUTE_HPP
 
 #include"External/Factory/products.hpp"
 #include"TcFileModifier/Config/Actions/definition.hpp"
@@ -7,30 +7,31 @@
 
 template<>
 template<>
-struct ModifierActionProducts::ImplementationData<ModifierActionTypes::Split>::Properties
+struct ModifierActionProducts::ImplementationData<ModifierActionTypes::WriteAttribute>::Properties
 : public ModifierActionProductDefinition::Definition
 {
-public:
     using FormattedString = ModifierFormatParametersFactory::ListOfBases;
 protected:
-     FormattedString inputFormattedString_;
-
+    QString name_;
+    FormattedString inputFormattedString_;
 
 };
 
 template<>
 template<>
-class ModifierActionProducts::ImplementationData<ModifierActionTypes::Split>::Methods
-: public ModifierActionProducts::ImplementationData<ModifierActionTypes::Split>::Properties
+class ModifierActionProducts::ImplementationData<ModifierActionTypes::WriteAttribute>::Methods
+: public ModifierActionProducts::ImplementationData<ModifierActionTypes::WriteAttribute>::Properties
 {
 };
 
 template<>
 template<>
-class ModifierActionProducts::InterfaceData<ModifierActionTypes::Split>::Methods
-: public ModifierActionProducts::Implementation<ModifierActionTypes::Split>
+class ModifierActionProducts::InterfaceData<ModifierActionTypes::WriteAttribute>::Methods
+: public ModifierActionProducts::Implementation<ModifierActionTypes::WriteAttribute>
 {
 public:
+    QString name(){return name_;}
+    void setName(QString name){name_ = name;}
     FormattedString& inputFormattedString(){return inputFormattedString_;}
     void toAction(ModifierAction& action)override{
         using Parameters = QStringList;
@@ -42,8 +43,9 @@ public:
             (*parameter)->toActionParameters(formattedStringParameters);
 
         action = ModifierAction{static_cast<RawModifierActionType>(type()),
-                            Parameters()
-                            << formattedStringParameters
+                        Parameters({name_}) <<
+                        QString::number(formattedStringParameters.size())
+                        << formattedStringParameters
                                            };
     }
 
@@ -51,6 +53,4 @@ public:
 
     }
 };
-
-
-#endif // FILE_MODIFIER_ACTION_SPLIT_HPP
+#endif // FILE_MODIFIER_ACTION_WRITEATTRIBUTE_HPP
