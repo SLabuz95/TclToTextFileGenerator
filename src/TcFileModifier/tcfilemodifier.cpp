@@ -1974,7 +1974,7 @@ template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_SPLIT>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Split";
 
-    if(interpreterData->arguments.size() > 0)
+    if(interpreterData->arguments.size() < 1)
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Wrong Numb of Action Arguments");
 
     QString str;
@@ -2034,7 +2034,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Create Text Error");
 
     interpreterData->userConfig_.attributes().insert(parameters.at(0), {formatStr});
-    return true;
+    return interpreterData->conditionResult = true;
 }
 /*
 template<>template<>template<>
@@ -2234,7 +2234,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                             }
                             if(index < 0 || index >= lastActionResponse.size())
                                 return false;
-                            for(QStringList::Iterator responseArg = lastActionResponse.begin() + index + 1; responseArg < lastActionResponse.end(); responseArg++){
+                            for(QStringList::Iterator responseArg = lastActionResponse.begin() + index ; responseArg < lastActionResponse.end(); responseArg++){
                                 dest += *responseArg + seperator;
                                 separatorUsed = true;
                             }

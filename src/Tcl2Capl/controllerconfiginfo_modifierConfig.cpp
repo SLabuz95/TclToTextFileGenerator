@@ -473,11 +473,6 @@ void ControllerConfigInfo::readPhases(TcFileModifierConfigBase::ModifierPhases& 
             {
                 (*newRule)->toRule((*ruleForInterpreter));
             }
-            // On No Rules Satisfied - Actions - Only 1 Rule - Container only
-            newRule = newModifierRules.begin() + configMapIter.value();
-            configMapIter++;
-            // Reserve and resize
-            (*newRule)->toActions(userPhaseIter->onEnd.onNoRules);
 
             // On end of Rules check
             newRule = newModifierRules.begin() + configMapIter.value();
@@ -486,6 +481,11 @@ void ControllerConfigInfo::readPhases(TcFileModifierConfigBase::ModifierPhases& 
             // Reserve and resize
             (*newRule)->toActions(userPhaseIter->onEnd.onEndOfRulesCheck);
 
+            // On No Rules Satisfied - Actions - Only 1 Rule - Container only
+            newRule = newModifierRules.begin() + configMapIter.value();
+            configMapIter++;
+            // Reserve and resize
+            (*newRule)->toActions(userPhaseIter->onEnd.onNoRules);
 
             userPhaseIter++;
         }else{ // Not exist - move to next phase
