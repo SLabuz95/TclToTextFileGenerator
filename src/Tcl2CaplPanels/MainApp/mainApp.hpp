@@ -70,19 +70,7 @@ public:
     using Splitter = MainWindowSplitter;
     using Config = ControllerConfigInfo;
     using ConfigEditor = Panels::Configuration::Panel;
-    /*class InterpreterInterface : public QMdiSubWindow{
-    public:
-        enum class Type{
-            FileInterpreter,
-            TextInterpreter
-        };
-        InterpreterInterface(Type type, QMdiArea* area) : QMdiSubWindow(area), type(type){}
 
-        const Type type;
-    };*/
-
-
-    //using SubWindow = QMdiSubWindow;
     using SubWindowsList = QList<SubWindow*>;
     using SubWindowsRange = QPair<SubWindowsList::Iterator, SubWindowsList::Iterator>;
 

@@ -2126,7 +2126,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
     //str += "\n";
     if(not str.isEmpty())
     {
-        if(interpreterData->tclToCaplInterpreter_.toCAPL(str ) == Core::Error::Error){
+        if(interpreterData->tclToCaplInterpreter_.toCAPL(str) == Core::Error::Error){
             interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: File is not interpreted by TCL Interpreter after previous TCL interpreter error.");
             return config.ERROR_CALL(PRE_ERROR_MSG + " - TCL Interpreter Critical Error");
         }

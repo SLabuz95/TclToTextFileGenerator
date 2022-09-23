@@ -20,14 +20,9 @@ public:
     App(int argc, char** argv);
     ~App();
 
-    // Parser (Thread)
-    //Tcl2Capl tcl2Capl;
     // GUI
     AppWindow appWindow;
-    //Panel configEditor;
     ControllerConfigManager configManager_;
-    //Tcl2CaplControllerConfig config;
-    //Panel* p = nullptr;
 
     void clearMemory();
 

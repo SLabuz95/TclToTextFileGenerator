@@ -13,8 +13,6 @@ struct ExecutablesProducts::ImplementationData<ExecutablesTypes::Error>::Propert
     using FormattedString = ParametersFactory::Product<Parameters::FormattedString>;
 protected:
      FormattedString inputFormattedString_;
-    //ListParam outputParams;
-
 };
 
 template<>
@@ -32,18 +30,17 @@ class ExecutablesProducts::InterfaceData<ExecutablesTypes::Error>::Methods
 {
 public:
     FormattedString& inputFormattedString(){return inputFormattedString_;}
-    void toAction(UserProcedureRule::ExecutableActions::Type& conditional)override{
+    void toAction(UserProcedureRule::ExecutableActions::Type& executable)override{
         using Action = UserProcedureRule::ExecutableActions::Type;
         using Parameters = UserProcedureRule::ExecutableActions::Type::Parameters;
         Parameters formattedStringParameters;
         inputFormattedString().toActionParameters(formattedStringParameters);
-        conditional = Action(type(),formattedStringParameters);
+        executable = Action(type(),formattedStringParameters);
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
         xmlWriter.writeStartElement("executableAction");
         xmlWriter.writeAttribute("type", UserProcedure::Action::toStr_executable(type()));
-        // inputFormattedString_
         inputFormattedString_.toXmlContent(xmlWriter);
         xmlWriter.writeEndElement();
     }
