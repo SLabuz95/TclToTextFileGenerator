@@ -1,53 +1,69 @@
-#ifndef COMPARE_HPP
-#define COMPARE_HPP
+#ifndef CONFIG_CONDITIONALS_COMPARE_HPP
+#define CONFIG_CONDITIONALS_COMPARE_HPP
 
-<<<<<<< HEAD
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Actions/Conditional/definition.hpp"
-
+#include"Tcl2Capl/Config/Parameters/FCT_products.hpp"
 
 template<>
 template<>
 struct ConditionalsProducts::ImplementationData<ConditionalsTypes::Compare>::Properties
 : public ConditionalsProductDefinition::Definition
 {
+public:
+    using FormattedString = ParametersFactory::Product<Parameters::FormattedString>;
 protected:
-    //ListParam stringsToCompare;
-    //ListParam inputFormattedString;
-=======
-#include"External/Factory/factory.hpp"
-#include"Tcl2Capl/Config/Actions/Conditional/definition.hpp"
-
-template<>
-template<>
-struct ConditionalsFactory::ImplementationData<ConditionalsTypes::Compare>::Properties{
->>>>>>> refs/remotes/TclToTextGenerator/dev
+     FormattedString inputFormattedString_;
+     QStringList stringsToCompare_;
 
 };
 
 template<>
 template<>
-<<<<<<< HEAD
 class ConditionalsProducts::ImplementationData<ConditionalsTypes::Compare>::Methods
-: protected ConditionalsProducts::ImplementationData<ConditionalsTypes::Compare>::Properties
+: public ConditionalsProducts::ImplementationData<ConditionalsTypes::Compare>::Properties
 {
-=======
-class ConditionalsFactory::ImplementationData<ConditionalsTypes::Compare>::Methods{
->>>>>>> refs/remotes/TclToTextGenerator/dev
-
 };
 
 template<>
 template<>
-<<<<<<< HEAD
 class ConditionalsProducts::InterfaceData<ConditionalsTypes::Compare>::Methods
 : public ConditionalsProducts::Implementation<ConditionalsTypes::Compare>
 {
-=======
-class ConditionalsFactory::InterfaceData<ConditionalsTypes::Compare>::Methods{
->>>>>>> refs/remotes/TclToTextGenerator/dev
+public:
+    QStringList& stringsToCompare(){return stringsToCompare_;}
+    FormattedString& inputFormattedString(){return inputFormattedString_;}
+    void toAction(UserProcedureRule::ConditionalActions::Type& conditional)override{
+        using Action = UserProcedureRule::ConditionalActions::Type;
+        using Parameters = UserProcedureRule::ConditionalActions::Type::Parameters;
+        Parameters formattedStringParameters;
+        inputFormattedString().toActionParameters(formattedStringParameters);
+        conditional = Action(type(),
+                        Parameters({QString::number(stringsToCompare_.size())})
+                            <<  stringsToCompare_
+                            << QStringList{QString::number(formattedStringParameters.size())}
+                            << formattedStringParameters
+                                           );
+    }
 
+    void toXmlContent(QXmlStreamWriter& xmlWriter)override{
+        xmlWriter.writeStartElement("conditionalAction");
+        xmlWriter.writeAttribute("type", UserProcedure::Action::toStr_conditional(type()));
+        // stringsToCompare_
+        xmlWriter.writeStartElement("param"); // List?
+        xmlWriter.writeAttribute("type", "0"); // For compatibility with future implementation
+        for(QStringList::Iterator string = stringsToCompare_.begin(); string < stringsToCompare_.end(); string++){
+            xmlWriter.writeStartElement("param"); // String param?
+            xmlWriter.writeAttribute("type", "0"); // For compatibility with future implementation
+            xmlWriter.writeCharacters(*string);
+            xmlWriter.writeEndElement(); // List? End
+        }
+        xmlWriter.writeEndElement(); // List? End
+        // inputFormattedString_
+        inputFormattedString_.toXmlContent(xmlWriter);
+        xmlWriter.writeEndElement();
+    }
 };
 
 
-#endif // COMPARE_HPP
+#endif // CONFIG_CONDITIONALS_COMPARE_HPP

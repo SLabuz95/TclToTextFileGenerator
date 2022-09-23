@@ -1,33 +1,89 @@
 #include"caplFunctionDefiniitions.hpp"
+#include<QDebug>
+#include<QFile>
 
-void CAPLFunctionDefinitions::addDefinition(TCLInterpreter::TCLProceduresInterpreter::ProcedureCall procedureCall){
+using namespace Tcl::Analysis;
+
+void FunctionDefinitions::addDefinitionNoRules(Call& procedureCall)
+{
     Definitions::Iterator caplDefinition;
-    if((caplDefinition = definitions.find(procedureCall.name())) != definitions.end()){
+    if((caplDefinition = definitionsOnNoRules.find(procedureCall._name())) != definitionsOnNoRules.end()){
         DefinitionInfo::Iterator caplDefinitionInfo;
         if((caplDefinitionInfo = caplDefinition->find(procedureCall.parametersLength())) != caplDefinition->end()){
-            caplDefinitionInfo->insert(procedureCall.generateCAPLFunctionDefinitionExample());
+            // Search parameters
+            ProcedureInfos::Iterator procedureInfo;
+            Parameters parameters = procedureCall.parametersStats();
+            if((procedureInfo = caplDefinitionInfo->find(parameters)) != caplDefinitionInfo->end()){
+                Example example = procedureCall.generateFunctionDefinitionExample();
+                if(not procedureInfo.value().contains(example)){
+                    procedureInfo.value().append(example);
+                }
+            }else{
+                Examples examples{procedureCall.generateFunctionDefinitionExample()};
+                caplDefinitionInfo->insert(parameters, examples);
+            }
         }else{
-            caplDefinition->insert(procedureCall.parametersLength(), {procedureCall.generateCAPLFunctionDefinitionExample()});
+            ProcedureInfos procedureInfos;
+            Examples examples{procedureCall.generateFunctionDefinitionExample()};
+            procedureInfos.insert(procedureCall.parametersStats(), examples);
+            caplDefinition->insert(procedureCall.parametersLength(), procedureInfos);
         }
     }else{
         DefinitionInfo info;
-        info.insert(procedureCall.parametersLength(), {procedureCall.generateCAPLFunctionDefinitionExample()});
-        definitions.insert(procedureCall.name(), info);
+        ProcedureInfos procedureInfos;
+        Examples examples{procedureCall.generateFunctionDefinitionExample()};
+        procedureInfos.insert(procedureCall.parametersStats(), examples);
+        info.insert(procedureCall.parametersLength(), procedureInfos);
+        definitionsOnNoRules.insert(procedureCall._name(), info);
     }
 }
 
-void CAPLFunctionDefinitions::writeCaplFunctionDefinitions(QFile &file){
-    if(not definitions.isEmpty()) {
+void FunctionDefinitions::addDefinitionNotSatisfiedRules(Call& procedureCall)
+{
+    Definitions::Iterator caplDefinition;
+    if((caplDefinition = definitionsOnNotSatisfiedRules.find(procedureCall._name())) != definitionsOnNotSatisfiedRules.end()){
+        DefinitionInfo::Iterator caplDefinitionInfo;
+        if((caplDefinitionInfo = caplDefinition->find(procedureCall.parametersLength())) != caplDefinition->end()){
+            // Search parameters
+            ProcedureInfos::Iterator procedureInfo;
+            Parameters parameters = procedureCall.parametersStats();
+            if((procedureInfo = caplDefinitionInfo->find(parameters)) != caplDefinitionInfo->end()){
+                Example example = procedureCall.generateFunctionDefinitionExample();
+                if(not procedureInfo.value().contains(example)){
+                    procedureInfo.value().append(example);
+                }
+            }else{
+                Examples examples{procedureCall.generateFunctionDefinitionExample()};
+                caplDefinitionInfo->insert(parameters, examples);
+            }
+        }else{
+            ProcedureInfos procedureInfos;
+            Examples examples{procedureCall.generateFunctionDefinitionExample()};
+            procedureInfos.insert(procedureCall.parametersStats(), examples);
+            caplDefinition->insert(procedureCall.parametersLength(), procedureInfos);
+        }
+    }else{
+        DefinitionInfo info;
+        ProcedureInfos procedureInfos;
+        Examples examples{procedureCall.generateFunctionDefinitionExample()};
+        procedureInfos.insert(procedureCall.parametersStats(), examples);
+        info.insert(procedureCall.parametersLength(), procedureInfos);
+        definitionsOnNotSatisfiedRules.insert(procedureCall._name(), info);
+    }
+}
+
+void FunctionDefinitions::writeCaplFunctionDefinitions(QFile &file){
+    if(not definitionsOnNoRules.isEmpty()) {
         const QString newFunction = "// _NEW_FUNC_\n";
-        const QString startOfExamples = "// EXAMPLES\n";
-        const QString endOfExamples = "\n// END OF EXAMPLES\n";
+        const QString startOfExamples = "// EXAMPLES\n/*\n";
+        const QString endOfExamples = "\n*/\n// END OF EXAMPLES\n";
         if(not file.isOpen()){
             if(not file.open(QIODevice::Text | QIODevice::Append))
                 return;
             file.write("includes{\n}\n\nvariables{\n}\n\n");
         }
-        for(Definitions::Iterator caplDefinition = definitions.begin();
-            caplDefinition != definitions.end();
+        for(Definitions::Iterator caplDefinition = definitionsOnNoRules.begin();
+            caplDefinition != definitionsOnNoRules.end();
             caplDefinition++)
         {
             QString name = caplDefinition.key();
@@ -48,7 +104,13 @@ void CAPLFunctionDefinitions::writeCaplFunctionDefinitions(QFile &file){
 
                 // Examples
                 file.write(startOfExamples.toUtf8());
-                file.write(caplDefinitionInfo->values().join("\n").toUtf8());
+                ProcedureInfos& procedureInfos = caplDefinitionInfo.value();
+                for(ProcedureInfos::Iterator procedureInfo = procedureInfos.begin();
+                    procedureInfo != procedureInfos.end();
+                    procedureInfo++)
+                {
+                    file.write(procedureInfo.value().join("\n").toUtf8());
+                }
                 file.write(endOfExamples.toUtf8());
             }
         }

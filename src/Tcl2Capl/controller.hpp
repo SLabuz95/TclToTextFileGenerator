@@ -2,50 +2,24 @@
 #define CONTROLLER_H
 //#include"Result/tcl2caplresult.hpp"
 #include<QDir>
-#include"controllerconfig.hpp"
-#include"Tcl2Capl/caplFunctionDefiniitions.hpp"
+//#include"controllerconfig.hpp"
+//#include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 #include<QThread>
+#include"userinputconfig.hpp"
 
-
-class UserInputConfig{
-public:
-    using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
-    using Settings = TclProcedureInterpreter::ProdecuresSettings;
-    using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
-    using UserProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using UserProcedures = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinitions;
-    using UserDefaultProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using Predefinitions = TCLInterpreterPriv::PredefinitionsControl::Predefinitions;
-
-    using UserInputConfigData = Tcl2CaplControllerConfig;
-    UserInputConfig(){}
-    UserInputConfig(UserInputConfigData& configData);
-    ~UserInputConfig(){}
-protected:
-    Settings settings_;
-    UserProcedures userProcedures_;
-    UserDefaultProcedure userDefaultProcedure_;
-    Predefinitions _predefinitions;
-
-public:
-    inline Settings& proceduresSettings(){return settings_;}
-    inline UserProcedures& userProcedureConfig(){return userProcedures_;}
-    inline UserDefaultProcedure& userDefaultProcedureConfig(){return userDefaultProcedure_;}
-    inline Predefinitions& predefinitions(){return _predefinitions;}
-};
 
 class FileInstanceResultPanel;
 class Tcl2CaplResult;
 class Tcl2CaplController : public QThread{
     // Concept Definition
 public:
-    using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
-    using Settings = TclProcedureInterpreter::ProdecuresSettings;
+    using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
+    using Settings = Tcl::Interpreter::Command::Settings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
-    using UserProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using UserProcedures = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinitions;
-    using UserDefaultProcedure = TCLInterpreter::TCLProceduresInterpreter::ProcedureDefinition;
-    using Predefinitions = TCLInterpreterPriv::PredefinitionsControl::Predefinitions;
+    using UserProcedure = Tcl::Interpreter::Command::Definition;
+    using UserProcedures = Tcl::Interpreter::Command::CommandDefinitions;
+    using UserDefaultProcedure = UserProcedure;
+    using Predefinitions = Tcl::Interpreter::PredefinitionsController::Predefinitions;
 
     using Error = QString;
     using Results = QVector<Tcl2CaplResult*>;
@@ -96,7 +70,7 @@ private:
 public:
     Tcl2CaplController(QStringList& definitions, QStringList& inputPath, QString& outputPath);
 
-    ~Tcl2CaplController();
+    ~Tcl2CaplController() override;
 
     inline void quitAndWait(){quit(); wait();}
     inline bool isError()const{return not _error.isEmpty();}
@@ -115,15 +89,15 @@ public:
     //Error readNewInputConfig();
     inline void generateCaplsFromFolderWithTcls(QObject* setProgressEventDest, UserInputConfig::UserInputConfigData& config){
         progressEventDest = setProgressEventDest;
-        userInputConfig_ = config;
+        userInputConfig_ = UserInputConfig(config);
         start();
-    };
+    }
     inline void generateCaplsFromFolderWithTcls(QObject* setProgressEventDest, UserInputConfig::UserInputConfigData& config, UserInputConfig::Settings::InterpreterMode mode){
         progressEventDest = setProgressEventDest;
-        userInputConfig_ = config;
+        userInputConfig_ = UserInputConfig(config);
         userInputConfig_.proceduresSettings().setMode(mode);
         start();
-    };
+    }
     inline UserInputConfig& userProceduresConfig(){return userInputConfig_;}
 };
 

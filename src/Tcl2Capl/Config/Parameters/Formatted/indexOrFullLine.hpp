@@ -6,31 +6,42 @@
 
 template<>
 template<>
-struct FormatParametersProducts::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Properties
-: protected FormatParametersProductDefinition::Definition
+struct FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Properties
+: public FormatParametersProductDefinition::Definition
 {
 
 protected:
-   // FormatParametersProducts::FactoryCommonInterface* data = nullptr;
+   static constexpr int INVALID_INDEX = INT_MIN;
+   int index_ = INT_MIN;
 
 };
 
 template<>
 template<>
-class FormatParametersProducts::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Methods
-: protected FormatParametersProducts::ImplementationData<FormatParametersType::INDEX_OR_FULL_LINE>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Methods
+: public FormatParametersProducts::ImplementationData<FormatParametersType::IndexItem>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersProducts::InterfaceData<FormatParametersType::INDEX_OR_FULL_LINE>::Methods
-: public FormatParametersProducts::Implementation<FormatParametersType::INDEX_OR_FULL_LINE>
+class FormatParametersProducts::InterfaceData<FormatParametersType::IndexItem>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::IndexItem>
 {
 public:
-    //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
-    //inline RawFormatType rawFormatType()const override final{return RawFormatType::INDEX_OR_FULL_LINE;}
+    void setIndex(int index){index_ = index;}
+    int index(){return (index_ == INVALID_INDEX)? 0 : index_;}
+    void toActionParameters(QStringList& parameters)override{
+        using Format = Tcl::Interpreter::Command::Definition::Format;
+        Format::addFormatRule(parameters, Format::Rule::INDEX_OR_FULL_LINE, QString::number(index()));
+    }
+    void toXmlContent(QXmlStreamWriter& xmlWriter) override{
+            xmlWriter.writeEmptyElement("formatRule"); // String param?
+            xmlWriter.writeAttribute("type", FormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
+            xmlWriter.writeAttribute("value", QString::number(index()));
+    }
+    //inline RawFormatType rawFormatType()const override final{return RawFormatType::IndexItem;}
 
 };
 

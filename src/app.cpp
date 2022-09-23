@@ -9,12 +9,14 @@
 #include<QTableWidgetItem>
 #include<QStyleFactory>
 
+using namespace Panels::Configuration;
+
 App::App(int argc, char** argv)
     : QApplication (argc, argv), appWindow(*this)
 {
     setApplicationName("Tcl2Capl Parser");
 
-    //(new ConfigEditor(*this))->show();
+
 
 }
 

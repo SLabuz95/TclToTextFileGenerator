@@ -4,7 +4,7 @@
 
 #include"External/Factory/products.hpp"
 #include"Tcl2Capl/Config/Rules/definition.hpp"
-
+/*
 template<>
 template<>
 struct RulesProducts::ImplementationData<RulesTypes::QuickRule>::Properties
@@ -53,5 +53,5 @@ public:
     inline WriteActions& writeActions(){return writeActions_;}
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
 };
-
+*/
 #endif // QUICK_HPP

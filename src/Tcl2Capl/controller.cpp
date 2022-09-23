@@ -1,4 +1,5 @@
 #include"controller.hpp"
+#include"Result/tcl2caplresult.hpp"
 #include<QFileDialog>
 #include<QDirIterator>
 #include"TcFileModifier/tcfilemodifier.hpp"
@@ -8,20 +9,14 @@
 
 
 UserInputConfig::UserInputConfig(UserInputConfigData& configData)
-    : userProcedures_(UserProcedures(configData.getNumbOfUserProcedures())),
-      userDefaultProcedure_(configData.defaultProcedure().toProcedureWithRawRules()),
-      settings_(configData.settings())
+    : modifierPhases_(),
+      userProcedures_(UserProcedures(configData.getNumbOfExistingProcedures())),
+      userDefaultProcedure_(configData.readDefaultProcedure()),
+      settings_(configData.settings()),
+      attributes_(configData.attributes())
 {
-    UserInputConfigData::Procedures& userConfigProcedures = configData.userProcedures();
-    UserInputConfigData::Procedures::Iterator configProcedure = userConfigProcedures.begin();
-    UserProcedures::Iterator userProcedure = userProcedures_.begin();
-    Q_ASSERT_X(userConfigProcedures.size() == userProcedureConfig().size(), "InputConfig Procedures Size have to be the same as InputConfigData Procedures size", "");
-    for(;
-        configProcedure != userConfigProcedures.end(); configProcedure++, userProcedure++)
-    {
-        (*userProcedure) = configProcedure->toProcedureWithRawRules();
-    }
-    TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToUserProcedureDefintions(*this);
+    configData.readPhases(modifierPhases_);
+    configData.readProcedures(userProcedures_);
 }
 
 Tcl2CaplController::~Tcl2CaplController(){
@@ -55,7 +50,7 @@ Tcl2CaplController::Error Tcl2CaplController::readNewInputConfig(){
 
     configFilePath_ = mainPath;
     // Merge with default procedures
-    TCLInterpreter::TCLProceduresInterpreter::addDefaultProcedureDefinitionsToUserProcedureDefintions(userInputConfig_);
+    TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(userInputConfig_);
     return QString();
 }
 
@@ -139,6 +134,7 @@ void Tcl2CaplController::run(){
 }
 
 bool Tcl2CaplController::generateDefinitions_impl(){
+    using TCLCommandsController = Tcl::Interpreter::Command::Controller;
     //TODO: Memory Leaks
     using ErrorMsg = QString;
     const ErrorMsg ERROR_PREFIX = "Definition File Error: ";
@@ -146,8 +142,9 @@ bool Tcl2CaplController::generateDefinitions_impl(){
     // Preconditions
     UserInputConfig::Settings::InterpreterMode savedMode = userInputConfig_.proceduresSettings().mode();
     userInputConfig_.proceduresSettings().setMode(Settings::InterpreterMode::PredefinitionsOnly);
+    TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(userInputConfig_);
 
-    CAPLFunctionDefinitions caplFunctionDefinitions;
+    FunctionDefinitions caplFunctionDefinitions;
 
     for(QStringList::Iterator definitionPath = definitionPaths().begin();
         definitionPath < definitionPaths().end(); definitionPath++)
@@ -163,7 +160,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
         // If file
         if(QFileInfo(*definitionPath).isFile()){
             //Use Interpreter
-            Tcl2CaplResult::Tcl2CaplReadData tcFileData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions);
+            Tcl2CaplReadData tcFileData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions, Tcl2CaplReadData::ReadMode::FileMode);
             TcFileModifier::Config tcFileModifier(tcFileData);
             QStringList blackList;
             QString filePath;
@@ -191,7 +188,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
                 dir.setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
                 dir.setSorting(QDir::Name);
                 QVector<QDirIterator*> dirs({new QDirIterator(dir)});
-                QVector<Tcl2CaplResult::Tcl2CaplReadData*> tcFileData{new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions)};
+                QVector<Tcl2CaplReadData*> tcFileData{new Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions, Tcl2CaplReadData::ReadMode::DirectoryMode)};
                 using NameFilters = const QStringList;
                 NameFilters permittedFileSuffixes = QStringList{"tcl"};
 
@@ -205,7 +202,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
                             dir.setSorting(QDir::Name);
                             if(dir.dirName() != tcFileData.at(0)->dir().dirName()){ // Ignore if dir name == first output dir name
                                 dirs.append(new QDirIterator(dir));
-                                tcFileData.append(new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions));
+                                tcFileData.append(new Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions, Tcl2CaplReadData::ReadMode::DirectoryMode));
                             }
                         }else{
                             if(fileInfo.isFile() and permittedFileSuffixes.contains(fileInfo.completeSuffix())){
@@ -253,7 +250,7 @@ bool Tcl2CaplController::generateDefinitions_impl(){
     userInputConfig_.proceduresSettings().setMode(savedMode);
     //qDebug() << formatCount;
     for(Predefinitions::Iterator predefinition = predefinitions.begin(); predefinition < predefinitions.end(); predefinition++){
-        qDebug() << predefinition->type + " " + predefinition->value;
+//        qDebug() << predefinition->type + " " + predefinition->value;
     }
     return errorMsg.isEmpty();
 }
@@ -263,7 +260,7 @@ bool Tcl2CaplController::generateCapls_impl(){
     using ErrorMsg = QString;
     const ErrorMsg ERROR_PREFIX = "Definition File Error: ";
     ErrorMsg errorMsg;
-    CAPLFunctionDefinitions caplFunctionDefinitions;
+    FunctionDefinitions caplFunctionDefinitions;
     QDir outputDir = this->outputDir;
 
     int i = 0;
@@ -302,13 +299,12 @@ bool Tcl2CaplController::generateCapls_impl(){
         }else{
             // If file
             if(inputFile.isFile()){
-                Tcl2CaplResult::Tcl2CaplReadData tcFileData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions);
+                Tcl2CaplReadData tcFileData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions, Tcl2CaplReadData::ReadMode::FileMode);
                 TcFileModifier::Config tcFileModifier(tcFileData);
                 QStringList blackList;
                 QString filePath;
                 //tcFileData.clearInterpreter();
                 tcFileData.setCurrentTCLFileName( inputFile.fileName());
-                errorMsg.clear();
                 if(!(filePath = tcFileModifier.readFileByFilePath(inputFile.filePath(), QStringList())).isEmpty()){
                     // Check for interpreter errors
                     if(tcFileModifier.isError()){   // if error true
@@ -324,7 +320,11 @@ bool Tcl2CaplController::generateCapls_impl(){
                         }
                     }
                 }
+                if(tcFileData.isInitiliazed()){
+                    addResult(tcFileData.generateResult());
+                }
                 QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg, tcFileData.testCaseErrors()));
+                errorMsg.clear();
             }else{
                 int i = 0;
                 QString dirName = inputFile.fileName();
@@ -351,7 +351,7 @@ bool Tcl2CaplController::generateCapls_impl(){
                 dir.setSorting(QDir::Name);
 
                 QVector<QDirIterator*> dirs({new QDirIterator(dir)});
-                QVector<Tcl2CaplResult::Tcl2CaplReadData*> tcFileData{new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions)};
+                QVector<Tcl2CaplReadData*> tcFileData{new Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions, Tcl2CaplReadData::ReadMode::DirectoryMode)};
                 using NameFilters = const QStringList;
                 NameFilters permittedFileSuffixes = QStringList{"tc"};
 
@@ -376,7 +376,7 @@ bool Tcl2CaplController::generateCapls_impl(){
                                     return errorMsg.isEmpty();
                                 }
                                 dirs.append(new QDirIterator(dir));
-                                tcFileData.append(new Tcl2CaplResult::Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions));
+                                tcFileData.append(new Tcl2CaplReadData(outputDir, reportFile, userInputConfig_, caplFunctionDefinitions, Tcl2CaplReadData::ReadMode::DirectoryMode));
                             }
                         }else{
                             if(fileInfo.isFile() and permittedFileSuffixes.contains(fileInfo.completeSuffix())){
@@ -386,7 +386,6 @@ bool Tcl2CaplController::generateCapls_impl(){
                                 QString filePath;
                                 //tcFileData.clearInterpreter();
                                 tcFileData.last()->setCurrentTCLFileName( fileInfo.fileName());
-                                errorMsg.clear();
                                 if(!(filePath = tcFileModifier.readFileByFilePath(fileInfo.filePath(), QStringList())).isEmpty()){
                                     // Check for interpreter errors
                                     if(tcFileModifier.isError()){   // if error true
@@ -403,6 +402,7 @@ bool Tcl2CaplController::generateCapls_impl(){
                                     }
                                 }
                                 QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(errorMsg, tcFileData.last()->testCaseErrors()));
+                                errorMsg.clear();
                             }
                         }
                     }
@@ -421,7 +421,7 @@ bool Tcl2CaplController::generateCapls_impl(){
     }
     caplFunctionDefinitions.writeCaplFunctionDefinitions(caplDefinitionsFile);
     //WARNING: Temporary exploit (ErrorMsg == "END") to inform about end of processing - remove after taking care of Result Panel
-    QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(QString("END"), 0));
+    QApplication::postEvent(progressEventDest, new Tcl2CaplProgressEvent(caplFunctionDefinitions));
 
     //qDebug() << formatCount;
     return errorMsg.isEmpty();

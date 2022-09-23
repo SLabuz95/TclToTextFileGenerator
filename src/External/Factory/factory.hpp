@@ -40,6 +40,7 @@
         using ProductDefinition = typename  ProductDefinition<ProductsList>::Definition;
 
         public:
+        using ProductTypeEnum = ProductsList;
         using ProductBase = ProductDefinition;
 
         protected:
@@ -47,11 +48,19 @@
         Factory(const Factory& ) = delete;
 public:
         template<ProductsList ProductType>
-        class Product : public ProductsConfiguration<ProductsList>::Interface<ProductType>{};
+        class Product : public ProductsConfiguration<ProductsList>::template Interface<ProductType>{
+        public:
+            template<class ...Arg>
+            Product(Arg ...args) : ProductsConfiguration<ProductsList>::template Interface<ProductType>(args...){}
+
+            constexpr ProductsList type()const override{return ProductType;}
+        };
 
         using ProductBasePtr = ProductBase*;
         using ProductBaseRef = ProductBase&;
-        //using ListOfBases = QList<ProductBase>;
+        using ListOfBases = QList<ProductBase*>;
+        template<ProductsList ProductType>
+        using List = QList<Product<ProductType>>;
 
   private:
         inline static constexpr std::underlying_type_t<ProductsList> toUnderlyng(ProductsList value){
@@ -59,27 +68,34 @@ public:
         }
 
         inline static constexpr std::underlying_type_t<ProductsList> numbOfProducts(){return toUnderlyng(ProductsList::FCT_End) - toUnderlyng(ProductsList::FCT_Begin);}
-        using CreateFunction =  ProductBase*const (Factory::*)();
-        using CreateFunctionTable = CreateFunction[numbOfProducts()];
-
+        using CreateFunction =  ProductBase*const (*)();
         public:
-        template<ProductsList productType>
-        static ProductBase* create(){
-            return new Product<productType>();
+        using CreateFunctionTable = const std::array<CreateFunction, numbOfProducts()>;
+
+
+        template<ProductsList productType = ProductsList::FCT_Begin, class ...Args>
+        static constexpr ProductBase*const create(Args ...args){
+            return new Product<productType>(args...);
         }
 
+        static ProductBase* const create(ProductsList productType = ProductsList::FCT_Begin){
+            return (productType < ProductsList::FCT_End)? (Factory::createFunctionTable[toUnderlyng(productType)])() : nullptr;
+        }
 
         private:
-        static constexpr CreateFunction initCreateFunctionTable(){
-            for(ProductsList productType = ProductsList::FCT_Begin; productType < ProductsList::FCT_End; productType++){
+        static constexpr CreateFunctionTable initCreateFunctionTable(){
+            CreateFunctionTable createFunctionTable;
+            for(ProductsList productType = ProductsList::FCT_Begin; productType < ProductsList::FCT_End; ){
                 //static_assert (std::is_base_of_v<ProductBase<productType>, Product<productType>>, "Invalid product base");
-                createFunctionTable[toUnderlyng(productType)] = &Factory::create<productType>;
+                constexpr ProductsList productTypeT = productType;
+                createFunctionTable[toUnderlyng(productType)] = &Factory::create<productTypeT>();
+                productType = static_cast<ProductsList>(toUnderlyng(productType) + 1);
+
             }
-
-            return createFunctionTable[0];
+            return createFunctionTable;
         }
-
-        constexpr static CreateFunctionTable createFunctionTable = {initCreateFunctionTable()};
+        public:
+        static  CreateFunctionTable createFunctionTable;// = initCreateFunctionTable();
 
     };
 //};

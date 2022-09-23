@@ -8,17 +8,18 @@
 template<>
 template<>
 struct ParametersProducts::ImplementationData<ParametersType::List>::Properties
-: protected ParametersProductDefinition::Definition
+: public ParametersProductDefinition::Definition
 {
 protected:
-   // ListOfBases params;
+    using ParametersList = ListOfBases;
+    ListOfBases parameters_;
 
 };
 
 template<>
 template<>
 class ParametersProducts::ImplementationData<ParametersType::List>::Methods
-: protected ParametersProducts::ImplementationData<ParametersType::List>::Properties
+: public ParametersProducts::ImplementationData<ParametersType::List>::Properties
 {
 protected:
 
@@ -30,6 +31,7 @@ class ParametersProducts::InterfaceData<ParametersType::List>::Methods
 : public ParametersProducts::Implementation<ParametersType::List>
 {
 public:
+    ListOfBases& parameters(){return parameters_;}
     //void toXmlContent(QXmlStreamWriter& xmlWriter) override;
 
 };

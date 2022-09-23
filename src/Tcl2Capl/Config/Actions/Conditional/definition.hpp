@@ -1,12 +1,12 @@
 #ifndef DEFINITION_CONDITIONAL_HPP
 #define DEFINITION_CONDITIONAL_HPP
 
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include"External/Factory/productdef.hpp"
 
-using TclProcedureInterpreter = TCLInterpreter::TCLProceduresInterpreter;
-using Settings = TclProcedureInterpreter::ProdecuresSettings;
-using UserProcedure = TclProcedureInterpreter::ProcedureDefinition;
+using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
+using Settings = Tcl::Interpreter::Command::Settings;
+using UserProcedure = Tcl::Interpreter::Command::Definition;
 using UserProcedureRule = UserProcedure::Rule;
 using UserProcedureRules = QList<UserProcedureRule>;
 using Mode = Settings::InterpreterMode;
@@ -34,8 +34,9 @@ class ConditionalsProductDefinition::ImplementationData::Methods{
 
 template <>
 class ConditionalsProductDefinition::InterfaceData::Methods{
-
-    virtual void toXmlContent(QXmlStreamWriter& xmlWriter){};
+public:
+    virtual void toXmlContent(QXmlStreamWriter& xmlWriter) = 0;
+    virtual void toAction(UserProcedureRule::ConditionalActions::Type&) = 0;
     //inline virtual RawFormatType rawFormatType() const = 0;
 };
 

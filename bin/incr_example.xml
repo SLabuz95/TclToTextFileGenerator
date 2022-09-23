@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tclConfig>
+    <settings>
+        <writeOnlyProcedures/>
+    </settings>
+    <procedures>
+        <procedure>
+            <name>_incr_parser</name>
+            <rulesOnEndOfCall>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Index" value="0"/>
+                        </param>
+                    </executableAction>
+                </rawRule>
+            </rulesOnEndOfCall>
+            <rulesForUndefinedArgument/>
+        </procedure>
+        <procedure>
+            <name>incr</name>
+            <rulesOnEndOfCall>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="CompareNumbOfArguments">
+                        <param type="0">
+                            <param type="0" value="2"/>
+                        </param>
+                    </conditionalAction>
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Index" value="0"/>
+                            <formatRule type="Text">+= </formatRule>
+                            <formatRule type="Index" value="1"/>
+                            <formatRule type="Text">;</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="CompareNumbOfArguments">
+                        <param type="0">
+                            <param type="0" value="1"/>
+                        </param>
+                    </conditionalAction>
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Index" value="0"/>
+                            <formatRule type="Text">++;</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+            </rulesOnEndOfCall>
+            <rulesForUndefinedArgument/>
+            <rulesForArgument index="0">
+                <rulesOnMove>
+                    <rawRule controlFlag="BreakRuleCheck">
+                        <executableAction type="TclParse">
+                            <param type="0">
+                                <formatRule type="Text">_incr_parser $</formatRule>
+                                <formatRule type="Format" target="TclFormat"/>
+                                <formatRule type="Index" value="0"/>
+                            </param>
+                        </executableAction>
+                    </rawRule>
+                </rulesOnMove>
+            </rulesForArgument>
+        </procedure>
+    </procedures>
+    <defaultProcedure>
+        <rulesOnEndOfCall/>
+        <rulesForUndefinedArgument/>
+    </defaultProcedure>
+</tclConfig>

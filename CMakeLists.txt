@@ -30,11 +30,15 @@ add_executable(TclCaplParserCMake
     ${headers}
     )
 
+
+
 target_include_directories(TclCaplParserCMake
     PRIVATE
-
+        src
     )
-include_directories(src ${includeDir})
+
+
+include_directories(src ${includeDirs})
 
 target_link_libraries(TclCaplParserCMake
     PRIVATE

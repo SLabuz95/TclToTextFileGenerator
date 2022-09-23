@@ -7,7 +7,7 @@
 template<>
 template<>
 struct ParametersProducts::ImplementationData<ParametersType::String>::Properties
-: protected ParametersProductDefinition::Definition
+: public ParametersProductDefinition::Definition
 {
 protected:
     QString content;
@@ -17,7 +17,7 @@ protected:
 template<>
 template<>
 class ParametersProducts::ImplementationData<ParametersType::String>::Methods
-: protected ParametersProducts::ImplementationData<ParametersType::String>::Properties
+: public ParametersProducts::ImplementationData<ParametersType::String>::Properties
 {
 
 };

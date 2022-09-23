@@ -1,11 +1,11 @@
 #include"controllerconfig.hpp"
 #include<QFileInfo>
 #include<QXmlStreamWriter>
-
+/*
 Tcl2CaplControllerConfig::Tcl2CaplControllerConfig(Tcl2CaplControllerConfigXmlData& xmlData)
 {
 
-}
+}*/
 
 Tcl2CaplControllerConfig::Procedure::Procedure(const Procedure& procedureRef, Name newName) : Procedure(procedureRef){
     name_ = newName;
@@ -29,15 +29,16 @@ Tcl2CaplControllerConfig::UserProcedure Tcl2CaplControllerConfig::Procedure::toP
     // Not implemented yet
 
     // Rules on end of call
+/* Commented but required
     rulesOnEndOfCall = Rules(this->rulesOnEndOfCall().size());
-    using RawRuleRef = RawRuleRefs::Iterator;
+    using RawRuleRef = RawRules::Iterator;
     RawRuleRef rawRuleRef = this->rulesOnEndOfCall().begin();
     Rules::Iterator newRule = rulesOnEndOfCall.begin();
     for(; rawRuleRef < this->rulesOnEndOfCall().end(); rawRuleRef++, newRule++)
     {
         //(*rawRuleRef)->toRule((*newRule));
     }
-
+*/
     return UserProcedure(name(), rulesForArguments, rulesForArgument, rulesOnEndOfCall);
 }
 
@@ -161,6 +162,10 @@ void Tcl2CaplControllerConfig::RulesForArgument::toRule(UserProcedureRule &rule)
 bool operator==(const Tcl2CaplControllerConfig::Procedure& lhs, const Tcl2CaplControllerConfig::Procedure& rhs){
     return lhs.name() == rhs.name();
 }
+
+//bool operator==(const Tcl2CaplControllerConfig::Attribute& attribute, const QString& rhs)
+//{ return attribute.name == rhs; }
+
 /*
 bool Tcl2CaplControllerConfig::writeToFile(QFile file){
     QFileInfo fileInfo(file);
@@ -211,14 +216,16 @@ void Tcl2CaplControllerConfig::Procedure::toXmlContent(QXmlStreamWriter& xmlWrit
         Q_ASSERT_X(userInteractionStr.length() != 0, "Procedure::toXmlContent", "Internal error: Unknown UserInteractionStatus");
         xmlWriter.writeAttribute("userInteraction", userInteractionStr);
     }
+    /* Commented but required
     // Rules
-    for(RawRuleRefs::Iterator ruleOnEndOfCall = rulesOnEndOfCall_.begin(); ruleOnEndOfCall != rulesOnEndOfCall_.end(); ruleOnEndOfCall++){
+    for(RawRules::Iterator ruleOnEndOfCall = rulesOnEndOfCall_.begin(); ruleOnEndOfCall != rulesOnEndOfCall_.end(); ruleOnEndOfCall++){
        // (*ruleOnEndOfCall)->toXmlContent(xmlWriter);
     }
     for(RulesForArguments::Iterator ruleForArgument = rulesForArguments().begin(); ruleForArgument != rulesForArguments().end(); ruleForArgument++){
        // ruleForArgument->toXmlContent(xmlWriter);
     }
     // End of Element
+    */
     xmlWriter.writeEndElement();
 
 }

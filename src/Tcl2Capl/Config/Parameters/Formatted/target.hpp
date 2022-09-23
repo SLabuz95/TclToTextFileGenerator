@@ -6,30 +6,44 @@
 
 template<>
 template<>
-struct FormatParametersProducts::ImplementationData<FormatParametersType::TARGET>::Properties
-: protected FormatParametersProductDefinition::Definition
+struct FormatParametersProducts::ImplementationData<FormatParametersType::FormatItem>::Properties
+: public FormatParametersProductDefinition::Definition
 {
+    using UserProcedure = Tcl::Interpreter::Command::Definition;
+public:
+    using Format = UserProcedure::Format;
+    using Target = Format::Target;
 protected:
-   // FormatParametersProducts::FactoryCommonInterface* data = nullptr;
+    Target target_ = Target();
 
 };
 
 template<>
 template<>
-class FormatParametersProducts::ImplementationData<FormatParametersType::TARGET>::Methods
-: protected FormatParametersProducts::ImplementationData<FormatParametersType::TARGET>::Properties
+class FormatParametersProducts::ImplementationData<FormatParametersType::FormatItem>::Methods
+: public FormatParametersProducts::ImplementationData<FormatParametersType::FormatItem>::Properties
 {
 
 };
 
 template<>
 template<>
-class FormatParametersProducts::InterfaceData<FormatParametersType::TARGET>::Methods
-: public FormatParametersProducts::Implementation<FormatParametersType::TARGET>
+class FormatParametersProducts::InterfaceData<FormatParametersType::FormatItem>::Methods
+: public FormatParametersProducts::Implementation<FormatParametersType::FormatItem>
 {
 public:
-   // void toXmlContent(QXmlStreamWriter& xmlWriter) override;
-   // inline RawFormatType rawFormatType()const override final{return RawFormatType::TARGET;}
+    void setTarget(Target target){target_ = target;}
+    Target target()const{return target_;}
+    void toActionParameters(QStringList& parameters)override{
+        using Format = Tcl::Interpreter::Command::Definition::Format;
+        Format::addFormatRule(parameters, Format::Rule::TARGET, Format::cast_target_str(target()));
+    }
+    void toXmlContent(QXmlStreamWriter& xmlWriter) override{
+        xmlWriter.writeEmptyElement("formatRule"); // String param?
+        xmlWriter.writeAttribute("type", FormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
+        xmlWriter.writeAttribute("target", Format::toStr_target(target())); // For compatibility with future implementation
+    }
+   // inline RawFormatType rawFormatType()const override final{return RawFormatType::NameItem;}
 
 };
 /*

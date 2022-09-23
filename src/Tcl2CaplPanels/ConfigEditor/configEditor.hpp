@@ -17,7 +17,7 @@
 #include<QComboBox>
 #include<QLineEdit>
 #include<QHeaderView>
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/tclToCAPL.hpp"
 #include<QFormLayout>
 #include"writeOnlyProceduresList.hpp"
 #include"proceduresList.hpp"
@@ -25,70 +25,93 @@
 #include"fileconfigpanel.hpp"
 #include"loadconfigsettings.hpp"
 #include"Tcl2Capl/controllerconfiginfo.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/ConfigViewPanel/configViewPanel.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/rulesPhasePanel.hpp"
 
 class App;
-class ActionsView;
-class ConfigEditor : public QWidget{
-public:
-    using Config = Tcl2CaplControllerConfig;
-    using ConfigRef = Config&;
-    using ConfigPtr = Config*;
-    using ConfigInfoPtr = ControllerConfigInfo::SelfPtr;
 
-    ConfigEditor(App&);
-    virtual ~ConfigEditor() override;
+namespace Panels::Configuration{
+    using namespace Navigation;
+    class Panel : public QWidget{
+    public:
+        using NavigationList = Navigation::List;
+        using ConfigInfo = ControllerConfigInfo;
+        //using ConfigRef = Config&;
+        //using ConfigPtr = Config*;
+        //using ConfigInfoPtr = ControllerConfigInfo::SelfPtr;
 
-protected:
-    using Layout = QVBoxLayout;
-    using Splitter = QSplitter;
+        Panel(App&);
+        virtual ~Panel() override;
 
-    using RulesView = QTreeWidget;
-    using NoSelectedProcedurePanel =  QLabel;
+    protected:
+        using Layout = QVBoxLayout;
 
-    App& app_;
+        using RulesView = QTreeWidget;
+        using NoSelectedProcedurePanel =  QLabel;
 
-    Layout layout;
-    FileConfigPanel fileConfigPanel;
-    // NO GUI ELEMENT
-    ConfigInfoPtr configInfoPtr = nullptr;
-    // ---------------------
-    Splitter splitter;
-    QToolBox toolBox;
-    WriteOnlyProceduresList writeOnlyProceduresList;
-    ProceduresList proceduresList;
-    RulesProcedurePanel rulesProcedurePanel;
-    NoSelectedProcedurePanel noSelectedProcedurePanel;
+        App& app_;
+
+        Layout layout;
+        FileConfigPanel fileConfigPanel;
+        View::ConfigViewPanel configViewPanel;
+        // NO GUI ELEMENT
+        ConfigInfo config_;
+        // ---------------------
+
+        bool newConfig();
+        bool readConfig();
+        bool saveConfig();
+        bool saveAsConfig(QString);
+        bool saveCurrentConfig();
+        //void loadConfigData(ConfigInfoPtr, LoadConfigSettings);
+
+        void loadProcedureRulesPanel();
+
+        bool eventFilter(QObject*, QEvent*) override;
+
+    public:
+        void deactivateRulesPanel();
+        void syncConfig();
+        void loadModifierRules(QString , QString rulesCategory);
+        void loadRules(QString procedureName, QString rulesCategory);
+        void loadDefaultRules(QString rulesCategory);
+
+        bool editProcedure(QString, QString);
+        bool editIndex(qsizetype oldIndex, qsizetype newIndex);
+        bool editIndex(QString, qsizetype oldIndex, qsizetype newIndex);
+
+        void removeProcedure(QString);
+        void removeIndex(QString, qsizetype);
+        void removeIndex(qsizetype);
+
+        void clearProcedures();
+        void clearIndexes(QString);
+        void clearIndexes(); // DefaultProcedure
 
 
-    bool newConfig();
-    bool readConfig(QString);
-    bool saveConfig(QString);
-    void loadConfigData(ConfigInfoPtr, LoadConfigSettings);
-    void reloadGui();
+        bool editPhase(QString, QString);
+        void removePhase(QString);
+        void clearPhases();
 
-    void loadProcedureRulesPanel();
-    void clearProcedureRulesPanel();
+        //inline ConfigInfoPtr getConfigInfoPtr()const{return configInfoPtr;}
+        inline bool request_newConfig(){return newConfig();}
+        inline bool request_readConfig(){return readConfig();}
+        inline bool request_saveAsConfig(QString path){return saveAsConfig(path);}
+        inline bool request_saveConfig(){return saveConfig();}
 
-    bool eventFilter(QObject*, QEvent*) override;
+        inline void reloadGui(){
+            //writeOnlyProceduresList.reloadGui();
+            ConfigInfo::PhasesView phasesView = config().readPhasesInfo();
+            ConfigInfo::ProceduresView proceduresView = config().readProceduresInfo();
+            deactivateRulesPanel();
+            configViewPanel.loadConfigData(config().writeOnlyProcedures(), config().attributes(), phasesView, proceduresView);
+        }
 
-public:
-    inline bool request_newConfig(){return newConfig();}
-    inline bool request_readConfig(QString path){return readConfig(path);}
-    inline bool request_saveConfig(QString path){return saveConfig(path);}
-    inline bool anyChanges(){
-        return writeOnlyProceduresList.anyChanges() or
-                proceduresList.anyChanges();
-    }
+        inline App& app()const{return app_;}
+        inline ConfigInfo& config(){return config_;}
 
-     bool isDefaultConfig();
+    };
 
-    inline void reloadGuiForUpdatedConfig(){
-        writeOnlyProceduresList.reloadGui();
-        proceduresList.reloadGui();
-        reloadGui();
-    }
-
-    inline App& app()const{return app_;}
 };
 
 #endif // CONFIGEDITOR_HPP

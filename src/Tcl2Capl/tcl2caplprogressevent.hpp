@@ -3,13 +3,21 @@
 
 #include<QEvent>
 #include<QString>
+#include"caplFunctionDefiniitions.hpp"
 
+
+using namespace Tcl::Analysis;
 class Tcl2CaplProgressEvent : public QEvent{
 
 public:
     using ErrorsNumber = const uint;
     using CriticalError = const QString;
     using ErrorMsg =  const QString;
+    Tcl2CaplProgressEvent(FunctionDefinitionsRef definitions) : QEvent(eventType_static()),
+      caplFunctionDefinitions_(definitions)
+    {
+        ready = true;
+    }   // End of File Event
     Tcl2CaplProgressEvent(CriticalError criticalError) : QEvent(eventType_static()), criticalError_(criticalError) {}   // End of File Event
     Tcl2CaplProgressEvent(ErrorMsg errorMsg, ErrorsNumber errorsNumber)
         : QEvent(eventType_static()), numbOfErrors_(errorsNumber), errorMsg_(errorMsg) {}   // End of File Event
@@ -25,11 +33,16 @@ public:
     bool isCriticalError()const{return not criticalError_.isEmpty();}
     CriticalError& criticalError()const{return criticalError_;}
     ErrorMsg& errorMsg()const{return errorMsg_;}
+    bool isReady(){return ready;}
+    FunctionDefinitionsRef caplFunctionDefinitions(){return caplFunctionDefinitions_;};
 
 protected:
     CriticalError criticalError_;
     ErrorsNumber numbOfErrors_ = 0;
     ErrorMsg errorMsg_;
+    FunctionDefinitions caplFunctionDefinitions_;
+
+    bool ready = false;
 
 };
 

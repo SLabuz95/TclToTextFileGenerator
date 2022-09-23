@@ -42,38 +42,23 @@ class ProductDefinition {
     using IS_Methods_BASE_OF_Implementation = void;
     public:
 
-    class Interface : protected InterfaceData::Methods{};
+    class Interface : public InterfaceData::Methods{};
 
-    class Definition : public Interface{};
+    class Definition : public Interface{
+    public:
+        using ProductsList = ProductsList_;
+        inline static constexpr ProductsList fromUnderlying(std::underlying_type_t<ProductsList> value){
+            return static_cast<ProductsList>(value);
+        }
+        inline static constexpr std::underlying_type_t<ProductsList> toUnderlyng(ProductsList value){
+            return static_cast<std::underlying_type_t<ProductsList>>(value);
+        }
+        inline static constexpr std::underlying_type_t<ProductsList> numbOfProducts(){return toUnderlyng(ProductsList::FCT_End) - toUnderlyng(ProductsList::FCT_Begin);}
+
+        virtual constexpr ProductsList type()const = 0;
+    };
 
 };
-
-enum class Animals{
-    Cat,
-    Dog
-};
-
-using AnimalData = ProductDefinition<Animals>::ImplementationData;
-
-template<>
-class ProductDefinition<Animals>::ImplementationData::Properties{
-protected:
-    int age = 0;
-};
-
-template<>
-class ProductDefinition<Animals>::ImplementationData::Methods : protected ProductDefinition<Animals>::ImplementationData::Properties{
-    void calculateAge(){}
-};
-
-using AnimalInterfaceData = ProductDefinition<Animals>::InterfaceData;
-
-template<>
-class AnimalInterfaceData::Methods : public ProductDefinition<Animals>::Implementation{
-    const int& ageView()const{return age;}
-};
-
-using AnimalsDefinition = ProductDefinition<Animals>::Definition;
 
 
 

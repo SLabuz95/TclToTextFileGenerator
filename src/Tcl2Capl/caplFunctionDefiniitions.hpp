@@ -1,19 +1,39 @@
 #ifndef CAPLFUNCTIONDEFINIITIONS_HPP
 #define CAPLFUNCTIONDEFINIITIONS_HPP
-#include"tclToCAPL.hpp"
+#include"TclInterpreter/CommandsCont/commandCall.hpp"
+#include<QMap>
 
-class CAPLFunctionDefinitions{
-    using DefinitionInfo = QMap<TCLInterpreter::TCLProceduresInterpreter::ProcedureCall::Parameters::size_type, QSet<QString>>; // <Numb of Parameters, Examples/ Occurencies>
-    using Definitions = QMap<QString, DefinitionInfo>;    // <Name, Info>
+class QFile;
+namespace Tcl::Analysis{
+    using namespace Tcl::Interpreter;
+    using namespace Tcl::Interpreter::Command;
+    class FunctionDefinitions{
+    public:
+        using Parameters = QList<Stat>;
+        using Example = QString;
+        using Examples = QList<Example>;
+        using ProcedureInfos = QMap<Parameters, Examples>;
+        using DefinitionInfo = QMap<Call::Parameters::size_type, ProcedureInfos>; // <Numb of Parameters, Examples/ Occurencies>
+        using Definitions = QMap<QString, DefinitionInfo>;    // <Name, Info>
 
-protected:
-    Definitions definitions;
+    protected:
+        Definitions definitionsOnNoRules;
+        Definitions definitionsOnNotSatisfiedRules;
 
-public:
-    void addDefinition(TCLInterpreter::TCLProceduresInterpreter::ProcedureCall procedureCall);
+    public:
 
-    void writeCaplFunctionDefinitions(QFile &file);
+        void addDefinitionNoRules(Call& procedureCall);
+        void addDefinitionNotSatisfiedRules(Call& procedureCall);
+
+        void writeCaplFunctionDefinitions(QFile &file);
+
+         Definitions& definitionsOnNoRulesView(){return definitionsOnNoRules;}
+         Definitions& definitionsOnNotSatisfiedRulesView(){return definitionsOnNotSatisfiedRules;}
+
+    };
+
+    using FunctionDefinitionsRef = FunctionDefinitions&;
+
 };
-using CAPLFunctionDefinitionsRef = CAPLFunctionDefinitions&;
 
 #endif // CAPLFUNCTIONDEFINIITIONS_HPP
