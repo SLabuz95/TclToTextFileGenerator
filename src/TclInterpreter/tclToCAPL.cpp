@@ -49,7 +49,7 @@ KeywordsMap KeywordsController::keywordsMap ={
         {"|", Stat::Word},
         {"^", Stat::Word},
         {"?", Stat::Word},
-        {":", Stat::Word},
+        //{":", Stat::Word},
         {" ", Stat::Whitespace},
         {"\t", Stat::Whitespace},        
         {"\n", Stat::Whitespace},
@@ -60,7 +60,7 @@ KeywordsMap KeywordsController::keywordsMap ={
 
     },
     {
-        {"::", Stat::Namespace},
+        //{"::", Stat::Namespace},
         {"==", Stat::Word},
         {"!=", Stat::Word},
         {">=", Stat::Word},
@@ -110,6 +110,7 @@ const QList<QString> Action::conditionalMap
     QStringLiteral("AddPreExpression"),
     QStringLiteral("AddUserInteraction"),
     QStringLiteral("AddPredefinition"),
+    QStringLiteral("WriteAttribute"),
     //{QStringLiteral("FinalizeForEach"), Action::Executable::FinalizeForEach},  // private
     //{QStringLiteral("AddSnprintf"), Action::Executable::AddSnprintf},// private
 };
@@ -120,6 +121,7 @@ const QList<QString> Format::ruleMap
     QStringLiteral("ArgumentsFrom"),
     QStringLiteral("Separator"),
     QStringLiteral("Target"),
+    QStringLiteral("Attribute"),
 };
 
  const QList< QString> Format::targetMap
@@ -323,422 +325,6 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
             }
           }
         }
-    }, // End of Definition ----------------------------------------------
-    {   // Definition --------------------------------------------------------
-        "if",
-        {   // Rules for Arguments
-            {
-                0,
-                {   // Dynamic Rules
-                    {   // Rule 1: If lastSavedStat stat == BracesStart -> Change to BracesStartExprOnly
-                        {
-                            {
-                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                             {
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))
-                             }
-                            },
-
-                        },
-                        {
-                           {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
-                           }
-                        }
-                    },
-                    {   // Rule 2: If lastSavedStat stat ==  ComplexWord -> Change to ComplexWordExprOnly
-                        {
-                            {
-                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                             {
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWord))
-                             }
-                            },
-
-                        },
-                        {
-                           {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWordExprOnly))}
-                           }
-                        }
-                    },
-                    {   // Rule 3: If lastSavedStat stat ==  DoubleQuotes -> Change to DoubleQuotesExprOnly
-                        {
-                            {
-                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                             {
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::DoubleQuotes))
-                             }
-                            },
-
-                        },
-                        {
-                           {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::DoubleQuotesExprOnly))}
-                           }
-                        }
-                    },
-                    {   // Rule 4: Error if no rules have been executed
-                        {
-                            // No Conditions
-                        },
-                        {
-                            {   // Error
-                                ProcedureDefinition::Action::Executable::Error,
-                                {
-                                    "\"If\" conditional expression isnt list or complexWord"
-                                }
-                            }
-                        }
-                    }
-                },
-                {   // Rules on moveArgument
-                   { // Rule 1
-                       {
-                       },
-                       {
-                         {   // Finalize expr
-                             ProcedureDefinition::Action::Executable::ExprFinalize,
-                             {}
-                         },
-                         {   // Write as ( =-1 )
-                             ProcedureDefinition::Action::Executable::Write,
-                             {
-                                 "( ",
-                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                 "=-1",
-                                 " )"
-                             }
-                         }
-                       }
-                    },
-                }
-            },
-            { // On 2nd argument (then or script)
-                1,
-                {   // Dynamic Rules
-                    {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
-                        {   // Conditions:  If SavedStat stat == List
-                            {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
-                            },
-                        },
-                        {
-                           {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                           }
-                        }
-                    },
-
-                },
-                {   // Rules on moveArgument
-                    {   // Rule 1: If Script
-                        {
-                            {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                            },
-                        },
-                        {
-
-                        }
-                    },
-                    {   // Rule 2: If "then"
-                        {
-                            TclProcedureInterpreter::newCompareRule(
-                            {"then"},
-                            {
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                 "=-1",
-                            }
-                            ),
-                        },
-                        {
-
-                        }
-                    },
-                    {   // Rule 3: Error
-                        {
-
-                        },
-                        {
-                            {// Error
-                                ProcedureDefinition::Action::Executable::Error,
-                                {"If procedure incorrect 2nd argument"}
-                            }
-                        }
-                    },
-                }
-            },
-        { // On 3rd argument (script or else or elseif or nothing)
-            2,
-            {   // Dynamic Rules
-                { // Rule 1: If argument 1 == "then"
-                  {   // Conditions:  If SavedStat stat == List
-                      {   // Condition 1:  If SavedStat stat == List
-                          ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                          {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
-                      },
-                  },
-                  {
-                     {    // Action 1: Change stat to CodeBlock
-                           ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                          {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                     }
-                  }
-                },
-            },
-            {   // Rules on moveArgument
-                {   // Rule 1: If Script and prelast parameter is then
-                    {
-                        {   // Condition 1:  If SavedStat stat == List
-                            ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                        },
-                        TclProcedureInterpreter::newCompareRule(
-                        {"then"},
-                        {
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                             "=-2",
-                        }
-                        ),
-                    },
-                    {
-
-                    }
-                },
-                {   // Rule 2: If "else" or "elseif" and if prelastStat  is script
-                    {
-                        TclProcedureInterpreter::newCompareRule(
-                        {"else", "elseif"},
-                        {
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                             "=-1",
-                        }
-                        ),
-                    },
-                    {
-
-                    }
-                },
-                {   // Rule 3: Error
-                    {
-
-                    },
-                    {
-                        {// Error
-                            ProcedureDefinition::Action::Executable::Error,
-                            {"If procedure incorrect 3nd argument"}
-                        }
-                    }
-                },
-            }
-            },
-        },
-        {   // Rules for Unspecified Argument
-            0,
-            {   // Dynamic Rules
-                {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
-                    {
-                        {
-                          ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
-                        },
-                        {
-                            TclProcedureInterpreter::newCompareRule(
-                            {"else"},
-                            {
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                "=-2"
-                            }
-                            ),
-                        },
-                    },
-                    {
-                       {    // Action 1: Change stat to CodeBlock
-                             ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                       }
-                    }
-                },
-                {   // Rule 2: On lastSavedStat == List -> Change to CodeBlock
-                    {
-                        {
-                          ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
-                        },
-                        {
-                            TclProcedureInterpreter::newCompareRule(
-                            {"elseif"},
-                            {
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                "=-2"
-                            }
-                            ),
-                        },
-                    },
-                    {
-                       {    // Action 1: Change stat to CodeBlock
-                             ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                            {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
-                       }
-                    }
-                },
-
-            },
-            {   // Rules on moveArgument                
-                {   // Rule 1: if lastSavedStat command == (elseif) -> P
-                    {
-                        TclProcedureInterpreter::newCompareRule(
-                        {"elseif"},
-                        {
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=-2"
-                        }
-                        ),
-                    },
-                    {
-                        { // Parse [expr_parser =-1]
-                           ProcedureDefinition::Action::Executable::TclParse,
-                           {"expr ",
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=-1",
-                           }
-                       },
-                        // Write as ( =-1 )
-                        {
-                            ProcedureDefinition::Action::Executable::Write,
-                            {
-                                "( ",
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                "=-1",
-                                " )"
-                            }
-                        }
-                    }
-                },
-                {   // Rule 3: If lastSavedStat command == else -> {\n =-1 \n}
-                    {
-                        TclProcedureInterpreter::newCompareRule(
-                        {"else"},
-                        {
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                             "=-2"
-                        }
-                        ),
-                    },
-                    {
-                        {
-                            ProcedureDefinition::Action::Executable::Write,
-                            {
-
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                "=-1",
-                            }
-                        }
-                    }
-                },
-                {   // Rule 4: If PreLastSavedStat command == else -> {\n =-1 \n}
-                    {
-                        TclProcedureInterpreter::newCompareRule(
-                        {"elseif"},
-                        {
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=-3"
-                        }
-                        ),
-                    },
-                    {
-                        {
-                            ProcedureDefinition::Action::Executable::Write,
-                            {
-                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                "=-1",
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        {   // Rules on End of Call
-            {   // Rule 1
-
-                {
-                    // No conditions
-                    {
-                        ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
-                        {
-                            QString::number(0)
-                        }
-                    }
-                },
-                {
-                    {
-                        ProcedureDefinition::Action::Executable::Error,
-                        {
-                            "If procedure without arguments",
-                        }
-                    }
-                }
-
-            },
-            {   // Rule 2
-
-                {
-                    // No conditions
-                },
-                {
-                    {
-                        ProcedureDefinition::Action::Executable::Write,
-                        {
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=",
-                            //ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            //ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
-                            //+ ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            ">0"
-                        }
-                    }
-                }
-
-            }
-        }
     },  // End of Definition ================================================,
     {   // Definition --------------------------------------------------------
         "while",
@@ -903,328 +489,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::hardcodedProcedureDef
                 }
             },
         }
-    },  // End of Definition ================================================,
-    {   // Definition --------------------------------------------------------
-        "for",
-        {   // Rules for Arguments
-            {
-                0,
-                {   // Dynamic Rules
-                    {   // Rule 1: If lastSavedStat stat == List or EndOfList or FunctionCall or Whitespace -> Do nothing (Break)
-                        {
-                            {
-                             ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                             {
-                                QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))
-                             }
-                            },
-
-                        },
-                        {
-                           {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                           }
-                        }
-                    },
-                    {   // Rule 2: Error if no rules have been executed
-                        {
-                            // No Conditions
-                        },
-                        {
-                            {   // Error
-                                ProcedureDefinition::Action::Executable::Error,
-                                {
-                                    "\"For\" initialization expression (argument 1) isnt list"
-                                }
-                            }
-                        }
-                    }
-                },
-                {   // Rules on moveArgument
-                    {   // Rule 1: If Script
-                        {
-                            {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                            },
-                        },
-                        {
-
-                        }
-                    },
-                    {   // Rule 3: Error
-                        {
-
-                        },
-                        {
-                            {// Error
-                                ProcedureDefinition::Action::Executable::Error,
-                                {"For procedure incorrect 1st argument"}
-                            }
-                        }
-                    },
-                }
-            },
-            { // On 2nd argument (then or script)
-                1,
-                {   // Dynamic Rules
-                    {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
-                        {   // Conditions:  If SavedStat stat == List
-                            {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
-                            },
-                        },
-                        {
-                           {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
-                           }
-                        }
-                    },
-                    {   // Rule 2: Error if no rules have been executed
-                        {
-                            // No Conditions
-                        },
-                        {
-                            {   // Error
-                                ProcedureDefinition::Action::Executable::Error,
-                                {
-                                    "\"For\" conditional expression (argument 2) isnt list"
-                                }
-                            }
-                        }
-                    }
-                },
-                {   // Rules on moveArgument
-                      {   // Rule 1: If Script
-                          {
-                              {   // Condition 1:  If SavedStat stat == List
-                                  ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                                  {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
-                              },
-                          },
-                          {
-                              {   // Finalize expr
-                                  ProcedureDefinition::Action::Executable::ExprFinalize,
-                                  {}
-                              },
-                          }
-                      },
-                      {   // Rule 3: Error
-                          {
-
-                          },
-                          {
-                              {// Error
-                                  ProcedureDefinition::Action::Executable::Error,
-                                  {"For procedure incorrect 2nd argument"}
-                              }
-                          }
-                      },/*
-                        {
-                        },
-                        {
-                          {   // Finalize expr
-                              ProcedureDefinition::Action::Executable::ExprFinalize,
-                              {}
-                          },/*
-                          {   // Write as ( =-1 )
-                              ProcedureDefinition::Action::Executable::Write,
-                              {
-                                  "( ",
-                                  ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                  "=-1",
-                                  " )"
-                              }
-                          }
-                        }
-                     }, */
-                }
-            },
-            { // On 3nd argument (then or script)
-                2,
-                {   // Dynamic Rules
-                    {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
-                        {   // Conditions:  If SavedStat stat == List
-                            {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
-                            },
-                        },
-                        {
-                           {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                           }
-                        }
-                    },
-                    {   // Rule 2: Error if no rules have been executed
-                        {
-                            // No Conditions
-                        },
-                        {
-                            {   // Error
-                                ProcedureDefinition::Action::Executable::Error,
-                                {
-                                    "\"For\" increment expression (argument 3) isnt list"
-                                }
-                            }
-                        }
-                    }
-                },
-                {   // Rules on moveArgument
-                    {   // Rule 1: If Script
-                        {
-                            {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                            },
-                        },
-                        {
-
-                        }
-                    },
-                    {   // Rule 3: Error
-                        {
-
-                        },
-                        {
-                            {// Error
-                                ProcedureDefinition::Action::Executable::Error,
-                                {"For procedure incorrect 3nd argument"}
-                            }
-                        }
-                    },
-                }
-            },
-            { // On 3nd argument (then or script)
-                3,
-                {   // Dynamic Rules
-                    {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
-                        {   // Conditions:  If SavedStat stat == List
-                            {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
-                            },
-                        },
-                        {
-                           {    // Action 1: Change stat to CodeBlock
-                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                           }
-                        }
-                    },
-                    {   // Rule 2: Error if no rules have been executed
-                        {
-                            // No Conditions
-                        },
-                        {
-                            {   // Error
-                                ProcedureDefinition::Action::Executable::Error,
-                                {
-                                    "\"For\" increment expression (argument 4) isnt list"
-                                }
-                            }
-                        }
-                    }
-                },
-                {   // Rules on moveArgument
-                    {   // Rule 1: If Script
-                        {
-                            {   // Condition 1:  If SavedStat stat == List
-                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
-                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
-                            },
-                        },
-                        {
-
-                        }
-                    },
-                    {   // Rule 3: Error
-                        {
-
-                        },
-                        {
-                            {// Error
-                                ProcedureDefinition::Action::Executable::Error,
-                                {"For procedure incorrect 4nd argument"}
-                            }
-                        }
-                    },
-                }
-            },
-        },
-        {   // Rules for Unspecified Argument
-
-        },
-        {   // Rules on End of Call
-            {   // Rule 1
-
-                {
-                    {
-                        ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
-                        {
-                            QString::number(4)
-                        }
-                    }
-                },
-                {
-                    {
-                        ProcedureDefinition::Action::Executable::AddUserInteraction,
-                        {
-                            "Prepare for control"
-                        }
-                    },
-                    {
-                        ProcedureDefinition::Action::Executable::AddPreExpression,
-                        {
-                            "// Initialization expression\n",
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=0",
-                        }
-                    },
-                    {
-                        ProcedureDefinition::Action::Executable::AddPreExpression,
-                        {
-                            "// Incrementing expression\n",
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=2",
-                        }
-                    },
-                    {
-                        ProcedureDefinition::Action::Executable::Write,
-                        {
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=",
-                            "(/* Initialization */ ; ",
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=1",
-                            " ; /* Incrementation */ )",
-                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=3"
-                            //ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            //ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
-                            //+ ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
-                        }
-                    }
-                }
-
-            },
-            {   // Rule 2: Error
-                {
-
-                },
-                {
-                    {// Error
-                        ProcedureDefinition::Action::Executable::Error,
-                        {"For procedure requires only 4 parameters"}
-                    }
-                }
-            },
-        }
-    },  // End of Definition ================================================,
+    }
 };
 
 TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefinitions = {
@@ -1293,7 +558,746 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                },
            }
        },
+     // End of Definition ----------------------------------------------
+        {   // Definition --------------------------------------------------------
+            "if",
+            {   // Rules for Arguments
+                {
+                    0,
+                    {   // Dynamic Rules
+                        {   // Rule 1: If lastSavedStat stat == BracesStart -> Change to BracesStartExprOnly
+                            {
+                                {
+                                 ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                 {
+                                    QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))
+                                 }
+                                },
+
+                            },
+                            {
+                               {    // Action 1: Change stat to CodeBlock
+                                     ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
+                               }
+                            }
+                        },
+                        {   // Rule 2: If lastSavedStat stat ==  ComplexWord -> Change to ComplexWordExprOnly
+                            {
+                                {
+                                 ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                 {
+                                    QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWord))
+                                 }
+                                },
+
+                            },
+                            {
+                               {    // Action 1: Change stat to CodeBlock
+                                     ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::ComplexWordExprOnly))}
+                               }
+                            }
+                        },
+                        {   // Rule 3: If lastSavedStat stat ==  DoubleQuotes -> Change to DoubleQuotesExprOnly
+                            {
+                                {
+                                 ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                 {
+                                    QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::DoubleQuotes))
+                                 }
+                                },
+
+                            },
+                            {
+                               {    // Action 1: Change stat to CodeBlock
+                                     ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::DoubleQuotesExprOnly))}
+                               }
+                            }
+                        },
+                        {   // Rule 4: Error if no rules have been executed
+                            {
+                                // No Conditions
+                            },
+                            {
+                                {   // Error
+                                    ProcedureDefinition::Action::Executable::Error,
+                                    {
+                                        "\"If\" conditional expression isnt list or complexWord"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {   // Rules on moveArgument
+                       { // Rule 1
+                           {
+                           },
+                           {
+                             {   // Finalize expr
+                                 ProcedureDefinition::Action::Executable::ExprFinalize,
+                                 {}
+                             },
+                             {   // Write as ( =-1 )
+                                 ProcedureDefinition::Action::Executable::Write,
+                                 {
+                                     "( ",
+                                     ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "=-1",
+                                     " )"
+                                 }
+                             }
+                           }
+                        },
+                    }
+                },
+                { // On 2nd argument (then or script)
+                    1,
+                    {   // Dynamic Rules
+                        {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
+                            {   // Conditions:  If SavedStat stat == List
+                                {   // Condition 1:  If SavedStat stat == List
+                                    ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                                },
+                            },
+                            {
+                               {    // Action 1: Change stat to CodeBlock
+                                     ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                               }
+                            }
+                        },
+
+                    },
+                    {   // Rules on moveArgument
+                        {   // Rule 1: If Script
+                            {
+                                {   // Condition 1:  If SavedStat stat == List
+                                    ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                                },
+                            },
+                            {
+
+                            }
+                        },
+                        {   // Rule 2: If "then"
+                            {
+                                TclProcedureInterpreter::newCompareRule(
+                                {"then"},
+                                {
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                    ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                        ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                     "=-1",
+                                }
+                                ),
+                            },
+                            {
+
+                            }
+                        },
+                        {   // Rule 3: Error
+                            {
+
+                            },
+                            {
+                                {// Error
+                                    ProcedureDefinition::Action::Executable::Error,
+                                    {"If procedure incorrect 2nd argument"}
+                                }
+                            }
+                        },
+                    }
+                },
+            { // On 3rd argument (script or else or elseif or nothing)
+                2,
+                {   // Dynamic Rules
+                    { // Rule 1: If argument 1 == "then"
+                      {   // Conditions:  If SavedStat stat == List
+                          {   // Condition 1:  If SavedStat stat == List
+                              ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                              {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                          },
+                      },
+                      {
+                         {    // Action 1: Change stat to CodeBlock
+                               ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                              {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                         }
+                      }
+                    },
+                },
+                {   // Rules on moveArgument
+                    {   // Rule 1: If Script and prelast parameter is then
+                        {
+                            {   // Condition 1:  If SavedStat stat == List
+                                ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                            },
+                            TclProcedureInterpreter::newCompareRule(
+                            {"then"},
+                            {
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                 "=-2",
+                            }
+                            ),
+                        },
+                        {
+
+                        }
+                    },
+                    {   // Rule 2: If "else" or "elseif" and if prelastStat  is script
+                        {
+                            TclProcedureInterpreter::newCompareRule(
+                            {"else", "elseif"},
+                            {
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                 "=-1",
+                            }
+                            ),
+                        },
+                        {
+
+                        }
+                    },
+                    {   // Rule 3: Error
+                        {
+
+                        },
+                        {
+                            {// Error
+                                ProcedureDefinition::Action::Executable::Error,
+                                {"If procedure incorrect 3nd argument"}
+                            }
+                        }
+                    },
+                }
+                },
+            },
+            {   // Rules for Unspecified Argument
+                0,
+                {   // Dynamic Rules
+                    {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
+                        {
+                            {
+                              ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                            },
+                            {
+                                TclProcedureInterpreter::newCompareRule(
+                                {"else"},
+                                {
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                    ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                        ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                    "=-2"
+                                }
+                                ),
+                            },
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                           }
+                        }
+                    },
+                    {   // Rule 2: On lastSavedStat == List -> Change to CodeBlock
+                        {
+                            {
+                              ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                            },
+                            {
+                                TclProcedureInterpreter::newCompareRule(
+                                {"elseif"},
+                                {
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                    ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                        ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                    "=-2"
+                                }
+                                ),
+                            },
+                        },
+                        {
+                           {    // Action 1: Change stat to CodeBlock
+                                 ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
+                           }
+                        }
+                    },
+
+                },
+                {   // Rules on moveArgument
+                    {   // Rule 1: if lastSavedStat command == (elseif) -> P
+                        {
+                            TclProcedureInterpreter::newCompareRule(
+                            {"elseif"},
+                            {
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=-2"
+                            }
+                            ),
+                        },
+                        {
+                            { // Parse [expr_parser =-1]
+                               ProcedureDefinition::Action::Executable::TclParse,
+                               {"expr ",
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=-1",
+                                ";"
+                               }
+                           },
+                            // Write as ( =-1 )
+                            {
+                                ProcedureDefinition::Action::Executable::Write,
+                                {
+                                    "( ",
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                    ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                        ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                    "=-1",
+                                    " )"
+                                }
+                            }
+                        }
+                    },
+                    {   // Rule 3: If lastSavedStat command == else -> {\n =-1 \n}
+                        {
+                            TclProcedureInterpreter::newCompareRule(
+                            {"else"},
+                            {
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                 "=-2"
+                            }
+                            ),
+                        },
+                        {
+                            {
+                                ProcedureDefinition::Action::Executable::Write,
+                                {
+
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                    "=-1",
+                                }
+                            }
+                        }
+                    },
+                    {   // Rule 4: If PreLastSavedStat command == else -> {\n =-1 \n}
+                        {
+                            TclProcedureInterpreter::newCompareRule(
+                            {"elseif"},
+                            {
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                                    ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=-3"
+                            }
+                            ),
+                        },
+                        {
+                            {
+                                ProcedureDefinition::Action::Executable::Write,
+                                {
+                                    ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                    "=-1",
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {   // Rules on End of Call
+                {   // Rule 1
+
+                    {
+                        // No conditions
+                        {
+                            ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                            {
+                                QString::number(0)
+                            }
+                        }
+                    },
+                    {
+                        {
+                            ProcedureDefinition::Action::Executable::Error,
+                            {
+                                "If procedure without arguments",
+                            }
+                        }
+                    }
+
+                },
+                {   // Rule 2
+
+                    {
+                        // No conditions
+                    },
+                    {
+                        {
+                            ProcedureDefinition::Action::Executable::Write,
+                            {
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=",
+                                //ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                //ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                                //+ ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                ">0"
+                            }
+                        }
+                    }
+
+                }
+            }
+        },
     // End of Definition ================================================,
+        {   // Definition --------------------------------------------------------
+            "for",
+            {   // Rules for Arguments
+                {
+                    0,
+                    {   // Dynamic Rules
+                        {   // Rule 1: If lastSavedStat stat == List or EndOfList or FunctionCall or Whitespace -> Do nothing (Break)
+                            {
+                                {
+                                 ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                 {
+                                    QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))
+                                 }
+                                },
+
+                            },
+                            {
+                               {    // Action 1: Change stat to CodeBlock
+                                     ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                               }
+                            }
+                        },
+                        {   // Rule 2: Error if no rules have been executed
+                            {
+                                // No Conditions
+                            },
+                            {
+                                {   // Error
+                                    ProcedureDefinition::Action::Executable::Error,
+                                    {
+                                        "\"For\" initialization expression (argument 1) isnt list"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {   // Rules on moveArgument
+                        {   // Rule 1: If Script
+                            {
+                                {   // Condition 1:  If SavedStat stat == List
+                                    ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                                },
+                            },
+                            {
+
+                            }
+                        },
+                        {   // Rule 3: Error
+                            {
+
+                            },
+                            {
+                                {// Error
+                                    ProcedureDefinition::Action::Executable::Error,
+                                    {"For procedure incorrect 1st argument"}
+                                }
+                            }
+                        },
+                    }
+                },
+                { // On 2nd argument (then or script)
+                    1,
+                    {   // Dynamic Rules
+                        {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
+                            {   // Conditions:  If SavedStat stat == List
+                                {   // Condition 1:  If SavedStat stat == List
+                                    ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                                },
+                            },
+                            {
+                               {    // Action 1: Change stat to CodeBlock
+                                     ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
+                               }
+                            }
+                        },
+                        {   // Rule 2: Error if no rules have been executed
+                            {
+                                // No Conditions
+                            },
+                            {
+                                {   // Error
+                                    ProcedureDefinition::Action::Executable::Error,
+                                    {
+                                        "\"For\" conditional expression (argument 2) isnt list"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {   // Rules on moveArgument
+                          {   // Rule 1: If Script
+                              {
+                                  {   // Condition 1:  If SavedStat stat == List
+                                      ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                      {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStartExprOnly))}
+                                  },
+                              },
+                              {
+                                  {   // Finalize expr
+                                      ProcedureDefinition::Action::Executable::ExprFinalize,
+                                      {}
+                                  },
+                              }
+                          },
+                          {   // Rule 3: Error
+                              {
+
+                              },
+                              {
+                                  {// Error
+                                      ProcedureDefinition::Action::Executable::Error,
+                                      {"For procedure incorrect 2nd argument"}
+                                  }
+                              }
+                          },/*
+                            {
+                            },
+                            {
+                              {   // Finalize expr
+                                  ProcedureDefinition::Action::Executable::ExprFinalize,
+                                  {}
+                              },/*
+                              {   // Write as ( =-1 )
+                                  ProcedureDefinition::Action::Executable::Write,
+                                  {
+                                      "( ",
+                                      ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                      "=-1",
+                                      " )"
+                                  }
+                              }
+                            }
+                         }, */
+                    }
+                },
+                { // On 3nd argument (then or script)
+                    2,
+                    {   // Dynamic Rules
+                        {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
+                            {   // Conditions:  If SavedStat stat == List
+                                {   // Condition 1:  If SavedStat stat == List
+                                    ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                                },
+                            },
+                            {
+                               {    // Action 1: Change stat to CodeBlock
+                                     ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                               }
+                            }
+                        },
+                        {   // Rule 2: Error if no rules have been executed
+                            {
+                                // No Conditions
+                            },
+                            {
+                                {   // Error
+                                    ProcedureDefinition::Action::Executable::Error,
+                                    {
+                                        "\"For\" increment expression (argument 3) isnt list"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {   // Rules on moveArgument
+                        {   // Rule 1: If Script
+                            {
+                                {   // Condition 1:  If SavedStat stat == List
+                                    ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                                },
+                            },
+                            {
+
+                            }
+                        },
+                        {   // Rule 3: Error
+                            {
+
+                            },
+                            {
+                                {// Error
+                                    ProcedureDefinition::Action::Executable::Error,
+                                    {"For procedure incorrect 3nd argument"}
+                                }
+                            }
+                        },
+                    }
+                },
+                { // On 3nd argument (then or script)
+                    3,
+                    {   // Dynamic Rules
+                        {   // Rule 1: On lastSavedStat == List -> Change to CodeBlock
+                            {   // Conditions:  If SavedStat stat == List
+                                {   // Condition 1:  If SavedStat stat == List
+                                    ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::BracesStart))}
+                                },
+                            },
+                            {
+                               {    // Action 1: Change stat to CodeBlock
+                                     ProcedureDefinition::Action::Executable::ChangeLastArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                               }
+                            }
+                        },
+                        {   // Rule 2: Error if no rules have been executed
+                            {
+                                // No Conditions
+                            },
+                            {
+                                {   // Error
+                                    ProcedureDefinition::Action::Executable::Error,
+                                    {
+                                        "\"For\" increment expression (argument 4) isnt list"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {   // Rules on moveArgument
+                        {   // Rule 1: If Script
+                            {
+                                {   // Condition 1:  If SavedStat stat == List
+                                    ProcedureDefinition::Action::Conditional::CompareArgumentStat,
+                                    {QString::number(static_cast<std::underlying_type_t<Stat>>(Stat::Script))}
+                                },
+                            },
+                            {
+
+                            }
+                        },
+                        {   // Rule 3: Error
+                            {
+
+                            },
+                            {
+                                {// Error
+                                    ProcedureDefinition::Action::Executable::Error,
+                                    {"For procedure incorrect 4nd argument"}
+                                }
+                            }
+                        },
+                    }
+                },
+            },
+            {   // Rules for Unspecified Argument
+
+            },
+            {   // Rules on End of Call
+                {   // Rule 1
+
+                    {
+                        {
+                            ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                            {
+                                QString::number(4)
+                            }
+                        }
+                    },
+                    {
+                        {
+                            ProcedureDefinition::Action::Executable::AddUserInteraction,
+                            {
+                                "Prepare for control"
+                            }
+                        },
+                        {
+                            ProcedureDefinition::Action::Executable::AddPreExpression,
+                            {
+                                "// Initialization expression\n",
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=0",
+                            }
+                        },
+                        {
+                            ProcedureDefinition::Action::Executable::AddPreExpression,
+                            {
+                                "// Incrementing expression\n",
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=2",
+                            }
+                        },
+                        {
+                            ProcedureDefinition::Action::Executable::Write,
+                            {
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=",
+                                "(/* Initialization */ ; ",
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=1",
+                                " ; /* Incrementation */ )",
+                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                "=3"
+                                //ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                                //ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
+                                //+ ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                            }
+                        }
+                    }
+
+                },
+                {   // Rule 2: Error
+                    {
+
+                    },
+                    {
+                        {// Error
+                            ProcedureDefinition::Action::Executable::Error,
+                            {"For procedure requires only 4 parameters"}
+                        }
+                    }
+                },
+            }
+        },  // End of Definition ================================================,
        {   // Definition --------------------------------------------------------
            "foreach",
            {   // Rules for Arguments
@@ -1341,14 +1345,15 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                            {
                                "// Details about foreach procedure behaviour: https://www.tcl.tk/man/tcl/TclCmd/foreach.html\n",
                                "// First Comment \"LIST\": Variables List -> Second Command \"LIST\": Values List , etc \n",
-                               "// LIST\n",
+                               "// LIST\n/*",
                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET)
                                + ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                               "@\n// LIST\n",
+                               "@*/\n// LIST\n/*",
                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                "><0;-2",
+                               "*/"
                            }
                        },
                        {
@@ -1367,6 +1372,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                                "_script_parser ",
                                ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                                "=-1",
+                               ";"
                            }
                        }
                    }
@@ -1941,7 +1947,8 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                                 ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
                                     ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
                                 ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                                "=0"
+                                "=0",
+                              ";"
                             }
                         }
                     }
@@ -1987,7 +1994,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         {
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=0",
-                            "++"
+                            "++;"
                         }
                     }
                 }
@@ -2240,7 +2247,48 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
 
         },
         {   // Rules on End of Procedure Call
-            {   // Rule 1
+            { // Rule 0 - not supported
+              {
+                  {
+                      ProcedureDefinition::Action::Conditional::CompareNumbOfArguments,
+                      {QString::number(0), QString::number(1)}
+                  },
+              }, // No Conditions
+              {
+                  {
+                      ProcedureDefinition::Action::Executable::Error,
+                      {"stc_section with 0 or 1 arguments is not supported"}
+                  },
+              }
+            },
+            { // Rule 1 - Result
+              {
+                  TclProcedureInterpreter::newCompareRule(
+                  {"RESULT"},
+                  {
+                      ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                      ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
+                          ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
+                      "",
+                      "=0"
+                  }
+                  ),
+              }, // No Conditions
+              {
+                  {
+                      ProcedureDefinition::Action::Executable::Write,
+                      {
+                          "EXPECTED(",
+                          ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                          "@, ",
+                          ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                          ">1",
+                          ");"
+                      }
+                  }
+              }
+            },
+            {   // Rule 2
                 {
 
                 },
@@ -2250,7 +2298,7 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                         {
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
-                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::TclFormat),
+                                ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::Raw),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
                             "=0",
                             "(",
@@ -2258,7 +2306,9 @@ TclCommand_NS::CommandDefinitions TclProcedureInterpreter::defaultProcedureDefin
                             ProcedureDefinition::Format::cast_format_rule_str(ProcedureDefinition::Format::Rule::TARGET) +
                                 ProcedureDefinition::Format::cast_target_str(ProcedureDefinition::Format::Target::CaplFormat),
                             ProcedureDefinition::Format::FORMAT_RULE_CALL(),
-                            "=1",
+                            "@, ",
+                            ProcedureDefinition::Format::FORMAT_RULE_CALL(),
+                            ">1",
                             ");"
                         }
                     }
@@ -3121,7 +3171,11 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
         case Stat::DoubleQuotesExprOnly:
         case Stat::Script:
         {
-            return rawCommand().sliced(1, rawCommand().size() - 2);
+            if(rawCommand().size() >= 2)
+                return rawCommand().sliced(1, rawCommand().size() - 2);
+            else{
+                return rawCommand();
+            }
         }
         case Stat::CommandSubbing:
         {
@@ -3133,7 +3187,7 @@ QString TclCommand_NS::Call::Parameter::toString(ProcedureDefinition::Format::Ta
             if(rawCommand().size() > 2 and rawCommand().at(1) == '{') // ${}
                 return rawCommand().sliced(2, rawCommand().size() - 3);
             else
-                return rawCommand().sliced(1);
+                return outputCommand();
         default:
             break;
         }
@@ -3163,20 +3217,36 @@ void TclCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefinti
            {
                if(defaultDefinition->name == definition->name){
                    // Rules For Arguments
+                   // Get numb of Indexes -> Iterate through arguments of definition and check if no
                    using RulesForArgument = ProcedureDefinition::RulesForArguments::Iterator;
-                   RulesForArgument loopEnd;
-                   if(definition->rulesForArguments.size() < defaultDefinition->rulesForArguments.size()){
-                       definition->rulesForArguments.resize(defaultDefinition->rulesForArguments.size());
-                       loopEnd = definition->rulesForArguments.end();
+                   if(definition->rulesForArguments.size() == 0){
+                       definition->rulesForArguments = defaultDefinition->rulesForArguments;
                    }else{
-                       loopEnd = definition->rulesForArguments.begin() + defaultDefinition->rulesForArguments.size();
+                       for(RulesForArgument defaultRulesForArgument = defaultDefinition->rulesForArguments.begin();
+                           defaultRulesForArgument < defaultDefinition->rulesForArguments.end(); defaultRulesForArgument++)
+                       {
+                           RulesForArgument rulesForArgument;
+                           for(rulesForArgument = definition->rulesForArguments.begin();
+                               rulesForArgument < definition->rulesForArguments.end(); rulesForArgument++)
+                           {
+                                if(defaultRulesForArgument->index == rulesForArgument->index){ // Same Index
+                                    rulesForArgument->rules.append(defaultRulesForArgument->rules);
+                                    rulesForArgument->rulesOnMoveArgument.append(defaultRulesForArgument->rulesOnMoveArgument);
+                                    break;
+                                }else{ // Stop condition
+                                    if(rulesForArgument->index > defaultRulesForArgument->index){
+                                        rulesForArgument = definition->rulesForArguments.insert(defaultRulesForArgument->index, *defaultRulesForArgument);
+                                        break;
+                                    }else{ // Ignore
+                                    }
+                                }
+                           }
+                           if(rulesForArgument == definition->rulesForArguments.end()){ // Not Found - Append cause no higher index has been found
+                               definition->rulesForArguments.append(*defaultRulesForArgument);
+                           }
+                       }
                    }
-                   for(RulesForArgument rulesForArgument = definition->rulesForArguments.begin(), defaultRulesForArgument = defaultDefinition->rulesForArguments.begin();
-                       rulesForArgument < loopEnd; rulesForArgument++, defaultRulesForArgument++)
-                   {
-                       rulesForArgument->rules.append(defaultRulesForArgument->rules);
-                       rulesForArgument->rulesOnMoveArgument.append(defaultRulesForArgument->rulesOnMoveArgument);
-                   }
+
 
                    // Rules fo Unspecified Arguments
                    definition->rulesForUnspecifiedArgument.rules.append(defaultDefinition->rulesForUnspecifiedArgument.rules);
@@ -3765,9 +3835,9 @@ Result KeywordsController::interpret(){
 
 
 void TclProcedureInterpreter::tryToActivateWriteOnlyProcedure(Call::Name& name){
-    if(writeOnlyProcedureActiveIndex == -1 and userConfig.proceduresSettings().isWriteOnlyProcedure(name)){
-        writeOnlyProcedureActiveIndex = procedureCalls.size() + 1;
-        activateWriteOnlyProcedureMode();
+    if(writeOnlyProcedureActiveIndex.last() == -1 and userConfig.proceduresSettings().isWriteOnlyProcedure(name)){
+        writeOnlyProcedureActiveIndex.last() = procedureCalls.size();
+        //activateWriteOnlyProcedureMode();
     }
 }
 
@@ -3803,6 +3873,8 @@ Error TCLInterpreter::deinitialize(){
         if(processError() == Error::Error)
             return Error::Error;
     }
+
+
 
     return Error::NoError;
 }
@@ -3988,6 +4060,16 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                     {
                         seperator = *arg;
                         separatorUsed = false;
+                    }
+                        break;
+                    case Rule::ATTRIBUTE:
+                    {
+                        if(arg->isEmpty())
+                            return false;
+                        ControllerConfigInfo::Attributes::ConstIterator attribute = userConfig.attributes().constFind(*arg);
+                        if(attribute == userConfig.attributes().constEnd())
+                            return false;
+                        dest += attribute.value().value;
                     }
                         break;
                     case Rule::INDEX_OR_FULL_LINE:

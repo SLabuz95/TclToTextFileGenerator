@@ -75,7 +75,7 @@ namespace Panels::Configuration{
         inline ListItem* itemAt(const QPoint& p)const{return static_cast<ListItem*>(list.itemAt(p));}
 
         bool eventFilter(QObject* obj, QEvent* ev)override;
-        ChangeAction tryToManageProceduresName(QString oldName, QString newName);
+        //ChangeAction tryToManageProceduresName(QString oldName, QString newName);
     public:
         inline bool anyChanges()const{
             return not (newProcedures.isEmpty() and removedProcedures.isEmpty());
@@ -88,6 +88,8 @@ namespace Panels::Configuration{
         void commitChanges(){}
 
         void loadProcedures(WriteOnlyProceduresPtr, LoadProceduresSettings);
+        void loadProcedures(QStringList&);
+        void readProcedures(QStringList&);
 
         inline void clearChanges(){
             newProcedures.clear();

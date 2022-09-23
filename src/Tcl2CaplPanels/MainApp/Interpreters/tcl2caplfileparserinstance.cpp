@@ -22,22 +22,22 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance()
       inputConfig(INPUT_CONFIG_BOX_TITLE),
       outputBox(OUTPUT_BOX_TITLE),
       definitionsTclInputsSplitter(Qt::Horizontal),
-      inputProcedureConfigTitle(INPUT_PROCEDURE_CONFIG_TITLE),
-      inputProcedureConfigSelection(FILE_SELECTION_BUTTON_TEXT),
+      //inputProcedureConfigTitle(INPUT_PROCEDURE_CONFIG_TITLE),
+      //inputProcedureConfigSelection(FILE_SELECTION_BUTTON_TEXT),
       outputDirTitle(OUTPUT_DIR_TITLE),
       outputDirSelection(FILE_SELECTION_BUTTON_TEXT),
-      readDefinitionsButton(READ_DEFINITIONS_BUTTON_TEXT),
+      //readDefinitionsButton(READ_DEFINITIONS_BUTTON_TEXT),
       generateCaplButton(GENERATE_CAPL_BUTTON_TEXT),
       generateCaplReportModeButton(GENERATE_CAPL_WRITE_ONLY_MODE_BUTTON_TEXT)
 {
 
     // Setup:
     // - definitionsTclInputsSplitter
-    definitionsTclInputsSplitter.addWidget(&definitionsList);
+    //definitionsTclInputsSplitter.addWidget(&definitionsList);
     definitionsTclInputsSplitter.addWidget(&inputsList);
 
     // - inputProcedureConfigPath
-    inputProcedureConfigPath.setReadOnly(true);
+    /*inputProcedureConfigPath.setReadOnly(true);
     // [0.9.0]
     inputProcedureConfigPath.setDisabled(true);
     // [0.9.0] End
@@ -46,7 +46,7 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance()
     //inputProcedureConfigSelection.installEventFilter(this);
     // [0.9.0]
     //inputProcedureConfigSelection.setDisabled(true);
-    // [0.9.0] End
+    // [0.9.0] End*/
 
     // - outputDirPath
     outputDirPath.setReadOnly(true);
@@ -55,12 +55,12 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance()
     outputDirSelection.installEventFilter(this);
 
     // - readDefinitionsButton
-    readDefinitionsButton.setToolTip("Aktualne");
+    /*readDefinitionsButton.setToolTip("Aktualne");
     readDefinitionsButton.setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogApplyButton));
     // [0.9.0]
     //readDefinitionsButton.installEventFilter(this);
     readDefinitionsButton.setDisabled(true);
-    // [0.9.0] End
+    // [0.9.0] End*/
 
     // - generateCaplButton
     generateCaplButton.installEventFilter(this);
@@ -69,13 +69,13 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance()
     generateCaplReportModeButton.installEventFilter(this);
 
     // - inputConfig
-    inputProcedureOutputLayout.addWidget(&inputProcedureConfigTitle, 0, 0);
+    /*inputProcedureOutputLayout.addWidget(&inputProcedureConfigTitle, 0, 0);
     inputProcedureOutputLayout.addWidget(&inputProcedureConfigPath, 0, 1);
-    inputProcedureOutputLayout.addWidget(&inputProcedureConfigSelection, 0, 2, Qt::AlignRight );
+    inputProcedureOutputLayout.addWidget(&inputProcedureConfigSelection, 0, 2, Qt::AlignRight );*/
 
-    inputProcedureOutputLayout.addWidget(&outputDirTitle, 1, 0);
-    inputProcedureOutputLayout.addWidget(&outputDirPath, 1, 1);
-    inputProcedureOutputLayout.addWidget(&outputDirSelection, 1, 2, Qt::AlignRight );
+    inputProcedureOutputLayout.addWidget(&outputDirTitle, 0, 0);
+    inputProcedureOutputLayout.addWidget(&outputDirPath, 0, 1);
+    inputProcedureOutputLayout.addWidget(&outputDirSelection, 0, 2, Qt::AlignRight );
 
     inputLayout.setSpacing(0);
     inputLayout.addWidget(&definitionsTclInputsSplitter, Qt::AlignTop);
@@ -85,7 +85,7 @@ Tcl2CaplFileParserInstance::Tcl2CaplFileParserInstance()
     inputConfig.setLayout(&inputLayout);
 
     // - outputBox
-    outputLayout.addWidget(&readDefinitionsButton, 0, 0);
+    //outputLayout.addWidget(&readDefinitionsButton, 0, 0);
     outputLayout.addWidget(&generateCaplButton, 0, 1);
     outputLayout.addWidget(&generateCaplReportModeButton, 0, 2);
 
@@ -122,14 +122,14 @@ bool Tcl2CaplFileParserInstance::eventFilter(QObject *obj, QEvent *ev){
                break;
             }*/
 
-            if(obj == &inputProcedureConfigSelection){                
+            /*if(obj == &inputProcedureConfigSelection){
                 if(Error&& error = readNewInputConfig_dialog();
                     !error.isEmpty())
                 {
                     QMessageBox::critical(nullptr, "Select config error", error);
                 }
                 break;
-            }
+            }*/
 
             if(obj == &outputDirSelection){
                 QString mainDirPath =  QFileDialog::getExistingDirectory(nullptr, QString("Wybierz folder wyjsciowy:"));
@@ -171,18 +171,18 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readNewInputConfig
     if(not file.filePath().isEmpty()){
         if(not file.exists()){return ("File Dont Exist");}
 
-        if( QString error = readProceduresConfig(file);
+        /*if( QString error = readProceduresConfig(file);
                 not error.isEmpty() )
         {
             return error;
-        }
+        }*/
         //TCLCommandsController::addDefaultProcedureDefinitionsToUserProcedureDefintions(tempUserProceduresConfig_);
     }else{
         // Reset
        // tempUserProceduresConfig_ = UserProceduresConfig();
     }
 
-    inputProcedureConfigPath.setText(file.filePath());
+    //inputProcedureConfigPath.setText(file.filePath());
     // Merge with default procedures
      return QString();
 }
@@ -214,7 +214,7 @@ Tcl2CaplFileParserInstance::Error Tcl2CaplFileParserInstance::readProceduresConf
 }
 
 void Tcl2CaplFileParserInstance::generateCapl(){
-    definitionsList.checkActive();
+    //definitionsList.checkActive();
 
     inputsList.checkActive();
 
@@ -230,9 +230,9 @@ void Tcl2CaplFileParserInstance::generateCapl(){
 
     QStringList definitions;
     QStringList inputs;
-    for(int i = 0; i < definitionsList.count(); i++){
+    /*for(int i = 0; i < definitionsList.count(); i++){
         definitions.append(definitionsList.item(i)->toolTip());
-    }
+    }*/
     for(int i = 0; i < inputsList.count(); i++){
         inputs.append(inputsList.item(i)->toolTip());
     }
@@ -281,7 +281,7 @@ void Tcl2CaplFileParserInstance::generateCapl(){
 
 
 void Tcl2CaplFileParserInstance::generateCaplRaportMode(){
-    definitionsList.checkActive();
+    //definitionsList.checkActive();
     inputsList.checkActive();
 
     if(inputsList.count() <= 0)
@@ -296,9 +296,9 @@ void Tcl2CaplFileParserInstance::generateCaplRaportMode(){
 
     QStringList definitions;
     QStringList inputs;
-    for(int i = 0; i < definitionsList.count(); i++){
+    /*for(int i = 0; i < definitionsList.count(); i++){
         definitions.append(definitionsList.item(i)->toolTip());
-    }
+    }*/
     for(int i = 0; i < inputsList.count(); i++){
         inputs.append(inputsList.item(i)->toolTip());
     }
@@ -356,10 +356,10 @@ void Tcl2CaplFileParserInstance::execRequest_FileInfoRef<Tcl2CaplFileParserInsta
     if(file.exists())
     {
         if(file.isDir()){
-            definitionsList.newFolder(file.filePath());
+            //definitionsList.newFolder(file.filePath());
         }else{
-            if(file.isFile() and file.suffix() == "tcl")
-                definitionsList.newFile(file.filePath());
+            //if(file.isFile() and file.suffix() == "tcl")
+              //  definitionsList.newFile(file.filePath());
         }
     }
 }

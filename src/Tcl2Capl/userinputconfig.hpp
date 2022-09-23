@@ -12,6 +12,8 @@ public:
     using TclProcedureInterpreter = Tcl::Interpreter::Command::Controller;
     using Settings = Tcl::Interpreter::Command::Settings;
     using WriteOnlyProcedures = Settings::WriteOnlyProcedures;
+    using Attributes = ControllerConfigInfo::Attributes;
+    using Phases = TcFileModifierConfigBase::ModifierPhases;
     using UserProcedure = Tcl::Interpreter::Command::Definition;
     using UserProcedures = Tcl::Interpreter::Command::CommandDefinitions;
     using UserDefaultProcedure = UserProcedure;
@@ -23,12 +25,16 @@ public:
     ~UserInputConfig(){}
 protected:
     Settings settings_;
+    Attributes attributes_;
+    Phases modifierPhases_;
     UserProcedures userProcedures_;
     UserDefaultProcedure userDefaultProcedure_;
     Predefinitions _predefinitions;
 
 public:
     inline Settings& proceduresSettings(){return settings_;}
+    inline Attributes& attributes(){return attributes_;}
+    inline Phases& modifierPhases(){return modifierPhases_;}
     inline UserProcedures& userProcedureConfig(){return userProcedures_;}
     inline UserDefaultProcedure& userDefaultProcedureConfig(){return userDefaultProcedure_;}
     inline Predefinitions& predefinitions(){return _predefinitions;}

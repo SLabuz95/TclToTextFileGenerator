@@ -22,6 +22,7 @@ namespace FormatParameters {
         IndexItem,
         ArgumentsFromItem,
         FormatItem,
+        AttributeItem,
 
         FCT_End,
         Size = FCT_End,

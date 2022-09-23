@@ -36,7 +36,6 @@ class ExecutablesProductDefinition::InterfaceData::Methods{
 public:
     virtual void toXmlContent(QXmlStreamWriter& xmlWriter) = 0;
     virtual void toAction(UserProcedureRule::ExecutableActions::Type&) = 0;
-    //inline virtual RawFormatType rawFormatType() const = 0;
 };
 
 using ExecutablesProducts = ProductsConfiguration<ExecutablesTypes>;

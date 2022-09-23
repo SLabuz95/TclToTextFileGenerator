@@ -18,14 +18,15 @@ ConfigViewPanel::ConfigViewPanel(ConfigEditor& parent)
     moveSplitter(0,1);
 }
 
-void ConfigViewPanel::loadConfigData(ControllerConfigInfo::ProceduresView& proceduresView)
+void ConfigViewPanel::loadConfigData(QStringList& writeOnlyProcedures, ControllerConfigInfo::Attributes& attributes, ControllerConfigInfo::PhasesView& phasesView, ControllerConfigInfo::ProceduresView& proceduresView)
 {
     NavigationList& navigationPanel = this->Panels::Super::ViewPanel::get();
     ConfigTabs& configTabsPanel = this->Panels::Super::ViewPanel::Super::get();
-    navigationPanel.loadData(proceduresView);
+    navigationPanel.loadData(phasesView, proceduresView);
     //configTabsPanel.attributesList().loadAttributes(&configEditor.getConfigInfoPtr()->controllerConfig().attributes(), settings);
     //configTabsPanel.writeOnlyProceduresList().loadProcedures(&configEditor.getConfigInfoPtr()->controllerConfig().writeOnlyProcedures(), settings);
-    //proceduresList.loadProcedures(&configInfoPtr->controllerConfig().userProcedures(), settings);
+    configTabsPanel.writeOnlyProceduresList().loadProcedures(writeOnlyProcedures);
+    configTabsPanel.attributesList().loadAttributes(attributes);
     //clearProcedureRulesPanel();
 
 }

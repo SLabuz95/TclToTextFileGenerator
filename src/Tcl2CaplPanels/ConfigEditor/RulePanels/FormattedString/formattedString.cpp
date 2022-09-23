@@ -18,7 +18,8 @@ ItemView::ItemView(List& list, FormatRulePtr rule)
         "Argument o indeksie",
         "Wszystkie argumenty od wybranego indeksu",
         //"Separator",
-        "Format"
+        "Format",
+        "Atrybut"
     };
     titleComboBox.addItems(outputOption2FormatRuleMap);
     if(rule)

@@ -7,6 +7,7 @@
 
 
 using ModifierAction = TcFileModifierConfigBase::ModifierRule::Action;
+using RawModifierActionType = TcFileModifierConfigBase::ActionStat;
 class QXmlStreamWriter;
 
 namespace ModifierActions {
@@ -15,6 +16,7 @@ namespace ModifierActions {
         Section_Helper_Begin = FCT_Begin,
 
         Split = Section_Helper_Begin,
+        WriteAttribute,
         Section_Helper_End,
 
         Section_Conditional_Begin = Section_Helper_End,
@@ -42,9 +44,47 @@ namespace ModifierActions {
         inline static bool isHelperAction(Type type){return type >= Type::Section_Helper_Begin and  type < Type::Section_Helper_End;}
         inline static bool isConditionalAction(Type type){return type >= Type::Section_Conditional_Begin and  type < Type::Section_Conditional_End;}
         inline static bool isExecutableAction(Type type){return type >= Type::Section_Executable_Begin and  type < Type::Section_Executable_End;}
+        inline static constexpr uint helperActionsSize(){return static_cast<std::underlying_type_t<Type>>(Type::Section_Helper_End)
+                                                                - static_cast<std::underlying_type_t<Type>>(Type::Section_Helper_Begin);}
+        inline static constexpr uint condtionalActionsSize(){return static_cast<std::underlying_type_t<Type>>(Type::Section_Conditional_End)
+                                                                - static_cast<std::underlying_type_t<Type>>(Type::Section_Conditional_Begin);}
+        inline static constexpr uint executableActionsSize(){return static_cast<std::underlying_type_t<Type>>(Type::Section_Executable_End)
+                                                                - static_cast<std::underlying_type_t<Type>>(Type::Section_Executable_Begin);}
+
         inline static Type fromStr(QString& str){return static_cast<Type>(typeMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
         inline static QString toStr(Type type){return typeMap.at(std::underlying_type_t<Type>(type));}
         inline static const decltype(typeMap)& typeNames(){return typeMap;}
+        inline static const decltype(typeMap) conditionalTypeNames(){
+            return typeMap.mid(static_cast<std::underlying_type_t<Type>>(Type::Section_Conditional_Begin), condtionalActionsSize());
+        }
+        inline static const decltype(typeMap) executableTypeNames(){
+            return typeMap.mid(static_cast<std::underlying_type_t<Type>>(Type::Section_Executable_Begin), executableActionsSize());
+        }
+        inline static const decltype(typeMap) helperTypeNames(){
+            return typeMap.mid(static_cast<std::underlying_type_t<Type>>(Type::Section_Helper_Begin), helperActionsSize());
+        }
+        inline static const decltype(typeMap) conditionalTypeNamesForConfigPanel(){
+            return helperTypeNames() + conditionalTypeNames();
+        }
+        inline static const decltype(typeMap) executableTypeNamesForConfigPanel(){
+            return helperTypeNames() + executableTypeNames();
+        }
+        inline static Type toTypeForConfigPanel(Type type){
+            if(isExecutableAction(type)){
+                return static_cast<Type>(
+                        static_cast<std::underlying_type_t<Type>>(type) - condtionalActionsSize()
+                );
+            }
+            return type;
+        }
+        inline static Type fromExecutableTypeForConfigPanel(Type type){
+            if(not isHelperAction(type)){
+                return static_cast<Type>(
+                        static_cast<std::underlying_type_t<Type>>(type) + condtionalActionsSize()
+                );
+            }
+            return type;
+        }
     };
 }
 

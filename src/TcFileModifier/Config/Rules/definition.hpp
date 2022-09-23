@@ -3,12 +3,13 @@
 
 #include"TcFileModifier/tcfilemodifierconfigbase.hpp"
 #include"External/Factory/productdef.hpp"
+#include<QRegularExpression>
 //#include"External/Factory/factory.hpp"
 
 using ModifierControlFlag = TcFileModifierConfigBase::ModifierRuleControl;
 using ModifierRule = TcFileModifierConfigBase::ModifierRule;
 class QXmlStreamWriter;
-namespace ModifierRules {
+namespace FCT::ModifierRules {
     enum class Type : uint{
         FCT_Begin,
 
@@ -19,9 +20,17 @@ namespace ModifierRules {
         FCT_End,
 
     };
+
+    class ModifierControlFlagInfo{
+        static const QList<QString> modifierControlFlagMap;
+    public:
+        inline static Type fromStr(QString& str){return static_cast<Type>(modifierControlFlagMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
+        inline static QString toStr(Type type){return modifierControlFlagMap.at(std::underlying_type_t<Type>(type));}
+        inline static const decltype(modifierControlFlagMap)& flagNames(){return modifierControlFlagMap;}
+    };
 }
 
-using ModifierRulesTypes = ModifierRules::Type;
+using ModifierRulesTypes = FCT::ModifierRules::Type;
 using ModifierRulesProductDefinition = ProductDefinition<ModifierRulesTypes>;
 //using RulesFactory = Factory<RulesTypes>;
 
@@ -30,7 +39,7 @@ template <>
 struct ModifierRulesProductDefinition::ImplementationData::Properties{
 protected:
     //inline Properties(ControlFlag cf) : controlFlag_(cf){}
-    ModifierControlFlag controlFlag_;
+    ModifierControlFlag controlFlag_ = ModifierControlFlag::BREAK_RULE_CHECK;
 };
 
 template <>

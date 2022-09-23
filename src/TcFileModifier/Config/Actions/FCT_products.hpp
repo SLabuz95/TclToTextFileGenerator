@@ -7,6 +7,7 @@
 #include"startsWith.hpp"
 #include"tclInterpret.hpp"
 #include"write.hpp"
+#include"writeAttribute.hpp"
 #include"External/Factory/factory.hpp"
 
 using ModifierActionsFactory = Factory<ModifierActionTypes>;

@@ -26,6 +26,7 @@
 #include"loadconfigsettings.hpp"
 #include"Tcl2Capl/controllerconfiginfo.hpp"
 #include"Tcl2CaplPanels/ConfigEditor/ConfigViewPanel/configViewPanel.hpp"
+#include"Tcl2CaplPanels/ConfigEditor/rulesPhasePanel.hpp"
 
 class App;
 
@@ -71,6 +72,7 @@ namespace Panels::Configuration{
     public:
         void deactivateRulesPanel();
         void syncConfig();
+        void loadModifierRules(QString , QString rulesCategory);
         void loadRules(QString procedureName, QString rulesCategory);
         void loadDefaultRules(QString rulesCategory);
 
@@ -86,6 +88,11 @@ namespace Panels::Configuration{
         void clearIndexes(QString);
         void clearIndexes(); // DefaultProcedure
 
+
+        bool editPhase(QString, QString);
+        void removePhase(QString);
+        void clearPhases();
+
         //inline ConfigInfoPtr getConfigInfoPtr()const{return configInfoPtr;}
         inline bool request_newConfig(){return newConfig();}
         inline bool request_readConfig(){return readConfig();}
@@ -94,9 +101,10 @@ namespace Panels::Configuration{
 
         inline void reloadGui(){
             //writeOnlyProceduresList.reloadGui();
+            ConfigInfo::PhasesView phasesView = config().readPhasesInfo();
             ConfigInfo::ProceduresView proceduresView = config().readProceduresInfo();
             deactivateRulesPanel();
-            configViewPanel.loadConfigData(proceduresView);
+            configViewPanel.loadConfigData(config().writeOnlyProcedures(), config().attributes(), phasesView, proceduresView);
         }
 
         inline App& app()const{return app_;}

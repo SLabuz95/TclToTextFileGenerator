@@ -1,0 +1,41 @@
+#ifndef MODIFIER_RULE_VIEW_ARGUMENTSFROMRULE_HPP
+#define MODIFIER_RULE_VIEW_ARGUMENTSFROMRULE_HPP
+
+#include"../formattedString.hpp"
+#include"External/Improvements/spinBoxNoWheel.hpp"
+#include<QLineEdit>
+
+namespace Panels::Configuration::View::ModifierFormattedString{
+    class ArgumentsFromItemDataView
+            : public ItemDataView
+    {
+        static constexpr FormatRuleType ruleType = FormatRuleType::ArgumentsFromItem;
+    public:
+        ArgumentsFromItemDataView(QWidget* parent)
+            : ItemDataView(parent)
+        {
+            addRow("Indeks: ", &indexSpinBox);
+            indexSpinBox.setRange(-99, 99);
+            indexSpinBox.setValue(0);
+            addRow("Separator: ", &separatorLineEdit);
+            separatorLineEdit.setClearButtonEnabled(true);
+            separatorLineEdit.setStyleSheet("border: 1px solid blue;");
+        }
+        ArgumentsFromItemDataView(QWidget* parent,FormatRuleRef);
+        ~ArgumentsFromItemDataView(){}
+
+        using ItemDataView::FormatRuleRef;
+        static ItemDataView* create(QWidget* parent, FormatRuleRef = nullptr);
+        using Rule = ModifierFormatParametersFactory::Product<ruleType>;
+    protected:
+        //QSpinBox* indexSpinBox = nullptr;
+        //QLineEdit* separatorLineEdit = nullptr;
+        SpinBoxNoWheel indexSpinBox;// = nullptr;
+        QLineEdit separatorLineEdit;// = nullptr;
+    public:
+        constexpr FormatRuleType type()const override{return ruleType;}
+        void readRule(FormatRuleBase&) override;
+    };
+}
+
+#endif // MODIFIER_RULE_VIEW_ARGUMENTSFROMRULE_HPP

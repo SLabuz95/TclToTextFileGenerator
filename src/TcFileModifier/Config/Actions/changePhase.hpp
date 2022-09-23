@@ -9,9 +9,10 @@ template<>
 struct ModifierActionProducts::ImplementationData<ModifierActionTypes::ChangePhase>::Properties
 : public ModifierActionProductDefinition::Definition
 {
-public:
-
 protected:
+
+    QString phaseName_;
+    bool checkRulesAfterChange_;
 
 };
 
@@ -28,8 +29,15 @@ class ModifierActionProducts::InterfaceData<ModifierActionTypes::ChangePhase>::M
 : public ModifierActionProducts::Implementation<ModifierActionTypes::ChangePhase>
 {
 public:
+    QString phaseName(){return phaseName_;}
+    void setPhaseName(QString phaseName){phaseName_ = phaseName;}
+    bool checkRule(){return checkRulesAfterChange_;}
+    void setCheckRule(bool checkRule){checkRulesAfterChange_ = checkRule;}
     void toAction(ModifierAction& action)override{
-
+        using Parameters = QStringList;
+        action = ModifierAction{static_cast<RawModifierActionType>(type()),
+                        Parameters({phaseName_, QString::number(checkRulesAfterChange_)})
+                                           };
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{

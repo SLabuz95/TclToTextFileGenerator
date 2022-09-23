@@ -15,7 +15,8 @@ public:
     using ModifierActions = ModifierActionsFactory::ListOfBases;
 
 protected:
-    ModifierActions actions_;
+    ModifierActions conditionals_;
+    ModifierActions executables_;
 
 };
 
@@ -33,25 +34,24 @@ class ModifierRulesProducts::InterfaceData<ModifierRulesTypes::RawRule>::Methods
 : public ModifierRulesProducts::Implementation<ModifierRulesTypes::RawRule>
 {
 public:
-    inline ModifierActions& actions(){return actions_;}
-    //inline ModifierExecutableActions& executables(){return executables_;}
+    inline ModifierActions& conditions(){return conditionals_;}
+    inline ModifierActions& executables(){return executables_;}
 
     void toRule(ModifierRule& rule)override{
-        /*using Conditionals = UserProcedureRule::ModifierConditionalActions;
-        using Executables = UserProcedureRule::ModifierExecutableActions;
-        Conditionals conditionals_(conditions().size());
-        Executables executables_(executables().size());
-        Conditionals::Iterator conditionalsIter_ = conditionals_.begin();
-        Executables::Iterator executablesIter_ = executables_.begin();
-        ModifierConditionalActions::Iterator condition = conditions().begin();
-        ModifierExecutableActions::Iterator executable = executables().begin();
+        using Actions = ModifierRule::Actions;
+        Actions conditionals_(conditions().size());
+        Actions executables_(executables().size());
+        Actions::Iterator conditionalsIter_ = conditionals_.begin();
+        Actions::Iterator executablesIter_ = executables_.begin();
+        ModifierActions::Iterator condition = conditions().begin();
+        ModifierActions::Iterator executable = executables().begin();
         for( ; conditionalsIter_ < conditionals_.end(); conditionalsIter_++, condition++){
             (*condition)->toAction(*conditionalsIter_);
         }
         for( ; executablesIter_ < executables_.end(); executablesIter_++, executable++){
             (*executable)->toAction(*executablesIter_);
         }
-        rule = UserProcedureRule(conditionals_, executables_, controlFlag());*/
+        rule = ModifierRule{conditionals_, executables_, controlFlag()};
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
@@ -69,6 +69,17 @@ public:
         }
         xmlWriter.writeEndElement();*/
     }
+    void toActions(ModifierRule::Actions& actions) override{
+        using Actions = ModifierRule::Actions;
+        actions.reserve(executables().size());
+        actions.resize(executables().size());
+        Actions::Iterator actionsIter_ = actions.begin();
+        ModifierActions::Iterator action = executables().begin();
+        for( ; actionsIter_ < actions.end(); actionsIter_++, action++){
+            (*action)->toAction(*actionsIter_);
+        }
+
+    } // For actions only (Rule is only container)
 /*
     template<ConditionalsFactory::ProductTypeEnum productType, class ...Args>
     ConditionalsFactory::Product<productType>& addCondition(Args ...arg){

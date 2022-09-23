@@ -5,7 +5,6 @@
 #include<QAbstractItemView>
 #include<QSpinBox>
 #include"Tcl2Capl/Config/Actions/Executable/executables.hpp"
-#include"action.hpp"
 #include"Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
 
 using namespace Panels::Configuration::View;

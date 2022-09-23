@@ -69,8 +69,11 @@ namespace Panels::Configuration::View::Rules{
         ActionsSplitter actionsPanel;
         ConditionalsList conditionalsList;
         ExecutablesList executablesList;
-        bool eventFilter(QObject* obj, QEvent* ev)override;
+
+        bool eventFilter(QObject* obj, QEvent* ev)override;        
+
     public:
+
 
     };
 

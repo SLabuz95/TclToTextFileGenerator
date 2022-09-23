@@ -4,6 +4,7 @@
 #include"Tcl2Capl/Config/Parameters/Formatted/FCT_products.hpp"
 
 // List of all views for formatted string rule views
+#include"attribute.hpp"
 #include"argumentsFromRule.hpp"
 #include"formatRule.hpp"
 #include"indexRule.hpp"

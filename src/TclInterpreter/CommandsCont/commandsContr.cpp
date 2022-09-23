@@ -42,18 +42,6 @@ Error Controller::addPreExpressionForUserInteraction(QString userText)
     return Error::NoError;
 }
 
-void Controller::activateWriteOnlyProcedureMode()
-{
-
-    finalizeCallFunction = Settings::finalizeCallAt(Settings::InterpreterMode::TestCase);
-    tclInterpreter.activateWriteOnlyProcedureMode();
-}
-
-void Controller::deactivateWriteOnlyProcedureMode()
-{
-    finalizeCallFunction = Settings::finalizeCallAt(Settings::InterpreterMode::TestCaseReport);
-    tclInterpreter.deactivateWriteOnlyProcedureMode();
-}
 
 
 template<>
@@ -200,10 +188,22 @@ Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::Test
 
 template<>
 Error TclProcedureInterpreter::finalizeCall_mode<Settings::InterpreterMode::TestCaseReport>(){
-    finalizeOn = false;
-
+    if(isWriteOnlyProcedureActive()){
+        if(not isWriteOnlyProcedureCorrupted()){
+            tryToDeactivateWriteOnlyProcedure();
+            return finalizeCall_mode<Settings::InterpreterMode::TestCase>();
+        }else{
+            tclInterpreter.clearPreexpressions();
+            lastProcedureCall().outputCommand().clear();
+            tryToDeactivateWriteOnlyProcedure();
+            finalizeOn = false;
+        }
+    }else{
+        tclInterpreter.clearPreexpressions();
+        lastProcedureCall().outputCommand().clear();
+        finalizeOn = false;
+    }
     return Error::NoError;
-
 }
 
 template<>
@@ -593,6 +593,9 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::CommandSubbingStart>(){
     //const qsizetype firstNotAlphanumericCharacter = lastProcedureCall().lastParameter().indexOf(regex); // Alpha + sign '_'
     // Global namespace verification - check github - add to output command directly
     QString procedureName = lastProcedureCall().lastParameter().outputCommand(); // Tcl format without some syntax - just data
+    if(lastProcedureCall().lastParameter().stat() == Stat::DoubleQuotes){
+        procedureName = procedureName.mid(1, procedureName.size() - 2);
+    }
     procedureName = Definition::prepareTclProcedureNameFromStr(procedureName);
     lastProcedureCall().lastParameter().setOutputCommand(procedureName);
 
@@ -612,7 +615,6 @@ Error TclProcedureInterpreter::newParameter_mode<Stat::CommandSubbing>(){
     case Stat::Word:
     case Stat::BackslashSubbing:
     case Stat::Braces:
-    case Stat::DoubleQuotes:
     {
         if(not tclInterpreter.isStringConstNumber(lastProcedureCall().lastParameter().outputCommand())){
             lastProcedureCall().lastParameter().setOutputCommand("\"" + lastProcedureCall().lastParameter().outputCommand() + "\"");
@@ -1002,6 +1004,7 @@ Error TclProcedureInterpreter::destructor_mode<Stat::DoubleQuotes>(){
 
     if(prepareSnprintf() == Error::Error)
         return throwError(ERROR_PREFIX + error());
+
 
     return Error::NoError;
 }
@@ -1556,11 +1559,27 @@ Error TclProcedureInterpreter::interpret_mode<Stat::Script>(){
         if(isMainScript()){
             if(userConfig.proceduresSettings().mode() != Settings::InterpreterMode::TestCaseReport){
                 tclInterpreter.addExpressionToMainCodeBlock({"\n"});
+            }else{
+                if(tclInterpreter.command.isEmpty() or tclInterpreter.command.endsWith("\n"))
+                    tclInterpreter.addExpressionToMainCodeBlock({});
+                else
+                    tclInterpreter.addExpressionToMainCodeBlock({"\n"});
             }
         }else{  // Add new Line
-            if(userConfig.proceduresSettings().mode() == Settings::InterpreterMode::TestCase){
+            if(userConfig.proceduresSettings().mode() == Settings::InterpreterMode::TestCase)
+            {
                 lastProcedureCall().lastParameter().outputCommand().append("\n");
                 lastProcedureCall().lastParameter().rawCommand().append("\n");
+            }else{
+                if(userConfig.proceduresSettings().mode() == Settings::InterpreterMode::TestCaseReport){
+                    if(lastProcedureCall().lastParameter().outputCommand().isEmpty() or lastProcedureCall().lastParameter().outputCommand().endsWith("\n")){
+                        // Ignore
+                    }else{
+                        lastProcedureCall().lastParameter().outputCommand().append("\n");
+                    }
+                    lastProcedureCall().lastParameter().rawCommand().append("\n");
+                }else{ // Ignore
+                }
             }
         }
         break;
@@ -1619,6 +1638,8 @@ Error TclProcedureInterpreter::constructor_mode<Stat::Script>(){
     if(isVariableSubbingProcessingJustActivated()){
         lastProcedureCall().changeStat(Stat::BracesStart);
         updateCurrentCallProcedures();
+    }else{
+        addWriteOnlyProcedureLayer();
     }
     return Error::NoError;
 }
@@ -1680,6 +1701,8 @@ Error TclProcedureInterpreter::destructor_mode<Stat::Script>(){
 
     lastProcedureCall().rawCommand().replace(QRegularExpression("\n(?=\\S*)(?!\\S*}\\Z)"), "\n\t");
     lastProcedureCall().outputCommand().replace(QRegularExpression("\n(?=\\S*)(?!\\S*}\\Z)"), "\n\t");
+
+    removeWriteOnlyProcedureLayer();
 
     return Error::NoError;
 }
@@ -3167,11 +3190,11 @@ Error Controller::prepareSnprintf(){
     if(snprintfRequired){
         //Add Preexpression
         ExecutableActionsParameters variableParameters = {
-            QStringLiteral("char ") + snprintfVarName + "[256]"
+            QStringLiteral("char ") + snprintfVarName + "[256];"
         };
         ExecutableActionsParameters preexpressionParameters = {
             QStringLiteral("snprintf(") + snprintfVarName + ", elcount(" + snprintfVarName + "), " +
-            "\"" + format + "\"" + arguments + ")"
+            "\"" + format + "\"" + arguments + ");"
         };
 
         (this->*executableInterpretFunctions[
@@ -3189,9 +3212,13 @@ Error Controller::prepareSnprintf(){
 
         lastProcedureCall().setOutputCommand(snprintfVarName);
     }else{
-        lastProcedureCall().setOutputCommand(format);
-        if(lastProcedureCall().stat() == Stat::ComplexWord)
+        if(lastProcedureCall().stat() == Stat::ComplexWord){
+            lastProcedureCall().setOutputCommand(format);
             lastProcedureCall().changeStat(Stat::Word);
+        }else{
+            lastProcedureCall().setOutputCommand("\"" + format + "\"");
+
+        }
     }
     return Error::NoError;
 }

@@ -240,7 +240,7 @@ TclProcedureCommand::Definition::Action::Executable::TclParse> (ExecutableAction
     }
 
     TCLInterpreter newTclInterpreter(userConfig, tclInterpreter.functionDefinitions);
-    if(newTclInterpreter.toCAPL(str) == Error::Error or newTclInterpreter.anyErrors())
+    if(newTclInterpreter.toCAPL(str) == Error::Error or newTclInterpreter.deinitialize() == Error::Error or newTclInterpreter.anyErrors())
     {
         tclInterpreter.errorMsgsRaw().append(newTclInterpreter.errorMsgsRaw());
         throwError(ERROR_PREFIX + "TclParsing Failed:" + " {Current Result: " + newTclInterpreter.errorMsgs() +"}");
@@ -359,9 +359,14 @@ void TCLCommandsController::executeAction
             /*if(not tclInterpreter.isStringConstNumber(lastProcedureCall().lastParameter().outputCommand())){
                 lastProcedureCall().outputCommand().append("\"" + lastProcedureCall().lastParameter().outputCommand() + "\"");
             }else{*/
-                lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
+            if(not lastProcedureCall().lastParameter().outputCommand().isEmpty() and
+               lastProcedureCall().lastParameter().outputCommand().first(1) == "\""){
+                lastProcedureCall().lastParameter().outputCommand().remove("\"");
+            }
+            lastProcedureCall().outputCommand().append(lastProcedureCall().lastParameter().outputCommand());
             //}
-        }
+
+        }            
         break;
         /*case Stat::BackslashSubbing:
         {
@@ -398,7 +403,7 @@ void TCLCommandsController::executeAction
 
     // Just prepare output
     // If not commandSubbing (procedureCall in Script) and outputCommand is not Empty
-    if(isNotCommandSubbing()){
+    if(isNotCommandSubbing() and lastProcedureCall()._name() == "expr"){
 
         lastProcedureCall().outputCommand().append(";");
         if(lastProcedureCall().outputCommand().indexOf(QRegularExpression("\\R[\\s]{0,}\\z")) == -1)
@@ -437,6 +442,41 @@ void TCLCommandsController::executeAction
         return;
     }
 
+}
+
+template <>
+void TCLCommandsController::executeAction
+<TclProcedureCommand::Definition::Action::Executable::WriteAttribute>
+(ExecutableActionsParameters parameters)
+{
+    const QString ERROR_PREFIX = "executeAction<\
+    TCLCommandsController::Definition::Action::Executable::WriteAttribute>: ";
+
+    QStringList::size_type result = 0;
+    QString formatStr;
+    bool ok = false;
+    uint numbOfFormatArgs = UINT_MAX;
+    if(parameters.size() < 2){
+        throwError(ERROR_PREFIX + "Number of Action Parameters dont match.");
+        return;
+    }
+    if(parameters.at(0).isEmpty() or
+            (numbOfFormatArgs = parameters.at(1).toUInt(&ok), !ok) or
+            numbOfFormatArgs + 2 != parameters.size())
+    {
+        throwError(ERROR_PREFIX + "Action Parameters are wrong.");
+        return;
+    }
+
+
+    ConditionalActionsParameters& params = parameters.mid(2);
+    if((result = createAndAssignString(formatStr, params)) != params.size())
+    {
+        throwError(ERROR_PREFIX + "");
+        return;
+    }
+
+    userConfig.attributes().insert(parameters.at(0), {formatStr});
 }
 
 template <>
@@ -873,6 +913,8 @@ TclProcedureInterpreter::ExecutableInterpretFunctions TclProcedureInterpreter::e
     TclProcedureCommand::Definition::Action::Executable::AddUserInteraction>,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::AddPredefinition>,
+    &TCLCommandsController::executeAction<
+    TclProcedureCommand::Definition::Action::Executable::WriteAttribute>,
     &TCLCommandsController::executeAction<
     TclProcedureCommand::Definition::Action::Executable::FinalizeForEach>,
     &TCLCommandsController::executeAction<

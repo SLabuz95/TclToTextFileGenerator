@@ -10,6 +10,7 @@ using namespace Panels::Configuration;
 AttributesPanel::AttributesPanel(ConfigTabsPanel& tabsPanel)
     : QTreeWidget(&tabsPanel), tabsPanel(tabsPanel)
 {
+
     setHeaderLabels({"Nazwa", "Wartość"});
     setIndentation(0);
     //setMovement(Snap);
@@ -20,6 +21,9 @@ AttributesPanel::AttributesPanel(ConfigTabsPanel& tabsPanel)
     setDragDropOverwriteMode(true);
 
     viewport()->installEventFilter(this);
+    addTopLevelItem(new ListItem(hardcodedItemFlags, "PREFIX_TEXT_FOR_FILE"));
+    addTopLevelItem(new ListItem(hardcodedItemFlags, "POSTFIX_TEXT_FOR_FILE"));
+    addTopLevelItem(new ListItem(hardcodedItemFlags, "MODEL_PROCESS_STATUS"));
 }
 
 
@@ -40,7 +44,7 @@ void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMe
 template<>
 void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMenu::EditAttribute>(ListItem* item)
 {
-    Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editProcedure", "Item is null");
+    Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editAttribute", "Item is null");
     if(curEditItemInfo.item){
         closePersistentEditor(curEditItemInfo.item);
         qApp->processEvents();
@@ -51,15 +55,28 @@ void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMe
 }
 
 template<>
+void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMenu::EditAttributeValue>(ListItem* item)
+{
+    Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editAttributeValue", "Item is null");
+    if(curEditItemInfo.item){
+        closePersistentEditor(curEditItemInfo.item);
+        qApp->processEvents();
+    }
+
+    curEditItemInfo = {item, item->text(1), 1};
+    editItem(item, 1);
+}
+
+template<>
 void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMenu::RemoveAttribute>(ListItem* item)
 {
-    Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::editProcedure", "Item is null");
+    Q_ASSERT_X(item != nullptr, "AttributesPanel::ContextMenu::RemoveAttribute", "Item is null");
     if(curEditItemInfo.item){
         closePersistentEditor(curEditItemInfo.item);
         curEditItemInfo = {};
         qApp->processEvents();
     }
-    tryToManageAttributesName(item->text(0), QString());
+    //tryToManageAttributesName(item->text(0), QString());
     delete item;
 }
 
@@ -72,14 +89,40 @@ void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMe
         qApp->processEvents();
     }
     curEditItemInfo = {};
+    QString PREFIX_TEXT_FOR_FILE;
+    QString POSTFIX_TEXT_FOR_FILE;
+    int count = 0;
     for(int i = 0; i < topLevelItemCount(); i++){
-        tryToManageAttributesName(topLevelItem(i)->text(0), QString());
+        if(topLevelItem(i)->text(0) == "PREFIX_TEXT_FOR_FILE"){
+            PREFIX_TEXT_FOR_FILE = topLevelItem(i)->text(1);
+            count++;
+            if(count == numbOfHardcodedAttributes){
+                break;
+            }
+        }
+        if(topLevelItem(i)->text(0) == "POSTFIX_TEXT_FOR_FILE"){
+            POSTFIX_TEXT_FOR_FILE = topLevelItem(i)->text(1);
+            count++;
+            if(count == numbOfHardcodedAttributes){
+                break;
+            }
+        }
+        if(topLevelItem(i)->text(0) == "MODEL_PROCESS_STATUS"){
+            PREFIX_TEXT_FOR_FILE = topLevelItem(i)->text(1);
+            count++;
+            if(count == numbOfHardcodedAttributes){
+                break;
+            }
+        }
     }
     clear();
+    addTopLevelItem(new ListItem(hardcodedItemFlags, "PREFIX_TEXT_FOR_FILE", PREFIX_TEXT_FOR_FILE));
+    addTopLevelItem(new ListItem(hardcodedItemFlags, "POSTFIX_TEXT_FOR_FILE", POSTFIX_TEXT_FOR_FILE));
+    addTopLevelItem(new ListItem(hardcodedItemFlags, "MODEL_PROCESS_STATUS"));
 }
 
 bool AttributesPanel::tryToManageAttributesName(QString oldName, QString newName){
-    Q_ASSERT_X(not (oldName.isEmpty() and newName.isEmpty()), "AttributesPanel::tryToManageAttributesName", "OldName and NewName cant be empty");
+   /* Q_ASSERT_X(not (oldName.isEmpty() and newName.isEmpty()), "AttributesPanel::tryToManageAttributesName", "OldName and NewName cant be empty");
     if(oldName.isEmpty()){  // NewName isnt empty and oldName is empty - NewProcedure
         if(newAttributes.contains(newName) or
                 ( savedAttributes->contains(newName) and removedAttributes.removeAll(newName) == 0))
@@ -102,7 +145,7 @@ bool AttributesPanel::tryToManageAttributesName(QString oldName, QString newName
                newAttributes.append({newName});
         }
     }
-
+*/
     return true;
 }
 
@@ -153,19 +196,33 @@ bool AttributesPanel::eventFilter(QObject* obj, QEvent* ev){
 
         menu = new QMenu;
         if(item){
-            actions = {
-              new QAction("Dodaj atrybut"),
-              new QAction("Edytuj nazwę atrybutu"),
-              new QAction("Edytuj wartość atrybutu"),
-              new QAction("Usuń atrybut"),
-              new QAction("Usuń wszystkie atrybuty")
-            };
-            actionFuncs = {
-                &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
-                &AttributesPanel::execRequest_ContextMenu<Request::EditAttribute>,
-                &AttributesPanel::execRequest_ContextMenu<Request::RemoveAttribute>,
-                &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
-            };
+            if(indexOfTopLevelItem(item) >= numbOfHardcodedAttributes){
+                actions = {
+                    new QAction("Dodaj atrybut"),
+                    new QAction("Edytuj nazwę atrybutu"),
+                    new QAction("Edytuj wartość atrybutu"),
+                    new QAction("Usuń atrybut"),
+                    new QAction("Usuń wszystkie atrybuty")
+                };
+                actionFuncs = {
+                    &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
+                    &AttributesPanel::execRequest_ContextMenu<Request::EditAttribute>,
+                    &AttributesPanel::execRequest_ContextMenu<Request::EditAttributeValue>,
+                    &AttributesPanel::execRequest_ContextMenu<Request::RemoveAttribute>,
+                    &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
+                };
+            }else{
+                actions = {
+                    new QAction("Dodaj atrybut"),
+                    new QAction("Edytuj wartość atrybutu"),
+                    new QAction("Usuń wszystkie atrybuty")
+                };
+                actionFuncs = {
+                    &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
+                    &AttributesPanel::execRequest_ContextMenu<Request::EditAttributeValue>,
+                    &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
+                };
+            }
         }else{
             actions = {
                 new QAction("Dodaj atrybut"),
@@ -192,9 +249,13 @@ bool AttributesPanel::eventFilter(QObject* obj, QEvent* ev){
     if(ev->type() == QEvent::MouseButtonDblClick and obj == viewport()){
         QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
         if((curEditItemInfo.item = itemAt(mev->pos()))){
-            curEditItemInfo.oldStr = curEditItemInfo.item->text(0);
-            curEditItemInfo.column = currentColumn();
-            editItem(curEditItemInfo.item, curEditItemInfo.column);
+            if(indexOfTopLevelItem(curEditItemInfo.item) >= numbOfHardcodedAttributes or currentColumn() == 1){
+                curEditItemInfo.oldStr = curEditItemInfo.item->text(0);
+                curEditItemInfo.column = currentColumn();
+                editItem(curEditItemInfo.item, curEditItemInfo.column);
+            }else{                
+                curEditItemInfo.item = nullptr;
+            }
         }else{
             using Request = AttributesPanel::Request_ContextMenu;
             execRequest_ContextMenu<Request::AddAttribute>(nullptr);
@@ -205,19 +266,39 @@ bool AttributesPanel::eventFilter(QObject* obj, QEvent* ev){
         if(curEditItemInfo.item){
             if(curEditItemInfo.item->text(0).isEmpty()){ // Remove Item
                 if(not curEditItemInfo.oldStr.isEmpty()) // old name isnt empty (removeProcedure)
-                    tryToManageAttributesName(curEditItemInfo.oldStr, QString());
+                    //tryToManageAttributesName(curEditItemInfo.oldStr, QString());
                 delete curEditItemInfo.item;
             }else{  // Not empty (New Procedure or Change Procedure)
                 if(curEditItemInfo.item->text(0) != curEditItemInfo.oldStr){    // name changed
                     if(curEditItemInfo.oldStr.isEmpty()){  // New Procedure
-                        if(not tryToManageAttributesName(QString(), curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
-                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
+                        int i = 0;
+                        for( i = 0; i < topLevelItemCount(); i++){
+                            if(topLevelItem(i) != curEditItemInfo.item and
+                                    topLevelItem(i)->text(0) == curEditItemInfo.item->text(0)){
+                                break;
+                            }
+                        }
+                        if(i != topLevelItemCount()){
                             delete curEditItemInfo.item;
                         }
+//                        if(not tryToManageAttributesName(QString(), curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
+//                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
+//                            delete curEditItemInfo.item;
+//                        }
                     }else{  // Change Procedure Name
-                        if(not tryToManageAttributesName(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
-                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
-                            curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+//                        if(not tryToManageAttributesName(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))){ // Failed (Duplicated Name)
+//                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text(0) + QStringLiteral("\" already exists."));
+//                            curEditItemInfo.item->setText(0, curEditItemInfo.oldStr);
+//                        }
+                        int i = 0;
+                        for( i = 0; i < topLevelItemCount(); i++){
+                            if(topLevelItem(i) != curEditItemInfo.item and
+                                    topLevelItem(i)->text(0) == curEditItemInfo.item->text(0)){
+                                break;
+                            }
+                        }
+                        if(i != topLevelItemCount()){
+                            delete curEditItemInfo.item;
                         }
                     }
                 }
@@ -245,3 +326,17 @@ void AttributesPanel::reloadGui(){
     //addTopLevelItems((*savedAttributes));
 }
 
+
+void AttributesPanel::loadAttributes(Config::Attributes& attributes){
+  clear();
+ for(Config::Attributes::Iterator attribute = attributes.begin(); attribute != attributes.end(); attribute++){
+     addTopLevelItem(new ListItem(attribute.key(), attribute.value().value));
+ }
+}
+
+void AttributesPanel::readAttributes(Config::Attributes& attributes){
+    attributes.clear();
+    for(int i = 0 ; i < topLevelItemCount(); i++){
+        attributes.insert(topLevelItem(i)->text(0), Config::Attribute{topLevelItem(i)->text(1)});
+    }
+}

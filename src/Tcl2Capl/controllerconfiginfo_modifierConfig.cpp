@@ -18,7 +18,7 @@ bool ControllerConfigInfo::addPhase(QString name){
     }
 
     // Main:
-    configKeyIter = newPhasesMap.find({name, Category()});
+    configKeyIter = newPhasesMap.find({name, Category::LowestValue});
     if(configKeyIter == newPhasesMap.end()){ // Not Found
         // 1. Add new Keys:
         // iter1 = <name, OnEndOfCall>, - Value - Absolute rule position
@@ -38,7 +38,12 @@ bool ControllerConfigInfo::addPhase(QString name){
         }
         configKeyHelperIter = configKeyIter;
         configKeyHelperIter = newPhasesMap.insert({name, Category::OnEndOfRulesCheck}, configKeyIter.value());
-        configKeyHelperIter = newPhasesMap.insert({name, Category::PhaseRules}, configKeyIter.value());
+        configKeyHelperIter = newPhasesMap.insert({name, Category::OnNoRulesSatisfied}, configKeyIter.value());
+
+        ModifierNewRules newRules{ModifierRulesFactory::create(ModifierRulesFactory::ProductTypeEnum::RawRule)};
+        loadNewModifierRules(name, Category::OnEndOfRulesCheck, newRules);
+        newRules = {ModifierRulesFactory::create(ModifierRulesFactory::ProductTypeEnum::RawRule)};
+        loadNewModifierRules(name, Category::OnNoRulesSatisfied, newRules);
 
     }else{
         if(configKeyIter.value() < 0){
@@ -334,19 +339,19 @@ void ControllerConfigInfo::clearPhases(){
     using Config = decltype(newPhasesMap);
     using ConfigKeyIter = Config::Iterator;
     using Category = ModifierRulesCategories;
-    qDebug() << "clearProcedures begin" << newPhasesMap;
+    qDebug() << "clearPhases begin" << newPhasesMap;
     ConfigKeyIter configKeyIter;
     ConfigKeyIter endIter;
 
     configKeyIter = newPhasesMap.begin();
 
     while( configKeyIter != newPhasesMap.end()){
-        if(configKeyIter.key().second == Category::LowestValue and configKeyIter.value() >= 0){
+        if(configKeyIter.key().second == Category::LowestValue and configKeyIter.key().first != "Default"  and configKeyIter.value() >= 0){
             configKeyIter.value() = -(configKeyIter.value() + 1);
         }
         configKeyIter++;
     }
-    numbOfExistingPhases = 0;
+    numbOfExistingPhases = 1;
     qDebug() << "clearPhases end" << newPhasesMap;
 }
 
@@ -429,36 +434,24 @@ void ControllerConfigInfo::readPhases(TcFileModifierConfigBase::ModifierPhases& 
     using ConfigActions = TcFileModifierConfigBase::ModifierRule::Actions;
     using ModifierRules = ModifierNewRules;
     using ModifierActions = ModifierActions;
-    Q_ASSERT_X(userPhases.capacity() == getNumbOfExistingPhases(), "ConfigInfo", "UserProcedures list capacity is not prepared");
-    Q_ASSERT_X(userPhases.size() == getNumbOfExistingPhases(), "ConfigInfo", "UserProcedures list size is not prepared");
 
     QString name;
     qsizetype numbOfRulesOrActions;
-    TcFileModifierConfigBase::ModifierPhases::Iterator userPhaseIter = userPhases.begin();
+    TcFileModifierConfigBase::ModifierPhases::Iterator userPhaseIter;
     ModifierRules::Iterator newRule;
     ModifierRules::Iterator endRule;
     ConfigRules::Iterator ruleForInterpreter;
     // Prepare containers
     // On No Rules Satisfied
-    ConfigKeyIter configProcedureStartIter = newPhasesMap.begin();
-    ConfigKeyIter configMapIter = configProcedureStartIter;
+    ConfigKeyIter configPhaseStartIter = newPhasesMap.begin();
+    ConfigKeyIter configMapIter = configPhaseStartIter;
 
     while(configMapIter != newPhasesMap.end()){
-        configProcedureStartIter = configMapIter;
+        configPhaseStartIter = configMapIter;
         name = configMapIter.key().first;
         if(configMapIter.value() >= 0){ // Check if Exists
-            // On No Rules Satisfied - Actions - Only 1 Rule - Container only
-            newRule = newModifierRules.begin() + configMapIter.value();
-            configMapIter++;
-            // Reserve and resize
-            (*newRule)->toActions(userPhaseIter->onEnd.onNoRules);
-
-            // On end of Rules check
-            newRule = newModifierRules.begin() + configMapIter.value();
-            configMapIter++;
-
-            // Reserve and resize
-            (*newRule)->toActions(userPhaseIter->onEnd.onEndOfRulesCheck);
+            // Add Phase
+            userPhaseIter = userPhases.insert(name, TcFileModifierConfigBase::ModifierPhase());
 
             // Rules
             newRule = newModifierRules.begin() + configMapIter.value();
@@ -480,8 +473,22 @@ void ControllerConfigInfo::readPhases(TcFileModifierConfigBase::ModifierPhases& 
             {
                 (*newRule)->toRule((*ruleForInterpreter));
             }
+
+            // On end of Rules check
+            newRule = newModifierRules.begin() + configMapIter.value();
+            configMapIter++;
+
+            // Reserve and resize
+            (*newRule)->toActions(userPhaseIter->onEnd.onEndOfRulesCheck);
+
+            // On No Rules Satisfied - Actions - Only 1 Rule - Container only
+            newRule = newModifierRules.begin() + configMapIter.value();
+            configMapIter++;
+            // Reserve and resize
+            (*newRule)->toActions(userPhaseIter->onEnd.onNoRules);
+
             userPhaseIter++;
-        }else{ // Not exist - move to next procedure
+        }else{ // Not exist - move to next phase
             configMapIter++;
             while(configMapIter != newPhasesMap.end() and configMapIter.key().second != ModifierRulesCategories::LowestValue){
                 configMapIter++;
@@ -494,7 +501,7 @@ void ControllerConfigInfo::readPhases(TcFileModifierConfigBase::ModifierPhases& 
 
 bool ControllerConfigInfo::addCategory(QString name, ModifierRulesFromConfigFileView& rulesView)
 {
-   /* qDebug() << "addCategory begin" << newPhasesMap;
+    qDebug() << "addCategory begin" << newPhasesMap;
     using Config = decltype(newPhasesMap);
     using ConfigKeyIter = Config::Iterator;
     using EditIndexIter = QMap<QPair<QString, qsizetype>, QMap<PhaseModifierRuleCategoryKey, qsizetype>::Iterator>::Iterator;
@@ -503,9 +510,9 @@ bool ControllerConfigInfo::addCategory(QString name, ModifierRulesFromConfigFile
     QString oldName;
     bool found = false;
     ModifierNewRules& rules = rulesView.rules;
-    const qsizetype& index = static_cast<qsizetype>(rulesView.index);
-    configKeyIter = newPhasesMap.find({name, static_cast<RulesCategories>(index)});
-    if(index > -1){
+    const qsizetype& category = static_cast<qsizetype>(rulesView.category);
+    //configKeyIter = newPhasesMap.find({name, static_cast<ModifierRulesCategories>(category)});
+    /*if(category > ModifierRulesCategories::PhaseRules){
         if(configKeyIter != newPhasesMap.end()){
             return false; // Duplicated
         }
@@ -521,21 +528,21 @@ bool ControllerConfigInfo::addCategory(QString name, ModifierRulesFromConfigFile
 
         configKeyIter--;
         configKeyIter.value() = abs(value);
-    }
+    }*/
 
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
 
-    beginIter = newPhasesMap.find({name, static_cast<RulesCategories>(index)});
+    beginIter = newPhasesMap.find({name, static_cast<ModifierRulesCategories>(category)});
     if(beginIter != newPhasesMap.end()){
         endIter = ++beginIter;
         beginIter--;
         qsizetype position = abs(beginIter.value());
         qsizetype numbOfRules = 0;
-        if(endIter != newProceduresMap.end()){
+        if(endIter != newPhasesMap.end()){
             numbOfRules = abs(endIter.value()) - position;
         }else{
-            numbOfRules = newRules.size() - position;
+            numbOfRules = newModifierRules.size() - position;
         }
         qsizetype diff = rules.size() - numbOfRules;
         if(diff != 0){
@@ -545,20 +552,20 @@ bool ControllerConfigInfo::addCategory(QString name, ModifierRulesFromConfigFile
                 beginIter++;
             }
         }
-        NewRules::Iterator tempRulesIter = newRules.begin() + position;
-        NewRules::Iterator newRulesIter = tempRulesIter + numbOfRules;
+        ModifierNewRules::Iterator tempRulesIter = newModifierRules.begin() + position;
+        ModifierNewRules::Iterator newRulesIter = tempRulesIter + numbOfRules;
         for( ; tempRulesIter < newRulesIter; tempRulesIter++){
             delete *tempRulesIter;
         }
-        newRules.remove(position, numbOfRules);
+        newModifierRules.remove(position, numbOfRules);
         tempRulesIter = rules.begin();
-        newRules.insert(position, rules.size(), nullptr);
-        newRulesIter = newRules.begin() + position;
+        newModifierRules.insert(position, rules.size(), nullptr);
+        newRulesIter = newModifierRules.begin() + position;
         for(; tempRulesIter < rules.end(); tempRulesIter++, newRulesIter++){
             *newRulesIter = *tempRulesIter;
         }
     }
-*/
+
     return true;
 }
 

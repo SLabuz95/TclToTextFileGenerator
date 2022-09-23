@@ -2,7 +2,7 @@
 #define INDEXRULE_HPP
 
 #include"../formattedString.hpp"
-#include<QSpinBox>
+#include"External/Improvements/spinBoxNoWheel.hpp"
 
 namespace Panels::Configuration::View::FormattedString{
     class IndexItemDataView
@@ -27,7 +27,7 @@ namespace Panels::Configuration::View::FormattedString{
         void readRule(FormatRuleBase&) override;
     protected:
         //QSpinBox* indexSpinBox = nullptr;
-        QSpinBox indexSpinBox;// = nullptr;
+        SpinBoxNoWheel indexSpinBox;// = nullptr;
     };
 }
 

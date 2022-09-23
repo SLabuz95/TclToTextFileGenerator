@@ -47,12 +47,12 @@ class Tcl2CaplFileParserInstance : public QSplitter{
     const QString FILE_SELECTION_BUTTON_TEXT = QStringLiteral("..");
     const QString INPUT_CONFIG_BOX_TITLE = QStringLiteral("Ustawienia wejściowe");
     const QString OUTPUT_BOX_TITLE = QStringLiteral("Dane wyjściowe");
-    const QString INPUT_DIR_TITLE = QStringLiteral("Folder TCL:");
+    const QString INPUT_DIR_TITLE = QStringLiteral("Folder wejściowy:");
     const QString INPUT_PROCEDURE_CONFIG_TITLE = QStringLiteral("Konfiguracja:");
-    const QString OUTPUT_DIR_TITLE = QStringLiteral("Folder CAPL:");
+    const QString OUTPUT_DIR_TITLE = QStringLiteral("Folder wyjściowy:");
     const QString READ_DEFINITIONS_BUTTON_TEXT = QStringLiteral("Odczytaj definicje");
-    const QString GENERATE_CAPL_BUTTON_TEXT = QStringLiteral("Generuj skrypty CAPL");
-    const QString GENERATE_CAPL_WRITE_ONLY_MODE_BUTTON_TEXT = QStringLiteral("Generuj skrypty CAPL - Tryb raportowy");
+    const QString GENERATE_CAPL_BUTTON_TEXT = QStringLiteral("Generuj skrypty");
+    const QString GENERATE_CAPL_WRITE_ONLY_MODE_BUTTON_TEXT = QStringLiteral("Generuj skrypty - Tryb raportowy");
 
 
     //Tcl2CaplFileParserPanel& panel;
@@ -64,17 +64,17 @@ class Tcl2CaplFileParserInstance : public QSplitter{
     OutputBox outputBox;
     OutputLayout outputLayout;
     DefinitionsTclInputsSplitter definitionsTclInputsSplitter;
-    DefinitionsList definitionsList;
+    //DefinitionsList definitionsList;
     InputsList inputsList;
     InputProcedureOutputLayout inputProcedureOutputLayout;
-    InputProcedureConfigTitle inputProcedureConfigTitle;
+    /*InputProcedureConfigTitle inputProcedureConfigTitle;
     InputProcedureConfigPath inputProcedureConfigPath;
-    InputProcedureConfigSelection inputProcedureConfigSelection;
+    InputProcedureConfigSelection inputProcedureConfigSelection;*/
     OutputDirTitle outputDirTitle;
     OutputDirPath outputDirPath;
     OutputDirSelection outputDirSelection;
 
-    ReadDefinitionsButton readDefinitionsButton;
+    //ReadDefinitionsButton readDefinitionsButton;
     GenerateCaplButton generateCaplButton;
     GenerateCaplReportModeButton generateCaplReportModeButton;
 

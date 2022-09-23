@@ -39,11 +39,10 @@ public:
     using RulesForArguments = RulesFactory::List<RulesTypes::RulesForArgument>;
 
     struct Attribute{
-        QString name;
         QString value;
     };
 
-    using Attributes = QList<Attribute>;
+    using Attributes = QMap<QString, Attribute>;
 
     class Procedure{    // For config only
     public:

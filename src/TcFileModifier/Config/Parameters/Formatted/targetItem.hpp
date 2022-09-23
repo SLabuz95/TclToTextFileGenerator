@@ -9,9 +9,12 @@ template<>
 class ModifierFormatParametersProducts::ImplementationData<ModifierFormatParametersType::TargetItem>::Properties
 : public ModifierFormatParametersProductDefinition::Definition
 {
-public:
 
+public:
+    using Format = ModifierFormatParameters::Format;
+    using Target = Format::Target;
 protected:
+    Target target_ = Target();
 
 };
 
@@ -28,8 +31,11 @@ class ModifierFormatParametersProducts::InterfaceData<ModifierFormatParametersTy
 : public ModifierFormatParametersProducts::Implementation<ModifierFormatParametersType::TargetItem>
 {
 public:
+    void setTarget(Target target){target_ = target;}
+    Target target()const{return target_;}
     void toActionParameters(QStringList& parameters)override{
-
+        using Format = ModifierFormatParameters::Format;
+        Format::addFormatRule(parameters, Format::Rule::TARGET, Format::cast_target_str(target()));
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{

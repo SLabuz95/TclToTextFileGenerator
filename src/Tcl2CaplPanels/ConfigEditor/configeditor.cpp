@@ -62,8 +62,14 @@ bool Panel::eventFilter(QObject* obj, QEvent* ev){
     }
     return QWidget::eventFilter(obj, ev);
 }
+
 void Panel::deactivateRulesPanel(){
     View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    if(configTabsPanel.rulesPhaseList().initialized()){
+        configTabsPanel.rulesPhaseList().clear();
+        configTabsPanel.rulesPhaseList().setNonInitialized();
+        configTabsPanel.rulesPhaseList().setEnabled(false);
+    }
     if(configTabsPanel.rulesProcedureList().initialized()){
         configTabsPanel.rulesProcedureList().clear();
         configTabsPanel.rulesProcedureList().setNonInitialized();
@@ -78,6 +84,13 @@ void Panel::deactivateRulesPanel(){
 
 void Panel::syncConfig(){
     View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    configTabsPanel.writeOnlyProceduresList().readProcedures(config().writeOnlyProcedures());
+    configTabsPanel.attributesList().readAttributes(config().attributes());
+    if(configTabsPanel.rulesPhaseList().initialized()){
+        ConfigInfo::Config::ModifierConfigRules newRules;
+        configTabsPanel.rulesPhaseList().readRules(newRules);
+        config().loadNewModifierRules(configTabsPanel.rulesPhaseList().phaseName(), configTabsPanel.rulesPhaseList().rulesCategory(), newRules);
+    }
     if(configTabsPanel.rulesProcedureList().initialized()){
         ConfigInfo::Config::DynamicRawRules newRules;
         configTabsPanel.rulesProcedureList().readRules(newRules);
@@ -89,6 +102,34 @@ void Panel::syncConfig(){
         config().loadNewRules(configTabsPanel.rulesDefaultProcedureList().rulesCategory(), newRules);
     }
 }
+
+void Panel::loadModifierRules(QString phaseName, QString rulesCategory){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    ConfigInfo::ModifierRulesCategories category = static_cast<ConfigInfo::ModifierRulesCategories>(rulesCategory.toLongLong());
+    if(configTabsPanel.rulesPhaseList().phaseName() != phaseName or configTabsPanel.rulesPhaseList().rulesCategory() != category){
+        if(configTabsPanel.rulesPhaseList().initialized()){
+            ConfigInfo::Config::ModifierConfigRules newRules;
+            configTabsPanel.rulesPhaseList().readRules(newRules);
+            config().loadNewModifierRules(configTabsPanel.rulesPhaseList().phaseName(), configTabsPanel.rulesPhaseList().rulesCategory(), newRules);
+        }
+        switch(category){
+        case ConfigInfo::ModifierRulesCategories::PhaseRules:
+            configTabsPanel.rulesPhaseList().deactivateExecutableActionsListMode();
+            break;
+        default:
+            configTabsPanel.rulesPhaseList().activateExecutableActionsListMode();
+            break;
+        }
+
+        ConfigInfo::ModifierRulesView rulesView = config().readModifierRules(phaseName, category);
+        configTabsPanel.rulesPhaseList().setEnabled(true);
+        configTabsPanel.rulesPhaseList().phaseName() = phaseName;
+        configTabsPanel.rulesPhaseList().rulesCategory() = category;
+        configTabsPanel.rulesPhaseList().loadRules(rulesView);
+    }
+
+}
+
 void Panel::loadRules(QString procedureName, QString rulesCategory){
     View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
     ConfigInfo::RulesCategories category = static_cast<ConfigInfo::RulesCategories>(rulesCategory.toLongLong());
@@ -133,6 +174,17 @@ bool Panel::editProcedure(QString oldName, QString newName){
     return false;
 }
 
+
+bool Panel::editPhase(QString oldName, QString newName){
+    if(config().editPhaseName(oldName, newName) == true){
+        View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+        if(configTabsPanel.rulesPhaseList().phaseName() == oldName)
+            configTabsPanel.rulesPhaseList().phaseName() = newName;
+        return true;
+    }
+    return false;
+}
+
 bool Panel::editIndex(qsizetype oldIndex, qsizetype newIndex){
     ConfigInfo::RulesCategories oldCategory = static_cast<ConfigInfo::RulesCategories>(oldIndex);
     ConfigInfo::RulesCategories newCategory = static_cast<ConfigInfo::RulesCategories>(newIndex);
@@ -169,6 +221,16 @@ void Panel::removeProcedure(QString procedureName){
     }
 }
 
+void Panel::removePhase(QString phaseName){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    config().removeProcedure(phaseName);
+    if(configTabsPanel.rulesPhaseList().phaseName() == phaseName){
+        configTabsPanel.rulesPhaseList().setNonInitialized();
+        configTabsPanel.rulesPhaseList().clear();
+        configTabsPanel.rulesPhaseList().setEnabled(false);
+    }
+}
+
 void Panel::removeIndex(QString procedureName, qsizetype index){
     View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
     config().removeIndex(procedureName, index);
@@ -200,6 +262,15 @@ void Panel::clearProcedures(){
     configTabsPanel.rulesProcedureList().setNonInitialized();
     configTabsPanel.rulesProcedureList().clear();
     configTabsPanel.rulesProcedureList().setEnabled(false);
+}
+
+
+void Panel::clearPhases(){
+    View::ConfigTabs& configTabsPanel = configViewPanel.Panels::Super::ViewPanel::Super::get();
+    config().clearPhases();
+    configTabsPanel.rulesPhaseList().setNonInitialized();
+    configTabsPanel.rulesPhaseList().clear();
+    configTabsPanel.rulesPhaseList().setEnabled(false);
 }
 
 void Panel::clearIndexes(QString procedureName){

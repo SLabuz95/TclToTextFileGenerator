@@ -21,10 +21,10 @@ public:
     };
 
     enum ModifierRulesCategories : qsizetype{
-        OnNoRulesSatisfied = -2,
-        LowestValue = OnNoRulesSatisfied,
+        PhaseRules = -2,
+        LowestValue = PhaseRules,
         OnEndOfRulesCheck = -1,
-        PhaseRules = 0
+        OnNoRulesSatisfied = 0,
     };
 
 private:
@@ -47,6 +47,7 @@ private:
     };
 public:
     using Config = Tcl2CaplControllerConfig;
+    using Attributes = Tcl2CaplControllerConfig::Attributes;
 
     using ModifierPhaseMap = QMap<PhaseModifierRuleCategoryKey, qsizetype>;
     using ModifierSavedRules = Config::ModifierConfigRawRules;
@@ -55,7 +56,7 @@ public:
     using ModifierRulesView = QPair<ModifierNewRules::Iterator, ModifierNewRules::Iterator>;
 
     struct ModifierRulesFromConfigFileView{
-        ModifierRulesCategories index;
+        ModifierRulesCategories category;
         ModifierNewRules rules;
     };
 
@@ -158,6 +159,7 @@ public:
 
         void readProcedures(QList<UserProcedure>&);
         UserProcedure readDefaultProcedure();
+        inline Attributes& attributes(){return attributes_;}
         inline Settings::WriteOnlyProcedures& writeOnlyProcedures(){return _settings.writeOnlyProcedures();}
         inline Settings& settings(){return _settings;}
 
@@ -169,6 +171,7 @@ public:
 
         void toXmlContent(QXmlStreamWriter& xmlWriter);
         void writeSettingsToXML(QXmlStreamWriter&);
+        void writeAttributesToXML(QXmlStreamWriter&);
         void writeProceduresToXML(QXmlStreamWriter&);
         void writeDefaultProcedureToXML(QXmlStreamWriter&);
 
@@ -200,7 +203,9 @@ public:
         void readPhases(TcFileModifierConfigBase::ModifierPhases&);
         // XML Section
         bool addCategory(QString name, ModifierRulesFromConfigFileView& rulesView);
+        void writePhasesToXML(QXmlStreamWriter&);
 
+        // Settings
     protected:
         ConfigFile configFile;
 
@@ -211,6 +216,7 @@ public:
         // --------------------- DATA OF TCL CONFIG -------------------------------------------
         // Local changes
         Settings _settings;
+        Attributes attributes_;
         ProcedureMap newProceduresMap;// procedures map
         NewRules newRules;
         DefaultProcedureMap newDefaultProcedureMap;// default procedure map

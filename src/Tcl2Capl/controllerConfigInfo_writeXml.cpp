@@ -1,13 +1,84 @@
 #include"controllerconfiginfo.hpp"
 #include<QXmlStreamWriter>
 
+void ControllerConfigInfo::writePhasesToXML(QXmlStreamWriter& xmlWriter){
+    // Prepare Token
+
+    using Config = decltype(newPhasesMap);
+    using ConfigKeyIter = Config::Iterator;
+
+    xmlWriter.writeStartElement("phases");
+
+    QString name;
+    qsizetype numbOfRules;
+    ModifierNewRules::Iterator newRule;
+    ModifierNewRules::Iterator endRule;
+    // Prepare containers
+    // On end of Call
+    ConfigKeyIter configPhaseStartIter = newPhasesMap.begin();
+    ConfigKeyIter configMapIter = configPhaseStartIter;
+
+    while(configMapIter != newPhasesMap.end()){
+        configPhaseStartIter = configMapIter;
+        if(configMapIter.value() >= 0){ // Check if Exists
+            // Write Phase element
+            name = configMapIter.key().first;
+            xmlWriter.writeStartElement("phase");
+            xmlWriter.writeAttribute("name", name);
+
+            // Write On Not Satisifed Rules
+            xmlWriter.writeStartElement("onNoRules");
+
+            newRule = newModifierRules.begin() + configMapIter.value(); // Only one rule - As contatiner only
+            configMapIter++;
+
+            (*newRule)->toXmlContent(xmlWriter);
+
+            xmlWriter.writeEndElement(); // -----------------
+
+            // On End of check
+            xmlWriter.writeStartElement("onEndOfRules");
+
+            newRule = newModifierRules.begin() + configMapIter.value();
+            configMapIter++;
+            (*newRule)->toXmlContent(xmlWriter);
+
+            xmlWriter.writeEndElement(); // -----------------
+            // Rules
+            xmlWriter.writeStartElement("rules");
+
+            newRule = newModifierRules.begin() + configMapIter.value();
+            configMapIter++;
+            if(configMapIter != newPhasesMap.end()){
+                endRule = newModifierRules.begin() + abs(configMapIter.value());
+            }else{
+                endRule = newModifierRules.end();
+            }
+            numbOfRules = endRule - newRule;
+
+            for(; newRule < endRule; newRule++)
+            {
+                (*newRule)->toXmlContent(xmlWriter);
+            }
+            xmlWriter.writeEndElement(); // --- rules --------------
+            xmlWriter.writeEndElement(); // --- phase --------------
+
+        }else{ // Not exist - move to next procedure
+            configMapIter++;
+            while(configMapIter != newPhasesMap.end() and configMapIter.key().second != ModifierRulesCategories::LowestValue){
+                configMapIter++;
+            }
+            // Do not increment again
+        }
+    }
+    xmlWriter.writeEndElement();
+}
+
 void ControllerConfigInfo::writeProceduresToXML(QXmlStreamWriter& xmlWriter){
     // Prepare Token
 
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    using ProcedureName = UserProcedure::ProcedureName;
-    using Rules = UserProcedureRules;
 
     xmlWriter.writeStartElement("procedures");
 
@@ -104,6 +175,7 @@ void ControllerConfigInfo::writeProceduresToXML(QXmlStreamWriter& xmlWriter){
             xmlWriter.writeEndElement(); // --- procedure --------------
 
         }else{ // Not exist - move to next procedure
+            configMapIter++;
             while(configMapIter != newProceduresMap.end() and configMapIter.key().second != RulesCategories::OnEndOfCall){
                 configMapIter++;
             }
@@ -191,6 +263,19 @@ void ControllerConfigInfo::writeDefaultProcedureToXML(QXmlStreamWriter& xmlWrite
 
 }
 
+void ControllerConfigInfo::writeAttributesToXML(QXmlStreamWriter& xmlWriter){
+    xmlWriter.writeStartElement("attributes");
+    for(Attributes::Iterator attribute = attributes().begin();
+        attribute != attributes().end(); attribute++)
+    {
+        xmlWriter.writeStartElement("attribute");
+        xmlWriter.writeAttribute("name", attribute.key());
+        xmlWriter.writeCharacters(attribute.value().value);
+        xmlWriter.writeEndElement();
+    }
+    xmlWriter.writeEndElement();
+}
+
 void ControllerConfigInfo::writeSettingsToXML(QXmlStreamWriter& xmlWriter){
       settings().toXmlContent(xmlWriter);
 }
@@ -200,6 +285,7 @@ void ControllerConfigInfo::toXmlContent(QXmlStreamWriter& xmlWriter){
     xmlWriter.writeStartElement("tclConfig");
 
     writeSettingsToXML(xmlWriter);
+    writeAttributesToXML(xmlWriter);
     writeProceduresToXML(xmlWriter);
     writeDefaultProcedureToXML(xmlWriter);
 

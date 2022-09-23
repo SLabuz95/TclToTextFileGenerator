@@ -12,6 +12,11 @@ namespace View{
         class RulesPanel;
         }
     }
+    namespace ModifierRules{
+        namespace RulesPhasePanel{
+        class RulesPanel;
+        }
+    }
     class ConfigViewPanel;
 }
 
@@ -22,6 +27,7 @@ namespace View{
 
         using Super = QTabWidget;
         using RulesProcedurePanel = View::Rules::RulesProcedurePanel::RulesPanel;
+        using RulesPhasePanel = View::ModifierRules::RulesPhasePanel::RulesPanel;
     public:
         ConfigTabsPanel(View::ConfigViewPanel& parent);
         virtual ~ConfigTabsPanel() override{}
@@ -34,6 +40,7 @@ namespace View{
         WriteOnlyProceduresList& writeOnlyProceduresList();
         RulesProcedurePanel& rulesProcedureList();
         RulesProcedurePanel& rulesDefaultProcedureList();
+        RulesPhasePanel& rulesPhaseList();
 
         WIDGET_ADD_EVENT_FILTER
 

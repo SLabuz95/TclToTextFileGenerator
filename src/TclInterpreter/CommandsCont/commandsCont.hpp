@@ -88,7 +88,8 @@ namespace Tcl::Interpreter::Command{
 
         //CommandCallSpecialInterpret commandCallSpecialInterpret = &Controller::emptyCommandCallSpecialInterpret;
 
-        Calls::size_type writeOnlyProcedureActiveIndex = -1;
+        QVector<Calls::size_type> writeOnlyProcedureActiveIndex = {-1};
+
         Calls::size_type ignoreModeActiveIndex = -1;
 
         //Command command;
@@ -214,19 +215,18 @@ namespace Tcl::Interpreter::Command{
             currentCommandCallFunctions = callConfig.controlFunctionsForStat(stat);
         }
 
-
         // WriteOnlyProcedures
         void tryToActivateWriteOnlyProcedure(Call::Name& name);
-        //inline bool isWriteOnlyProcedureActive()const{return writeOnlyProcedureActiveIndex != -1;}
+        inline bool isWriteOnlyProcedureActive()const{return writeOnlyProcedureActiveIndex.last() != -1;}
+        inline bool isWriteOnlyProcedureCorrupted()const{return writeOnlyProcedureActiveIndex.last() > procedureCalls.size();}
         inline void tryToDeactivateWriteOnlyProcedure(){
-            if(writeOnlyProcedureActiveIndex == procedureCalls.size()){
-                writeOnlyProcedureActiveIndex = -1;
-                deactivateWriteOnlyProcedureMode();
+            if(writeOnlyProcedureActiveIndex.last() >= procedureCalls.size()){
+                writeOnlyProcedureActiveIndex.last() = -1;
             }
-        }
+        }        
+        inline void addWriteOnlyProcedureLayer(){writeOnlyProcedureActiveIndex.append(-1);}
+        inline void removeWriteOnlyProcedureLayer(){if(not writeOnlyProcedureActiveIndex.isEmpty()) writeOnlyProcedureActiveIndex.removeLast();}
         // ---------------------------
-        void activateWriteOnlyProcedureMode();
-        void deactivateWriteOnlyProcedureMode();        
         inline void activateIgnoreMode(){
             ignoreModeActiveIndex = numberOfProcedureCalls();
         }

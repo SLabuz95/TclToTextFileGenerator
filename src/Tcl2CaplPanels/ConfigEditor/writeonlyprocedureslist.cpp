@@ -60,7 +60,7 @@ void WriteOnlyProceduresList::execRequest_ContextMenu<WriteOnlyProceduresList::R
         curEditItemInfo = {};
         qApp->processEvents();
     }
-    ChangeAction changeAction = tryToManageProceduresName(item->text(), QString());
+   // ChangeAction changeAction = tryToManageProceduresName(item->text(), QString());
     // Notify about Change
     delete item;
 }
@@ -76,12 +76,12 @@ void WriteOnlyProceduresList::execRequest_ContextMenu<WriteOnlyProceduresList::R
     curEditItemInfo = {};
     // Maybe clear NewProcedures and replace Removed with savedProcedures?
     for(int i = 0; i < list.count(); i++){
-        tryToManageProceduresName(list.item(i)->text(), QString());
+        //tryToManageProceduresName(list.item(i)->text(), QString());
     }
     // Notify about Change::ClearedAll
     list.clear();
 }
-
+/*
 WriteOnlyProceduresList::ChangeAction WriteOnlyProceduresList::tryToManageProceduresName(QString oldName, QString newName){
     Q_ASSERT_X(not (oldName.isEmpty() and newName.isEmpty()), "WriteOnlyProceduresList::tryToManageProceduresName", "Only OldName or NewName can be empty ");
     bool restoreRemovedFlag = false;
@@ -122,7 +122,7 @@ WriteOnlyProceduresList::ChangeAction WriteOnlyProceduresList::tryToManageProced
         }
     }
 }
-
+*/
 
 bool WriteOnlyProceduresList::eventFilter(QObject* obj, QEvent* ev){
     if(ev->type() ==  QEvent::ContextMenu)
@@ -189,29 +189,29 @@ bool WriteOnlyProceduresList::eventFilter(QObject* obj, QEvent* ev){
         if(curEditItemInfo.item){
             if(curEditItemInfo.item->text().isEmpty()){ // Remove Item
                 if(not curEditItemInfo.oldName.isEmpty()){ // old name isnt empty (removeProcedure)
-                    ChangeAction changeAction = tryToManageProceduresName(curEditItemInfo.oldName, QString());
+                    //ChangeAction changeAction = tryToManageProceduresName(curEditItemInfo.oldName, QString());
                     // Notify about Change
                 }
                 delete curEditItemInfo.item;
             }else{  // Not empty (New Procedure or Change Procedure)
                 if(curEditItemInfo.item->text() != curEditItemInfo.oldName){    // name changed
                     if(curEditItemInfo.oldName.isEmpty()){  // New Procedure
-                        ChangeAction changeAction = tryToManageProceduresName(QString(), curEditItemInfo.item->text());
-                        if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Name)
-                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
-                            delete curEditItemInfo.item;
-                        }else{
+                        //ChangeAction changeAction = tryToManageProceduresName(QString(), curEditItemInfo.item->text());
+                        //if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Name)
+                            //QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
+                            //delete curEditItemInfo.item;
+                        //}else{
                             // Notify about change
 
-                        }
+                        //}
                     }else{  // Change Procedure Name
-                        ChangeAction changeAction = tryToManageProceduresName(curEditItemInfo.oldName, curEditItemInfo.item->text());
-                        if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Name)
-                            QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
-                            curEditItemInfo.item->setText(curEditItemInfo.oldName);
-                        }else{
+                        //ChangeAction changeAction = tryToManageProceduresName(curEditItemInfo.oldName, curEditItemInfo.item->text());
+                        //if(changeAction == ChangeAction::DuplicatedError){ // Failed (Duplicated Name)
+                          //  QMessageBox::warning(nullptr, QStringLiteral("Duplicated Name"), QStringLiteral("Procedure \"") + curEditItemInfo.item->text() + QStringLiteral("\" already exists."));
+                         //   curEditItemInfo.item->setText(curEditItemInfo.oldName);
+                        //}else{
                             // Notify about change
-                        }
+                        //}
                     }
                 }
             }
@@ -236,4 +236,21 @@ void WriteOnlyProceduresList::loadProcedures(WriteOnlyProceduresPtr writeOnlyPro
 void WriteOnlyProceduresList::reloadGui(){
     list.clear();
     list.addItems((*savedProcedures));
+}
+
+
+void WriteOnlyProceduresList::loadProcedures(QStringList& procedures){
+  list.clear();
+ for(QStringList::Iterator procedure = procedures.begin(); procedure != procedures.end(); procedure++){
+
+     list.addItem(new ListItem(*procedure));
+ }
+}
+
+void WriteOnlyProceduresList::readProcedures(QStringList& procedures){
+    procedures.reserve(list.count());
+    procedures.resize(list.count());
+    for(int i = 0 ; i < list.count(); i++){
+        procedures[i] = list.item(i)->text();
+    }
 }

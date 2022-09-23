@@ -10,6 +10,7 @@
 #include"error.hpp"
 #include"tclParse.hpp"
 #include"write.hpp"
+#include"writeAttribute.hpp"
 // ---------------------------
 
 #endif // ACTION_VIEW_EXECUTABLES_HPP

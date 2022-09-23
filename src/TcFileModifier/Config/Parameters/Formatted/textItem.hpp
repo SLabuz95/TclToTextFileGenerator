@@ -9,9 +9,8 @@ template<>
 class ModifierFormatParametersProducts::ImplementationData<ModifierFormatParametersType::TextItem>::Properties
 : public ModifierFormatParametersProductDefinition::Definition
 {
-public:
-
 protected:
+    QString text_;
 
 };
 
@@ -28,8 +27,12 @@ class ModifierFormatParametersProducts::InterfaceData<ModifierFormatParametersTy
 : public ModifierFormatParametersProducts::Implementation<ModifierFormatParametersType::TextItem>
 {
 public:
+    void setText(QString str){text_ = str;}
+    const QString& text()const{return text_;}
     void toActionParameters(QStringList& parameters)override{
-
+        if(not text().isEmpty()){
+            parameters << text();
+        }
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{

@@ -12,6 +12,8 @@ namespace Panels::Configuration{
     class ConfigTabsPanel;
 
     class AttributesPanel : public QTreeWidget{
+        const Qt::ItemFlags hardcodedItemFlags = Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable;
+        const uint numbOfHardcodedAttributes = 3;
     public:
         AttributesPanel(ConfigTabsPanel& tabsPanel);
         virtual ~AttributesPanel()override{}
@@ -22,13 +24,16 @@ namespace Panels::Configuration{
         public:
             inline ListItem(QString name = QString(), QString value = QString()) : QTreeWidgetItem({name, value}){
                  setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
-
+            }
+            inline ListItem(Qt::ItemFlags flags, QString name = QString(), QString value = QString()) : QTreeWidgetItem({name, value}){
+                 setFlags(flags);
             }
         };
         using Request_ContextMenu_Func = void (AttributesPanel::*)(ListItem*);
         enum class Request_ContextMenu{
             AddAttribute,
             EditAttribute,
+            EditAttributeValue,
             RemoveAttribute,
             ClearAttributes,
             Size
@@ -79,6 +84,8 @@ namespace Panels::Configuration{
         void commitChanges(){}
 
         void loadAttributes(AttributesPtr, LoadProceduresSettings);
+        void loadAttributes(Config::Attributes& attributes);
+        void readAttributes(Config::Attributes& attributes);
 
         inline void clearChanges(){
             newAttributes.clear();

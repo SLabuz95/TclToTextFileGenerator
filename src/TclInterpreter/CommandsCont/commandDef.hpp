@@ -63,6 +63,7 @@ namespace Tcl::Interpreter::Command{
                 AddPreExpression,
                 AddUserInteraction,
                 AddPredefinition, // Scope (Global (in file variables section), TestCase, CurrentBlock, NewBlock(Created only for this specific procedure call) )
+                WriteAttribute,
                 FCT_End,// VVVVVVVV Privates factory products not required
                 FinalizeForEach = FCT_End,
                 ChangeLastArgumentStat,
@@ -136,6 +137,7 @@ namespace Tcl::Interpreter::Command{
                //CUT_AFTER_INDEX = 'C',
                SEPARATOR = '@',
                TARGET = 'T',
+                ATTRIBUTE = 'A',
                 None = -1,
                //SPLIT = 'S',
                //SLICED = '\\'

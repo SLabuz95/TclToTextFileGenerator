@@ -8,9 +8,6 @@
 #include"Tcl2Capl/Config/Actions/Conditional/conditionals.hpp"
 #include"Tcl2CaplPanels/ConfigEditor/rulesprocedurepanel.hpp"
 
-
-#include"action.hpp"
-
 using namespace Panels::Configuration::View;
 using Conditionals = ConditionalsFactory::ListOfBases;
 using ConditionalsList = ActionsList::List<Conditionals>;

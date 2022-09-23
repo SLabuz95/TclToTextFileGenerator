@@ -24,7 +24,14 @@ template<>
 template<>
 enum class FSD_ByLine_TcFileModifierData::Stat{
     REPLACE_BY_MAPPING,
+    PROCESSING_ACTION_START,
+    ACTION_SPLIT = PROCESSING_ACTION_START,
+    ACTION_WRITE_ATTRIBUTE,
     ACTION_STARTS_WITH,
+    ACTION_COMPARE,
+    ACTION_WRITE,
+    ACTION_CHANGE_PHASE,
+    ACTION_INTERPRET,
     /*
     ACTION_ENDS_WITH,
     */
@@ -32,17 +39,13 @@ enum class FSD_ByLine_TcFileModifierData::Stat{
     /*
     ACTION_TC_INFO_TO_FILE,
     */
-    ACTION_WRITE,
-    ACTION_SPLIT,
     ACTION_COMMENT_OUT,
-    ACTION_CHANGE_PHASE,
     /*
     ACTION_SSTR_SAVE,
     ACTION_SSTR_SLICE,
     */
     ACTION_REPLACE_ALL,
     ACTION_DEBUG,
-    ACTION_COMPARE,
     //ACTION_FORMAT,
     /*
     ACTION_COMPARE_REGEX,
@@ -52,7 +55,6 @@ enum class FSD_ByLine_TcFileModifierData::Stat{
     ACTION_GET_MSG_BY_SIG_NAME,
     ACTION_ADD_VARIABLE,
     */
-    ACTION_INTERPRET,
 
     SIZE
 };
@@ -64,20 +66,22 @@ template<>
 struct FSD_ByLine_TcFileModifierData::Data{
 
     Data(UserInputConfig& userConfig, FunctionDefinitionsRef caplFunctionDefinitionsRef)
-        : tclToCaplInterpreter_(userConfig, caplFunctionDefinitionsRef){}
+        : tclToCaplInterpreter_(userConfig, caplFunctionDefinitionsRef),
+          userConfig_(userConfig)
+    {}
 
 
     QDir fileDir;
     QString lineData;
     //QString sstr;
-    static const ModifierPhases phases;
     QStringList arguments;
     bool conditionResult = false;
     QStringList lastActionResponse;
     TC_Info tcData;
-    Phase curPhase = Phase::TEST_CASE_INFO;
+    ModifierPhases::ConstIterator curPhase;
     TCLInterpreter tclToCaplInterpreter_;
     int curLine = 0;
+    UserInputConfig& userConfig_;
     //Variables variables;
     //QString tcContent;
 
@@ -85,6 +89,7 @@ struct FSD_ByLine_TcFileModifierData::Data{
     bool createAndAssignString(QString&, QStringList);
     void writeTCInfo(FSD_ByLine_TcFileModifierData::DataModel& dataModel);
     void writeTcToFile();
+    bool toDefaultPhase();
 };
 
 // Stat Function Definitions

@@ -9,9 +9,10 @@ template<>
 class ModifierFormatParametersProducts::ImplementationData<ModifierFormatParametersType::IndexItem>::Properties
 : public ModifierFormatParametersProductDefinition::Definition
 {
-public:
-
 protected:
+   static constexpr int INVALID_INDEX = INT_MIN;
+   int index_ = INT_MIN;
+
 
 };
 
@@ -28,8 +29,11 @@ class ModifierFormatParametersProducts::InterfaceData<ModifierFormatParametersTy
 : public ModifierFormatParametersProducts::Implementation<ModifierFormatParametersType::IndexItem>
 {
 public:
+    void setIndex(int index){index_ = index;}
+    int index(){return (index_ == INVALID_INDEX)? 0 : index_;}
     void toActionParameters(QStringList& parameters)override{
-
+        using Format = ModifierFormatParameters::Format;
+        Format::addFormatRule(parameters, Format::Rule::INDEX_OR_FULL_LINE, QString::number(index()));
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{

@@ -6,7 +6,15 @@ using Predefinitions = Tcl::Interpreter::PredefinitionsController::Predefinition
 Tcl2CaplReadData::InitializeStatus Tcl2CaplReadData::initialize(){
     if(initializeStatus == InitializeStatus::NOT_INITIALIZED){
         if(userConfig_.proceduresSettings().isWriteToFileMode()){
-            _file.setFileName(_dir.path() + "/" + _dir.dirName() + ".can");
+            switch(_readMode){
+            case ReadMode::FileMode:
+                _file.setFileName(_dir.path() + "/" + _currentTCLFileName.remove(".tc") + ".can");
+                break;
+            case ReadMode::DirectoryMode:
+                _file.setFileName(_dir.path() + "/" + _dir.dirName() + ".can");
+                break;
+            }
+
             return initializeStatus = InitializeStatus::INITIALIZE_SUCCESS;
         }else{
             return initializeStatus;

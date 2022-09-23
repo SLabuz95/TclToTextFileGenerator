@@ -17,6 +17,7 @@ namespace ModifierFormatParameters {
         IndexItem,
         ArgumentsFromItem,
         TargetItem,
+        AttributeItem,
 
         FCT_End,
         Size = FCT_End,
@@ -31,6 +32,7 @@ namespace ModifierFormatParameters {
         inline static QString toStr(Type type){return typeMap.at(std::underlying_type_t<Type>(type));}
         inline static const decltype(typeMap)& typeNames(){return typeMap;}
     };
+    using Format = TcFileModifierConfigBase::Format;
 }
 
 using ModifierFormatParametersType = ModifierFormatParameters::Type;
