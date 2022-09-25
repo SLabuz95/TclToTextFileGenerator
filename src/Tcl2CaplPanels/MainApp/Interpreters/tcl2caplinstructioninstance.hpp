@@ -70,10 +70,10 @@ class Tcl2CaplInstructionInstance : public QWidget{
     using ErrorsBox = QGroupBox;
     using ErrorsText = QTextEdit;
 
-    const QString INPUT_TCL_CONFIG_BOX_TEXT = QStringLiteral("Skrypt TCL");
-    const QString GENERATE_CAPL_BUTTON_TEXT = QStringLiteral("Generuj skrypty CAPL");
-    const QString GENERATE_CAPL_WRITE_ONLY_MODE_BUTTON_TEXT = QStringLiteral("Generuj skrypty CAPL - Tryb raportowy");
-    const QString OUTPUT_BOX_TITLE = QStringLiteral("Skrypt CAPL");
+    const QString INPUT_TCL_CONFIG_BOX_TEXT = QStringLiteral("Skrypt wejściowy");
+    const QString GENERATE_CAPL_BUTTON_TEXT = QStringLiteral("Generuj skrypty");
+    const QString GENERATE_CAPL_WRITE_ONLY_MODE_BUTTON_TEXT = QStringLiteral("Generuj skrypty - Tryb raportowy");
+    const QString OUTPUT_BOX_TITLE = QStringLiteral("Skrypt wyjściowy");
     const QString ERRORS_BOX_TITLE = QStringLiteral("Błędy");
     bool active  = false;
     //Tcl2CaplInstructionPanel& panel;

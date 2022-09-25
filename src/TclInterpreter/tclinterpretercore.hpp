@@ -15,44 +15,30 @@ namespace Tcl::Interpreter::Core {
     // - Child - child can be saved in another SavedStat
     // - Processing - owns method for interpretation of event for that stat
     // - Prodromic - expects the occurance of specific next event, can be saved in SavedStats stack
-    // - Pending - stat which is keept to perform all processing operations caused by events, stat has start and end events.
+    // - Pending - stat which is kept to perform all processing operations caused by events, stat has start and end events.
     enum class Stat : uint{
         None,
-        Word,             // {Child, Proccessing} //Old Name: String // For definition, Check Tcl concept in Github References
-        //Const,              // SAVEABLE   // Check const or string is only in special cases - const and string distinction do not change interpreter behaviour
-        //Operator,           // SAVEABLE // In Development
-        //UnknownString, Word state substitute that state
+        Word,             // {Child, Proccessing}
         CommandSubbingStart,   // {Processing} [
         CommandSubbingEnd,  // {Processing} ],
         Braces,  // } {Processing}   // SAVEABLE (For complete list)
         Whitespace, // " " , "\t" {Processing}
-        //VariableSubbingStart, // $ {Processing} // SAVEABLE
         Namespace,   // :: {Processing} // SAVEABLE
         Semicolon, // ; {Processing}
-        Comment,    // # {Processing} Save to Pending Stats (if tclCommand ends with \)   // check   add EndOfString Stat to processing stats
-        EndOfString,    // {Processing} Deinitialize saved stats
-        //EndOfCodeBlock,  // SAVEABLE
-        //Snprintf,   //  SAVEABLE For case of procedure call for speech mark processing -> procedure call [string concat ...]
-        //PendingString,  // SAVEABLE
-        //PendingSnprintf,    // SAVEABLE
-        //StringInQuotes, // SAVEABLE
-        //EndOfExpression, // SAVEABLE
-        //MainScript,  // {Parent, Pending} SAVEABLE // Previous name: MainCodeBlock
-        //Ignore, // {Parent, Prodromic, Pending} SAVEABLE
-        CommandSubbing,       // {Parent, Child, Pending} //  Old name - FunctionCall
-        //Expression, // {Parent, Child} SAVEABLE
-        //CommandExpression, // {Parent, Child} SAVEABLE
-        BracesStart,   // {    /// {Parent, Child, Processing, Pending} Everything is a string // SAVEABLE
+        Comment,    // # {Processing}
+        EndOfString,    // {Processing}
+        // vvv Stats with defined interpreter procedures
+        CommandSubbing,       // {Parent, Child, Pending}
+        BracesStart,   // {    /// {Parent, Child, Processing, Pending}  // SAVEABLE
         DoubleQuotes, // "  {Parent, Child, Processing, Pending}  // SAVEABLE
-        ComplexWord, // {Parent, Child, Pending} If VariableSubbing,BackslashSubbing or CommandSubbing occured with anther string (without whitespace)
-        Script,  // {Parent, Child, Pending} SAVEABLE // Old Name: CodeBLock
+        ComplexWord, // {Parent, Child, Pending}
+        Script,  // {Parent, Child, Pending} SAVEABLE
         BracesStartExprOnly,
         DoubleQuotesExprOnly,
         ComplexWordExprOnly,
-        //ExprCommand, // {Parent, Child} SAVEABLE
         Ignore, // {Parent, Prodromic, Pending} SAVEABLE
-        VariableSubbing,           // $ {Child, Processing} // Specific behaviour
-        BackslashSubbing, // {Parent, Child, Processing} // Old Name: SpecialSign
+        VariableSubbing,           // $ {Child, Processing}
+        BackslashSubbing, // {Parent, Child, Processing}
         Size,
         Common // - Used to define one command processing procedure in Tcl Command Controller
     };

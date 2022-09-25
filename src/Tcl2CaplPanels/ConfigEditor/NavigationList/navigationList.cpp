@@ -269,13 +269,13 @@ bool List::eventFilter(QObject* obj, QEvent* ev){
                         ProceduresElement& dPE = *static_cast<ProceduresElement*>(item->parent());
                         dPE.menuControl(cev, static_cast<ProceduresElement::ListItem*>(item));
                     }
+                        break;
                     case PanelType::Phases:
                     {                        
                         PhasesElement& dPE = *static_cast<PhasesElement*>(item->parent());
                         dPE.menuControl(cev, static_cast<PhasesElement::ListItem*>(item)); // Simulate no item choosed
                     }
                         break;
-
                     case PanelType::NoFound:
                     {
                         // - child of Procedure element (Category of Rules element)
@@ -509,22 +509,25 @@ bool List::edit(const QModelIndex &index, QAbstractItemView::EditTrigger trigger
                 switch(panelType){
                 case PanelType::NoFound: // Not MainNavigationPanel -> Child of ProcedureElement of ProceduresElement
                 {
-                    NavigationElement* item = item->parent();
-                    while(item->parent() != nullptr)
-                        item = item->parent();
-                    panelType = static_cast<PanelType>(indexOfTopLevelItem(item));
+                    bool breakFlag = true;
+                    NavigationElement* nitem = item;
+                    while(nitem->parent() != nullptr){
+                        nitem = nitem->parent();
+                    }
+                    panelType = static_cast<PanelType>(indexOfTopLevelItem(nitem));
                     switch(panelType){
                     case PanelType::Procedures: // Not MainNavigationPanel -> Child of ProcedureElement of ProceduresElement
                     {
                         // Interpret like DefaultProcedure child
                         panelType = PanelType::Procedures;
+                        breakFlag = false;
                     }
                         break;
                     default:
-                    {
                         break; // NO FALLTHROUGH
                     }
-                    }
+                    if(breakFlag)
+                        break;
                 }
                 Q_FALLTHROUGH();
 

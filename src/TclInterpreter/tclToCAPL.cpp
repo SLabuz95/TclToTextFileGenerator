@@ -35,21 +35,6 @@ KeywordsMap KeywordsController::keywordsMap ={
         {"}", Stat::Braces},
         {"[", Stat::CommandSubbingStart},
         {"]", Stat::CommandSubbingEnd},
-        {"(", Stat::Word},
-        {")", Stat::Word},
-        {"+", Stat::Word},
-        {"-", Stat::Word},
-        {"*", Stat::Word},
-        {"/", Stat::Word},
-        {"%", Stat::Word},
-        {">", Stat::Word},
-        {"<", Stat::Word},
-        {"!", Stat::Word},
-        {"&", Stat::Word},
-        {"|", Stat::Word},
-        {"^", Stat::Word},
-        {"?", Stat::Word},
-        //{":", Stat::Word},
         {" ", Stat::Whitespace},
         {"\t", Stat::Whitespace},        
         {"\n", Stat::Whitespace},
@@ -58,18 +43,7 @@ KeywordsMap KeywordsController::keywordsMap ={
         {";", Stat::Semicolon},
         {"\\", Stat::BackslashSubbing}
 
-    },
-    {
-        //{"::", Stat::Namespace},
-        {"==", Stat::Word},
-        {"!=", Stat::Word},
-        {">=", Stat::Word},
-        {"<=", Stat::Word},
-        {"&&", Stat::Word},
-        {"||", Stat::Word},
-        {"<<", Stat::Word},
-        {">>", Stat::Word},
-    },
+    }
 };
 
 //TODO: Dodaj definiowanie typów zmiennych
