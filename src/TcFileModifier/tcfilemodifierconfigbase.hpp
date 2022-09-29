@@ -2,6 +2,7 @@
 #define TCFILEMODIFIERCONFIGBASE_HPP
 
 #include<QStringList>
+#include<QRegularExpression>
 
 namespace TcFileModifierConfigBase {
     using Variables = QStringList;
@@ -109,7 +110,14 @@ namespace TcFileModifierConfigBase {
             RAW,
             SPLITTED_RAW,
             //SSTR,
+            None = -1
         };
+
+        static const QStringList targetMap;
+
+        inline static Target fromStr_target(QString& str){return static_cast<Target>(targetMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
+        inline static QString toStr_target(Target target){return targetMap.at(std::underlying_type_t<Target>(target));}
+
         static const QString cast_target_str(const Target t){return QString::number(static_cast<uint>(t));}
         static inline std::underlying_type_t<Target> cast_target(const Target t){return static_cast<std::underlying_type_t<Target>>(t);}
         static inline Target castTo_target(const std::underlying_type_t<Target> t){return static_cast<Target>(t);}
@@ -129,7 +137,8 @@ namespace TcFileModifierConfigBase {
     enum class ModifierRuleControl{
         BREAK_RULE_CHECK,
         NO_BREAK_RULE_CHECK,
-        BREAK_RULE_CHECK_DONT_EXEC_ON_END_ACTIONS
+        BREAK_RULE_CHECK_DONT_EXEC_ON_END_ACTIONS,
+        None = -1
     };
 
     struct ModifierRule{

@@ -17,7 +17,10 @@ using TC_Info_Data = TC_Info_Data;
 using RuleControl = ModifierRuleControl;
 using CAN = CAN;
 
-
+const QStringList TcFileModifierConfigBase::Format::targetMap{
+    "Raw",
+    "SplittedRaw"
+};
 
 CAN::VtSignals CAN::_signals =
 {

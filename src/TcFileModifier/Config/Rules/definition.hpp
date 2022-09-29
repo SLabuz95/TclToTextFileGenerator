@@ -24,8 +24,8 @@ namespace FCT::ModifierRules {
     class ModifierControlFlagInfo{
         static const QList<QString> modifierControlFlagMap;
     public:
-        inline static Type fromStr(QString& str){return static_cast<Type>(modifierControlFlagMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
-        inline static QString toStr(Type type){return modifierControlFlagMap.at(std::underlying_type_t<Type>(type));}
+        inline static ModifierControlFlag fromStr(QString& str){return static_cast<ModifierControlFlag>(modifierControlFlagMap.indexOf(QRegularExpression(str, QRegularExpression::CaseInsensitiveOption)));}
+        inline static QString toStr(ModifierControlFlag type){return modifierControlFlagMap.at(std::underlying_type_t<ModifierControlFlag>(type));}
         inline static const decltype(modifierControlFlagMap)& flagNames(){return modifierControlFlagMap;}
     };
 }

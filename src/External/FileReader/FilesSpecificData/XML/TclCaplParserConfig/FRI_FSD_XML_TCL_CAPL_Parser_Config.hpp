@@ -17,9 +17,13 @@ template<>
 enum class FSD_XML_TclCaplParserConfigInterpreter::Stat{
     TclConfig,
     Settings,
+    Attributes,
+    Attribute,
     WriteOnlyFunctions,
     Procedures,
+    Phases,
     Procedure,
+    Phase,
     Name,
     DefaultProcedure,
     RulesForArgument,
@@ -27,11 +31,19 @@ enum class FSD_XML_TclCaplParserConfigInterpreter::Stat{
     RulesOnEndOfCall,
     RulesOnInit,
     RulesOnMove,
+    Rules,
+    ActionsOnUnsatisfied,
+    ActionsOnEnd,
     RawRule,
+    RawModifierRule,
     ConditionalAction,
     ExecutableAction,
+    ModifierConditionalActions,
+    ModifierExecutableActions,
+    ModifierAction,
     ActionParameter,
     FormatRule,
+    ModifierFormatRule,
 
     Forbidden,
     SIZE
@@ -192,14 +204,20 @@ struct FSD_XML_TclCaplParserConfigInterpreter::Data{
 
 //    } parametersList;
     using RulesView = DataModel::RulesFromConfigFileView;
+    using ModifierRulesView = DataModel::ModifierRulesFromConfigFileView;
     using Rules = DataModel::NewRules;
     using Rule = Rules::Type;
+    using ModifierRules = DataModel::ModifierNewRules;
+    using ModifierRule = ModifierRules::Type;
     using RawRule = RulesFactory::Product<RulesFactory::ProductTypeEnum::RawRule>;
+    using RawModifierRule = ModifierRulesFactory::Product<ModifierRulesFactory::ProductTypeEnum::RawRule>;
 
     using ConditionalAction = ConditionalsFactory::ListOfBases::Type;
     using ExecutableAction = ExecutablesFactory::ListOfBases::Type;
+    using ModifierAction = ModifierActionsFactory::ListOfBases::Type;
 
     using FormatRule = FormatParametersFactory::ListOfBases::Type;
+    using ModifierFormatRule = ModifierFormatParametersFactory::ListOfBases::Type;
 
     static constexpr std::underlying_type_t<Stat> stat2type(Stat stat){return static_cast<std::underlying_type_t<Stat>>(stat);}
     struct DataModelStat{
@@ -211,15 +229,24 @@ struct FSD_XML_TclCaplParserConfigInterpreter::Data{
     bool procedureNameTokenAppeared = false;
     QString procedureName;
     RulesView tempRulesView;
+    ModifierRulesView tempModifierRulesView;
     bool tclConfigUsed = false;
     bool settingsTokenUsed = false;
     bool writeOnlyFunctionsUsed = false;
+    bool attributesUsed = false;
     bool proceduresUsed = false;
+    bool phasesUsed = false;
+    bool defaultPhaseUsed = false;
     bool defaultProcedureUsed = false;
+    bool rulesUsed = false;
+    bool actionsOnUnspecifiedUsed = false;
+    bool actionsOnEndUsed = false;
     bool rulesForUnspecifiedArgumentUsed = false;
     bool rulesOnEndOfCallUsed = false;
     bool onInitRulesUsed = false;
     bool onMoveRulesUsed = false;
+    bool modifierConditionalActionsUsed = false;
+    bool modifierExecutableActionsUsed = false;
 
     bool compareAndWrite_IndexUsed = false;
     bool compareAndWrite_ListOfArgumentsUsed = false;
