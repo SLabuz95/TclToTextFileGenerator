@@ -1700,6 +1700,7 @@ bool FSD_ByLine_TcFileModifierData::Config::initialize(){
             return ERROR_CALL("prefix attributes Critical Error");
         }
         processStatusAttr.value().value = "STARTED";
+       interpreterData->userConfig_.attributes().insert("DIR_NAME", ControllerConfigInfo::Attributes::mapped_type{interpreterData->fileDir.dirName()});
 //        dataModel.write("/*@!Encoding:1250*/\n"
 //"/*-------------------------------------------------------------------------------------------\n"
 //"\n"
@@ -1921,8 +1922,10 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_WRITE>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Write";
+    QStringList& parameters = interpreterData->arguments;
+    QStringList::size_type result = 0;
     QString str;
-    if(!interpreterData->createAndAssignString(str, interpreterData->arguments))
+    if(interpreterData->createAndAssignString(str, interpreterData->arguments) != interpreterData->arguments.size())
         return config.ERROR_CALL(PRE_ERROR_MSG);
     config.dataModel.write(str);
     return true;
@@ -1931,6 +1934,8 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_COMPARE>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Compare";
+    QStringList& parameters = interpreterData->arguments;
+    QStringList::size_type result = 0;
     QString formatStr;
     bool ok = false;
     uint numbOfCompares = UINT_MAX;
@@ -1943,7 +1948,8 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
             (numbOfFormatArgs = interpreterData->arguments.at(numbOfCompares + 1).toUInt(&ok), !ok) ||
             numbOfCompares + numbOfFormatArgs + 2 != interpreterData->arguments.size())
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Wrong arguments format");
-    if(!interpreterData->createAndAssignString(formatStr, interpreterData->arguments.mid(2 + numbOfCompares)))
+    QStringList&& params = interpreterData->arguments.mid(2 + numbOfCompares);
+    if(interpreterData->createAndAssignString(formatStr, params) != params.size())
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Create Text Error");
     for(QStringList::ConstIterator str = interpreterData->arguments.begin() + 1; str < interpreterData->arguments.begin() + 1 + numbOfCompares; str++)
         if((interpreterData->conditionResult = (*str == formatStr)))
@@ -1981,7 +1987,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Wrong Numb of Action Arguments");
 
     QString str;
-    if(!interpreterData->createAndAssignString(str, interpreterData->arguments))
+    if(interpreterData->createAndAssignString(str, interpreterData->arguments) != interpreterData->arguments.size())
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     interpreterData->lastActionResponse = interpreterData->lineData.split(QRegularExpression(str), Qt::SkipEmptyParts);
@@ -2033,7 +2039,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
     }
 
     QStringList&& params = parameters.mid(2);
-    if((result = interpreterData->createAndAssignString(formatStr, interpreterData->arguments.mid(2))) != params.size())
+    if((result = interpreterData->createAndAssignString(formatStr, params)) != params.size())
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Create Text Error");
 
     interpreterData->userConfig_.attributes().insert(parameters.at(0), {formatStr});
@@ -2124,7 +2130,7 @@ template<>template<>template<>
 bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifierData::Stat::ACTION_INTERPRET>(){
     const QString PRE_ERROR_MSG = "Internal Error: Action Interpret";
     QString str;
-    if(!interpreterData->createAndAssignString(str, interpreterData->arguments))
+    if( interpreterData->createAndAssignString(str, interpreterData->arguments) != interpreterData->arguments.size())
         return config.ERROR_CALL(PRE_ERROR_MSG);
     //str += "\n";
     if(not str.isEmpty())
@@ -2141,7 +2147,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
 // Internal Functions
 
 
-bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, QStringList args){
+int FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, QStringList args){
     using Target = Format::Target;
     Target target = Target::SPLITTED_RAW;
     QString* targetStr = nullptr;
@@ -2175,27 +2181,27 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                             case Target::RAW:
                             //case Target::SSTR:
                                 if(!targetStr)
-                                    return false;
+                                    return (arg - args.begin());
                                 dest += *targetStr;
                                 break;
                             default:
-                                return false;
+                                return (arg - args.begin());
                             }
                             // FULL LINE ----------------
                         }else{                            
                             // ARGUMENT AT INDEX -------------------------------
                             if((index = arg->toInt(&ok), !ok))
-                                return false;
+                                return (arg - args.begin());
                             switch(target){
                             case Target::RAW:
                             //case Target::SSTR:
                                 if(!targetStr)
-                                    return false;
+                                    return (arg - args.begin());
                                 if(index < 0){// For index < 0, recalculate index by: size of lastResponse + index -> Then check if index in range
                                     index = targetStr->size() + index; // Index is negative
                                 }
                                 if(index < 0 || index >= targetStr->size())
-                                    return false;
+                                    return (arg - args.begin());
                                 dest += targetStr->at(index);
                                 break;
                             case Target::SPLITTED_RAW:
@@ -2203,11 +2209,11 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                                     index = lastActionResponse.size() + index; // Index is negative
                                 }
                                 if(index < 0 || index >= lastActionResponse.size())
-                                    return false;
+                                    return (arg - args.begin());
                                 dest += lastActionResponse.at(index);
                                 break;
                             default:
-                                return false;
+                                return (arg - args.begin());
                             }
                             // ARGUMENT AT INDEX -------------------------------
                         }
@@ -2217,7 +2223,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                     {
                         // ALL ARGUMENTS AFTER INDEX -------------------------------
                         if((index = arg->toInt(&ok), !ok))
-                            return false;
+                            return (arg - args.begin());
                         switch(target){
                         case Target::RAW:
                         //case Target::SSTR:
@@ -2226,7 +2232,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                                 index = targetStr->size() + index; // Index is negative
                             }
                             if(index < 0 || index >= targetStr->size())
-                                return false;
+                                return (arg - args.begin());
                             dest += targetStr->mid(index);
                         }
                             break;
@@ -2236,7 +2242,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                                 index = lastActionResponse.size() + index; // Index is negative
                             }
                             if(index < 0 || index >= lastActionResponse.size())
-                                return false;
+                                return (arg - args.begin());
                             for(QStringList::Iterator responseArg = lastActionResponse.begin() + index ; responseArg < lastActionResponse.end(); responseArg++){
                                 dest += *responseArg + seperator;
                                 separatorUsed = true;
@@ -2244,7 +2250,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                         }
                             break;
                         default:
-                            return false;
+                            return (arg - args.begin());
                         }
                         // ALL ARGUMENTS AFTER INDEX -------------------------------
                     }
@@ -2252,10 +2258,10 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                     case Rule::ATTRIBUTE:
                     {
                         if(arg->isEmpty())
-                            return false;
+                            return (arg - args.begin());
                         ControllerConfigInfo::Attributes::ConstIterator attribute = userConfig_.attributes().constFind(*arg);
                         if(attribute == userConfig_.attributes().constEnd())
-                            return false;
+                            return (arg - args.begin());
                         dest += attribute.value().value;
                     }
                         break;
@@ -2387,7 +2393,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                     case Rule::TARGET:
                     {
                         if((target = static_cast<Target>(arg->toUInt(&ok)), !ok))
-                            return false;
+                            return (arg - args.begin());
                         switch (target) {
                         case Target::RAW:
                             targetStr = &lineData;
@@ -2397,7 +2403,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                             targetStr = &sstr;
                             break;*/
                         default:
-                            return false;
+                            return (arg - args.begin());
                         }
                     }
                         break;
@@ -2461,7 +2467,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
                     }
                         break;*/
                     default:
-                        return false;
+                        return (arg - args.begin());
                     }
                 if(separatorUsed){
                     dest.chop(seperator.size());
@@ -2477,7 +2483,7 @@ bool FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, Q
         }
     }
 
-    return true;
+    return args.size();
 }
 
 /*

@@ -86,7 +86,7 @@ struct FSD_ByLine_TcFileModifierData::Data{
     //QString tcContent;
 
 
-    bool createAndAssignString(QString&, QStringList);
+    int createAndAssignString(QString&, QStringList);
     void writeTCInfo(FSD_ByLine_TcFileModifierData::DataModel& dataModel);
     void writeTcToFile();
     bool toDefaultPhase();
