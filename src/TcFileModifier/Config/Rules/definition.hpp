@@ -4,6 +4,7 @@
 #include"TcFileModifier/tcfilemodifierconfigbase.hpp"
 #include"External/Factory/productdef.hpp"
 #include<QRegularExpression>
+#include<QXmlStreamWriter>
 //#include"External/Factory/factory.hpp"
 
 using ModifierControlFlag = TcFileModifierConfigBase::ModifierRuleControl;
@@ -63,6 +64,7 @@ public:
     virtual void toRule(ModifierRule&) = 0;
     virtual void toActions(ModifierRule::Actions&) = 0; // For actions only (Rule is only container)
     virtual void toXmlContent(QXmlStreamWriter& xmlWriter) = 0;
+    virtual void actionsToXmlContent(QXmlStreamWriter& xmlWriter) = 0;
 };
 
 using ModifierRulesProducts = ProductsConfiguration<ModifierRulesTypes>;

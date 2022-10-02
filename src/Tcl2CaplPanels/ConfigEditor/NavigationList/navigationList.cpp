@@ -361,7 +361,6 @@ void List::loadData(ControllerConfigInfo::PhasesView& phasesView, ControllerConf
     PhasesElement& pE = *static_cast<PhasesElement*>(topLevelItem(panelType2number(PanelType::Phases)));
     closePersistentEditor();
     deactivatePhase();
-    auto children = pE.takeChildren();
     while(pE.childCount() != 1){
         delete pE.child(1); // Remove First index
     }
@@ -369,7 +368,7 @@ void List::loadData(ControllerConfigInfo::PhasesView& phasesView, ControllerConf
     ProceduresElement& dPE = *static_cast<ProceduresElement*>(topLevelItem(panelType2number(PanelType::Procedures)));
     closePersistentEditor();
     deactivateProcedureCategory();
-    children = dPE.takeChildren();
+    auto children = dPE.takeChildren();
     for(auto child = children.begin(); child < children.end(); child++)
         delete *child;
 
@@ -398,10 +397,10 @@ void List::loadData(ControllerConfigInfo::PhasesView& phasesView, ControllerConf
         while(configMapIter != newPhasesMap.end()){
             configPhaseStartIter = configMapIter;
             name = configMapIter.key().first;
-            if(configMapIter.value() >= 0 or name != "Default"){ // Check if Exists or not name == "Default"
+            if(configMapIter.value() >= 0 and name != "Default"){ // Check if Exists or not name == "Default"
                 // Write Phase element
                 PhasesElement::ListItem* item = new PhasesElement::ListItem();
-                dPE.addChild(item);
+                pE.addChild(item);
                 item->setText(0, name);
 
                 configMapIter = configPhaseStartIter; // On End

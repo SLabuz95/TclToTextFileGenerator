@@ -14,7 +14,6 @@ void ControllerConfigInfo::writePhasesToXML(QXmlStreamWriter& xmlWriter){
     ModifierNewRules::Iterator newRule;
     ModifierNewRules::Iterator endRule;
     // Prepare containers
-    // On end of Call
     ConfigKeyIter configPhaseStartIter = newPhasesMap.begin();
     ConfigKeyIter configMapIter = configPhaseStartIter;
 
@@ -25,25 +24,6 @@ void ControllerConfigInfo::writePhasesToXML(QXmlStreamWriter& xmlWriter){
             name = configMapIter.key().first;
             xmlWriter.writeStartElement("phase");
             xmlWriter.writeAttribute("name", name);
-
-            // Write On Not Satisifed Rules
-            xmlWriter.writeStartElement("onNoRules");
-
-            newRule = newModifierRules.begin() + configMapIter.value(); // Only one rule - As contatiner only
-            configMapIter++;
-
-            (*newRule)->toXmlContent(xmlWriter);
-
-            xmlWriter.writeEndElement(); // -----------------
-
-            // On End of check
-            xmlWriter.writeStartElement("onEndOfRules");
-
-            newRule = newModifierRules.begin() + configMapIter.value();
-            configMapIter++;
-            (*newRule)->toXmlContent(xmlWriter);
-
-            xmlWriter.writeEndElement(); // -----------------
             // Rules
             xmlWriter.writeStartElement("rules");
 
@@ -61,6 +41,26 @@ void ControllerConfigInfo::writePhasesToXML(QXmlStreamWriter& xmlWriter){
                 (*newRule)->toXmlContent(xmlWriter);
             }
             xmlWriter.writeEndElement(); // --- rules --------------
+
+            // On End of check
+            xmlWriter.writeStartElement("actionsOnEnd");
+
+            newRule = newModifierRules.begin() + configMapIter.value();
+            configMapIter++;
+            (*newRule)->actionsToXmlContent(xmlWriter);
+
+            xmlWriter.writeEndElement(); // -----------------
+
+            // Write On Not Satisifed Rules
+            xmlWriter.writeStartElement("actionsOnUnsatisfied");
+
+            newRule = newModifierRules.begin() + configMapIter.value(); // Only one rule - As contatiner only
+            configMapIter++;
+
+            (*newRule)->actionsToXmlContent(xmlWriter);
+
+            xmlWriter.writeEndElement(); // -----------------            
+
             xmlWriter.writeEndElement(); // --- phase --------------
 
         }else{ // Not exist - move to next procedure

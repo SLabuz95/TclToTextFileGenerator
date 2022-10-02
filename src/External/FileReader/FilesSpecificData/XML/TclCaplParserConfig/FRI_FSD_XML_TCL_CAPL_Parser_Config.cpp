@@ -240,7 +240,7 @@ const InterpreterStatsConfiguration FSD_XML_TclCaplParserConfigInterpreter::stat
                 "rulesOnMove",
                 "rules",
                 "actionsOnUnsatisfied",
-                "actionsOnEnd"
+                "actionsOnEnd",
                 "rawRule",
                 "rawModifierRule",
                 "conditionalAction",
@@ -417,6 +417,14 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
         return ERROR_CALL("Internal Error: No DataModelStats");
 
     switch(interpreterData->dmStats.last().stat){
+    case Stat::Phase:
+    {
+        interpreterData->actionsOnEndUsed = false;
+        interpreterData->actionsOnUnspecifiedUsed = false;
+        interpreterData->rulesUsed = false;
+    }
+        break;
+
     case Stat::Procedure:
     {
         if(not interpreterData->procedureNameTokenAppeared){
@@ -431,14 +439,14 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
         interpreterData->rulesForUnspecifiedArgumentUsed = false;
     }
         break;
+
     case Stat::RulesForArgument:
     case Stat::RulesForUnspecifiedArgument:
     {
-
         //interpreterData->dynamicRulesUsed = false;
         interpreterData->onMoveRulesUsed = false;
     }
-        break;
+        break;    
     case Stat::RulesOnMove:
     {
         if(interpreterData->dmStats.size() < 3)
@@ -506,6 +514,30 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
         }
     }
         break;
+    case Stat::Rules:
+    case Stat::ActionsOnEnd:
+    case Stat::ActionsOnUnsatisfied:
+    {
+        if(interpreterData->dmStats.size() < 2)
+            return ERROR_CALL("Internal Error: Not enough DataModelStats");
+        if((interpreterData->dmStats.rbegin() + 1)->stat == Stat::Phase){
+            DataModel* userConfig = nullptr;
+            if(not (userConfig = static_cast<DataModel*>(interpreterData->dmStats.at(0).dataModel)))
+                return config.ERROR_CALL("Internal Error");
+
+            InterpreterData::ModifierRulesView* rulesView = nullptr;
+            if(not (rulesView = static_cast<InterpreterData::ModifierRulesView*>(interpreterData->dmStats.last().dataModel))
+                    or not userConfig->addCategory(interpreterData->procedureName, *rulesView))
+                return config.ERROR_CALL("Internal Error");
+        }
+    }
+        break;
+    case Stat::RawModifierRule:
+    {
+        interpreterData->modifierConditionalActionsUsed = false;
+        interpreterData->modifierExecutableActionsUsed = false;
+    }
+        break;
     case Stat::RawRule:
     {
         /*interpreterData->dmStats.removeLast();
@@ -517,7 +549,6 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
     case Stat::ActionParameter:
     {
         // To finalize same parameters
-
         InterpreterData::DataModelStats::Iterator beginIter = interpreterData->dmStats.begin() + interpreterData->dmStats.size() - 1;
         InterpreterData::DataModelStats::Iterator dmStatWithAction = beginIter;
         InterpreterData::DataModelStats::Iterator endIter = interpreterData->dmStats.begin() - 1;
@@ -562,20 +593,29 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
             //Action& action = *static_cast<Action*>(dmStatWithAction->dataModel);
         }
             break;
+        case Stat::ModifierAction:
+        {
+            using Action = InterpreterData::ModifierAction;
+            using ActionType = ModifierActionTypes;
+            //Action& action = *static_cast<Action*>(dmStatWithAction->dataModel);
+        }
+            break;
         default:
             break;
         }
 
         // ------------------------------
 
-        if(not interpreterData->currentActionParamIndexes.isEmpty())
+        if(not interpreterData->currentActionParamIndexes.isEmpty()){
             interpreterData->currentActionParamIndexes.removeLast();
-        else
+        }else{
             return ERROR_CALL("Internal Error: Parameters structure corrupted.");
-        if(not interpreterData->currentActionParamIndexes.isEmpty())
+        }
+        if(not interpreterData->currentActionParamIndexes.isEmpty()){
             interpreterData->currentActionParamIndexes.last()++;
-        else
+        }else{
             return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        }
     }
         break;
     case Stat::ConditionalAction:
@@ -588,7 +628,6 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
         switch(action->type()){
         case ActionType::CompareArgumentStat:
         {
-
         }
             break;
         case ActionType::Compare:
@@ -660,6 +699,71 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
         case ActionType::Write:
         {
             if(interpreterData->currentActionParamIndexes.at(0) != 1)
+                return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        }
+            break;
+        case ActionType::WriteAttribute:
+        {
+            if(interpreterData->currentActionParamIndexes.at(0) != 2)
+                return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        }
+            break;
+        default:
+            break;
+        }
+
+        interpreterData->currentActionParamIndexes.removeLast();
+        if(not interpreterData->currentActionParamIndexes.isEmpty())
+            return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+    }
+        break;
+    case Stat::ModifierAction:
+    {
+        if(interpreterData->currentActionParamIndexes.size() != 1)
+            return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        using Action = InterpreterData::ModifierAction;
+        using ActionType = ModifierActionTypes;
+        Action action = static_cast<Action>(interpreterData->dmStats.last().dataModel);
+        switch(action->type()){
+        case ActionType::ChangePhase:
+        {
+            if(interpreterData->currentActionParamIndexes.at(0) != 2)
+                return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        }
+            break;
+        case ActionType::Compare:
+        {
+            if(interpreterData->currentActionParamIndexes.at(0) != 2)
+                return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        }
+            break;
+        case ActionType::Interpret:
+        {
+            if(interpreterData->currentActionParamIndexes.at(0) != 1)
+                return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        }
+            break;
+        case ActionType::Split:
+        {
+            if(interpreterData->currentActionParamIndexes.at(0) != 1)
+                return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        }
+            break;
+        case ActionType::StartsWith:
+        {
+            if(interpreterData->currentActionParamIndexes.at(0) != 1)
+                return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        }
+            break;
+        case ActionType::Write:
+        {
+            if(interpreterData->currentActionParamIndexes.at(0) != 1)
+                return ERROR_CALL("Internal Error: Parameters structure corrupted.");
+        }
+            break;
+        case ActionType::WriteAttribute:
+        {
+            if(interpreterData->currentActionParamIndexes.at(0) != 2)
                 return ERROR_CALL("Internal Error: Parameters structure corrupted.");
         }
             break;
@@ -879,6 +983,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         qDebug() << "Phase \"name\" attribute dont exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"name\"");
     }
+
+    if(userConfig->addPhase(name) == false){
+        qDebug() << "Add Phase failed - phase name duplicated";
+        return config.ERROR_CALL(PRE_ERROR_MSG + " - Phase name duplicated");
+    }
+
+    interpreterData->procedureName = name;
 
     interpreterData->dmStats.append({userConfig, Stat::Phase });
 
@@ -1805,6 +1916,56 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
             }
         }
             break;
+        case ActionType::WriteAttribute:
+        {
+            using Action = ExecutablesFactory::Product<ActionType::WriteAttribute>;
+            Action& action = *static_cast<Action*>(dmStatWithAction->dataModel);
+            // Description
+            /*
+                { Level 1 - Index 0 -  Atrribute Name
+
+                },
+                { Level 1 - Index 1 -  List of FormatRules
+                    { Level 2 - Format Rules
+
+                    }
+                }
+            */
+            switch(beginIter - dmStatWithAction){
+            case 0: // Level 1
+            {
+                switch(interpreterData->currentActionParamIndexes.at(0)){ // Current Position
+                case 0: //  Index 0 -  Attribute Name
+                {
+                    QString value;
+                    if(not config.data->reader->attributes().hasAttribute("value")){
+                        qDebug() << "Param \"value\" attribute dont exist";
+                        return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
+                    }
+                    value = config.data->reader->attributes().value("value").trimmed().toString();
+                    if(value.isEmpty()){
+                        qDebug() << "Param \"value\" is empty ";
+                        return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" is empty");
+                    }
+                    action.setName(value);
+                }
+                    break;
+                case 1: //  Index 1 -  List of FormatRules
+                {
+                    // Create - expand
+                    paramData = &action.inputFormattedString();
+                }
+                    break;
+                default:
+                    return config.ERROR_CALL(PRE_ERROR_MSG + "Wrong number of parameters");
+                }
+            }
+                break;
+            default:
+                return config.ERROR_CALL(PRE_ERROR_MSG + "Wrong parameters structure");
+            }
+        }
+            break;
         default:
             break;
         }
@@ -2246,6 +2407,25 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         callEndElement = true;
     }
         break;
+    case RuleType::AttributeItem:
+    {
+        using Rule = FormatParametersFactory::Product<RuleType::AttributeItem>;
+        Rule& rule = *static_cast<Rule*>(ruleBase);
+
+        QString name;
+        if(not (config.data->reader->attributes().hasAttribute("name"))){
+            qDebug() << "FormatRule \"name\" attribute doesnt exist";
+            return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"name\"");
+        }
+
+        name = config.data->reader->attributes().value("name").trimmed().toString();
+        if(name.isEmpty()){
+            qDebug() << "Param \"name\" convertion error \"" + config.data->reader->attributes().value("name").toString() + "\"";
+            return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"name\" conversion error");
+        }
+        rule.setName(name);
+    }
+        break;
     default:
         break;
     }
@@ -2380,7 +2560,6 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"name\" conversion error");
         }
         rule.setName(name);
-        callEndElement = true;
     }
         break;
     default:

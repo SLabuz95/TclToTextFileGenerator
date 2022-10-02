@@ -328,10 +328,10 @@ void AttributesPanel::reloadGui(){
 
 
 void AttributesPanel::loadAttributes(Config::Attributes& attributes){
-  clear();
- for(Config::Attributes::Iterator attribute = attributes.begin(); attribute != attributes.end(); attribute++){
-     addTopLevelItem(new ListItem(attribute.key(), attribute.value().value));
- }
+    clear();
+     for(Config::Attributes::Iterator attribute = attributes.begin(); attribute != attributes.end(); attribute++){
+         addTopLevelItem(new ListItem(attribute.key(), attribute.value().value));
+     }
 }
 
 void AttributesPanel::readAttributes(Config::Attributes& attributes){

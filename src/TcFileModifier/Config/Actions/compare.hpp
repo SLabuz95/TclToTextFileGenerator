@@ -51,8 +51,29 @@ public:
                                            };
     }
 
-    void toXmlContent(QXmlStreamWriter& xmlWriter)override{
+    void toXmlContent(QXmlStreamWriter& xmlWriter)override{        
+        xmlWriter.writeStartElement("modifierAction");
+        xmlWriter.writeAttribute("type", ModifierActions::TypeInfo::toStr(type()));
+        // stringsToCompare_
+        xmlWriter.writeStartElement("param"); // List?
+        xmlWriter.writeAttribute("type", "0"); // For compatibility with future implementation
+        for(QStringList::Iterator string = stringsToCompare_.begin(); string < stringsToCompare_.end(); string++){
+            xmlWriter.writeStartElement("param"); // String param?
+            xmlWriter.writeAttribute("type", "0"); // For compatibility with future implementation
+            xmlWriter.writeCharacters(*string);
+            xmlWriter.writeEndElement(); // List? End
+        }
+        xmlWriter.writeEndElement(); // List? End
+        // inputFormattedString_
+        xmlWriter.writeStartElement("param"); // List?
+        for(decltype(inputFormattedString_)::Iterator formatParam = inputFormattedString_.begin();
+            formatParam < inputFormattedString_.end(); formatParam++)
+        {
+            (*formatParam)->toXmlContent(xmlWriter);
+        }
+        xmlWriter.writeEndElement();
 
+        xmlWriter.writeEndElement();
     }
 };
 

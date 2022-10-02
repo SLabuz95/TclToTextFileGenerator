@@ -34,7 +34,8 @@ public:
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
-
+        xmlWriter.writeEmptyElement("modifierFormatRule"); // String param?
+        xmlWriter.writeAttribute("type", ModifierFormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
     }
 };
 #endif // FILE_MODIFIER_FORMATTED_PARAMETER_FULLLINEITEM_HPP

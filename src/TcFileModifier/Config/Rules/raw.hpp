@@ -55,19 +55,22 @@ public:
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
-        /*xmlWriter.writeStartElement("rawRule");
-        xmlWriter.writeAttribute("controlFlag", UserProcedureRule::toStr(controlFlag()));
-        using Conditionals = UserProcedureRule::ModifierConditionalActions;
-        using Executables = UserProcedureRule::ModifierExecutableActions;
-        ModifierConditionalActions::Iterator condition = conditions().begin();
-        ModifierExecutableActions::Iterator executable = executables().begin();
+        using Actions = ModifierActions;
+        xmlWriter.writeStartElement("rawModifierRule");
+        xmlWriter.writeAttribute("controlFlag", FCT::ModifierRules::ModifierControlFlagInfo::toStr(controlFlag()));
+        Actions::Iterator condition = conditions().begin();
+        Actions::Iterator executable = executables().begin();
+        xmlWriter.writeStartElement("modifierConditionalActions");
         for( ; condition < conditions().end(); condition++){
             (*condition)->toXmlContent(xmlWriter);
         }
+        xmlWriter.writeEndElement(); // End of Container
+        xmlWriter.writeStartElement("modifierExecutableActions");
         for( ; executable < executables().end(); executable++){
             (*executable)->toXmlContent(xmlWriter);
         }
-        xmlWriter.writeEndElement();*/
+        xmlWriter.writeEndElement(); // End of Container
+        xmlWriter.writeEndElement();
     }
     void toActions(ModifierRule::Actions& actions) override{
         using Actions = ModifierRule::Actions;
@@ -80,6 +83,15 @@ public:
         }
 
     } // For actions only (Rule is only container)
+
+
+    virtual void actionsToXmlContent(QXmlStreamWriter& xmlWriter)override{
+        using Actions = ModifierActions;
+        Actions::Iterator executable = executables().begin();
+        for( ; executable < executables().end(); executable++){
+            (*executable)->toXmlContent(xmlWriter);
+        }
+    }
 /*
     template<ConditionalsFactory::ProductTypeEnum productType, class ...Args>
     ConditionalsFactory::Product<productType>& addCondition(Args ...arg){

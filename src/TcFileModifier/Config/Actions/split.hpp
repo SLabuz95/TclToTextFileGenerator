@@ -48,7 +48,17 @@ public:
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
-
+        xmlWriter.writeStartElement("modifierAction");
+        xmlWriter.writeAttribute("type", ModifierActions::TypeInfo::toStr(type()));
+        // inputFormattedString_
+        xmlWriter.writeStartElement("param"); // List?
+        for(decltype(inputFormattedString_)::Iterator formatParam = inputFormattedString_.begin();
+            formatParam < inputFormattedString_.end(); formatParam++)
+        {
+            (*formatParam)->toXmlContent(xmlWriter);
+        }
+        xmlWriter.writeEndElement();
+        xmlWriter.writeEndElement();
     }
 };
 

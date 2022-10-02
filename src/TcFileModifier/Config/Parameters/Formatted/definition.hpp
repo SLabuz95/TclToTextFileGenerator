@@ -4,10 +4,9 @@
 #include"TcFileModifier/tcfilemodifierconfigbase.hpp"
 #include"External/Factory/factory.hpp"
 #include<QRegularExpression>
-
+#include<QXmlStreamWriter>
 
 using ModifierFormatParameter = TcFileModifierConfigBase::Format;
-class QXmlStreamWriter;
 namespace ModifierFormatParameters {
     enum class Type : int{
         FCT_Begin,

@@ -50,7 +50,22 @@ public:
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
+        xmlWriter.writeStartElement("modifierAction");
+        xmlWriter.writeAttribute("type", ModifierActions::TypeInfo::toStr(type()));
+        // stringsToCompare_
+        xmlWriter.writeStartElement("param"); // List?
+        xmlWriter.writeAttribute("value", name()); // For compatibility with future implementation
+        xmlWriter.writeEndElement(); // List? End
+        // inputFormattedString_
+        xmlWriter.writeStartElement("param"); // List?
+        for(decltype(inputFormattedString_)::Iterator formatParam = inputFormattedString_.begin();
+            formatParam < inputFormattedString_.end(); formatParam++)
+        {
+            (*formatParam)->toXmlContent(xmlWriter);
+        }
+        xmlWriter.writeEndElement();
 
+        xmlWriter.writeEndElement();
     }
 };
 #endif // FILE_MODIFIER_ACTION_WRITEATTRIBUTE_HPP

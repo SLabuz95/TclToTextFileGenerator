@@ -4,11 +4,10 @@
 #include"TcFileModifier/tcfilemodifierconfigbase.hpp"
 #include"External/Factory/productdef.hpp"
 #include<QRegularExpression>
-
+#include<QXmlStreamWriter>
 
 using ModifierAction = TcFileModifierConfigBase::ModifierRule::Action;
 using RawModifierActionType = TcFileModifierConfigBase::ActionStat;
-class QXmlStreamWriter;
 
 namespace ModifierActions {
     enum class Type  : int{

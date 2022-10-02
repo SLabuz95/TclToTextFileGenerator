@@ -40,7 +40,17 @@ public:
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
-
+        if(separator().length() == 0){
+            xmlWriter.writeEmptyElement("modifierFormatRule"); // String param?
+            xmlWriter.writeAttribute("type", ModifierFormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
+            xmlWriter.writeAttribute("value", QString::number(index()));
+        }else{
+            xmlWriter.writeStartElement("modifierFormatRule"); // String param?
+            xmlWriter.writeAttribute("type", ModifierFormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
+            xmlWriter.writeAttribute("value", QString::number(index()));
+            xmlWriter.writeCharacters(separator());
+            xmlWriter.writeEndElement(); // List? End
+        }
     }
 };
 #endif // FILE_MODIFIER_FORMATTED_PARAMETER_ARGUMENTSFROMITEM_HPP

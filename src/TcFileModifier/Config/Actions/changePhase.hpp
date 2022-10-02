@@ -41,7 +41,17 @@ public:
     }
 
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
-
+        xmlWriter.writeStartElement("modifierAction");
+        xmlWriter.writeAttribute("type", ModifierActions::TypeInfo::toStr(type()));
+        // phaseName
+        xmlWriter.writeStartElement("param");
+        xmlWriter.writeAttribute("value", phaseName()); // For compatibility with future implementation
+        xmlWriter.writeEndElement();
+        // checkName
+        xmlWriter.writeStartElement("param");
+        xmlWriter.writeAttribute("value", (checkRule())? "true" : "false"); // For compatibility with future implementation
+        xmlWriter.writeEndElement();
+        xmlWriter.writeEndElement();
     }
 };
 #endif // FILE_MODIFIER_ACTION_CHANGEPHASE_HPP
