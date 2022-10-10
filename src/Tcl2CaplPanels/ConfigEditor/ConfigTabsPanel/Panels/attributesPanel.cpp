@@ -21,9 +21,6 @@ AttributesPanel::AttributesPanel(ConfigTabsPanel& tabsPanel)
     setDragDropOverwriteMode(true);
 
     viewport()->installEventFilter(this);
-    addTopLevelItem(new ListItem(hardcodedItemFlags, "PREFIX_TEXT_FOR_FILE"));
-    addTopLevelItem(new ListItem(hardcodedItemFlags, "POSTFIX_TEXT_FOR_FILE"));
-    addTopLevelItem(new ListItem(hardcodedItemFlags, "MODEL_PROCESS_STATUS"));
 }
 
 
@@ -89,36 +86,8 @@ void AttributesPanel::execRequest_ContextMenu<AttributesPanel::Request_ContextMe
         qApp->processEvents();
     }
     curEditItemInfo = {};
-    QString PREFIX_TEXT_FOR_FILE;
-    QString POSTFIX_TEXT_FOR_FILE;
-    int count = 0;
-    for(int i = 0; i < topLevelItemCount(); i++){
-        if(topLevelItem(i)->text(0) == "PREFIX_TEXT_FOR_FILE"){
-            PREFIX_TEXT_FOR_FILE = topLevelItem(i)->text(1);
-            count++;
-            if(count == numbOfHardcodedAttributes){
-                break;
-            }
-        }
-        if(topLevelItem(i)->text(0) == "POSTFIX_TEXT_FOR_FILE"){
-            POSTFIX_TEXT_FOR_FILE = topLevelItem(i)->text(1);
-            count++;
-            if(count == numbOfHardcodedAttributes){
-                break;
-            }
-        }
-        if(topLevelItem(i)->text(0) == "MODEL_PROCESS_STATUS"){
-            PREFIX_TEXT_FOR_FILE = topLevelItem(i)->text(1);
-            count++;
-            if(count == numbOfHardcodedAttributes){
-                break;
-            }
-        }
-    }
+
     clear();
-    addTopLevelItem(new ListItem(hardcodedItemFlags, "PREFIX_TEXT_FOR_FILE", PREFIX_TEXT_FOR_FILE));
-    addTopLevelItem(new ListItem(hardcodedItemFlags, "POSTFIX_TEXT_FOR_FILE", POSTFIX_TEXT_FOR_FILE));
-    addTopLevelItem(new ListItem(hardcodedItemFlags, "MODEL_PROCESS_STATUS"));
 }
 
 bool AttributesPanel::tryToManageAttributesName(QString oldName, QString newName){
@@ -196,33 +165,21 @@ bool AttributesPanel::eventFilter(QObject* obj, QEvent* ev){
 
         menu = new QMenu;
         if(item){
-            if(indexOfTopLevelItem(item) >= numbOfHardcodedAttributes){
-                actions = {
-                    new QAction("Dodaj atrybut"),
-                    new QAction("Edytuj nazwę atrybutu"),
-                    new QAction("Edytuj wartość atrybutu"),
-                    new QAction("Usuń atrybut"),
-                    new QAction("Usuń wszystkie atrybuty")
-                };
-                actionFuncs = {
-                    &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::EditAttribute>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::EditAttributeValue>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::RemoveAttribute>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
-                };
-            }else{
-                actions = {
-                    new QAction("Dodaj atrybut"),
-                    new QAction("Edytuj wartość atrybutu"),
-                    new QAction("Usuń wszystkie atrybuty")
-                };
-                actionFuncs = {
-                    &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::EditAttributeValue>,
-                    &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
-                };
-            }
+            actions = {
+                new QAction("Dodaj atrybut"),
+                new QAction("Edytuj nazwę atrybutu"),
+                new QAction("Edytuj wartość atrybutu"),
+                new QAction("Usuń atrybut"),
+                new QAction("Usuń wszystkie atrybuty")
+            };
+            actionFuncs = {
+                &AttributesPanel::execRequest_ContextMenu<Request::AddAttribute>,
+                &AttributesPanel::execRequest_ContextMenu<Request::EditAttribute>,
+                &AttributesPanel::execRequest_ContextMenu<Request::EditAttributeValue>,
+                &AttributesPanel::execRequest_ContextMenu<Request::RemoveAttribute>,
+                &AttributesPanel::execRequest_ContextMenu<Request::ClearAttributes>,
+            };
+
         }else{
             actions = {
                 new QAction("Dodaj atrybut"),
@@ -249,7 +206,7 @@ bool AttributesPanel::eventFilter(QObject* obj, QEvent* ev){
     if(ev->type() == QEvent::MouseButtonDblClick and obj == viewport()){
         QMouseEvent* mev = static_cast<QMouseEvent*>(ev);
         if((curEditItemInfo.item = itemAt(mev->pos()))){
-            if(indexOfTopLevelItem(curEditItemInfo.item) >= numbOfHardcodedAttributes or currentColumn() == 1){
+            if(currentColumn() == 1){
                 curEditItemInfo.oldStr = curEditItemInfo.item->text(0);
                 curEditItemInfo.column = currentColumn();
                 editItem(curEditItemInfo.item, curEditItemInfo.column);

@@ -3,7 +3,7 @@
 //#include"Result/tcl2caplresult.hpp"
 #include<QDir>
 //#include"controllerconfig.hpp"
-#include"controllerconfiginfo.hpp"
+#include"attributesController.hpp"
 //#include"Tcl2Capl/caplFunctionDefiniitions.hpp"
 #include<QThread>
 
@@ -25,7 +25,7 @@ public:
     ~UserInputConfig(){}
 protected:
     Settings settings_;
-    Attributes attributes_;
+    AttributesController attributesController_;
     Phases modifierPhases_;
     UserProcedures userProcedures_;
     UserDefaultProcedure userDefaultProcedure_;
@@ -33,7 +33,7 @@ protected:
 
 public:
     inline Settings& proceduresSettings(){return settings_;}
-    inline Attributes& attributes(){return attributes_;}
+    inline AttributesController& attributesController(){return attributesController_;}
     inline Phases& modifierPhases(){return modifierPhases_;}
     inline UserProcedures& userProcedureConfig(){return userProcedures_;}
     inline UserDefaultProcedure& userDefaultProcedureConfig(){return userDefaultProcedure_;}

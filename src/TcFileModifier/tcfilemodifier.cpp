@@ -1693,14 +1693,8 @@ bool FSD_ByLine_TcFileModifierData::Config::initialize(){
     case NewDataModel::InitializeStatus::INITIALIZE_SUCCESS:
     {
 
-        ControllerConfigInfo::Attributes::Iterator processStatusAttr = interpreterData->userConfig_.attributes().find("MODEL_PROCESS_STATUS");
-        if(processStatusAttr == interpreterData->userConfig_.attributes().end())
-        {
-            interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: prefix attribute not found.");
-            return ERROR_CALL("prefix attributes Critical Error");
-        }
-        processStatusAttr.value().value = "STARTED";
-       interpreterData->userConfig_.attributes().insert("DIR_NAME", ControllerConfigInfo::Attributes::mapped_type{interpreterData->fileDir.dirName()});
+       interpreterData->userConfig_.attributesController().setAttribute("PROCESS_MODEL_STATUS", "STARTED");
+       interpreterData->userConfig_.attributesController().setAttribute("DIR_NAME", interpreterData->fileDir.dirName());
 //        dataModel.write("/*@!Encoding:1250*/\n"
 //"/*-------------------------------------------------------------------------------------------\n"
 //"\n"
@@ -1727,8 +1721,8 @@ bool FSD_ByLine_TcFileModifierData::Config::initialize(){
     }
     case NewDataModel::InitializeStatus::ALREADY_INITIALIZED:
     {
-        ControllerConfigInfo::Attributes::ConstIterator prefixStr = interpreterData->userConfig_.attributes().constFind("PREFIX_TEXT_FOR_FILE");
-        if(prefixStr == interpreterData->userConfig_.attributes().constEnd())
+        ControllerConfigInfo::Attributes::ConstIterator prefixStr = interpreterData->userConfig_.attributesController().getAttribute("FILE_PREFIX");
+        if(interpreterData->userConfig_.attributesController().isAttributeValid(prefixStr))
         {
             interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: prefix attribute not found.");
             return ERROR_CALL("prefix attributes Critical Error");
@@ -1753,8 +1747,8 @@ bool FSD_ByLine_TcFileModifierData::Config::deinitialize(){
         interpreterData->tclToCaplInterpreter_.printErrorReport(dataModel.reportFile(), dataModel.currentTCLFileName());
         dataModel.setTestCaseErrors(interpreterData->tclToCaplInterpreter_.getErrorsNumber());
         dataModel.predefinitions().append(interpreterData->tclToCaplInterpreter_.predefinitions());
-        ControllerConfigInfo::Attributes::ConstIterator postfixStr = interpreterData->userConfig_.attributes().constFind("POSTFIX_TEXT_FOR_FILE");
-        if(postfixStr == interpreterData->userConfig_.attributes().constEnd())
+        ControllerConfigInfo::Attributes::ConstIterator postfixStr = interpreterData->userConfig_.attributesController().getAttribute("FILE_POSTFIX");
+        if(interpreterData->userConfig_.attributesController().isAttributeValid(postfixStr))
         {
             interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: postfix attribute not found.");
             return config.ERROR_CALL("postfix attributes Critical Error");
@@ -2042,7 +2036,7 @@ bool FSD_ByLine_TcFileModifierData::processingFunction<FSD_ByLine_TcFileModifier
     if((result = interpreterData->createAndAssignString(formatStr, params)) != params.size())
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Create Text Error");
 
-    interpreterData->userConfig_.attributes().insert(parameters.at(0), {formatStr});
+    interpreterData->userConfig_.attributesController().setAttribute(parameters.at(0), formatStr);
     return interpreterData->conditionResult = true;
 }
 /*
@@ -2259,8 +2253,8 @@ int FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, QS
                     {
                         if(arg->isEmpty())
                             return (arg - args.begin());
-                        ControllerConfigInfo::Attributes::ConstIterator attribute = userConfig_.attributes().constFind(*arg);
-                        if(attribute == userConfig_.attributes().constEnd())
+                        ControllerConfigInfo::Attributes::ConstIterator attribute = userConfig_.attributesController().getAttribute(*arg);
+                        if(userConfig_.attributesController().isAttributeValid(attribute))
                             return (arg - args.begin());
                         dest += attribute.value().value;
                     }

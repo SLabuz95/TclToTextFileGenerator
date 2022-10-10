@@ -476,7 +476,7 @@ void TCLCommandsController::executeAction
         return;
     }
 
-    userConfig.attributes().insert(parameters.at(0), {formatStr});
+    userConfig.attributesController().setAttribute(parameters.at(0), {formatStr});
 }
 
 template <>

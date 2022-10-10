@@ -13,7 +13,6 @@ namespace Panels::Configuration{
 
     class AttributesPanel : public QTreeWidget{
         const Qt::ItemFlags hardcodedItemFlags = Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable;
-        const uint numbOfHardcodedAttributes = 3;
     public:
         AttributesPanel(ConfigTabsPanel& tabsPanel);
         virtual ~AttributesPanel()override{}

@@ -4040,8 +4040,8 @@ QStringList::size_type TclProcedureInterpreter::createAndAssignString(QString& d
                     {
                         if(arg->isEmpty())
                             return false;
-                        ControllerConfigInfo::Attributes::ConstIterator attribute = userConfig.attributes().constFind(*arg);
-                        if(attribute == userConfig.attributes().constEnd())
+                        ControllerConfigInfo::Attributes::ConstIterator attribute = userConfig.attributesController().getAttribute(*arg);
+                        if(userConfig.attributesController().isAttributeValid(attribute))
                             return false;
                         dest += attribute.value().value;
                     }
