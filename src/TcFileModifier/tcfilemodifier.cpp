@@ -15,88 +15,10 @@ using Format = Format;
 using ActionStat = ActionStat;
 using TC_Info_Data = TC_Info_Data;
 using RuleControl = ModifierRuleControl;
-using CAN = CAN;
 
 const QStringList TcFileModifierConfigBase::Format::targetMap{
     "Raw",
     "SplittedRaw"
-};
-
-CAN::VtSignals CAN::_signals =
-{
-    {   // ATCVT_RangeIndicationExtended
-        "ATCVT_RangeIndicationExtended",
-        { "P_range", "R_range", "N_range",
-            "D_range", "S_range", "L_range",
-            "B_range", "1st_range", "2nd_range",
-            "3rd_range", "4th_range", "5th_range",
-            "6th_range", "7th_range", "8th_range",
-            "9th_range", "10th_range", "M1st",
-            "M2nd", "M3rd", "M4th" ,
-            "M5th", "M6th", "M7th",
-            "M8th", "M9th", "M10th",
-            "Auto_1st", "Auto_2nd", "Auto_3rd",
-            "Auto_4th", "Auto_5th", "Auto_6th",
-            "Auto_7th", "Auto_8th", "Auto_9th",
-            "Auto_10th"}
-    },
-    {   // BrakeInfoStatus
-        "BrakeInfoStatus",
-        {
-            "Brake_pedal_not_pressed",
-            "Brake_pedal_pressed",
-            "Brake_pedal_confirmed_pressed",
-            "unavailable"
-        }
-    },
-    {   // ChargingSoundRequest
-        "ChargingSoundRequest",
-        {"Charging_No_request",
-            "Play_charging_plug_sound_request",
-            "Play_Admit_to_charge_battery_",
-            "Play_Unlock_charging_plug_sound_"}
-    },
-    {   // DayNightForBacklights
-        "DayNightForBacklights",
-        {
-            "Day",
-            "Twilight",
-            "Night",
-            "Unavailable"
-        }
-    },
-    {   // GADE
-        "GADE",
-        {
-            "Sleep_or_Crank_fault_Disable",
-            "AutoACC_fault_Disable",
-            "ALL_fault_Disable",
-            "ALL_fault_Enable",
-            "Unavailable"
-        }
-    },
-    {   // PeriodicReverseBuzzerTrigger
-        "PeriodicReverseBuzzerTrigger",
-        {"No_request",
-            "Reverse_alert_trigger"}
-    },
-    {   // PowerTrainStatus
-        "PowerTrainStatus",
-        {"Powertrain_Stopped",
-            "Reserved",
-            "Powertrain_Running",
-            "Powertrain_Starting"}
-    },
-    {
-        "StopStartInformationDisplay",
-        { "xEV_Driver_Exit_Alert_level_1",
-            "xEV_Driver_Exit_Alert_level_2"}
-    },
-    {
-        "VSPstatusDisplay",
-        { "VSP_deactivated_not_request",
-            "Description for the value '0x1'"}
-    }
 };
 
 // PHASES ---------------------------------------------

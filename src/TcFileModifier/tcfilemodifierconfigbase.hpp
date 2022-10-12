@@ -6,10 +6,7 @@
 
 namespace TcFileModifierConfigBase {
     using Variables = QStringList;
-    struct CAN{
-        using VtSignals = QMap<QString, QStringList>;
-        static VtSignals _signals;
-    };
+
 
     enum class TC_Info_Data{
         NAME,
