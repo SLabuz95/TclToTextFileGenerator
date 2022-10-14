@@ -288,6 +288,7 @@ void ControllerConfigInfo::toXmlContent(QXmlStreamWriter& xmlWriter){
     writeAttributesToXML(xmlWriter);
     writeProceduresToXML(xmlWriter);
     writeDefaultProcedureToXML(xmlWriter);
+    writePhasesToXML(xmlWriter);
 
     xmlWriter.writeEndElement();
     xmlWriter.writeEndDocument();

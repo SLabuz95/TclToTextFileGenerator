@@ -984,7 +984,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"name\"");
     }
 
-    if(userConfig->addPhase(name) == false){
+    if(name != "Default" and userConfig->addPhase(name) == false){
         qDebug() << "Add Phase failed - phase name duplicated";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Phase name duplicated");
     }
