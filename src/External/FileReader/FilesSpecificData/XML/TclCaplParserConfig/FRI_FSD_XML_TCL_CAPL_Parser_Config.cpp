@@ -374,7 +374,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
 template<>
 template<>
 bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpecificInterpreterStat::INVALID>(){
-    return ERROR_CALL("XML Error: Invalid Token");
+    return ERROR_CALL("XML Error: Invalid Token: " + data->reader->errorString());
 }
 
 template<>
@@ -527,7 +527,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
 
             InterpreterData::ModifierRulesView* rulesView = nullptr;
             if(not (rulesView = static_cast<InterpreterData::ModifierRulesView*>(interpreterData->dmStats.last().dataModel))
-                    or not userConfig->addCategory(interpreterData->procedureName, *rulesView))
+                    or not userConfig->addCategory(interpreterData->procedureName, interpreterData->tempModifierRulesView))
                 return config.ERROR_CALL("Internal Error");
         }
     }
@@ -557,7 +557,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::Config::FSFunction<FSD_XML::FileSpe
 
         if(dmStatWithAction == endIter or  // Action not found
                 not (dmStatWithAction->stat == Stat::ExecutableAction or
-                     dmStatWithAction->stat == Stat::ConditionalAction) or // No action before Parameter
+                     dmStatWithAction->stat == Stat::ConditionalAction or
+                     dmStatWithAction->stat == Stat::ModifierAction) or // No action before Parameter
                 interpreterData->currentActionParamIndexes.size() - 1 != (beginIter - dmStatWithAction)) // Always 0 level is 1 level - 0 level always exists with action
         {
             config.ERROR_CALL("Internal Error");
@@ -1068,6 +1069,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 template<>template<>template<>
 bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplParserConfigInterpreter::Stat::ActionsOnUnsatisfied>(){
     const QString PRE_ERROR_MSG = "InternalError: ActionsOnUnsatisfied Token";
+
+    using Rule = Data::ModifierRule;
+    using InterpreterRule = TcFileModifierConfigBase::ModifierRule;
+    using RuleType = ModifierRulesFactory::ProductTypeEnum;
+    using RawRule = Data::RawModifierRule;
+    using ModifierControlFlagInfo =FCT::ModifierRules::ModifierControlFlagInfo;
+    RawRule* rawRule = nullptr;
     DataModel* userConfig = nullptr;
     if(interpreterData->dmStats.isEmpty() or
             not (interpreterData->dmStats.last().stat == Stat::Phase) or
@@ -1080,14 +1088,22 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
     interpreterData->actionsOnUnspecifiedUsed = true;
 
     interpreterData->tempModifierRulesView.rules.clear();
+    rawRule = static_cast<RawRule*>(ModifierRulesFactory::create(RuleType::RawRule));
+    interpreterData->tempModifierRulesView.rules.append(rawRule);
     interpreterData->tempModifierRulesView.category = DataModel::ModifierRulesCategories::OnNoRulesSatisfied;
-    interpreterData->dmStats.append({&interpreterData->tempModifierRulesView, Stat::ActionsOnUnsatisfied});
+    interpreterData->dmStats.append({rawRule, Stat::ActionsOnUnsatisfied});
     return true;
 }
 
 template<>template<>template<>
 bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplParserConfigInterpreter::Stat::ActionsOnEnd>(){
     const QString PRE_ERROR_MSG = "InternalError: ActionsOnEnd Token";
+    using Rule = Data::ModifierRule;
+    using InterpreterRule = TcFileModifierConfigBase::ModifierRule;
+    using RuleType = ModifierRulesFactory::ProductTypeEnum;
+    using RawRule = Data::RawModifierRule;
+    using ModifierControlFlagInfo =FCT::ModifierRules::ModifierControlFlagInfo;
+    RawRule* rawRule = nullptr;
     DataModel* userConfig = nullptr;
     if(interpreterData->dmStats.isEmpty() or
             not (interpreterData->dmStats.last().stat == Stat::Phase) or
@@ -1100,8 +1116,10 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
     interpreterData->actionsOnEndUsed = true;
 
     interpreterData->tempModifierRulesView.rules.clear();
+    rawRule = static_cast<RawRule*>(ModifierRulesFactory::create(RuleType::RawRule));
+    interpreterData->tempModifierRulesView.rules.append(rawRule);
     interpreterData->tempModifierRulesView.category = DataModel::ModifierRulesCategories::OnEndOfRulesCheck;
-    interpreterData->dmStats.append({&interpreterData->tempModifierRulesView, Stat::ActionsOnEnd});
+    interpreterData->dmStats.append({rawRule, Stat::ActionsOnEnd});
     return true;
 }
 
@@ -1395,8 +1413,10 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
     RawRule* rawRule = nullptr;
 
     if(interpreterData->dmStats.isEmpty() or
-            (interpreterData->dmStats.last().stat != Stat::ModifierConditionalActions or
-             interpreterData->dmStats.last().stat != Stat::ModifierExecutableActions) or
+            (interpreterData->dmStats.last().stat != Stat::ModifierConditionalActions and
+             interpreterData->dmStats.last().stat != Stat::ModifierExecutableActions and
+             interpreterData->dmStats.last().stat != Stat::ActionsOnEnd and
+             interpreterData->dmStats.last().stat != Stat::ActionsOnUnsatisfied) and
             not interpreterData->currentActionParamIndexes.isEmpty() or
             not (rawRule = static_cast<RawRule*>(interpreterData->dmStats.last().dataModel)))
         return config.ERROR_CALL(PRE_ERROR_MSG);
@@ -1423,6 +1443,8 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         rawRule->conditions().append(action);
         break;
     case Stat::ModifierExecutableActions:
+    case Stat::ActionsOnEnd:
+    case Stat::ActionsOnUnsatisfied:
         if(ActionTypeInfo::isConditionalAction(actionType)){
             qDebug() << ("ModifierAction \"type\" attribute: Incorrect type for ExecutableActions \"") + actionStr + "\"";
             delete action;
@@ -2008,13 +2030,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
             {
                 // Only 1 parameter string in Level 0 possible - No verification nessasery
                 // Only index value validation
-                QString value;
-                if(not config.data->reader->attributes().hasAttribute("value")){
-                    qDebug() << "Param \"value\" attribute dont exist";
-                    return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
+                QString value =config.data->reader->readElementText(QXmlStreamReader::IncludeChildElements);
+                if(value.isEmpty()){
+                    qDebug() << "String is empty";
+                    return config.ERROR_CALL(PRE_ERROR_MSG + " - Empty Text String");
                 }
-                value = config.data->reader->attributes().value("value").trimmed().toString();
                 action.stringsToCompare().append(value);
+                callEndElement = true;
             }
                 break;
             default:
@@ -2183,8 +2205,9 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
                     }
                     valueStr = config.data->reader->attributes().value("value").trimmed().toString().toLower();
-                    if((value = true, valueStr == "true") or
-                          (value = false, valueStr == "false")){
+                    if(not (value = true, valueStr == "true") and
+                        not  (value = false, valueStr == "false"))
+                    {
                         qDebug() << "Param \"value\" convertion error \"" + valueStr + "\"";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" conversion error");
                     }
@@ -2550,7 +2573,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
         QString name;
         if(not (config.data->reader->attributes().hasAttribute("name"))){
-            qDebug() << "FormatRule \"name\" attribute doesnt exist";
+            qDebug() << "ModifierFormatRule \"name\" attribute doesnt exist";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"name\"");
         }
 

@@ -36,7 +36,7 @@ public:
     void toXmlContent(QXmlStreamWriter& xmlWriter)override{
         xmlWriter.writeEmptyElement("modifierFormatRule"); // String param?
         xmlWriter.writeAttribute("type", ModifierFormatParameters::TypeInfo::toStr(type())); // For compatibility with future implementation
-        xmlWriter.writeAttribute("value", name());
+        xmlWriter.writeAttribute("name", name());
 
     }
 };
