@@ -93,7 +93,7 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
 
         inline bool initialized()const{return rulesCategory_ != static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);}
         inline void setNonInitialized(){rulesCategory_ = static_cast<ControllerConfigInfo::RulesCategories>(LONG_LONG_MIN);}
-        int countRules(){return count();}
+        inline int countRules()const{return count();}
 
         void loadRules(RulesViewRef);
         void readRules(RulesRef&);
@@ -148,8 +148,8 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
 
         QSize sizeHint() const override{
             const int fW = frameWidth();
-            QSize&& s = Super::viewportSizeHint()+QSize(0, fW*2 + 40);
-            return (Super::count() > 0)? s: QSize(0, 40);
+            QSize&& s = Super::viewportSizeHint()+QSize(0, fW*2);
+            return (Super::count() > 0)? s: QSize(0, 0);
         }
 
 

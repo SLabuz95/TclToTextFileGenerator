@@ -55,10 +55,12 @@ namespace Panels::Configuration::View::Rules{
         using SettingsLayout = QGridLayout;
         using ActionsSplitter = QSplitter;
         using Conditionals = ConditionalsFactory::ListOfBases;
-        using ConditionalsList = View::ActionsList::Panel<Conditionals>;
         using Executables = ExecutablesFactory::ListOfBases;
+    public:
+        using ConditionalsList = View::ActionsList::Panel<Conditionals>;
         using ExecutablesList = View::ActionsList::Panel<Executables>;
 
+    protected:
         ListItem& item_;
         MainLayout centralLayout;
         ControlPanel controlPanel;
@@ -73,8 +75,15 @@ namespace Panels::Configuration::View::Rules{
         bool eventFilter(QObject* obj, QEvent* ev)override;        
 
     public:
+        using ListsView = struct
+        {
+        const ConditionalsList::List& conditionalList;
+        const ExecutablesList::List& executablesList;
+        };
 
-
+        const ListsView listsView()const{
+            return ListsView {conditionalsList.list(), executablesList.list()};
+        }
     };
 
 }

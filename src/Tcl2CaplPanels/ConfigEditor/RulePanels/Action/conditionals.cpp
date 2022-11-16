@@ -139,7 +139,18 @@ template<>
 template<>
 void ConditionalsList::execRequest_ContextMenu<ConditionalsList::Request_ContextMenu::Clear>(ListItem*)
 {
+    QListWidget& listWidget = parentWidget().parentWidget();
+    QListWidgetItem* parentListItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    RawRuleView::ListsView listsView = parentWidget().listsView();
+    int listsHeightDiff = listsView.conditionalList.height() - listsView.executablesList.height();
     clear();
+    if(listsHeightDiff >= 0){ // Conditional List is greater
+        parentListItem->setSizeHint(parentWidget().sizeHint() -= QSize(0, listsHeightDiff));
+        // No change
+    }else{// Executables List is greater
+        // No change
+    }
+    qApp->processEvents();
 }
 
 template<>
@@ -278,7 +289,7 @@ ListItem::ListItem(ConditionalsList& list, ActionPtr action)
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
     list.setItemWidget(this, &view_);
-    setSizeHint(view().sizeHint());
+    setSizeHint(QSize(0, view().sizeHint().height()));
 }
 
 
@@ -288,4 +299,93 @@ template<>
 ConditionalsList &ListItem::list() const
 { return *static_cast<ConditionalsList*>(QListWidgetItem::listWidget()); }
 
+template<>
+void List::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles){
+    if(roles.contains(Qt::SizeHintRole)){
+        QListWidget& listWidget = parentWidget().parentWidget();
+        QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+        RawRuleView::ListsView listsView = parentWidget().listsView();
+        int heightDiff = sizeHint().height() - height();
+        int listsHeightDiff = listsView.conditionalList.height() - listsView.executablesList.height();
+        if(&listsView.conditionalList == this){ // Conditionals List calculation
+            if(heightDiff >= 0){ // Increase size
+                if(listsHeightDiff >= 0){ // Conditional List is greater
+                    // Increse
+                    item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff));
+                }else{// Executables List is greater
+                    if(heightDiff > -listsHeightDiff){ // If change greater than other list height
+                        item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff + listsHeightDiff));
+                    }
+                }
+            }else{ // Decrease size
+                if(listsHeightDiff >= 0){ // Conditional List is greater
+                    // Decrease
+                    if(-heightDiff > listsHeightDiff){
+                        item->setSizeHint(parentWidget().sizeHint() -= QSize(0, listsHeightDiff));
+                    }else{
+                        item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff));
+                    }
+                }else{// Executables List is greater
+                    // No change
+                }
+            }
+        }else{
+            if(heightDiff >= 0){ // Increase size
+                if(listsHeightDiff >= 0){ // Conditional List is greater
+                    if(heightDiff > listsHeightDiff){ // If change greater than other list height
+                        item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff - listsHeightDiff));
+                    }
+                }else{// Executables List is greater
+                    // Increse
+                    item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff));
+                }
+            }else{ // Decrease size
+                if(listsHeightDiff >= 0){ // Conditional List is greater
+                    // No change
+                }else{// Executables List is greater
+                    if(-heightDiff > -listsHeightDiff){ // If change greater than other list height
+                        item->setSizeHint(parentWidget().sizeHint() += QSize(0, listsHeightDiff));
+                    }else{
+                        item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff));
+                    }
+                }
+            }
+        }
+    }
+    Super::dataChanged(topLeft, bottomRight, roles);
+}
+
+template<>
+void List::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end){
+    QListWidget& listWidget = parentWidget().parentWidget();
+    QListWidgetItem* parentListItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    RawRuleView::ListsView listsView = parentWidget().listsView();
+    int heightDiff = 0;
+    int listsHeightDiff = listsView.conditionalList.height() - listsView.executablesList.height();
+    for(int i = start; i <= end; i++)
+        heightDiff += item(i)->sizeHint().height();
+    if(&listsView.conditionalList == this){ // Conditionals List calculation
+        if(listsHeightDiff >= 0){ // Conditional List is greater
+            // Decrease
+            if(heightDiff > listsHeightDiff){
+                parentListItem->setSizeHint(parentWidget().sizeHint() -= QSize(0, listsHeightDiff));
+            }else{
+                parentListItem->setSizeHint(parentWidget().sizeHint() -= QSize(0, heightDiff));
+            }
+        }else{// Executables List is greater
+            // No change
+        }
+    }else{
+        if(listsHeightDiff >= 0){ // Conditional List is greater
+            // No change
+        }else{// Executables List is greater
+            if(heightDiff > -listsHeightDiff){ // If change greater than other list height
+                parentListItem->setSizeHint(parentWidget().sizeHint() += QSize(0, listsHeightDiff));
+            }else{
+                parentListItem->setSizeHint(parentWidget().sizeHint() -= QSize(0, heightDiff));
+            }
+        }
+    }
+    Super::rowsAboutToBeRemoved(parent, start, end);
+}
 
