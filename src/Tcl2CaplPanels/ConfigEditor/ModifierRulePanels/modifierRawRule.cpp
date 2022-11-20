@@ -33,9 +33,10 @@ RawRuleView::RawRuleView(ListItemType& item)
 }
 
 
-RawRuleView::RawRuleView(ListItemType& item, RawRuleRef rule)
+RawRuleView::RawRuleView(List& list, ListItemType& item, RawRuleRef rule)
 : RawRuleView(item)
-{
+{    
+    setParent(list.viewport());
     // Rule available
     if(rule){   // Exists
         using RawRule = Tcl2CaplControllerConfig::ModifierConfigRawRule;
@@ -109,5 +110,7 @@ bool RawRuleView::eventFilter(QObject *obj, QEvent *ev){
 }
 
 List& RawRuleView::parentWidget()const{
+    qDebug() << Super::parentWidget();
+    qDebug() << Super::parentWidget()->parentWidget();
     return *static_cast<List*>(Super::parentWidget()->parentWidget());// Viewport -> List
 }

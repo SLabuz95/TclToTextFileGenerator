@@ -40,7 +40,7 @@ namespace Panels::Configuration::View::ModifierRules{
     public:
         using ListItem = RulesPhasePanel::ListItem;
         RawRuleView(ListItem&);
-        RawRuleView(ListItem&, RawRuleRef);
+        RawRuleView(List& list, ListItem&, RawRuleRef);
         RawRuleView(const RawRuleView&);
         ~RawRuleView()override{
 

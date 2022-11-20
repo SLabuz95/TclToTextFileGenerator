@@ -9,6 +9,7 @@ using List = RulesProcedurePanel::RulesList;
 RawRuleView::RawRuleView(ListItemType& item)
 : item_(item){
     // Setup layout
+    //setParent(list.viewport());
     centralLayout.setSpacing(0);
     centralLayout.setContentsMargins(QMargins());
 
@@ -34,9 +35,10 @@ RawRuleView::RawRuleView(ListItemType& item)
 }
 
 
-RawRuleView::RawRuleView(ListItemType& item, RawRuleRef rule)
+RawRuleView::RawRuleView(List& list, ListItemType& item, RawRuleRef rule)
 : RawRuleView(item)
 {    
+    setParent(list.viewport());
     // Rule available
     if(rule){   // Exists
         using RawRule = Tcl2CaplControllerConfig::RawRule;

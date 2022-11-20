@@ -22,6 +22,10 @@ using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 
 template<>
 RawRuleView& ActionsModifierList::parentWidget()const{
+    qDebug() << Super::parentWidget();
+    qDebug() << Super::parentWidget()->parentWidget();
+    qDebug() << Super::parentWidget()->parentWidget()->parentWidget();
+
     return *static_cast<RawRuleView*>(Super::parentWidget()->parentWidget()->parentWidget()); //Panel -> Splitter -> RuleView
 }
 
@@ -50,6 +54,7 @@ ActionView::ActionView(List& list,const QStringList& typeCBItems, ActionPtr acti
     QWidget* widget = new QWidget();
     mainLayout.addRow(widget);
     setLayout(&mainLayout);
+    setParent(list.viewport());
 
     dataView_ = ActionDataView::createView(widget, action);
     if(dataView_){

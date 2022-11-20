@@ -24,13 +24,16 @@ foreach(item ${dirsAndFiles})
     endif()
 endforeach()
 
+#set(RESOURCE_FILES
+#    themes/dark/darkstyle.qrc
+#    themes/light/lightstyle.qrc)
+
 
 add_executable(TclCaplParserCMake
     ${sources}
     ${headers}
+    #${RESOURCE_FILES}
     )
-
-
 
 target_include_directories(TclCaplParserCMake
     PRIVATE

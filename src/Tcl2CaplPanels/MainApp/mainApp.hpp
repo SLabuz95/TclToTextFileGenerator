@@ -8,12 +8,56 @@
 #include"InstanceList/instanceList.hpp"
 #include<QEvent>
 #include"Tcl2Capl/controllerconfiginfo.hpp"
+#include "qfontmetrics.h"
+#include "qmdisubwindow.h"
+#include "qnamespace.h"
+#include "qproxystyle.h"
+#include "qstyleoption.h"
+#include "qwindowdefs.h"
+#include<QProxyStyle>
+#include<QApplication>
 
 class App;
 class MainWindow;
 namespace Panels::Configuration{
     class Panel;
 }
+
+class Style : public QProxyStyle{
+public:
+    Style(const QString &key)
+        : QProxyStyle(key)
+    {
+    }
+   /* int pixelMetric(QStyle::PixelMetric metric, const QStyleOption *option = nullptr, const QWidget *widget = nullptr) const{
+        if(metric == QStyle::PM_TitleBarHeight){
+            return 0;
+        }
+        if(metric == QStyle::PM_TitleBarButtonSize)
+            ;//return 1;
+        return QProxyStyle::pixelMetric(metric, option, widget);
+    }
+    void drawComplexControl(QStyle::ComplexControl control, const QStyleOptionComplex *option, QPainter *painter, const QWidget *widget = nullptr)
+    const{
+        if(control == QStyle::CC_TitleBar){
+            const QStyleOptionTitleBar& optionRef = *static_cast<const QStyleOptionTitleBar*>(option);
+            QStyleOptionTitleBar myOption = optionRef;
+            //myOption.activeSubControls = QStyle::SC_None;
+            //myOption.subControls = QStyle::SC_TitleBarLabel;
+            //qDebug() << myOption.subControls;
+            QProxyStyle::drawComplexControl(control, &myOption, painter, widget);
+            return;
+        }
+        QProxyStyle::drawComplexControl(control, option, painter, widget);
+    }
+     int styleHint(StyleHint hint, const QStyleOption *option = nullptr,
+                   const QWidget *widget = nullptr, QStyleHintReturn *returnData = nullptr) const override
+     {
+         //if (hint == QStyle::SH_TitleBar_NoBorder)
+             //return 0;
+         return QProxyStyle::styleHint(hint, option, widget, returnData);
+     }*/
+};
 
 class SubWindow : public QMdiSubWindow{
 public:
@@ -23,9 +67,17 @@ public:
     void closeEvent(QCloseEvent *) override{
         hide();
     }
+    SubWindow()
+    {
+        auto proxy = new Style(QApplication::style()->name());
+         proxy->setParent(this);   // take ownership to avoid memleak
+         this->setStyle(proxy);
+    }
 
     View& view();//{return *static_cast<View*>(parentWidget()->parentWidget());} // Viewport -> View (QMdiArea)
     MainWindow& mainWindow();//{return *static_cast<MainWindow*>(view().parentWidget()->parentWidget());} // View (QMdiArea) -> Splitter -> QMainWindow
+
+
 
 };
 

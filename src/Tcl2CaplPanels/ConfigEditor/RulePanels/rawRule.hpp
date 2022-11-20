@@ -40,7 +40,7 @@ namespace Panels::Configuration::View::Rules{
     public:
         using ListItem = RulesProcedurePanel::ListItem;
         RawRuleView(ListItem&);
-        RawRuleView(ListItem&, RawRuleRef);
+        RawRuleView(List& list,ListItem&, RawRuleRef);
         RawRuleView(const RawRuleView&);
         ~RawRuleView()override{
 
