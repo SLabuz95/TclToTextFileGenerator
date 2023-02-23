@@ -2541,11 +2541,11 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         using Target = Rule::Target;
         Rule& rule = *static_cast<Rule*>(ruleBase);
 
-        if(not (config.data->reader->attributes().hasAttribute("target"))){
-            qDebug() << "FormatRule \"target\" attribute doesnt exist";
-            return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"target\"");
+        if(not (config.data->reader->attributes().hasAttribute("value"))){
+            qDebug() << "FormatRule \"value\" attribute doesnt exist";
+            return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"value\"");
         }
-        value = config.data->reader->attributes().value("target").trimmed().toString();
+        value = config.data->reader->attributes().value("value").trimmed().toString();
 
         Format::Target formatTarget = Format::fromStr_target(value);
         if(formatTarget == Target::None){
