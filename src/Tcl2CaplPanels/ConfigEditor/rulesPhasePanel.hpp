@@ -148,8 +148,8 @@ namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
 
         QSize sizeHint() const override{
             const int fW = frameWidth();
-            QSize&& s = Super::viewportSizeHint()+QSize(0, fW*2 + 40);
-            return (Super::count() > 0)? s: QSize(0, 40);
+            QSize&& s = Super::viewportSizeHint()+QSize(0, fW*2);
+            return (Super::count() > 0)? s: QSize(0, 0);
         }
 
         void extendContextMenu(ContextMenuConfig&)const override;

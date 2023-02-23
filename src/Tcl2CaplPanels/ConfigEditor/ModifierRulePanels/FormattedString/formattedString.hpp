@@ -8,6 +8,8 @@
 #include<QMouseEvent>
 #include"TcFileModifier/Config/Parameters/Formatted/FCT_products.hpp"
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
+#include "qdebug.h"
+#include "qnamespace.h"
 #include<QApplication>
 
 using ModifierFormatRules = ModifierFormatParametersFactory::ListOfBases;
@@ -272,37 +274,31 @@ protected:
              Super::dropEvent(ev);
          }
 
-        bool viewportEvent(QEvent* ev)override{
-            switch(ev->type()){
-            case QEvent::LayoutRequest:
-            {
-                if(count() > 0){
-                    QListWidget& listWidget = actionListView();
-                    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-                    if(item and actionView().sizeHint().height() < sizeHint().height()){
-                        item->setSizeHint(actionView().sizeHint() += QSize(0, sizeHint().height() - height()));
-                    }
+        virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles) override{
+            if(roles.contains(Qt::SizeHintRole)){
+                QListWidget& listWidget = actionListView();
+                QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+                qDebug() << "DataChanged FormatList" << actionView().sizeHint().height() << sizeHint().height() << height();
+                if(item){
+                    item->setSizeHint(actionView().sizeHint() += QSize(0, sizeHint().height() - height()));
                 }
             }
-                break;
-            case QEvent::Resize:
-            {
-                QResizeEvent& rsEv = *static_cast<QResizeEvent*>(ev);
-                 if(rsEv.oldSize().height() != 0 and rsEv.size().height() < rsEv.oldSize().height()){
-                    QListWidget& listWidget = actionListView();
-                    QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-                    if(item){
-                        item->setSizeHint(actionView().sizeHint() -= QSize(0, rsEv.oldSize().height() - rsEv.size().height()));
-                    }
-                }
-            }
-                break;
-            default:
-                break;
-            }
-
-            return QListWidget::viewportEvent(ev);
+            Super::dataChanged(topLeft, bottomRight, roles);
         }
+        virtual void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)override{
+            QListWidget& listWidget = actionListView();
+            QListWidgetItem* parentListItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+            QSize diffSize(0,0);
+            qDebug() << start << end;
+            for(int i = start; i <= end; i++)
+                diffSize.rheight() += item(i)->sizeHint().height();
+            if(parentListItem /*and actionView().sizeHint().height() != sizeHint().height()*/){
+                qDebug() << actionView().sizeHint().height() << sizeHint().height();
+                parentListItem->setSizeHint(actionView().sizeHint() -= QSize(0, diffSize.height()));
+            }
+            Super::rowsAboutToBeRemoved(parent, start, end);
+        }
+
     public:
 
         QSize minimumSizeHint() const override{
@@ -311,8 +307,8 @@ protected:
 
         QSize sizeHint() const override{
             const int fW = frameWidth();
-            QSize&& s = Super::viewportSizeHint()+QSize(0, fW*2 + 40);
-            return (count() > 0)? s: QSize(0, 40);
+            QSize&& s = Super::viewportSizeHint()+QSize(0, fW*2);
+            return (count() > 0)? s: QSize(0, 0);
         }
 
          void loadRules(FormatRulesRef);

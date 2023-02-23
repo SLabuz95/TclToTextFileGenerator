@@ -116,8 +116,19 @@ void List::execRequest_ContextMenu<List::Request_ContextMenu::Remove>(ListItem* 
 template<>
 void List::execRequest_ContextMenu<List::Request_ContextMenu::Clear>(ListItem*)
 {
+    QSize diffSize(0,0);
+    for(int i = 0; i < count(); i++)
+        diffSize.rheight() += item(i)->sizeHint().height();
     clear();
+    QListWidget& listWidget = actionListView();
+    QListWidgetItem* parentListItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+    if(parentListItem) /*and actionView().sizeHint().height() != sizeHint().height()*/
+    {
+        qDebug() << actionView().sizeHint().height() << sizeHint().height();
+        parentListItem->setSizeHint(actionView().sizeHint() -= diffSize);
+    }
     qApp->processEvents();
+
 }
 
 QWidget& List::actionView()const{
@@ -268,7 +279,7 @@ ListItem::ListItem(List& list, FormatRulePtr rule)
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
     list.setItemWidget(this, &view_);
-    setSizeHint(view().sizeHint());
+    setSizeHint(QSize(0, view().sizeHint().height()));
 }
 
 

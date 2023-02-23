@@ -30,8 +30,8 @@ void MainWindow::insertSubWindow(InstanceList::SubWindowPositionInfo&& positionI
         subWindowListIndex += instanceList.topLevelItem(instanceIndex)->childCount();
     }
     subWindowListIndex += positionInfo.indexOfInterpreter;
-    internalWidget->setWindowTitle(instanceList.topLevelItem(positionInfo.indexOfInstance)->text(0) + "::"
-                                   + instanceList.topLevelItem(positionInfo.indexOfInstance)->child(positionInfo.indexOfInterpreter)->text(0));
+    //internalWidget->setWindowTitle(instanceList.topLevelItem(positionInfo.indexOfInstance)->text(0) + "::"
+    //                               + instanceList.topLevelItem(positionInfo.indexOfInstance)->child(positionInfo.indexOfInterpreter)->text(0));
     SubWindow* subWindow = new SubWindow;
     subWindow->setWidget(internalWidget);
     subWindows.insert(subWindowListIndex, subWindow);
@@ -102,8 +102,8 @@ void MainWindow::interpreterNameChanged(InstanceList::SubWindowPositionInfo&& su
     }
     subWindowListIndex += subWindowPos.indexOfInterpreter;
 
-    subWindows.at(subWindowListIndex)->setWindowTitle(instanceList.topLevelItem(subWindowPos.indexOfInstance)->text(0) + "::"
-                                   + instanceList.topLevelItem(subWindowPos.indexOfInstance)->child(subWindowPos.indexOfInterpreter)->text(0));
+    //subWindows.at(subWindowListIndex)->setWindowTitle(instanceList.topLevelItem(subWindowPos.indexOfInstance)->text(0) + "::"
+    //                               + instanceList.topLevelItem(subWindowPos.indexOfInstance)->child(subWindowPos.indexOfInterpreter)->text(0));
 
 }
 
@@ -115,10 +115,10 @@ void MainWindow::instanceNameChanged(InstanceListElement* instance){
             firstSubWindowListIndex += instanceList.topLevelItem(i)->childCount();
         }
 
-        for(int i = 0; i < instance->childCount(); i++)
-            subWindows.at(firstSubWindowListIndex + i)->setWindowTitle(
-                        instanceList.topLevelItem(instanceIndex)->text(0) + "::"
-                        + instance->child(i)->text(0));
+        for(int i = 0; i < instance->childCount(); i++){}
+           // subWindows.at(firstSubWindowListIndex + i)->setWindowTitle(
+            //            instanceList.topLevelItem(instanceIndex)->text(0) + "::"
+            //            + instance->child(i)->text(0));
     }
 }
 

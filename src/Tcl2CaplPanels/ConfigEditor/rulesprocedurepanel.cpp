@@ -137,7 +137,7 @@ void RulesList::extendContextMenu(ContextMenuConfig& config)const{
 }
 
 ListItem::ListItem(RulesList& list, RuleViewRef rule)
-    : QListWidgetItem(&list), rawRuleView_(*this, rule)
+    : QListWidgetItem(&list), rawRuleView_(list, *this, rule)
 {
     list.addItem(this);
     list.setItemWidget(this, &rawRuleView());

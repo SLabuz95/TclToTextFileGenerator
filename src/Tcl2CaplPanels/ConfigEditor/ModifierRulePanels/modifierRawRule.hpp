@@ -40,7 +40,7 @@ namespace Panels::Configuration::View::ModifierRules{
     public:
         using ListItem = RulesPhasePanel::ListItem;
         RawRuleView(ListItem&);
-        RawRuleView(ListItem&, RawRuleRef);
+        RawRuleView(List& list, ListItem&, RawRuleRef);
         RawRuleView(const RawRuleView&);
         ~RawRuleView()override{
 
@@ -49,15 +49,20 @@ namespace Panels::Configuration::View::ModifierRules{
         void readRule(RuleRef rule);
 
         List& parentWidget()const;
+
     protected:
         using MainLayout = QVBoxLayout;
         using ControlPanel = QHBoxLayout;
         using SettingsLayout = QGridLayout;
         using ActionsSplitter = QSplitter;
         using Conditionals = ModifierActionsFactory::ListOfBases;
-        using ConditionalsList = View::ModifierActionsList::Panel<Conditionals>;
         using Executables = ModifierActionsFactory::ListOfBases;
+
+    public:
+        using ConditionalsList = View::ModifierActionsList::Panel<Conditionals>;
         using ExecutablesList = View::ModifierActionsList::Panel<Executables>;
+
+    protected:
 
         ListItem& item_;
         MainLayout centralLayout;
@@ -71,6 +76,11 @@ namespace Panels::Configuration::View::ModifierRules{
         ExecutablesList executablesList;
         bool eventFilter(QObject* obj, QEvent* ev)override;
     public:
+        using ListsView = struct
+        {
+        const ConditionalsList::List& conditionalList;
+        const ExecutablesList::List& executablesList;
+        };
         inline bool isConditionalsList(QWidget *const list)const{
             return list == &conditionalsList;
         }
@@ -79,6 +89,13 @@ namespace Panels::Configuration::View::ModifierRules{
         }
 
         void activateActionMode();
+        inline const qsizetype commonListsHeight()const{
+            return (conditionalsList.sizeHint().height() > executablesList.sizeHint().height())?
+                        conditionalsList.sizeHint().height() : executablesList.sizeHint().height();
+        }
+        const ListsView listsView()const{
+            return ListsView {conditionalsList.list(), executablesList.list()};
+        }
 
     };
 
