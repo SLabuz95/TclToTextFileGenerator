@@ -1,0 +1,881 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tclConfig>
+    <settings>
+        <writeOnlyProcedures>
+            <procedure>stc_section</procedure>
+        </writeOnlyProcedures>
+    </settings>
+    <attributes>
+        <attribute name="DOC_AUTHOR"></attribute>
+        <attribute name="DOC_DATE">30/11/2020</attribute>
+        <attribute name="PROJECT_NAME">S71</attribute>
+        <attribute name="PROJECT_VARIANT"></attribute>
+        <attribute name="TC_AUTHOR"></attribute>
+        <attribute name="TC_DESC"></attribute>
+        <attribute name="TC_DOCS"></attribute>
+        <attribute name="TC_DOMAIN"></attribute>
+        <attribute name="TC_INTG"></attribute>
+        <attribute name="TC_NAME"></attribute>
+        <attribute name="TC_REGS"></attribute>
+        <attribute name="TC_REQS"></attribute>
+        <attribute name="TC_REVIEW">no</attribute>
+        <attribute name="TC_TITLE"></attribute>
+        <attribute name="TC_TYPE"></attribute>
+        <attribute name="TC_VER"></attribute>
+    </attributes>
+    <procedures/>
+    <defaultProcedure>
+        <rulesOnEndOfCall/>
+        <rulesForUndefinedArgument/>
+    </defaultProcedure>
+    <phases>
+        <phase name="AnalyzeTCContent">
+            <rules>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Split">
+                            <param>
+                                <modifierFormatRule type="Text">\s+</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">stc_section</param>
+                            </param>
+                        </modifierAction>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">PRECONDITION</param>
+                                <param type="0">ACTION</param>
+                                <param type="0">CLEANUP</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="Write">
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                                <modifierFormatRule type="Text">(</modifierFormatRule>
+                                <modifierFormatRule type="ArgumentsFrom" value="2"> </modifierFormatRule>
+                                <modifierFormatRule type="Text">);
+</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">stc_section</param>
+                            </param>
+                        </modifierAction>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">RESULT</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="Write">
+                            <param>
+                                <modifierFormatRule type="Text">EXPECTED(</modifierFormatRule>
+                                <modifierFormatRule type="ArgumentsFrom" value="2"> </modifierFormatRule>
+                                <modifierFormatRule type="Text">);
+</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+            </rules>
+            <actionsOnEnd/>
+            <actionsOnUnsatisfied/>
+        </phase>
+        <phase name="AnalyzeTestAttributes">
+            <rules>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Split">
+                            <param>
+                                <modifierFormatRule type="Text">\s+</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@NAME</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_NAME"/>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@TITLE</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_TITLE"/>
+                            <param>
+                                <modifierFormatRule type="ArgumentsFrom" value="1"> </modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@DESC</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_DESC"/>
+                            <param>
+                                <modifierFormatRule type="ArgumentsFrom" value="1"> </modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">#@DOMAIN</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Target" value="Raw"/>
+                                <modifierFormatRule type="FullLine"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions/>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@DOMAIN</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_DOMAIN"/>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@INTG</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_INTG"/>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@REGS</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_REGS"/>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@REQ</param>
+                            </param>
+                        </modifierAction>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">x</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_REQS"/>
+                                <modifierFormatRule type="Text">x</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_REQS"/>
+                            <param>
+                                <modifierFormatRule type="ArgumentsFrom" value="1">; </modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@REQ</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_REQS"/>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_REQS"/>
+                                <modifierFormatRule type="Text">; </modifierFormatRule>
+                                <modifierFormatRule type="ArgumentsFrom" value="1">; </modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@DOC</param>
+                            </param>
+                        </modifierAction>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">x</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_DOCS"/>
+                                <modifierFormatRule type="Text">x</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_DOCS"/>
+                            <param>
+                                <modifierFormatRule type="ArgumentsFrom" value="1">;</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@DOC</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_DOCS"/>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_DOCS"/>
+                                <modifierFormatRule type="ArgumentsFrom" value="1">; </modifierFormatRule>
+                                <modifierFormatRule type="Text">; </modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">#@AUTHOR</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Target" value="Raw"/>
+                                <modifierFormatRule type="FullLine"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions/>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@AUTHOR</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_AUTHOR"/>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@TYPE</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_TYPE"/>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@VER</param>
+                            </param>
+                        </modifierAction>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">%version:</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_VER"/>
+                            <param>
+                                <modifierFormatRule type="Index" value="2"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@VER</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_VER"/>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@REVIEWED</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_REVIEW"/>
+                            <param>
+                                <modifierFormatRule type="Index" value="1"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="StartsWith">
+                            <param type="0">
+                                <param type="0">#@</param>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions/>
+                </rawModifierRule>
+            </rules>
+            <actionsOnEnd/>
+            <actionsOnUnsatisfied>
+                <modifierAction type="ChangePhase">
+                    <param value="VerifyTestAttributes"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnUnsatisfied>
+        </phase>
+        <phase name="ClearTestAttributes">
+            <rules/>
+            <actionsOnEnd>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_NAME"/>
+                    <param>
+                        <modifierFormatRule type="Text"></modifierFormatRule>
+                    </param>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_TITLE"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_DESC"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_DOMAIN"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_INTG"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_REGS"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_REQS"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_DOCS"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_AUTHOR"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_TYPE"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_VER"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="WriteAttribute">
+                    <param value="TC_REVIEW"/>
+                    <param/>
+                </modifierAction>
+                <modifierAction type="ChangePhase">
+                    <param value="AnalyzeTestAttributes"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnEnd>
+            <actionsOnUnsatisfied/>
+        </phase>
+        <phase name="Default">
+            <rules/>
+            <actionsOnEnd>
+                <modifierAction type="ChangePhase">
+                    <param value="VerifyControlModelStatus"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnEnd>
+            <actionsOnUnsatisfied/>
+        </phase>
+        <phase name="GenerateFilePostfix">
+            <rules/>
+            <actionsOnEnd>
+                <modifierAction type="WriteAttribute">
+                    <param value="FILE_POSTFIX"/>
+                    <param>
+                        <modifierFormatRule type="Text">
+}
+
+</modifierFormatRule>
+                    </param>
+                </modifierAction>
+                <modifierAction type="ChangePhase">
+                    <param value="ClearTestAttributes"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnEnd>
+            <actionsOnUnsatisfied/>
+        </phase>
+        <phase name="GenerateFilePrefix">
+            <rules/>
+            <actionsOnEnd>
+                <modifierAction type="Write">
+                    <param>
+                        <modifierFormatRule type="Text">/*@!Encoding:1250*/
+/*-------------------------------------------------------------------------------------------
+
+Project:     </modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="PROJECT_NAME"/>
+                        <modifierFormatRule type="Text">    
+Written by: </modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="DOC_AUTHOR"/>
+                        <modifierFormatRule type="Text">
+
+Additional information:
+This file contains tests of </modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="DIR_NAME"/>
+                        <modifierFormatRule type="Text"> for </modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="PROJECT_NAME"/>
+                        <modifierFormatRule type="Text">.
+
+---------------------------------------------------------------------------------------------
+Rev | Date        |Author           |Description--------------------------------------------------------------------------------------------- 
+001 | </modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="DOC_DATE"/>
+                        <modifierFormatRule type="Text">  |</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="DOC_AUTHOR"/>
+                        <modifierFormatRule type="Text">       |File has been created.
+
+-------------------------------------------------------------------------------------------*/
+
+
+</modifierFormatRule>
+                    </param>
+                </modifierAction>
+                <modifierAction type="ChangePhase">
+                    <param value="GenerateIncludes"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnEnd>
+            <actionsOnUnsatisfied/>
+        </phase>
+        <phase name="GenerateGlobalVariables">
+            <rules/>
+            <actionsOnEnd>
+                <modifierAction type="Write">
+                    <param>
+                        <modifierFormatRule type="Text">variables{
+
+}
+
+</modifierFormatRule>
+                    </param>
+                </modifierAction>
+                <modifierAction type="ChangePhase">
+                    <param value="GenerateFilePostfix"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnEnd>
+            <actionsOnUnsatisfied/>
+        </phase>
+        <phase name="GenerateIncludes">
+            <rules/>
+            <actionsOnEnd>
+                <modifierAction type="Write">
+                    <param>
+                        <modifierFormatRule type="Text">includes{
+#include&quot;../../Libraries/Procedures/NewLib/S71_C1A_Common.cin&quot;
+
+}
+
+
+</modifierFormatRule>
+                    </param>
+                </modifierAction>
+                <modifierAction type="ChangePhase">
+                    <param value="GenerateGlobalVariables"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnEnd>
+            <actionsOnUnsatisfied/>
+        </phase>
+        <phase name="GenerateTCPrefix">
+            <rules/>
+            <actionsOnEnd>
+                <modifierAction type="Write">
+                    <param>
+                        <modifierFormatRule type="Text">testcase </modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_NAME"/>
+                        <modifierFormatRule type="Text">(){
+   //  </modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_NAME"/>
+                        <modifierFormatRule type="Text">
+   //============================== TEST CASE HEADER ==============================//
+   
+   Set criteria:
+   Reset criteria:
+   */
+   // Internal variables:
+
+   
+   // Test Case description and attributes:
+   AddTcInformation(
+   /*ident     */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_NAME"/>
+                        <modifierFormatRule type="Text">&quot;,
+   /*title     */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_TITLE"/>
+                        <modifierFormatRule type="Text">&quot; ,
+   /*descr     */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_DESC"/>
+                        <modifierFormatRule type="Text">&quot;
+   );
+   AddTcInAttributes(
+   /*domain    */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_DOMAIN"/>
+                        <modifierFormatRule type="Text">&quot;,
+   /*reqs      */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_REQS"/>
+                        <modifierFormatRule type="Text">&quot;,
+   /*doc       */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_DOCS"/>
+                        <modifierFormatRule type="Text">&quot;,
+   /*reviewed  no/yes */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_REVIEW"/>
+                        <modifierFormatRule type="Text">&quot;,
+   /*automated no/yes */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_TYPE"/>
+                        <modifierFormatRule type="Text">&quot;,
+   /*priority  1/2/3  */  &quot;1&quot;, // TC_PRIORITY
+   /*intg      no/yes */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_INTG"/>
+                        <modifierFormatRule type="Text">&quot;,
+   /*variant   */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="PROJECT_VARIANT"/>
+                        <modifierFormatRule type="Text">&quot;,
+   /*version   */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_VER"/>
+                        <modifierFormatRule type="Text">&quot;,
+   /*author    */  &quot;</modifierFormatRule>
+                        <modifierFormatRule type="Attribute" name="TC_AUTHOR"/>
+                        <modifierFormatRule type="Text">&quot;
+   );
+
+</modifierFormatRule>
+                    </param>
+                </modifierAction>
+                <modifierAction type="ChangePhase">
+                    <param value="AnalyzeTCContent"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnEnd>
+            <actionsOnUnsatisfied/>
+        </phase>
+        <phase name="GenerateTestAttributes">
+            <rules>
+                <rawModifierRule controlFlag="NoBreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">x</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_TITLE"/>
+                                <modifierFormatRule type="Text">x</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_TITLE"/>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_DESC"/>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="NoBreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">AUTO</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_TYPE"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_TYPE"/>
+                            <param>
+                                <modifierFormatRule type="Text">yes</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="NoBreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">MANUAL</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_TYPE"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_TYPE"/>
+                            <param>
+                                <modifierFormatRule type="Text">no</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="NoBreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">NO</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_INTG"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_INTG"/>
+                            <param>
+                                <modifierFormatRule type="Text">no</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="NoBreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">YES</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_INTG"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_INTG"/>
+                            <param>
+                                <modifierFormatRule type="Text">yes</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="NoBreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">NO</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_REVIEW"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_REVIEW"/>
+                            <param>
+                                <modifierFormatRule type="Text">no</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+                <rawModifierRule controlFlag="NoBreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">YES</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="TC_REVIEW"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="TC_REVIEW"/>
+                            <param>
+                                <modifierFormatRule type="Text">yes</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+            </rules>
+            <actionsOnEnd>
+                <modifierAction type="ChangePhase">
+                    <param value="GenerateTCPrefix"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnEnd>
+            <actionsOnUnsatisfied/>
+        </phase>
+        <phase name="VerifyControlModelStatus">
+            <rules>
+                <rawModifierRule controlFlag="BreakRuleCheck">
+                    <modifierConditionalActions>
+                        <modifierAction type="Compare">
+                            <param type="0">
+                                <param type="0">STARTED</param>
+                            </param>
+                            <param>
+                                <modifierFormatRule type="Attribute" name="PROCESS_MODEL_STATUS"/>
+                            </param>
+                        </modifierAction>
+                    </modifierConditionalActions>
+                    <modifierExecutableActions>
+                        <modifierAction type="WriteAttribute">
+                            <param value="PROCESS_MODEL_STATUS"/>
+                            <param>
+                                <modifierFormatRule type="Text">PROCESSING</modifierFormatRule>
+                            </param>
+                        </modifierAction>
+                        <modifierAction type="ChangePhase">
+                            <param value="GenerateFilePrefix"/>
+                            <param value="true"/>
+                        </modifierAction>
+                    </modifierExecutableActions>
+                </rawModifierRule>
+            </rules>
+            <actionsOnEnd/>
+            <actionsOnUnsatisfied>
+                <modifierAction type="ChangePhase">
+                    <param value="ClearTestAttributes"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnUnsatisfied>
+        </phase>
+        <phase name="VerifyTestAttributes">
+            <rules/>
+            <actionsOnEnd>
+                <modifierAction type="ChangePhase">
+                    <param value="GenerateTestAttributes"/>
+                    <param value="true"/>
+                </modifierAction>
+            </actionsOnEnd>
+            <actionsOnUnsatisfied/>
+        </phase>
+    </phases>
+</tclConfig>
