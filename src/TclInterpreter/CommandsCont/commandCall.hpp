@@ -176,7 +176,7 @@ namespace Tcl::Interpreter::Command{
         public:
 
             Call(Stat);
-            Call(Stat, Parameter&, ProcedureDefinitionIterator = nullptr, ParameterIndex = -1);
+            Call(Stat, Parameter&, ProcedureDefinitionIterator = ProcedureDefinitionIterator(nullptr), ParameterIndex = -1);
             //Call& operator=(Call&& call){_name = call._name; _arguments = call._arguments;}
 
             inline Stat stat()const{return stat_;}
@@ -220,7 +220,7 @@ namespace Tcl::Interpreter::Command{
             inline Definition::RulesForArguments::Iterator lastRulesForArgument_onMoved()const{
                 return lastRulesForArgument_dynamicCheck();}
             inline Definition::RulesForArguments::Iterator rulesForUnspecifiedArgument()const{
-                return &definition()->rulesForUnspecifiedArgument;}
+                return Definition::RulesForArguments::Iterator(&definition()->rulesForUnspecifiedArgument);}
             inline Error isRulesInRange(Definition::RulesForArguments::Iterator rules)const{
                 return (rules < definition()->rulesForArguments.end())?
                             Error::NoError :

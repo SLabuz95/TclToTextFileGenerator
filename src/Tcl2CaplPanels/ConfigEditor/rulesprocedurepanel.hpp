@@ -39,7 +39,7 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         using List = RulesList;
         ListItem() = delete;
         ListItem(RulesList& list, RuleViewRef rule);
-        ListItem(const ListItem& item) : ListItem(item.rulesList(), nullptr){
+        ListItem(const ListItem& item) : ListItem(item.rulesList(), RuleViewRef(nullptr)){
             //itemContent = new ItemContent(item.widget());
         }
         ~ListItem()override{
@@ -101,7 +101,7 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
         inline void addNewItem(){
             //ListItem* newItem = nullptr;
             setUpdatesEnabled(false);
-            new ListItem(*this, nullptr);
+            new ListItem(*this, RuleViewRef( nullptr));
             setUpdatesEnabled(true);
             //newItem->init();
         }

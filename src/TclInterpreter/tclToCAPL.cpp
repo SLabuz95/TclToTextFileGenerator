@@ -3743,7 +3743,7 @@ CheckingResult KeywordsController::checkingPriv(){
 
                 }else{
                     savedFirstKeywordCharPos = currentChar;
-                    lastKeyword = &endOfStringKeyword;
+                    lastKeyword = Keywords::ConstIterator(&endOfStringKeyword);
                     //return CheckingResult::EndOfString;
                 }
                 return CheckingResult::StatFound;
@@ -3767,7 +3767,7 @@ CheckingResult KeywordsController::checkingPriv(){
 
     }else{
         savedFirstKeywordCharPos = currentChar;
-        lastKeyword = &endOfStringKeyword;
+        lastKeyword = Keywords::ConstIterator(&endOfStringKeyword);
         //return CheckingResult::EndOfString;
     }
     return CheckingResult::StatFound;;

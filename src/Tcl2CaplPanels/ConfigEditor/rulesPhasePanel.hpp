@@ -39,7 +39,7 @@ namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
         using List = RulesList;
         ListItem() = delete;
         ListItem(RulesList& list, RuleViewRef rule);
-        ListItem(const ListItem& item) : ListItem(item.rulesList(), nullptr){
+        ListItem(const ListItem& item) : ListItem(item.rulesList(), RuleViewRef(nullptr)){
             //itemContent = new ItemContent(item.widget());
         }
         ~ListItem()override{
@@ -101,7 +101,7 @@ namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
         inline void addNewItem(){
             //ListItem* newItem = nullptr;
             setUpdatesEnabled(false);
-            new ListItem(*this, nullptr);
+            new ListItem(*this, RuleViewRef(nullptr));
             setUpdatesEnabled(true);
             //newItem->init();
         }
@@ -177,8 +177,8 @@ namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
         QPushButton addRuleButton;
 
         bool executableActionsListMode_ = false;
-        bool activateExecutableActionsListModeImpl();
-        bool deactivateExecutableActionsListModeImpl();
+        void activateExecutableActionsListModeImpl();
+        void deactivateExecutableActionsListModeImpl();
 
     public:
         RulesPanel(){

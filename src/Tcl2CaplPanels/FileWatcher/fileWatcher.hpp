@@ -34,8 +34,8 @@ public:
 
         inline void addFile(QFileInfo& file, bool directory){
             Q_ASSERT_X(file.exists(), "FileWatcher", "addFile method: File doesnt exist");
-            DirInfos::Iterator dirInfo = nullptr;
-            DirInfos::Iterator end = nullptr;
+            DirInfos::Iterator dirInfo = DirInfos::Iterator(nullptr);
+            DirInfos::Iterator end = DirInfos::Iterator(nullptr);
             if(directory){
                 dirInfo = directories.begin();
                 end = directories.end();
@@ -69,8 +69,8 @@ public:
         }
         inline void removeFile(QFileInfo& file, bool directory){
             Q_ASSERT_X(file.exists(), "FileWatcher", "removeFile method: File doesnt exist");
-            DirInfos::Iterator dirInfo = nullptr;
-            DirInfos::Iterator end = nullptr;
+            DirInfos::Iterator dirInfo = DirInfos::Iterator(nullptr);
+            DirInfos::Iterator end = DirInfos::Iterator(nullptr);
             if(directory){
                 dirInfo = directories.begin();
                 end = directories.end();

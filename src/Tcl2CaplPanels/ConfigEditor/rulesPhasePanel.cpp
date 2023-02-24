@@ -149,11 +149,11 @@ ListItem::ListItem(RulesList& list, RuleViewRef rule)
 RulesList &ListItem::rulesList() const
 { return *static_cast<RulesList*>(QListWidgetItem::listWidget()); }
 
-bool RulesPanel::activateExecutableActionsListModeImpl(){
+void RulesPanel::activateExecutableActionsListModeImpl(){
     addRuleButton.hide();
 }
 
-bool RulesPanel::deactivateExecutableActionsListModeImpl(){
+void RulesPanel::deactivateExecutableActionsListModeImpl(){
     addRuleButton.show();
 }
 

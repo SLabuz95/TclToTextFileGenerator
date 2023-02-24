@@ -67,7 +67,7 @@ Error TclProcedureInterpreter::callDefinition_mode<Settings::InterpreterMode::Te
                                                     "Write rule to change procedure name cause CAPL doesnt support this procedure name \"" + name +"\"",
                                                  tclInterpreter.textInterpreter().readTclCommand(), tclInterpreter.textInterpreter().restOfString()
                                                 ));
-            lastProcedureCall().setDefinition(&unknownProcedureDefinition);
+            lastProcedureCall().setDefinition(Call::ProcedureDefinitionIterator(&unknownProcedureDefinition));
         }else{
             lastProcedureCall().setDefinition(definition);
         }
