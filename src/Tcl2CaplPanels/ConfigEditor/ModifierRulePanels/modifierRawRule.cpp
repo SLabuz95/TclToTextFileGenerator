@@ -54,6 +54,9 @@ RawRuleView::RawRuleView(List& list, ListItemType& item, RawRuleRef rule)
 void RawRuleView::activateActionMode(){
     centralLayout.removeItem(&controlPanel);
     centralLayout.removeItem(&settingsLayout);
+    closeButton.hide();
+    ruleCOntrolLabel.hide();
+    ruleControlComboBox.hide();
     conditionalsList.hide();
 }
 

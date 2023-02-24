@@ -41,8 +41,8 @@ QString FileReader_Priv::readFileByFilePath(QFileInfo&& fileInfo, QString fileFi
     Filters filters = fileFilter.split(";");
     Filter filter = filters.begin();
     for( ; filter < filters.end(); filter++){
-        qDebug() << fileInfo.suffix();
-        qDebug() << QFileInfo(*filter).suffix();
+        //qDebug() << fileInfo.suffix();
+        //qDebug() << QFileInfo(*filter).suffix();
 
         if(fileInfo.suffix() == QFileInfo(*filter).suffix())
             break;
