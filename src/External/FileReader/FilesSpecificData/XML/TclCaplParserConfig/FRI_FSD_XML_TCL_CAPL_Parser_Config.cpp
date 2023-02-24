@@ -1240,7 +1240,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
             not (rulesView = static_cast<InterpreterData::ModifierRulesView*>(interpreterData->dmStats.last().dataModel)))
             return config.ERROR_CALL(PRE_ERROR_MSG);
     // Check RuleControl Attribute
-    if(not config.data->reader->attributes().hasAttribute("controlFlag")){
+    if(config.data->reader->attributes().hasAttribute("controlFlag")){
         QString controlFlagStr = config.data->reader->attributes().value("controlFlag").toString().trimmed();
         ModifierControlFlag controlFlag = ModifierControlFlagInfo::fromStr(controlFlagStr);
         if(controlFlag == ModifierControlFlag::None){
@@ -1273,7 +1273,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
             not (rulesView = static_cast<InterpreterData::RulesView*>(interpreterData->dmStats.last().dataModel)))
             return config.ERROR_CALL(PRE_ERROR_MSG);
     // Check RuleControl Attribute
-    if(not config.data->reader->attributes().hasAttribute("controlFlag")){
+    if(config.data->reader->attributes().hasAttribute("controlFlag")){
         QString controlFlagStr = config.data->reader->attributes().value("controlFlag").toString().trimmed();
         ControlFlag controlFlag = InterpreterRule::fromStr(controlFlagStr);
         if(controlFlag == InterpreterRule::Control::None){

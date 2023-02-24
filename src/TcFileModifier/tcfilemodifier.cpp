@@ -1644,7 +1644,7 @@ bool FSD_ByLine_TcFileModifierData::Config::initialize(){
     case NewDataModel::InitializeStatus::ALREADY_INITIALIZED:
     {
         ControllerConfigInfo::Attributes::ConstIterator prefixStr = interpreterData->userConfig_.attributesController().getAttribute("FILE_PREFIX");
-        if(interpreterData->userConfig_.attributesController().isAttributeValid(prefixStr))
+        if(not interpreterData->userConfig_.attributesController().isAttributeValid(prefixStr))
         {
             interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: prefix attribute not found.");
             return ERROR_CALL("prefix attributes Critical Error");
@@ -1670,7 +1670,7 @@ bool FSD_ByLine_TcFileModifierData::Config::deinitialize(){
         dataModel.setTestCaseErrors(interpreterData->tclToCaplInterpreter_.getErrorsNumber());
         dataModel.predefinitions().append(interpreterData->tclToCaplInterpreter_.predefinitions());
         ControllerConfigInfo::Attributes::ConstIterator postfixStr = interpreterData->userConfig_.attributesController().getAttribute("FILE_POSTFIX");
-        if(interpreterData->userConfig_.attributesController().isAttributeValid(postfixStr))
+        if(not interpreterData->userConfig_.attributesController().isAttributeValid(postfixStr))
         {
             interpreterData->tclToCaplInterpreter_.addIgnoreMessage("CRITICAL ERROR: postfix attribute not found.");
             return config.ERROR_CALL("postfix attributes Critical Error");
@@ -2176,7 +2176,7 @@ int FSD_ByLine_TcFileModifierData::Data::createAndAssignString(QString &dest, QS
                         if(arg->isEmpty())
                             return (arg - args.begin());
                         ControllerConfigInfo::Attributes::ConstIterator attribute = userConfig_.attributesController().getAttribute(*arg);
-                        if(userConfig_.attributesController().isAttributeValid(attribute))
+                        if(not userConfig_.attributesController().isAttributeValid(attribute))
                             return (arg - args.begin());
                         dest += attribute.value().value;
                     }
