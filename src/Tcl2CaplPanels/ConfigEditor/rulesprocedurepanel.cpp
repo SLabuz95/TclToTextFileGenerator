@@ -9,11 +9,11 @@ using namespace Panels::Configuration::View::Rules::RulesProcedurePanel;
 
 void RulesList::loadRules(RulesViewRef rules)
 {
-    setUpdatesEnabled(false);
+    //setUpdatesEnabled(false);
     clear();
     for( ; rules.first < rules.second; rules.first++)
         addNewItem(rules.first);
-    setUpdatesEnabled(true);
+    //setUpdatesEnabled(true);
 }
 
 void RulesList::readRules(RulesRef& rules)

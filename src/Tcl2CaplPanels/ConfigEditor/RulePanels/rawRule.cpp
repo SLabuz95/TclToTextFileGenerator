@@ -50,6 +50,7 @@ RawRuleView::RawRuleView(List& list, ListItemType& item, RawRuleRef rule)
         conditionalsList.loadActions(rawRule.conditions());
         // Executables
         executablesList.loadActions(rawRule.executables());
+
     }
 }
 

@@ -278,7 +278,7 @@ protected:
             if(roles.contains(Qt::SizeHintRole)){
                 QListWidget& listWidget = actionListView();
                 QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-                qDebug() << "DataChanged FormatList" << actionView().sizeHint().height() << sizeHint().height() << height();
+               // qDebug() << "DataChanged FormatList" << actionView().sizeHint().height() << sizeHint().height() << height();
                 if(item){
                     item->setSizeHint(actionView().sizeHint() += QSize(0, sizeHint().height() - height()));
                 }
@@ -289,11 +289,11 @@ protected:
             QListWidget& listWidget = actionListView();
             QListWidgetItem* parentListItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
             QSize diffSize(0,0);
-            qDebug() << start << end;
+            //qDebug() << start << end;
             for(int i = start; i <= end; i++)
                 diffSize.rheight() += item(i)->sizeHint().height();
             if(parentListItem /*and actionView().sizeHint().height() != sizeHint().height()*/){
-                qDebug() << actionView().sizeHint().height() << sizeHint().height();
+                //qDebug() << actionView().sizeHint().height() << sizeHint().height();
                 parentListItem->setSizeHint(actionView().sizeHint() -= QSize(0, diffSize.height()));
             }
             Super::rowsAboutToBeRemoved(parent, start, end);

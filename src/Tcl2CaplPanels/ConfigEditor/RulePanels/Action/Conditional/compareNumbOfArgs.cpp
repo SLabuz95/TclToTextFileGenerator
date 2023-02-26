@@ -39,13 +39,13 @@ CompareNumbOfArgsActionView::DataView* CompareNumbOfArgsActionView::create(QWidg
 
 void ListOfIndexes::loadIndexes(const Action::NumbOfArgumentsList& list){
     using Index = Action::NumbOfArgumentsList::ConstIterator;
-    setUpdatesEnabled(false);
+    //setUpdatesEnabled(false);
     for(Index index = list.constBegin(); index < list.constEnd(); index++)
     {
         ListItem* item = new ListItem(*this, *index);
         addItem(item);
     }
-    setUpdatesEnabled(true);
+    //setUpdatesEnabled(true);
 }
 
 QWidget& ListOfIndexes::itemView()const{

@@ -88,10 +88,10 @@ template<>
 void ExecutablesList::loadActions(ActionsRef actions)
 {
     using Action = std::decay_t<ActionsRef>::Iterator;
-    setUpdatesEnabled(false);
+    //setUpdatesEnabled(false);
     for(Action action = actions.begin(); action < actions.end(); action++)
         addNewItem(*action);
-    setUpdatesEnabled(true);
+    //setUpdatesEnabled(true);
 }
 
 template<>

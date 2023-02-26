@@ -289,7 +289,7 @@ protected:
             for(int i = start; i <= end; i++)
                 diffSize.rheight() += item(i)->sizeHint().height();
             if(parentListItem /*and actionView().sizeHint().height() != sizeHint().height()*/){
-                qDebug() << actionView().sizeHint().height() << sizeHint().height();
+                //qDebug() << actionView().sizeHint().height() << sizeHint().height();
                 parentListItem->setSizeHint(actionView().sizeHint() -= QSize(0, diffSize.height()));
             }
             Super::rowsAboutToBeRemoved(parent, start, end);

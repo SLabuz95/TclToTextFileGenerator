@@ -302,13 +302,13 @@ ActionView& ListOfIndexes::parentWidget()const{
 
 void ListOfIndexes::loadIndexes(QStringList listOfStrings){
     using String = QStringList::Iterator;
-    setUpdatesEnabled(false);
+    //setUpdatesEnabled(false);
     for(String string = listOfStrings.begin(); string < listOfStrings.end(); string++)
     {
         ListItem* item = new ListItem(*this, *string);
         addItem(item);
     }
-    setUpdatesEnabled(true);
+    //setUpdatesEnabled(true);
 }
 
 void ListOfIndexes::reloadGui(){

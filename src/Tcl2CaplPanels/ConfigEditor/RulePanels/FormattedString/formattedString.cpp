@@ -78,7 +78,7 @@ bool ItemView::createFormatRuleDataView(FormatRuleType type){
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-        qDebug() << item->sizeHint();
+        //qDebug() << item->sizeHint();
         QSize sizeHint = item->sizeHint();
         item->sizeHint().rwidth() = 0;
         item->setSizeHint(sizeHint + diffSize);
@@ -92,7 +92,7 @@ bool ItemView::createFormatRuleDataView(FormatRuleType type){
 void ConditionalsList::loadActions(ActionsRef actions)
 {
     using Action = std::decay_t<ActionsRef>::Iterator;
-    setUpdatesEnabled(false);
+    //setUpdatesEnabled(false);
     for(Action action = actions.begin(); action < actions.end(); action++)
         addNewItem(*action);
 }
@@ -240,10 +240,10 @@ bool ItemView::eventFilter(QObject* obj, QEvent* ev){
 
 void List::loadRules(FormatRulesRef rules){
     using Rule = std::decay_t<FormatRulesRef>::Iterator;
-    setUpdatesEnabled(false);
+    //setUpdatesEnabled(false);
     for(Rule rule = rules.begin(); rule < rules.end(); rule++)
         addNewItem(*rule);
-    setUpdatesEnabled(true);
+    //setUpdatesEnabled(true);
 }
 
 void List::readRules(FormatRulesRef rules)

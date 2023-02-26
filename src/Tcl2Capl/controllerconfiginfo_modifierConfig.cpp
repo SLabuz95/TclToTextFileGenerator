@@ -2,7 +2,7 @@
 
 
 bool ControllerConfigInfo::addPhase(QString name){
-    qDebug() << "addPhase begin" << newPhasesMap;
+    //qDebug() << "addPhase begin" << newPhasesMap;
 
     // 1. Find key <name, OnEndOfCall> in config
     using Config = decltype(newPhasesMap);
@@ -13,7 +13,7 @@ bool ControllerConfigInfo::addPhase(QString name){
 
     // Preverification - only alphanumeric charactes + _ signs
     if(not QRegularExpression(RegExpCore::regExprForPhaseName).match(name).hasMatch()){
-        qDebug() << "addPhase end - incorrect phase name" << name;
+        //qDebug() << "addPhase end - incorrect phase name" << name;
         return false;
     }
 
@@ -53,12 +53,12 @@ bool ControllerConfigInfo::addPhase(QString name){
             countUp_RestoredPhase();
             return true;
         }else{
-            qDebug() << "addPhase end" << newPhasesMap;
+            //qDebug() << "addPhase end" << newPhasesMap;
             return false;
         }
     }
     countUp_NewPhase();
-    qDebug() << "addPhase end" << newPhasesMap;
+    //qDebug() << "addPhase end" << newPhasesMap;
     return true;
 }
 
@@ -66,7 +66,7 @@ void ControllerConfigInfo::clearAllNewModifierRules(QString name){
     using Config = decltype(newPhasesMap);
     using ConfigKeyIter = Config::Iterator;
     using Category = ModifierRulesCategories;
-    qDebug() << "clearAllNewModifierRules begin" << newPhasesMap;
+    //qDebug() << "clearAllNewModifierRules begin" << newPhasesMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     beginIter = newPhasesMap.lowerBound({name, static_cast<Category>(LONG_LONG_MIN)});
@@ -99,14 +99,14 @@ void ControllerConfigInfo::clearAllNewModifierRules(QString name){
 
         countDown_RemoveHiddenPhase();
     }
-    qDebug() << "clearAllNewModifierRules end" << newPhasesMap;
+    //qDebug() << "clearAllNewModifierRules end" << newPhasesMap;
 }
 
 void ControllerConfigInfo::clearAllNewModifierRules(QString name, ModifierRulesCategories index){
     using Config = decltype(newPhasesMap);
     using ConfigKeyIter = Config::Iterator;
     using Category = ModifierRulesCategories;
-    qDebug() << "clearAllNewModifierRules begin" << newPhasesMap;
+    //qDebug() << "clearAllNewModifierRules begin" << newPhasesMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     beginIter = newPhasesMap.find({name, index});
@@ -141,14 +141,14 @@ void ControllerConfigInfo::clearAllNewModifierRules(QString name, ModifierRulesC
         // 4. Erase keys
         newPhasesMap.erase(savedConfigIter);
     }
-    qDebug() << "clearAllNewModifierRules end" << newPhasesMap;
+    //qDebug() << "clearAllNewModifierRules end" << newPhasesMap;
 }
 
 void ControllerConfigInfo::moveAllNewModifierRules(QString oldName, QString newName){
     using Config = decltype(newPhasesMap);
     using ConfigKeyIter = Config::Iterator;
     using Category = ModifierRulesCategories;
-    qDebug() << "moveAllNewModifierRules begin" << newPhasesMap;
+    //qDebug() << "moveAllNewModifierRules begin" << newPhasesMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     beginIter = newPhasesMap.find({oldName, Category::LowestValue});
@@ -252,7 +252,7 @@ void ControllerConfigInfo::moveAllNewModifierRules(QString oldName, QString newN
             }
         }
     }
-    qDebug() << "moveAllNewModifierRules end" << newPhasesMap;
+    //qDebug() << "moveAllNewModifierRules end" << newPhasesMap;
 }
 
 bool ControllerConfigInfo::editPhaseName(QString oldName, QString newName){
@@ -260,16 +260,16 @@ bool ControllerConfigInfo::editPhaseName(QString oldName, QString newName){
     using Config = decltype(newPhasesMap);
     using ConfigKeyIter = Config::Iterator;
     using Category = ModifierRulesCategories;
-    qDebug() << "editPhaseName begin" << newPhasesMap;
+    //qDebug() << "editPhaseName begin" << newPhasesMap;
 
     if(not QRegularExpression(RegExpCore::regExprForPhaseName).match(newName).hasMatch()){
-        qDebug() << "addPhase end - incorrect phase name" << newName;
+        //qDebug() << "addPhase end - incorrect phase name" << newName;
         return false;
     }
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
 
-    qDebug() << oldName << newName;
+    //qDebug() << oldName << newName;
     if(((beginIter = newPhasesMap.find({newName, Category::LowestValue})) != newPhasesMap.end() and
             ( beginIter.value() >= 0)) )
     {
@@ -303,7 +303,7 @@ bool ControllerConfigInfo::editPhaseName(QString oldName, QString newName){
         }
     }*/
     moveAllNewModifierRules(oldName, newName);
-    qDebug() << "editPhaseName end" << newPhasesMap;
+    //qDebug() << "editPhaseName end" << newPhasesMap;
 
     return true;
 }
@@ -320,7 +320,7 @@ bool ControllerConfigInfo::removePhase(QString name){
     using ConfigKeyIter = Config::Iterator;
     using Category = ModifierRulesCategories;
     using EditNameIter = QMap<QString, QMap<PhaseModifierRuleCategoryKey, qsizetype>::Iterator>::Iterator;
-    qDebug() << "removePhase begin" << newPhasesMap;
+    //qDebug() << "removePhase begin" << newPhasesMap;
     ConfigKeyIter configKeyIter;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
@@ -330,7 +330,7 @@ bool ControllerConfigInfo::removePhase(QString name){
         configKeyIter.value() = -(configKeyIter.value() + 1); // Set Removed
         countDown_HidePhase();
     }
-    qDebug() << "removePhase end" << newPhasesMap;
+    //qDebug() << "removePhase end" << newPhasesMap;
     return true;
 }
 
@@ -339,7 +339,7 @@ void ControllerConfigInfo::clearPhases(){
     using Config = decltype(newPhasesMap);
     using ConfigKeyIter = Config::Iterator;
     using Category = ModifierRulesCategories;
-    qDebug() << "clearPhases begin" << newPhasesMap;
+    //qDebug() << "clearPhases begin" << newPhasesMap;
     ConfigKeyIter configKeyIter;
     ConfigKeyIter endIter;
 
@@ -352,7 +352,7 @@ void ControllerConfigInfo::clearPhases(){
         configKeyIter++;
     }
     numbOfExistingPhases = 1;
-    qDebug() << "clearPhases end" << newPhasesMap;
+    //qDebug() << "clearPhases end" << newPhasesMap;
 }
 
 
@@ -362,7 +362,7 @@ void ControllerConfigInfo::loadNewModifierRules(QString name, ModifierRulesCateg
     using Category = ModifierRulesCategories;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
-    qDebug() << "loadNewModifierRules begin" << newPhasesMap << newModifierRules;
+    //qDebug() << "loadNewModifierRules begin" << newPhasesMap << newModifierRules;
     beginIter = newPhasesMap.find({name, static_cast<Category>(index)});
     if(beginIter != newPhasesMap.end()){
         endIter = ++beginIter;
@@ -396,11 +396,11 @@ void ControllerConfigInfo::loadNewModifierRules(QString name, ModifierRulesCateg
         }
     }
 
-    qDebug() << "loadNewModifierRules end" << newPhasesMap << newModifierRules;
+    //qDebug() << "loadNewModifierRules end" << newPhasesMap << newModifierRules;
 }
 
 ControllerConfigInfo::ModifierRulesView ControllerConfigInfo::readModifierRules(QString name, ModifierRulesCategories index){
-    qDebug() << "readModifierRules begin" << newPhasesMap << newModifierRules;
+    //qDebug() << "readModifierRules begin" << newPhasesMap << newModifierRules;
 
     using Config = decltype(newPhasesMap);
     using ConfigKeyIter = Config::Iterator;
@@ -422,7 +422,7 @@ ControllerConfigInfo::ModifierRulesView ControllerConfigInfo::readModifierRules(
     }
 
     return ModifierRulesView();
-    qDebug() << "readModifierRules end" << newPhasesMap << newModifierRules;
+    //qDebug() << "readModifierRules end" << newPhasesMap << newModifierRules;
 }
 
 
@@ -501,7 +501,7 @@ void ControllerConfigInfo::readPhases(TcFileModifierConfigBase::ModifierPhases& 
 
 bool ControllerConfigInfo::addCategory(QString name, ModifierRulesFromConfigFileView& rulesView)
 {
-    qDebug() << "addCategory begin" << newPhasesMap;
+    //qDebug() << "addCategory begin" << newPhasesMap;
     using Config = decltype(newPhasesMap);
     using ConfigKeyIter = Config::Iterator;
     using EditIndexIter = QMap<QPair<QString, qsizetype>, QMap<PhaseModifierRuleCategoryKey, qsizetype>::Iterator>::Iterator;

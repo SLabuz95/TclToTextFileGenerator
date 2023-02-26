@@ -69,7 +69,7 @@ bool ItemView::createFormatRuleDataView(FormatRuleType type){
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-        qDebug() << item->sizeHint();
+        //qDebug() << item->sizeHint();
         QSize sizeHint = item->sizeHint();
         item->sizeHint().rwidth() = 0;
         item->setSizeHint(sizeHint + diffSize);
@@ -83,7 +83,7 @@ bool ItemView::createFormatRuleDataView(FormatRuleType type){
 void ConditionalsList::loadActions(ActionsRef actions)
 {
     using Action = std::decay_t<ActionsRef>::Iterator;
-    setUpdatesEnabled(false);
+    //setUpdatesEnabled(false);
     for(Action action = actions.begin(); action < actions.end(); action++)
         addNewItem(*action);
 }
@@ -124,7 +124,7 @@ void List::execRequest_ContextMenu<List::Request_ContextMenu::Clear>(ListItem*)
     QListWidgetItem* parentListItem = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
     if(parentListItem) /*and actionView().sizeHint().height() != sizeHint().height()*/
     {
-        qDebug() << actionView().sizeHint().height() << sizeHint().height();
+       // qDebug() << actionView().sizeHint().height() << sizeHint().height();
         parentListItem->setSizeHint(actionView().sizeHint() -= diffSize);
     }
     qApp->processEvents();
@@ -234,10 +234,10 @@ bool ItemView::eventFilter(QObject* obj, QEvent* ev){
 
 void List::loadRules(FormatRulesRef rules){
     using Rule = std::decay_t<FormatRulesRef>::Iterator;
-    setUpdatesEnabled(false);
+    //setUpdatesEnabled(false);
     for(Rule rule = rules.begin(); rule < rules.end(); rule++)
         addNewItem(*rule);
-    setUpdatesEnabled(true);
+    //setUpdatesEnabled(true);
 }
 
 void List::readRules(FormatRulesRef rules)
@@ -269,7 +269,6 @@ List::List(){
     setDragDropOverwriteMode(true);
 
     viewport()->installEventFilter(this);
-
 }
 
 
@@ -279,7 +278,7 @@ ListItem::ListItem(List& list, FormatRulePtr rule)
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
     list.setItemWidget(this, &view_);
-    setSizeHint(QSize(0, view().sizeHint().height()));
+    setSizeHint(QSize(view().sizeHint()));
 }
 
 

@@ -23,7 +23,24 @@
         <attribute name="TC_TYPE"></attribute>
         <attribute name="TC_VER"></attribute>
     </attributes>
-    <procedures/>
+    <procedures>
+        <procedure>
+            <name>tcl::mathfunc::int</name>
+            <rulesOnEndOfCall>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Name"/>
+                            <formatRule type="Text">(</formatRule>
+                            <formatRule type="ArgumentsFrom" value="0">, </formatRule>
+                            <formatRule type="Text">);</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+            </rulesOnEndOfCall>
+            <rulesForUndefinedArgument/>
+        </procedure>
+    </procedures>
     <defaultProcedure>
         <rulesOnEndOfCall/>
         <rulesForUndefinedArgument/>

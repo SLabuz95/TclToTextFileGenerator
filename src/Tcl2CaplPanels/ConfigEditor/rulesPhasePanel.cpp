@@ -9,14 +9,14 @@ using namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel;
 
 void RulesList::loadRules(RulesViewRef rules)
 {
-    setUpdatesEnabled(false);
+    //setUpdatesEnabled(false);
     clear();
     for( ; rules.first < rules.second; rules.first++)
         addNewItem(rules.first);
     if(isExecutableActionsListModeActive()){
         item(0)->rawRuleView().activateActionMode();
     }
-    setUpdatesEnabled(true);
+    //setUpdatesEnabled(true);
 }
 
 void RulesList::readRules(RulesRef& rules)
@@ -143,6 +143,7 @@ ListItem::ListItem(RulesList& list, RuleViewRef rule)
     list.addItem(this);
     list.setItemWidget(this, &rawRuleView());
     setSizeHint(rawRuleView().sizeHint());
+
 }
 
 

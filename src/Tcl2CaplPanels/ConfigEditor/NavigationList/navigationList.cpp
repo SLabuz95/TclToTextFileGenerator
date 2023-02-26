@@ -734,7 +734,7 @@ void List::processEditData(CurEditItemInfo& curEditItemInfo)
                         }
                     }                    
                 }else{
-                    qDebug() << curEditItemInfo.item->text(0) << curEditItemInfo.oldStr;
+                    //qDebug() << curEditItemInfo.item->text(0) << curEditItemInfo.oldStr;
                     if(curEditItemInfo.item->text(0) != curEditItemInfo.oldStr){    // changed
                         // Manage Change - if manage failed Duplicated for example, restore
                         if(configEditor().editProcedure(curEditItemInfo.oldStr, curEditItemInfo.item->text(0))  == false){

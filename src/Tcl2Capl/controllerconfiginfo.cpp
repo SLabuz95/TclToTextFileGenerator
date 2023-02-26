@@ -16,7 +16,7 @@ ControllerConfigInfo::ControllerConfigInfo()
 }
 
 bool ControllerConfigInfo::addProcedure(QString name){
-    qDebug() << "addProcedure begin" << newProceduresMap;
+    //qDebug() << "addProcedure begin" << newProceduresMap;
     // Preverification:
     /*if(editted.contains({name, RulesCategories::OnEndOfCall})){
         return false;
@@ -57,7 +57,7 @@ bool ControllerConfigInfo::addProcedure(QString name){
         configKeyIter = newProceduresMap.insert({name, RulesCategories::OnEndOfCall}, 0);
         // iter2 = <name, UndefinedArgument> -  Value - Offset of previous rule category = 0
         ConfigKeyIter configUndefinedKeyIter = newProceduresMap.insert({name, RulesCategories::UndefinedArgument}, 0);
-        qDebug() << configUndefinedKeyIter.key();
+        //qDebug() << configUndefinedKeyIter.key();
         // 2. Specify values for keys:
         // 2.1. Check if iter2 + 1 is valid key
         configUndefinedKeyIter++; // To +1
@@ -81,19 +81,19 @@ bool ControllerConfigInfo::addProcedure(QString name){
             countUp_RestoredProcedure();
             return true;
         }else{
-            qDebug() << "addProcedure end" << newProceduresMap;
+            //qDebug() << "addProcedure end" << newProceduresMap;
             return false;
         }
     }
     countUp_NewProcedure();
-    qDebug() << "addProcedure end" << newProceduresMap;
+    //qDebug() << "addProcedure end" << newProceduresMap;
     return true;
 }
 
 void ControllerConfigInfo::clearAllNewRules(QString procedureName){
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "clearAllNewRules begin" << newProceduresMap;
+    //qDebug() << "clearAllNewRules begin" << newProceduresMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     beginIter = newProceduresMap.lowerBound({procedureName, static_cast<RulesCategories>(LONG_LONG_MIN)});
@@ -126,13 +126,13 @@ void ControllerConfigInfo::clearAllNewRules(QString procedureName){
 
         countDown_RemoveHiddenProcedure();
     }
-    qDebug() << "clearAllNewRules end" << newProceduresMap;
+    //qDebug() << "clearAllNewRules end" << newProceduresMap;
 }
 
 void ControllerConfigInfo::clearAllNewRules(qsizetype index){
     using Config = decltype(newDefaultProcedureMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "clearAllNewRules begin" << newProceduresMap;
+    //qDebug() << "clearAllNewRules begin" << newProceduresMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     beginIter = newDefaultProcedureMap.find(static_cast<RulesCategories>(index));
@@ -167,13 +167,13 @@ void ControllerConfigInfo::clearAllNewRules(qsizetype index){
         // 4. Erase keys
         newDefaultProcedureMap.erase(savedConfigIter);
     }
-    qDebug() << "clearAllNewRules end" << newProceduresMap;
+    //qDebug() << "clearAllNewRules end" << newProceduresMap;
 }
 
 void ControllerConfigInfo::clearAllNewRules(QString procedureName, qsizetype index){
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "clearAllNewRules begin" << newProceduresMap;
+    //qDebug() << "clearAllNewRules begin" << newProceduresMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     beginIter = newProceduresMap.find({procedureName, static_cast<RulesCategories>(index)});
@@ -208,13 +208,13 @@ void ControllerConfigInfo::clearAllNewRules(QString procedureName, qsizetype ind
         // 4. Erase keys
         newProceduresMap.erase(savedConfigIter);
     }
-    qDebug() << "clearAllNewRules end" << newProceduresMap;
+    //qDebug() << "clearAllNewRules end" << newProceduresMap;
 }
 
 void ControllerConfigInfo::moveAllNewRules(QString oldName, QString newName){
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "moveAllNewRules begin" << newProceduresMap;
+    //qDebug() << "moveAllNewRules begin" << newProceduresMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     beginIter = newProceduresMap.find({oldName, RulesCategories::OnEndOfCall});
@@ -318,13 +318,13 @@ void ControllerConfigInfo::moveAllNewRules(QString oldName, QString newName){
             }
         }
     }
-    qDebug() << "moveAllNewRules end" << newProceduresMap;
+    //qDebug() << "moveAllNewRules end" << newProceduresMap;
 }
 
 void ControllerConfigInfo::moveAllNewRules(QString name, qsizetype oldIndex, qsizetype newIndex){
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "moveAllNewRules begin" << newProceduresMap;
+    //qDebug() << "moveAllNewRules begin" << newProceduresMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     beginIter = newProceduresMap.find({name, static_cast<RulesCategories>(oldIndex)});
@@ -415,13 +415,13 @@ void ControllerConfigInfo::moveAllNewRules(QString name, qsizetype oldIndex, qsi
             }
         }
     }
-    qDebug() << "moveAllNewRules end" << newProceduresMap;
+    //qDebug() << "moveAllNewRules end" << newProceduresMap;
 }
 
 void ControllerConfigInfo::moveAllNewRules( qsizetype oldIndex, qsizetype newIndex){
     using Config = decltype(newDefaultProcedureMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "moveAllNewRules begin" << newProceduresMap;
+    //qDebug() << "moveAllNewRules begin" << newProceduresMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     beginIter = newDefaultProcedureMap.find(static_cast<RulesCategories>(oldIndex));
@@ -512,14 +512,14 @@ void ControllerConfigInfo::moveAllNewRules( qsizetype oldIndex, qsizetype newInd
             }
         }
     }
-    qDebug() << "moveAllNewRules end" << newProceduresMap;
+    //qDebug() << "moveAllNewRules end" << newProceduresMap;
 }
 
 bool ControllerConfigInfo::editProcedureName(QString oldName, QString newName){
     // NewName verification
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "editProcedureName begin" << newProceduresMap;
+    //qDebug() << "editProcedureName begin" << newProceduresMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
     /*if(editted.contains({newName, RulesCategories::OnEndOfCall}) or
@@ -529,7 +529,7 @@ bool ControllerConfigInfo::editProcedureName(QString oldName, QString newName){
     {
         return false;
     }*/
-    qDebug() << oldName << newName;
+    //qDebug() << oldName << newName;
     if(((beginIter = newProceduresMap.find({newName, RulesCategories::OnEndOfCall})) != newProceduresMap.end() and
             ( beginIter.value() >= 0)) )
     {
@@ -563,7 +563,7 @@ bool ControllerConfigInfo::editProcedureName(QString oldName, QString newName){
         }
     }*/
     moveAllNewRules(oldName, newName);
-    qDebug() << "editProcedureName end" << newProceduresMap;
+    //qDebug() << "editProcedureName end" << newProceduresMap;
 
     return true;
 }
@@ -579,7 +579,7 @@ bool ControllerConfigInfo::removeProcedure(QString name){
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
     using EditNameIter = QMap<QString, QMap<ProcedureRuleCategoryKey, qsizetype>::Iterator>::Iterator;
-    qDebug() << "removeProcedure begin" << newProceduresMap;
+    //qDebug() << "removeProcedure begin" << newProceduresMap;
     ConfigKeyIter configKeyIter;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
@@ -633,14 +633,14 @@ bool ControllerConfigInfo::removeProcedure(QString name){
         /*}
     }
 */
-    qDebug() << "removeProcedure end" << newProceduresMap;
+    //qDebug() << "removeProcedure end" << newProceduresMap;
     return true;
 }
 
 bool ControllerConfigInfo::addIndex(QString name, qsizetype index){
     // Preverification:
     // 1. Find key <name, index> in config
-    qDebug() << "addIndex begin" << newProceduresMap;
+    //qDebug() << "addIndex begin" << newProceduresMap;
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
     using EditIndexIter = QMap<QPair<QString, qsizetype>, QMap<ProcedureRuleCategoryKey, qsizetype>::Iterator>::Iterator;
@@ -672,7 +672,7 @@ bool ControllerConfigInfo::addIndex(QString name, qsizetype index){
             // Removed - restore
             configKeyIter.value() = abs(configKeyIter.value());
         }else{
-            qDebug() << "addIndex begin" << newProceduresMap;
+            //qDebug() << "addIndex begin" << newProceduresMap;
             return false; // Duplicated
         }
     }
@@ -690,7 +690,7 @@ bool ControllerConfigInfo::addIndex(QString name, qsizetype index){
         configKeyIter--;
         configKeyIter.value() = abs(value);
     }
-    qDebug() << "addIndex begin" << newProceduresMap;
+    //qDebug() << "addIndex begin" << newProceduresMap;
     return true;
 }
 
@@ -701,7 +701,7 @@ bool ControllerConfigInfo::addIndex(qsizetype index){
     using ConfigKeyIter = Config::Iterator;
     using EditIndexIter = QMap<QPair<QString, qsizetype>, QMap<ProcedureRuleCategoryKey, qsizetype>::Iterator>::Iterator;
     //EditIndexIter editIndexIter = newNames.find(name);
-    qDebug() << "addIndex begin" << newDefaultProcedureMap;
+    //qDebug() << "addIndex begin" << newDefaultProcedureMap;
     ConfigKeyIter configKeyIter;
     QString oldName;
     bool found = false;
@@ -729,7 +729,7 @@ bool ControllerConfigInfo::addIndex(qsizetype index){
             // Removed - restore
             configKeyIter.value() = abs(configKeyIter.value());
         }else{
-            qDebug() << "addIndex end" << newDefaultProcedureMap;
+            //qDebug() << "addIndex end" << newDefaultProcedureMap;
             return false; // Duplicated
         }
     }
@@ -747,7 +747,7 @@ bool ControllerConfigInfo::addIndex(qsizetype index){
         configKeyIter--;
         configKeyIter.value() = abs(value);
     }
-    qDebug() << "addIndex end" << newDefaultProcedureMap;
+    //qDebug() << "addIndex end" << newDefaultProcedureMap;
     return true;
 }
 
@@ -758,7 +758,7 @@ bool ControllerConfigInfo::editIndex(qsizetype oldIndex, qsizetype newIndex){
     // -> Config index change to removed
     // 1.3. Non in config, only new - Change index in new Config if new index not in newRules or new index not in editted or (removed index in config - set not removed - new rules priority here)
     using Config = decltype(newDefaultProcedureMap);
-    qDebug() << "editIndex begin" << newDefaultProcedureMap;
+    //qDebug() << "editIndex begin" << newDefaultProcedureMap;
     using ConfigKeyIter = Config::Iterator;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
@@ -775,7 +775,7 @@ bool ControllerConfigInfo::editIndex(qsizetype oldIndex, qsizetype newIndex){
     if((beginIter = newDefaultProcedureMap.find(static_cast<RulesCategories>(newIndex))) != newDefaultProcedureMap.end() and
             (beginIter.value() >= 0) )
     {
-        qDebug() << "editIndex end" << newDefaultProcedureMap;
+        //qDebug() << "editIndex end" << newDefaultProcedureMap;
         return false;
     }
 
@@ -956,7 +956,7 @@ bool ControllerConfigInfo::editIndex(qsizetype oldIndex, qsizetype newIndex){
         }
     }
     */
-                qDebug() << "editIndex end" << newDefaultProcedureMap;
+                //qDebug() << "editIndex end" << newDefaultProcedureMap;
 
     return true;
 }
@@ -969,7 +969,7 @@ bool ControllerConfigInfo::editIndex(QString name, qsizetype oldIndex, qsizetype
     // 1.3. Non in config, only new - Change index in new Config if new index not in newRules or new index not in editted or (removed index in config - set not removed - new rules priority here)
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "editIndex begin" << newProceduresMap;
+    //qDebug() << "editIndex begin" << newProceduresMap;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
 
@@ -985,7 +985,7 @@ bool ControllerConfigInfo::editIndex(QString name, qsizetype oldIndex, qsizetype
     if((beginIter = newProceduresMap.find({name, static_cast<RulesCategories>(newIndex)})) != newProceduresMap.end() and
             (beginIter.value() >= 0) )
     {
-        qDebug() << "editIndex end" << newProceduresMap;
+        //qDebug() << "editIndex end" << newProceduresMap;
         return false;
     }
 
@@ -1167,7 +1167,7 @@ bool ControllerConfigInfo::editIndex(QString name, qsizetype oldIndex, qsizetype
     }
     */
 
-                qDebug() << "editIndex end" << newProceduresMap;
+                //qDebug() << "editIndex end" << newProceduresMap;
     return true;
 }
 
@@ -1176,7 +1176,7 @@ void ControllerConfigInfo::removeIndex(QString name, qsizetype index){
     // 1. Find key <name, index> in config
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "removeIndex begin" << newProceduresMap;
+    //qDebug() << "removeIndex begin" << newProceduresMap;
     ConfigKeyIter configKeyIter;
 /*
     ConfigKeyIter configKeyIter = configMap.find({name, static_cast<RulesCategories>(index)});
@@ -1195,7 +1195,7 @@ void ControllerConfigInfo::removeIndex(QString name, qsizetype index){
     if(configKeyIter != newProceduresMap.end()){
         configKeyIter.value() = -(configKeyIter.value() + 1);
     }
-    qDebug() << "removeIndex end" << newProceduresMap;
+    //qDebug() << "removeIndex end" << newProceduresMap;
 }
 
 void ControllerConfigInfo::removeIndex(qsizetype index){
@@ -1203,7 +1203,7 @@ void ControllerConfigInfo::removeIndex(qsizetype index){
     // 1. Find key <name, index> in config
     using Config = decltype(newDefaultProcedureMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "removeIndex begin" << newDefaultProcedureMap;
+    //qDebug() << "removeIndex begin" << newDefaultProcedureMap;
     ConfigKeyIter configKeyIter;
 /*
     ConfigKeyIter configKeyIter = configMap.find({name, static_cast<RulesCategories>(index)});
@@ -1222,13 +1222,13 @@ void ControllerConfigInfo::removeIndex(qsizetype index){
     if(configKeyIter != newDefaultProcedureMap.end()){
         configKeyIter.value() = -(configKeyIter.value() + 1);
     }
-    qDebug() << "removeIndex end" << newDefaultProcedureMap;
+    //qDebug() << "removeIndex end" << newDefaultProcedureMap;
 }
 
 void ControllerConfigInfo::clearIndexes(QString name){
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "clearIndexes begin" << newProceduresMap;
+    //qDebug() << "clearIndexes begin" << newProceduresMap;
     ConfigKeyIter configKeyIter;
 
     configKeyIter = newProceduresMap.upperBound({name, RulesCategories::UndefinedArgument});
@@ -1239,13 +1239,13 @@ void ControllerConfigInfo::clearIndexes(QString name){
         }
         configKeyIter++;
     }    
-    qDebug() << "clearIndexes end" << newProceduresMap;
+    //qDebug() << "clearIndexes end" << newProceduresMap;
 }
 
 void ControllerConfigInfo::clearIndexes(){
     using Config = decltype(newDefaultProcedureMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "clearIndexes begin" << newDefaultProcedureMap;
+    //qDebug() << "clearIndexes begin" << newDefaultProcedureMap;
     ConfigKeyIter configKeyIter;
     ConfigKeyIter endIter;
 
@@ -1257,13 +1257,13 @@ void ControllerConfigInfo::clearIndexes(){
         }
         configKeyIter++;
     }
-    qDebug() << "clearIndexes end" << newDefaultProcedureMap;
+    //qDebug() << "clearIndexes end" << newDefaultProcedureMap;
 }
 
 void ControllerConfigInfo::clearProcedures(){
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
-    qDebug() << "clearProcedures begin" << newProceduresMap;
+    //qDebug() << "clearProcedures begin" << newProceduresMap;
     ConfigKeyIter configKeyIter;
     ConfigKeyIter endIter;
 
@@ -1276,7 +1276,7 @@ void ControllerConfigInfo::clearProcedures(){
         configKeyIter++;
     }
     numbOfExistingProcedures = 0;
-    qDebug() << "clearProcedures end" << newProceduresMap;
+    //qDebug() << "clearProcedures end" << newProceduresMap;
 }
 
 void ControllerConfigInfo::clear(){
@@ -1296,7 +1296,7 @@ void ControllerConfigInfo::loadNewRules(QString name, RulesCategories index, New
     using ConfigKeyIter = Config::Iterator;
     ConfigKeyIter beginIter;
     ConfigKeyIter endIter;
-    qDebug() << "loadNewRules begin" << newProceduresMap << newRules;
+    //qDebug() << "loadNewRules begin" << newProceduresMap << newRules;
     beginIter = newProceduresMap.find({name, static_cast<RulesCategories>(index)});
     if(beginIter != newProceduresMap.end()){
         endIter = ++beginIter;
@@ -1330,11 +1330,11 @@ void ControllerConfigInfo::loadNewRules(QString name, RulesCategories index, New
         }
     }
 
-    qDebug() << "loadNewRules end" << newProceduresMap << newRules;
+    //qDebug() << "loadNewRules end" << newProceduresMap << newRules;
 }
 
 void ControllerConfigInfo::loadNewRules(RulesCategories index, NewRules& rules){
-    qDebug() << "loadNewRules begin" << newDefaultProcedureMap << newDefaultProcedureRules;
+    //qDebug() << "loadNewRules begin" << newDefaultProcedureMap << newDefaultProcedureRules;
     using Config = decltype(newDefaultProcedureMap);
     using ConfigKeyIter = Config::Iterator;
     ConfigKeyIter beginIter;
@@ -1373,11 +1373,11 @@ void ControllerConfigInfo::loadNewRules(RulesCategories index, NewRules& rules){
         }
     }
 
-    qDebug() << "loadNewRules end" << newDefaultProcedureMap << newDefaultProcedureRules;
+    //qDebug() << "loadNewRules end" << newDefaultProcedureMap << newDefaultProcedureRules;
 }
 
 ControllerConfigInfo::RulesView ControllerConfigInfo::readRules(QString name, RulesCategories index){
-    qDebug() << "readRules begin" << newProceduresMap << newRules;
+    //qDebug() << "readRules begin" << newProceduresMap << newRules;
 
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
@@ -1398,11 +1398,11 @@ ControllerConfigInfo::RulesView ControllerConfigInfo::readRules(QString name, Ru
     }
 
     return RulesView();
-    qDebug() << "readRules end" << newProceduresMap << newRules;
+    //qDebug() << "readRules end" << newProceduresMap << newRules;
 }
 
 ControllerConfigInfo::RulesView ControllerConfigInfo::readRules(RulesCategories index){
-    qDebug() << "readRules begin" << newDefaultProcedureMap << newDefaultProcedureRules;
+    //qDebug() << "readRules begin" << newDefaultProcedureMap << newDefaultProcedureRules;
     using Config = decltype(newDefaultProcedureMap);
     using ConfigKeyIter = Config::Iterator;
     ConfigKeyIter beginIter;
@@ -1422,7 +1422,7 @@ ControllerConfigInfo::RulesView ControllerConfigInfo::readRules(RulesCategories 
     }
 
     return RulesView();
-    qDebug() << "readRules end" << newDefaultProcedureMap << newDefaultProcedureRules;
+    //qDebug() << "readRules end" << newDefaultProcedureMap << newDefaultProcedureRules;
 }
 
 
@@ -1646,7 +1646,7 @@ UserProcedure ControllerConfigInfo::readDefaultProcedure(){
 
 bool ControllerConfigInfo::addIndex(QString name, RulesFromConfigFileView& rulesView)
 {
-    qDebug() << "addIndex begin" << newProceduresMap;
+    //qDebug() << "addIndex begin" << newProceduresMap;
     using Config = decltype(newProceduresMap);
     using ConfigKeyIter = Config::Iterator;
     using EditIndexIter = QMap<QPair<QString, qsizetype>, QMap<ProcedureRuleCategoryKey, qsizetype>::Iterator>::Iterator;

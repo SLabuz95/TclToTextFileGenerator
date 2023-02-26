@@ -70,7 +70,7 @@ bool FileWatcher::eventFilter(QObject *obj, QEvent *ev){
 
 void FileWatcher::check(Tcl2CaplFileParserInstance* panel){
     static int i = 0;
-    qDebug() << "Check" << i++;
+    //qDebug() << "Check" << i++;
     if(panel){ // Specific Panel Instance
         instance(panel)->check();
     }else{

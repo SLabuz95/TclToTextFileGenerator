@@ -100,9 +100,9 @@ namespace Panels::Configuration::View::Rules::RulesProcedurePanel{
 
         inline void addNewItem(){
             //ListItem* newItem = nullptr;
-            setUpdatesEnabled(false);
+            //setUpdatesEnabled(false);
             new ListItem(*this, RuleViewRef( nullptr));
-            setUpdatesEnabled(true);
+            //setUpdatesEnabled(true);
             //newItem->init();
         }
 

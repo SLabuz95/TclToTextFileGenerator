@@ -1183,7 +1183,7 @@ Error TclProcedureInterpreter::interpret_mode<Stat::BracesStartExprOnly>(){
     const QString ERROR_PREFIX = "Interpret Special Command <Stat::BracesStartExprOnly>: ";
     switch(processingStat()){
     case Stat::BackslashSubbing:
-        if(tclInterpreter.textInterpreter().isCurrentChar()){
+        if(tclInterpreter.textInterpreter().isCurrentChar() and tclInterpreter.textInterpreter().currentCharForSpecialSign() != '\n'){
             return throwError(ERROR_PREFIX + "Backslash subbing is forbidden in expr command");
         }else{
             // Ignore Backslash Subbing and use EndOfString

@@ -49,6 +49,7 @@ bool FileInstanceResultPanel::eventFilter(QObject *obj, QEvent *ev){
         if(progressEv){
             if(progressEv->isReady()){
                 caplFunctionDefinitions = progressEv->caplFunctionDefinitions();
+                nextGeneratorControl("END", progressEv->getErrorsNumber());
                 analysisPanel.reloadGui();
             }else{
                 if(progressEv->isCriticalError()){

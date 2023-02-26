@@ -113,7 +113,7 @@ bool RawRuleView::eventFilter(QObject *obj, QEvent *ev){
 }
 
 List& RawRuleView::parentWidget()const{
-    qDebug() << Super::parentWidget();
-    qDebug() << Super::parentWidget()->parentWidget();
+    //qDebug() << Super::parentWidget();
+    //qDebug() << Super::parentWidget()->parentWidget();
     return *static_cast<List*>(Super::parentWidget()->parentWidget());// Viewport -> List
 }
