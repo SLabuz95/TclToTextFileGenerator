@@ -19,6 +19,7 @@
 #include"External/ContextMenuBuilder/contextMenuBuilder.hpp"
 #include<QPainter>
 #include"Tcl2Capl/controllerconfiginfo.hpp"
+#include "qnamespace.h"
 #include<QScrollBar>
 
 namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
@@ -97,6 +98,13 @@ namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
 
         void loadRules(RulesViewRef);
         void readRules(RulesRef&);
+        virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles) override{
+            if(roles.contains(Qt::SizeHintRole)){
+                qDebug() << "RawList" << sizeHint() << topLeft.data(Qt::SizeHintRole);
+
+            }
+            Super::dataChanged(topLeft, bottomRight, roles);
+        }
 
         inline void addNewItem(){
             //ListItem* newItem = nullptr;

@@ -111,6 +111,7 @@ void Panel::loadModifierRules(QString phaseName, QString rulesCategory){
             ConfigInfo::Config::ModifierConfigRules newRules;
             configTabsPanel.rulesPhaseList().readRules(newRules);
             config().loadNewModifierRules(configTabsPanel.rulesPhaseList().phaseName(), configTabsPanel.rulesPhaseList().rulesCategory(), newRules);
+            configTabsPanel.rulesPhaseList().setNonInitialized();
         }
         switch(category){
         case ConfigInfo::ModifierRulesCategories::PhaseRules:
@@ -124,8 +125,8 @@ void Panel::loadModifierRules(QString phaseName, QString rulesCategory){
         ConfigInfo::ModifierRulesView rulesView = config().readModifierRules(phaseName, category);
         configTabsPanel.rulesPhaseList().setEnabled(true);
         configTabsPanel.rulesPhaseList().phaseName() = phaseName;
-        configTabsPanel.rulesPhaseList().rulesCategory() = category;
         configTabsPanel.rulesPhaseList().loadRules(rulesView);
+        configTabsPanel.rulesPhaseList().rulesCategory() = category;
     }
 
 }
@@ -138,14 +139,14 @@ void Panel::loadRules(QString procedureName, QString rulesCategory){
             ConfigInfo::Config::DynamicRawRules newRules;
             configTabsPanel.rulesProcedureList().readRules(newRules);
             config().loadNewRules(configTabsPanel.rulesProcedureList().procedureName(), configTabsPanel.rulesProcedureList().rulesCategory(), newRules);
+            configTabsPanel.rulesPhaseList().setNonInitialized();
         }
         ConfigInfo::RulesView rulesView = config().readRules(procedureName, category);
         configTabsPanel.rulesProcedureList().setEnabled(true);
         configTabsPanel.rulesProcedureList().procedureName() = procedureName;
-        configTabsPanel.rulesProcedureList().rulesCategory() = category;
         configTabsPanel.rulesProcedureList().loadRules(rulesView);
+        configTabsPanel.rulesProcedureList().rulesCategory() = category;
     }
-
 }
 
 void Panel::loadDefaultRules(QString rulesCategory){
@@ -156,11 +157,12 @@ void Panel::loadDefaultRules(QString rulesCategory){
             ConfigInfo::Config::DynamicRawRules newRules;
             configTabsPanel.rulesDefaultProcedureList().readRules(newRules);
             config().loadNewRules(configTabsPanel.rulesDefaultProcedureList().rulesCategory(), newRules);
+            configTabsPanel.rulesPhaseList().setNonInitialized();
         }
         ConfigInfo::RulesView rulesView = config().readRules(category);
         configTabsPanel.rulesDefaultProcedureList().setEnabled(true);
-        configTabsPanel.rulesDefaultProcedureList().rulesCategory() = category;
         configTabsPanel.rulesDefaultProcedureList().loadRules(rulesView);
+        configTabsPanel.rulesDefaultProcedureList().rulesCategory() = category;
     }
 }
 
