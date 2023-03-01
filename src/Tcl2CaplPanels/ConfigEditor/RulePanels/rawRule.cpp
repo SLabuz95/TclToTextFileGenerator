@@ -40,7 +40,7 @@ RawRuleView::RawRuleView(List& list, ListItemType& item, RawRuleRef rule)
 {    
     setParent(list.viewport());
     // Rule available
-    if(rule){   // Exists
+    if(rule != nullptr){   // Exists
         using RawRule = Tcl2CaplControllerConfig::RawRule;
         using RawRuleRef = RawRule&;
         RawRuleRef rawRule = *static_cast<RawRule*>(*rule);

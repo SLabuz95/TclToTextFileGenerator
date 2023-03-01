@@ -98,13 +98,6 @@ namespace Panels::Configuration::View::ModifierRules::RulesPhasePanel{
 
         void loadRules(RulesViewRef);
         void readRules(RulesRef&);
-        virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles) override{
-            if(roles.contains(Qt::SizeHintRole)){
-                qDebug() << "RawList" << sizeHint() << topLeft.data(Qt::SizeHintRole);
-
-            }
-            Super::dataChanged(topLeft, bottomRight, roles);
-        }
 
         inline void addNewItem(){
             //ListItem* newItem = nullptr;

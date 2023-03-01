@@ -275,9 +275,23 @@ protected:
         virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles) override{
             if(roles.contains(Qt::SizeHintRole)){
                 QListWidget& listWidget = actionListView();
-                QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-                if(item and actionView().sizeHint().height() != sizeHint().height()){
-                    item->setSizeHint(actionView().sizeHint() += QSize(0, sizeHint().height() - height()));
+                QListWidgetItem* item = nullptr;
+                if(isVisible()){
+                    for(int i = 0; i < listWidget.count(); i++){
+
+                        if(listWidget.itemWidget(listWidget.item(i)) == &actionView()){
+                            item = listWidget.item(i);
+                            break;
+                        }
+                    }
+                    if(item){
+
+                        item->setSizeHint(actionView().sizeHint() + QSize(0, sizeHint().height() - height()));
+                    }else{
+
+                    }
+                }else{ // Not visible - initialization
+                    listWidget.item(listWidget.count() - 1)->setSizeHint(QSize(0, parentWidget()->sizeHint().height()));
                 }
             }
             Super::dataChanged(topLeft, bottomRight, roles);
@@ -289,7 +303,7 @@ protected:
             for(int i = start; i <= end; i++)
                 diffSize.rheight() += item(i)->sizeHint().height();
             if(parentListItem /*and actionView().sizeHint().height() != sizeHint().height()*/){
-                //qDebug() << actionView().sizeHint().height() << sizeHint().height();
+
                 parentListItem->setSizeHint(actionView().sizeHint() -= QSize(0, diffSize.height()));
             }
             Super::rowsAboutToBeRemoved(parent, start, end);

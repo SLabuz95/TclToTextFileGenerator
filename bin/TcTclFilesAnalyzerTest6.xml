@@ -404,9 +404,7 @@
             <actionsOnEnd>
                 <modifierAction type="WriteAttribute">
                     <param value="TC_NAME"/>
-                    <param>
-                        <modifierFormatRule type="Text"></modifierFormatRule>
-                    </param>
+                    <param/>
                 </modifierAction>
                 <modifierAction type="WriteAttribute">
                     <param value="TC_TITLE"/>

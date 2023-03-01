@@ -78,7 +78,7 @@ bool ItemView::createFormatRuleDataView(FormatRuleType type){
         qApp->processEvents();
         QListWidget& listWidget = parentWidget();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
-        //qDebug() << item->sizeHint();
+
         QSize sizeHint = item->sizeHint();
         item->sizeHint().rwidth() = 0;
         item->setSizeHint(sizeHint + diffSize);
@@ -285,7 +285,7 @@ ListItem::ListItem(List& list, FormatRulePtr rule)
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
     list.setItemWidget(this, &view_);
-    setSizeHint(QSize(0, view().sizeHint().rheight()));
+    setSizeHint( view().sizeHint());
 }
 
 

@@ -137,7 +137,7 @@ protected:
     void removeInstance(Tcl2CaplFileParserInstance* instancePtr){
         Q_ASSERT_X(instancePtr, "FileWatcher", "RemoveInstance method: Argument = nullptr");
         for(Instances::Iterator instance = instances.begin(); instance < instances.end(); instance++){
-            if((*instance)->isInstance(instancePtr)) {delete instance; instances.removeAt(instance - instances.begin());  break;}
+            //if((*instance)->isInstance(instancePtr)) {delete instance; instances.removeAt(instance - instances.begin());  break;}
         }
         Q_ASSERT_X(false, "FileWatcher", "RemoveInstance method: Not Found");
     }

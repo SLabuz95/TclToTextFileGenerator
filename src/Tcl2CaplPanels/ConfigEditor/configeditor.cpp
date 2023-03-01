@@ -49,7 +49,7 @@ Panel::Panel(App& app)
 Panel::~Panel(){
     /*if(configInfoPtr){
         if(app().configManager().unloadConfig(configInfoPtr, this) == false){
-            qDebug() << "ConfigManager::unregister Error: " + app().configManager().lastErrorMessage();
+
         }
     }
     configInfoPtr = nullptr;*/

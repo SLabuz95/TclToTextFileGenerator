@@ -289,7 +289,7 @@ ListItem::ListItem(ConditionalsList& list, ActionPtr action)
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
     list.addItem(this);
     list.setItemWidget(this, &view_);
-    setSizeHint(QSize(0, view().sizeHint().height()));
+    setSizeHint( view().sizeHint());
 }
 
 
@@ -305,8 +305,17 @@ void List::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRigh
         QListWidget& listWidget = parentWidget().parentWidget();
         QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
         RawRuleView::ListsView listsView = parentWidget().listsView();
+
+        if(not listsView.conditionalList.isVisible()){
+        // Not visible - initialization
+            listWidget.item(listWidget.count() - 1)->setSizeHint(QSize(0, parentWidget().sizeHint().height()));
+            Super::dataChanged(topLeft, bottomRight, roles);
+            return;
+        }
+
         int heightDiff = sizeHint().height() - height();
         int listsHeightDiff = listsView.conditionalList.height() - listsView.executablesList.height();
+
         if(&listsView.conditionalList == this){ // Conditionals List calculation
             if(heightDiff >= 0){ // Increase size
                 if(listsHeightDiff >= 0){ // Conditional List is greater

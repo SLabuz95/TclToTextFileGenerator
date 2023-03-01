@@ -263,7 +263,7 @@ void FileInstanceResultPanel::prepareResultData(ProgressBarDatas& readyProgressB
         }
     }
 
-    //qDebug() << formatCount;
+
     [0.9.0] End */
 }
 

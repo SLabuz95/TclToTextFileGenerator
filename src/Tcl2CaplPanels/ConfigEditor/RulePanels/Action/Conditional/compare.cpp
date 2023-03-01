@@ -137,15 +137,15 @@ void ListOfIndexes::rowsAboutToBeRemoved(const QModelIndex &parent, int start, i
     QListWidgetItem* item = actionsList.itemAt(actionsList.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
     item->setSizeHint(actionsList.itemWidget(item)->sizeHint());
 
-    //qDebug() << "List" << minimumSizeHint() << sizeHint();
-    //qDebug() << "Viewport" << viewportSizeHint();
-    //qDebug() << "Parent" << Super::parentWidget()->parentWidget()->minimumSizeHint() << Super::parentWidget()->parentWidget()->sizeHint();
+
+
+
 }
 
 void ListOfIndexes::rowsInserted(const QModelIndex &parent, int start, int end){
-    //qDebug() << "List" << minimumSizeHint() << sizeHint();
-    //qDebug() << "Viewport" << viewportSizeHint();
-    //qDebug() << "Parent" << Super::parentWidget()->parentWidget()->minimumSizeHint() << Super::parentWidget()->parentWidget()->sizeHint();
+
+
+
     //parentWidget().parentWidget().updateGeometry();
     //parentWidget().parentWidget().parentWidget().parentWidget().updateGeometry();
     using ActionsList = decltype(parentWidget().parentWidget());

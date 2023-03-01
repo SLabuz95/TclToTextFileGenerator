@@ -22,9 +22,9 @@ using ContextMenuInterface = Utils::ContextMenuBuilder::Interface<Base>;
 
 template<>
 RawRuleView& ActionsModifierList::parentWidget()const{
-    //qDebug() << Super::parentWidget();
-    //qDebug() << Super::parentWidget()->parentWidget();
-    //qDebug() << Super::parentWidget()->parentWidget()->parentWidget();
+
+
+
 
     return *static_cast<RawRuleView*>(Super::parentWidget()->parentWidget()->parentWidget()); //Panel -> Splitter -> RuleView
 }
@@ -169,18 +169,18 @@ void ActionsModifierList::execRequest_ContextMenu<ActionsModifierList::Request_C
     if(&listsView.conditionalList == this){ // Conditionals List calculation
         if(listsHeightDiff >= 0){ // Conditional List is greater
             parentListItem->setSizeHint(parentWidget().sizeHint() -= QSize(0, listsHeightDiff));
-            qDebug() << "ConditonalList: Conditional List is greater: Change : Item SH" << parentListItem->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
         }else{// Executables List is greater
             // No change
-            qDebug() << "ConditonalList: Executables List is greater: No change :Item SH" << parentListItem->sizeHint() << " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "List Diff " << listsHeightDiff;
+
 
         }
     }else{
         if(listsHeightDiff >= 0){ // Conditional List is greater
-            qDebug() << "ExecutablesList: Conditional List is greater: No change :Item SH" << parentListItem->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "List Diff " << listsHeightDiff;
+
             // No change
         }else{// Executables List is greater
-            qDebug() << "ExecutablesList: Conditional List is greater: Change :Item SH" << parentListItem->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "+List Diff " << listsHeightDiff;
+
             parentListItem->setSizeHint(parentWidget().sizeHint() += QSize(0, listsHeightDiff));
         }
     }
@@ -331,13 +331,13 @@ ListItem::ListItem(ActionsModifierList& list, ActionPtr action)
         action) // PASS VIEWPORT AS PARENT
 {
     //setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemNeverHasChildren | Qt::ItemIsEditable);
-    qDebug() << "Before AddItem";
+
     list.addItem(this);
-    qDebug() << "After AddItem";
+
     list.setItemWidget(this, &view_);
-    qDebug() << "After SetItem";
+
     setSizeHint( view().sizeHint());
-    qDebug() << "After SetSizeHint";
+
 }
 
 
@@ -351,71 +351,80 @@ template<>
 void List::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QList<int> &roles){
     if(roles.contains(Qt::SizeHintRole)){
         QListWidget& listWidget = parentWidget().parentWidget();
-        QListWidgetItem* item = listWidget.itemAt(listWidget.viewport()->mapFromGlobal(mapToGlobal(QPoint(0,0))));
+        QListWidgetItem* item = listWidget.itemAt(parentWidget().mapFromParent(QPoint(0,0)));
         RawRuleView::ListsView listsView = parentWidget().listsView();
+
+        if(not listsView.conditionalList.isVisible()){
+        // Not visible - initialization
+            listWidget.item(listWidget.count() - 1)->setSizeHint(QSize(0, parentWidget().sizeHint().height()));
+            Super::dataChanged(topLeft, bottomRight, roles);
+            return;
+        }
+
         int heightDiff = sizeHint().height() - height();
-        int listsHeightDiff = listsView.conditionalList.height() - listsView.executablesList.height();
-        qDebug() << "Height" << height() << "ListDiff" << listsHeightDiff << "HeightDiff" << heightDiff << "SH" << sizeHint() ;
+        int listsHeightDiff = ((not listsView.conditionalList.isHidden())?  listsView.conditionalList.height() : 0) - listsView.executablesList.height();
+
+
         if(&listsView.conditionalList == this){ // Conditionals List calculation
             if(heightDiff >= 0){ // Increase size
                 if(listsHeightDiff >= 0){ // Conditional List is greater
                     // Increse
-                    qDebug() << "ConditonalList: Conditional List is greater: Increase Change " << heightDiff << " : Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff));
-                    qDebug() << "ConditonalList: Conditional List is greater: Increase Change " << heightDiff << " : Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                 }else{// Executables List is greater
                     if(heightDiff > -listsHeightDiff){ // If change greater than other list height
-                        qDebug() << "ConditonalList: Executables List is greater: Increase Change " << heightDiff << " : Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                         item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff + listsHeightDiff));
-                        qDebug() << "ConditonalList: Executables List is greater: Increase Change " << heightDiff << " : Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     }else{
-                        qDebug() << "ConditonalList: Executables List is greater Decrease No Change " << heightDiff << " : Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     }
                 }
             }else{ // Decrease size
                 if(listsHeightDiff >= 0){ // Conditional List is greater
                     // Decrease
                     if(-heightDiff > listsHeightDiff){
-                        qDebug() << "ConditonalList: Conditional List is greater: Decrease Change " << heightDiff << " : Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                         item->setSizeHint(parentWidget().sizeHint() -= QSize(0, listsHeightDiff));
-                        qDebug() << "ConditonalList: Conditional List is greater: Decrease Change " << heightDiff << " : Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     }else{
-                        qDebug() << "ConditonalList: Conditional List is greater: Decrease Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                         item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff));
-                        qDebug() << "ConditonalList: Conditional List is greater: Decrease Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     }
                 }else{// Executables List is greater
                     // No change
-                    qDebug() << "ConditonalList: Executable List is greater: Decrease No Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                 }
             }
         }else{
             if(heightDiff >= 0){ // Increase size
                 if(listsHeightDiff >= 0){ // Conditional List is greater
                     if(heightDiff > listsHeightDiff){ // If change greater than other list height
-                        qDebug() << "ExecutablesList: Conditional List is greater: Increase Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                         item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff - listsHeightDiff));
-                        qDebug() << "ExecutablesList: Conditional List is greater: Increase Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     }
                 }else{// Executables List is greater
                     // Increse
-                    qDebug() << "ExecutablesList: Executables List is greater: Increase Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff));
-                    qDebug() << "ExecutablesList: Executables List is greater: Increase Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                 }
             }else{ // Decrease size
                 if(listsHeightDiff >= 0){ // Conditional List is greater
-                    qDebug() << "ExecutablesList: Conditional List is greater: Decrease No Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     // No change
                 }else{// Executables List is greater                    
                     if(-heightDiff > -listsHeightDiff){ // If change greater than other list height
-                        qDebug() << "ExecutablesList: Executables List is greater: Decrease Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                         item->setSizeHint(parentWidget().sizeHint() += QSize(0, listsHeightDiff));
-                        qDebug() << "ExecutablesList: Executables List is greater: Decrease Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     }else{
-                        qDebug() << "ExecutablesList: Executables List is greater: Decrease Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                         item->setSizeHint(parentWidget().sizeHint() += QSize(0, heightDiff));
-                        qDebug() << "ExecutablesList: Executables List is greater: Decrease Change  " << heightDiff << ": Item SH" << item->sizeHint() <<  " Raw Rule View SizeHint"  << parentWidget().sizeHint() << "Height" << height() << "-List Diff " << listsHeightDiff;
+
                     }
                 }
             }

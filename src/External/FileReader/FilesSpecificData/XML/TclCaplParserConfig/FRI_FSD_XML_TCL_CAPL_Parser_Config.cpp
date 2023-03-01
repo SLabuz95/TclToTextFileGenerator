@@ -873,7 +873,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
    // Prepare name
     QString name;
     if(not config.data->reader->attributes().hasAttribute("name")){
-        qDebug() << "Attribute \"name\" attribute dont exist";
+        //qDebug()() << "Attribute \"name\" attribute dont exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"name\"");
     }
     name = config.data->reader->attributes().value("name").trimmed().toString();
@@ -882,12 +882,12 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
     value = config.data->reader->readElementText(QXmlStreamReader::IncludeChildElements);
 
     if(name.isEmpty()/*interpreterData->procedureName != UserProcedure::prepareTclProcedureNameFromStr(interpreterData->procedureName)*/){
-        qDebug() << "Add Procedure failed - procedure name corrupted (Procedure Name does not support TclProcedureName)";
+        //qDebug()() << "Add Procedure failed - procedure name corrupted (Procedure Name does not support TclProcedureName)";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Procedure name corrupted (Procedure Name does not support TclProcedureName)");
     }
 
     if(userConfig->attributes().contains(name)){
-        qDebug() << "Add Attribute failed - Attribute name is duplicated";
+        //qDebug()() << "Add Attribute failed - Attribute name is duplicated";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute name is duplicated");
     }
     userConfig->attributes().insert(name, Attribute{value});
@@ -949,7 +949,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         interpreterData->procedureName = config.data->reader->readElementText(QXmlStreamReader::IncludeChildElements);
 
         if(interpreterData->procedureName != UserProcedure::prepareTclProcedureNameFromStr(interpreterData->procedureName)){
-            qDebug() << "Add Procedure failed - procedure name corrupted (Procedure Name does not support TclProcedureName)";
+            //qDebug()() << "Add Procedure failed - procedure name corrupted (Procedure Name does not support TclProcedureName)";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Procedure name corrupted (Procedure Name does not support TclProcedureName)");
         }
 
@@ -976,17 +976,17 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
     QString name;
     if(not config.data->reader->attributes().hasAttribute("name")){
-        qDebug() << "Phase \"name\" attribute dont exist";
+        //qDebug()() << "Phase \"name\" attribute dont exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"name\"");
     }
     name = config.data->reader->attributes().value("name").trimmed().toString();
     if(name.isEmpty()){
-        qDebug() << "Phase \"name\" attribute dont exist";
+        //qDebug()() << "Phase \"name\" attribute dont exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"name\"");
     }
 
     if(name != "Default" and userConfig->addPhase(name) == false){
-        qDebug() << "Add Phase failed - phase name duplicated";
+        //qDebug()() << "Add Phase failed - phase name duplicated";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Phase name duplicated");
     }
 
@@ -1014,12 +1014,12 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
     interpreterData->procedureName = config.data->reader->readElementText(QXmlStreamReader::IncludeChildElements);
 
     if(interpreterData->procedureName != UserProcedure::prepareTclProcedureNameFromStr(interpreterData->procedureName)){
-        qDebug() << "Add Procedure failed - procedure name corrupted (Procedure Name does not support TclProcedureName)";
+        //qDebug()() << "Add Procedure failed - procedure name corrupted (Procedure Name does not support TclProcedureName)";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Procedure name corrupted (Procedure Name does not support TclProcedureName)");
     }
 
     if(userConfig->addProcedure(interpreterData->procedureName) == false){
-        qDebug() << "Add Procedure failed - procedure name duplicated";
+        //qDebug()() << "Add Procedure failed - procedure name duplicated";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Procedure name duplicated");
     }
     interpreterData->procedureNameTokenAppeared = true;
@@ -1136,11 +1136,11 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
     uint index;
     bool ok = false;;
     if(not config.data->reader->attributes().hasAttribute("index")){
-        qDebug() << "RulesForArgument \"index\" attribute dont exist";
+        //qDebug()() << "RulesForArgument \"index\" attribute dont exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"index\"");
     }
     if(static_cast<void>((index = config.data->reader->attributes().value("index").trimmed().toUInt(&ok))), !ok){
-        qDebug() << "RulesForArgument \"index\" convertion error \"" + config.data->reader->attributes().value("index").toString() + "\"";
+        //qDebug()() << "RulesForArgument \"index\" convertion error \"" + config.data->reader->attributes().value("index").toString() + "\"";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"index\" conversion error");
     }
 
@@ -1244,7 +1244,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         QString controlFlagStr = config.data->reader->attributes().value("controlFlag").toString().trimmed();
         ModifierControlFlag controlFlag = ModifierControlFlagInfo::fromStr(controlFlagStr);
         if(controlFlag == ModifierControlFlag::None){
-            qDebug() << ("Rule \"controlFlag\" attribute: Unknown Value \"") + controlFlagStr + "\"";
+            //qDebug()() << ("Rule \"controlFlag\" attribute: Unknown Value \"") + controlFlagStr + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"controlFlag\": Unknown Value \"" + controlFlagStr + "\"");
         }
         rawRule = static_cast<RawRule*>(ModifierRulesFactory::create(RuleType::RawRule));
@@ -1277,7 +1277,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         QString controlFlagStr = config.data->reader->attributes().value("controlFlag").toString().trimmed();
         ControlFlag controlFlag = InterpreterRule::fromStr(controlFlagStr);
         if(controlFlag == InterpreterRule::Control::None){
-            qDebug() << ("Rule \"controlFlag\" attribute: Unknown Value \"") + controlFlagStr + "\"";
+            //qDebug()() << ("Rule \"controlFlag\" attribute: Unknown Value \"") + controlFlagStr + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"controlFlag\": Unknown Value \"" + controlFlagStr + "\"");
         }
         rawRule = static_cast<RawRule*>(RulesFactory::create(RuleType::RawRule));
@@ -1307,13 +1307,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     if(not config.data->reader->attributes().hasAttribute("type")){
-        qDebug() << "ConditionalAction \"type\" attribute doesnt exist";
+        //qDebug()() << "ConditionalAction \"type\" attribute doesnt exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"type\"");
     }
     QString conditionalStr = config.data->reader->attributes().value("type").toString().trimmed();
     ActionType conditional = InterpreterAction::fromStr_conditional(conditionalStr);
     if(conditional == ActionType::None){
-        qDebug() << ("ConditionalAction \"type\" attribute: Unknown Value \"") + conditionalStr + "\"";
+        //qDebug()() << ("ConditionalAction \"type\" attribute: Unknown Value \"") + conditionalStr + "\"";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"type\": Unknown Value \"" + conditionalStr + "\"");
     }
 
@@ -1340,13 +1340,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     if(not config.data->reader->attributes().hasAttribute("type")){
-        qDebug() << "ExecutableAction \"type\" attribute doesnt exist";
+        //qDebug()() << "ExecutableAction \"type\" attribute doesnt exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"type\"");
     }
     QString executableStr = config.data->reader->attributes().value("type").toString().trimmed();
     ActionType executable = InterpreterAction::fromStr_executable(executableStr);
     if(executable == ActionType::None){
-        qDebug() << ("ExecutableAction \"type\" attribute: Unknown Value \"") + executableStr + "\"";
+        //qDebug()() << ("ExecutableAction \"type\" attribute: Unknown Value \"") + executableStr + "\"";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"type\": Unknown Value \"" + executableStr + "\"");
     }
 
@@ -1422,13 +1422,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     if(not config.data->reader->attributes().hasAttribute("type")){
-        qDebug() << "ModifierAction \"type\" attribute doesnt exist";
+        //qDebug()() << "ModifierAction \"type\" attribute doesnt exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"type\"");
     }
     QString actionStr = config.data->reader->attributes().value("type").toString().trimmed();
     ActionType actionType = ActionTypeInfo::fromStr(actionStr);
     if(actionType == ActionType::None){
-        qDebug() << ("ModifierAction \"type\" attribute: Unknown Value \"") + actionStr + "\"";
+        //qDebug()() << ("ModifierAction \"type\" attribute: Unknown Value \"") + actionStr + "\"";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"type\": Unknown Value \"" + actionStr + "\"");
     }
 
@@ -1436,7 +1436,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
     switch(interpreterData->dmStats.last().stat){
     case Stat::ModifierConditionalActions:
         if(ActionTypeInfo::isExecutableAction(actionType)){
-            qDebug() << ("ModifierAction \"type\" attribute: Incorrect type for ConditionalActions \"") + actionStr + "\"";
+            //qDebug()() << ("ModifierAction \"type\" attribute: Incorrect type for ConditionalActions \"") + actionStr + "\"";
             delete action;
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"type\": Incorrect type for ConditionalActions \"" + actionStr + "\"");
         }
@@ -1446,7 +1446,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
     case Stat::ActionsOnEnd:
     case Stat::ActionsOnUnsatisfied:
         if(ActionTypeInfo::isConditionalAction(actionType)){
-            qDebug() << ("ModifierAction \"type\" attribute: Incorrect type for ExecutableActions \"") + actionStr + "\"";
+            //qDebug()() << ("ModifierAction \"type\" attribute: Incorrect type for ExecutableActions \"") + actionStr + "\"";
             delete action;
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"type\": Incorrect type for ExecutableActions \"" + actionStr + "\"");
         }
@@ -1530,12 +1530,12 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                 QString value;
                 bool ok = false;;
                 if(not config.data->reader->attributes().hasAttribute("value")){
-                    qDebug() << "Param \"value\" attribute dont exist";
+                    //qDebug()() << "Param \"value\" attribute dont exist";
                     return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
                 }
                 value = config.data->reader->attributes().value("value").trimmed().toString();
                 if(static_cast<void>((index = value.toUInt(&ok))), !ok){
-                    qDebug() << "Param \"value\" convertion error \"" + value + "\"";
+                    //qDebug()() << "Param \"value\" convertion error \"" + value + "\"";
                     return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" conversion error");
                 }
                 action.numbOfArgs().append(value);
@@ -1574,13 +1574,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                     QString value;
                     bool ok = false;
                     if(not config.data->reader->attributes().hasAttribute("value")){
-                        qDebug() << "Param \"value\" attribute dont exist";
+                        //qDebug()() << "Param \"value\" attribute dont exist";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
                     }
                     value = config.data->reader->attributes().value("value").trimmed().toString();
                     if(not value.isEmpty()){
                         if(static_cast<void>((index = value.toInt(&ok))), !ok){
-                            qDebug() << "Param \"value\" convertion error \"" + value + "\"";
+                            //qDebug()() << "Param \"value\" convertion error \"" + value + "\"";
                             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"index\" conversion error");
                         }
                     }
@@ -1601,12 +1601,12 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                         QString value;
                         bool ok = false;
                         if(not config.data->reader->attributes().hasAttribute("value")){
-                            qDebug() << "Param \"value\" attribute dont exist";
+                            //qDebug()() << "Param \"value\" attribute dont exist";
                             return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
                         }
                         value = config.data->reader->attributes().value("value").trimmed().toString();
                         if(static_cast<void>((index = value.toInt(&ok))), !ok){
-                            qDebug() << "Param \"value\" convertion error \"" + value + "\"";
+                            //qDebug()() << "Param \"value\" convertion error \"" + value + "\"";
                             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"index\" conversion error");
                         }
                         interpreterData->tempIndex = index;
@@ -1748,7 +1748,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
                     QString value;
                     if(not config.data->reader->attributes().hasAttribute("value")){
-                        qDebug() << "Param \"value\" attribute dont exist";
+                        //qDebug()() << "Param \"value\" attribute dont exist";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
                     }
 
@@ -1756,7 +1756,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
                     Scope scope = PredefinitionsController::fromStr(value);
                     if(scope == Scope::None){
-                        qDebug() << "Wrong Scope argument:" + value + "\"";
+                        //qDebug()() << "Wrong Scope argument:" + value + "\"";
                         return config.ERROR_CALL(PRE_ERROR_MSG + "Wrong Scope argument:" + value + "\"");
                     }
                     action.setScope(scope);
@@ -1961,12 +1961,12 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                 {
                     QString value;
                     if(not config.data->reader->attributes().hasAttribute("value")){
-                        qDebug() << "Param \"value\" attribute dont exist";
+                        //qDebug()() << "Param \"value\" attribute dont exist";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
                     }
                     value = config.data->reader->attributes().value("value").trimmed().toString();
                     if(value.isEmpty()){
-                        qDebug() << "Param \"value\" is empty ";
+                        //qDebug()() << "Param \"value\" is empty ";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" is empty");
                     }
                     action.setName(value);
@@ -2032,7 +2032,7 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                 // Only index value validation
                 QString value =config.data->reader->readElementText(QXmlStreamReader::IncludeChildElements);
                 if(value.isEmpty()){
-                    qDebug() << "String is empty";
+                    //qDebug()() << "String is empty";
                     return config.ERROR_CALL(PRE_ERROR_MSG + " - Empty Text String");
                 }
                 action.stringsToCompare().append(value);
@@ -2185,12 +2185,12 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                 {
                     QString value;
                     if(not config.data->reader->attributes().hasAttribute("value")){
-                        qDebug() << "Param \"value\" attribute dont exist";
+                        //qDebug()() << "Param \"value\" attribute dont exist";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
                     }
                     value = config.data->reader->attributes().value("value").trimmed().toString();
                     if(value.isEmpty()){
-                        qDebug() << "Param \"value\" is empty ";
+                        //qDebug()() << "Param \"value\" is empty ";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" is empty");
                     }
                     action.setPhaseName(value);
@@ -2201,14 +2201,14 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                     QString valueStr;
                     bool value;
                     if(not config.data->reader->attributes().hasAttribute("value")){
-                        qDebug() << "Param \"value\" attribute dont exist";
+                        //qDebug()() << "Param \"value\" attribute dont exist";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
                     }
                     valueStr = config.data->reader->attributes().value("value").trimmed().toString().toLower();
                     if(not (value = true, valueStr == "true") and
                         not  (value = false, valueStr == "false"))
                     {
-                        qDebug() << "Param \"value\" convertion error \"" + valueStr + "\"";
+                        //qDebug()() << "Param \"value\" convertion error \"" + valueStr + "\"";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" conversion error");
                     }
                     action.setCheckRule(value);
@@ -2279,12 +2279,12 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
                 {
                     QString value;
                     if(not config.data->reader->attributes().hasAttribute("value")){
-                        qDebug() << "Param \"value\" attribute dont exist";
+                        //qDebug()() << "Param \"value\" attribute dont exist";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - No attribute \"value\"");
                     }
                     value = config.data->reader->attributes().value("value").trimmed().toString();
                     if(value.isEmpty()){
-                        qDebug() << "Param \"value\" is empty ";
+                        //qDebug()() << "Param \"value\" is empty ";
                         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" is empty");
                     }
                     action.setName(value);
@@ -2339,13 +2339,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     if(not config.data->reader->attributes().hasAttribute("type")){
-        qDebug() << "FormatRule \"type\" attribute doesnt exist";
+        //qDebug()() << "FormatRule \"type\" attribute doesnt exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"type\"");
     }
     QString typeStr = config.data->reader->attributes().value("type").toString().trimmed();
     RuleType type = RuleTypeInfo::fromStr(typeStr);
     if(type == RuleType::None){
-        qDebug() << ("FormatRule \"type\" attribute: Unknown Value \"") + typeStr + "\"";
+        //qDebug()() << ("FormatRule \"type\" attribute: Unknown Value \"") + typeStr + "\"";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"type\": Unknown Value \"" + typeStr + "\"");
     }
 
@@ -2368,12 +2368,12 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
         int index;
         if(not (config.data->reader->attributes().hasAttribute("value"))){
-            qDebug() << "FormatRule \"value\" attribute doesnt exist";
+            //qDebug()() << "FormatRule \"value\" attribute doesnt exist";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"value\"");
         }
 
         if(static_cast<void>((index = config.data->reader->attributes().value("value").trimmed().toInt(&ok))), not ok){
-            qDebug() << "Param \"value\" convertion error \"" + config.data->reader->attributes().value("value").toString() + "\"";
+            //qDebug()() << "Param \"value\" convertion error \"" + config.data->reader->attributes().value("value").toString() + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" conversion error");
         }
         rule.setIndex(index);
@@ -2388,11 +2388,11 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
         int index;
         if(not (config.data->reader->attributes().hasAttribute("value"))){
-            qDebug() << "FormatRule \"value\" attribute doesnt exist";
+            //qDebug()() << "FormatRule \"value\" attribute doesnt exist";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"value\"");
         }
         if(static_cast<void>((index = config.data->reader->attributes().value("value").trimmed().toInt(&ok))), not ok){
-            qDebug() << "Param \"value\" convertion error \"" + config.data->reader->attributes().value("value").toString() + "\"";
+            //qDebug()() << "Param \"value\" convertion error \"" + config.data->reader->attributes().value("value").toString() + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" conversion error");
         }
         rule.setIndex(index);
@@ -2406,14 +2406,14 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         Rule& rule = *static_cast<Rule*>(ruleBase);
 
         if(not (config.data->reader->attributes().hasAttribute("target"))){
-            qDebug() << "FormatRule \"target\" attribute doesnt exist";
+            //qDebug()() << "FormatRule \"target\" attribute doesnt exist";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"target\"");
         }
         value = config.data->reader->attributes().value("target").trimmed().toString();
 
         Format::Target formatTarget = Format::fromStr_target(value);
         if(formatTarget == Format::Target::None){
-            qDebug() << "Wrong FormatRule argument:" + value + "\"";
+            //qDebug()() << "Wrong FormatRule argument:" + value + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + "Wrong FormatRule argument:" + value + "\"");
         }
         rule.setTarget(formatTarget);
@@ -2437,13 +2437,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
         QString name;
         if(not (config.data->reader->attributes().hasAttribute("name"))){
-            qDebug() << "FormatRule \"name\" attribute doesnt exist";
+            //qDebug()() << "FormatRule \"name\" attribute doesnt exist";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"name\"");
         }
 
         name = config.data->reader->attributes().value("name").trimmed().toString();
         if(name.isEmpty()){
-            qDebug() << "Param \"name\" convertion error \"" + config.data->reader->attributes().value("name").toString() + "\"";
+            //qDebug()() << "Param \"name\" convertion error \"" + config.data->reader->attributes().value("name").toString() + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"name\" conversion error");
         }
         rule.setName(name);
@@ -2475,13 +2475,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         return config.ERROR_CALL(PRE_ERROR_MSG);
 
     if(not config.data->reader->attributes().hasAttribute("type")){
-        qDebug() << "ModifierFormatRule \"type\" attribute doesnt exist";
+        //qDebug()() << "ModifierFormatRule \"type\" attribute doesnt exist";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"type\"");
     }
     QString typeStr = config.data->reader->attributes().value("type").toString().trimmed();
     RuleType type = RuleTypeInfo::fromStr(typeStr);
     if(type == RuleType::None){
-        qDebug() << ("ModifierFormatRule \"type\" attribute: Unknown Value \"") + typeStr + "\"";
+        //qDebug()() << ("ModifierFormatRule \"type\" attribute: Unknown Value \"") + typeStr + "\"";
         return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"type\": Unknown Value \"" + typeStr + "\"");
     }
 
@@ -2504,12 +2504,12 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
         int index;
         if(not (config.data->reader->attributes().hasAttribute("value"))){
-            qDebug() << "FormatRule \"value\" attribute doesnt exist";
+            //qDebug()() << "FormatRule \"value\" attribute doesnt exist";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"value\"");
         }
 
         if(static_cast<void>((index = config.data->reader->attributes().value("value").trimmed().toInt(&ok))), not ok){
-            qDebug() << "Param \"value\" convertion error \"" + config.data->reader->attributes().value("value").toString() + "\"";
+            //qDebug()() << "Param \"value\" convertion error \"" + config.data->reader->attributes().value("value").toString() + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" conversion error");
         }
         rule.setIndex(index);
@@ -2524,11 +2524,11 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
         int index;
         if(not (config.data->reader->attributes().hasAttribute("value"))){
-            qDebug() << "FormatRule \"value\" attribute doesnt exist";
+            //qDebug()() << "FormatRule \"value\" attribute doesnt exist";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"value\"");
         }
         if(static_cast<void>((index = config.data->reader->attributes().value("value").trimmed().toInt(&ok))), not ok){
-            qDebug() << "Param \"value\" convertion error \"" + config.data->reader->attributes().value("value").toString() + "\"";
+            //qDebug()() << "Param \"value\" convertion error \"" + config.data->reader->attributes().value("value").toString() + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"value\" conversion error");
         }
         rule.setIndex(index);
@@ -2542,14 +2542,14 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
         Rule& rule = *static_cast<Rule*>(ruleBase);
 
         if(not (config.data->reader->attributes().hasAttribute("value"))){
-            qDebug() << "FormatRule \"value\" attribute doesnt exist";
+            //qDebug()() << "FormatRule \"value\" attribute doesnt exist";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"value\"");
         }
         value = config.data->reader->attributes().value("value").trimmed().toString();
 
         Format::Target formatTarget = Format::fromStr_target(value);
         if(formatTarget == Target::None){
-            qDebug() << "Wrong FormatRule argument:" + value + "\"";
+            //qDebug()() << "Wrong FormatRule argument:" + value + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + "Wrong FormatRule argument:" + value + "\"");
         }
         rule.setTarget(formatTarget);
@@ -2573,13 +2573,13 @@ bool FSD_XML_TclCaplParserConfigInterpreter::processingFunction<FSD_XML_TclCaplP
 
         QString name;
         if(not (config.data->reader->attributes().hasAttribute("name"))){
-            qDebug() << "ModifierFormatRule \"name\" attribute doesnt exist";
+            //qDebug()() << "ModifierFormatRule \"name\" attribute doesnt exist";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - No Attribute \"name\"");
         }
 
         name = config.data->reader->attributes().value("name").trimmed().toString();
         if(name.isEmpty()){
-            qDebug() << "Param \"name\" convertion error \"" + config.data->reader->attributes().value("name").toString() + "\"";
+            //qDebug()() << "Param \"name\" convertion error \"" + config.data->reader->attributes().value("name").toString() + "\"";
             return config.ERROR_CALL(PRE_ERROR_MSG + " - Attribute \"name\" conversion error");
         }
         rule.setName(name);
