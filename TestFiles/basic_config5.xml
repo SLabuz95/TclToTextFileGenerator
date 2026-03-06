@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tclConfig>
+    <settings>
+        <writeOnlyProcedures/>
+    </settings>
+    <procedures>
+        <procedure>
+            <name>string</name>
+            <rulesOnEndOfCall>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="CompareNumbOfArguments">
+                        <param type="0">
+                            <param type="0" value="4"/>
+                        </param>
+                    </conditionalAction>
+                    <conditionalAction type="Compare">
+                        <param type="0">
+                            <param type="0">&quot;range&quot;</param>
+                        </param>
+                        <param type="0">
+                            <formatRule type="Index" value="0"/>
+                        </param>
+                    </conditionalAction>
+                    <executableAction type="AddUserInteraction">
+                        <param type="0">
+                            <formatRule type="Text">Check and assign proper string variables to procedure
+Tcl procedure tries to get substring from arg1 in range &lt;arg 2, arg3&gt; inclusive. 
+TCL STRING
+</formatRule>
+                            <formatRule type="Format" target="TclFormat"/>
+                            <formatRule type="Index" value="1"/>
+                            <formatRule type="Text">
+INDEX RANGE
+&lt;</formatRule>
+                            <formatRule type="Index" value="2"/>
+                            <formatRule type="Text"> ; </formatRule>
+                            <formatRule type="Index" value="3"/>
+                            <formatRule type="Text"> &gt;
+</formatRule>
+                            <formatRule type="Text">Procedure copies substring of srcBuffer to destBuffer from index (arg 3) with length (arg 4).</formatRule>
+                        </param>
+                    </executableAction>
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Text">mbsubstr_cpy(destBuffer, srcBuffer, </formatRule>
+                            <formatRule type="Index" value="1"/>
+                            <formatRule type="Text">, (</formatRule>
+                            <formatRule type="Index" value="3"/>
+                            <formatRule type="Text">) - (</formatRule>
+                            <formatRule type="Index" value="2"/>
+                            <formatRule type="Text">));</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="CompareNumbOfArguments">
+                        <param type="0">
+                            <param type="0" value="2"/>
+                            <param type="0" value="3"/>
+                        </param>
+                    </conditionalAction>
+                    <conditionalAction type="Compare">
+                        <param type="0">
+                            <param type="0">&quot;trimright&quot;</param>
+                        </param>
+                        <param type="0">
+                            <formatRule type="Index" value="0"/>
+                        </param>
+                    </conditionalAction>
+                    <executableAction type="AddUserInteraction">
+                        <param type="0">
+                            <formatRule type="Text">Prepare and modify trimright procedure
+Details: https://www.tcl.tk/man/tcl/TclCmd/string.html#M40
+string trimright Procedure</formatRule>
+                        </param>
+                    </executableAction>
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Text">trimright(</formatRule>
+                            <formatRule type="ArgumentsFrom" value="1">, </formatRule>
+                            <formatRule type="Text">);</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="CompareNumbOfArguments">
+                        <param type="0">
+                            <param type="0" value="0"/>
+                            <param type="0" value="1"/>
+                        </param>
+                    </conditionalAction>
+                    <executableAction type="Error">
+                        <param type="0">
+                            <formatRule type="Name"/>
+                            <formatRule type="Text"> compare procedure - No arguments in procedure</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="Compare">
+                        <param type="0">
+                            <param type="0">&quot;compare&quot;</param>
+                        </param>
+                        <param type="0">
+                            <formatRule type="Index" value="0"/>
+                        </param>
+                    </conditionalAction>
+                    <executableAction type="AddUserInteraction">
+                        <param type="0">
+                            <formatRule type="Text">Prepare and modify compare procedure
+Details: https://www.tcl.tk/man/tcl/TclCmd/string.html#M40
+string compare Procedure</formatRule>
+                        </param>
+                    </executableAction>
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Text">stringCompare(</formatRule>
+                            <formatRule type="ArgumentsFrom" value="1">, </formatRule>
+                            <formatRule type="Text">);</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <executableAction type="Error">
+                        <param type="0">
+                            <formatRule type="Name"/>
+                            <formatRule type="Text"> procedure: Rules not satisifed
+Expected:
+- 4 parameters
+- 0 index parameter == &quot;range&quot;</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+            </rulesOnEndOfCall>
+            <rulesForUndefinedArgument/>
+        </procedure>
+        <procedure>
+            <name>tcl::mathfunc::int</name>
+            <rulesOnEndOfCall>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="CompareNumbOfArguments">
+                        <param type="0">
+                            <param type="0" value="1"/>
+                        </param>
+                    </conditionalAction>
+                    <executableAction type="TclParse">
+                        <param type="0">
+                            <formatRule type="Format" target="TclFormat"/>
+                            <formatRule type="Text">expr </formatRule>
+                            <formatRule type="Index" value="0"/>
+                        </param>
+                    </executableAction>
+                </rawRule>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <executableAction type="Error">
+                        <param type="0">
+                            <formatRule type="Text">tcl::mathfunc::int: Expects only 1 argument</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+            </rulesOnEndOfCall>
+            <rulesForUndefinedArgument/>
+        </procedure>
+        <procedure>
+            <name>test_result</name>
+            <rulesOnEndOfCall>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="CompareNumbOfArguments">
+                        <param type="0">
+                            <param type="0" value="1"/>
+                        </param>
+                    </conditionalAction>
+                    <conditionalAction type="Compare">
+                        <param type="0">
+                            <param type="0">&quot;PASS&quot;</param>
+                            <param type="0">&quot;FAIL&quot;</param>
+                        </param>
+                        <param type="0">
+                            <formatRule type="Index" value="0"/>
+                        </param>
+                    </conditionalAction>
+                    <executableAction type="AddUserInteraction">
+                        <param type="0">
+                            <formatRule type="Text">Add description</formatRule>
+                        </param>
+                    </executableAction>
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Format" target="Raw"/>
+                            <formatRule type="Index" value="0"/>
+                            <formatRule type="Text">ED_TS();</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <conditionalAction type="CompareNumbOfArguments">
+                        <param type="0">
+                            <param type="0" value="2"/>
+                        </param>
+                    </conditionalAction>
+                    <conditionalAction type="Compare">
+                        <param type="0">
+                            <param type="0">&quot;PASS&quot;</param>
+                            <param type="0">&quot;FAIL&quot;</param>
+                        </param>
+                        <param type="0">
+                            <formatRule type="Index" value="0"/>
+                        </param>
+                    </conditionalAction>
+                    <executableAction type="Write">
+                        <param type="0">
+                            <formatRule type="Format" target="Raw"/>
+                            <formatRule type="Index" value="0"/>
+                            <formatRule type="Text">ED_TS(</formatRule>
+                            <formatRule type="Format" target="Raw"/>
+                            <formatRule type="Index" value="1"/>
+                            <formatRule type="Text">);</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+                <rawRule controlFlag="BreakRuleCheck">
+                    <executableAction type="Error">
+                        <param type="0">
+                            <formatRule type="Name"/>
+                            <formatRule type="Text"> procedure: Conditions for rules not satisfied
+1 or 2 arguments expected
+0 index argument expected values:
+- PASS
+- FAIL</formatRule>
+                        </param>
+                    </executableAction>
+                </rawRule>
+            </rulesOnEndOfCall>
+            <rulesForUndefinedArgument/>
+        </procedure>
+    </procedures>
+    <defaultProcedure>
+        <rulesOnEndOfCall/>
+        <rulesForUndefinedArgument/>
+    </defaultProcedure>
+</tclConfig>

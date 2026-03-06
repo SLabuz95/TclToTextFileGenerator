@@ -2,11 +2,11 @@
 
 using Type = ParametersFactory::ProductTypeEnum;
 
-template<>
-ParametersFactory::CreateFunctionTable ParametersFactory::createFunctionTable =
-{
-    &ParametersFactory::create<Type::String>,
-    &ParametersFactory::create<Type::FormattedString>,
-    &ParametersFactory::create<Type::Integer>,
-    &ParametersFactory::create<Type::List>,
-};
+// template<>
+// ParametersFactory::CreateFunctionTable ParametersFactory::createFunctionTable =
+// {
+//     &ParametersFactory::create<Type::String>,
+//     &ParametersFactory::create<Type::FormattedString>,
+//     &ParametersFactory::create<Type::Integer>,
+//     &ParametersFactory::create<Type::List>,
+// };

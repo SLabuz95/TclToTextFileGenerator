@@ -12,6 +12,8 @@
 #include"Tcl2CaplPanels/ConfigEditor/configEditor.hpp"
 #include"Tcl2Capl/controllerconfigmanager.hpp"
 
+
+
 using namespace Panels::Configuration;
 class TestModule;
 class App : public QApplication{
@@ -38,5 +40,6 @@ public:
     }
 
 };
+
 
 #endif // APP_HPP

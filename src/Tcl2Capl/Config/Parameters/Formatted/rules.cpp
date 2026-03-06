@@ -12,13 +12,13 @@ const QList<QString> FormatParameters::TypeInfo::typeMap =
     "Attribute"
 };
 
-template<>
-FormatParametersFactory::CreateFunctionTable FormatParametersFactory::createFunctionTable =
-{
-    &FormatParametersFactory::create<Type::TextItem>,
-    &FormatParametersFactory::create<Type::NameItem>,
-    &FormatParametersFactory::create<Type::IndexItem>,
-    &FormatParametersFactory::create<Type::ArgumentsFromItem>,
-    &FormatParametersFactory::create<Type::FormatItem>,
-    &FormatParametersFactory::create<Type::AttributeItem>,
-};
+// template<>
+// FormatParametersFactory::CreateFunctionTable FormatParametersFactory::createFunctionTable =
+// {
+//     &FormatParametersFactory::create<Type::TextItem>,
+//     &FormatParametersFactory::create<Type::NameItem>,
+//     &FormatParametersFactory::create<Type::IndexItem>,
+//     &FormatParametersFactory::create<Type::ArgumentsFromItem>,
+//     &FormatParametersFactory::create<Type::FormatItem>,
+//     &FormatParametersFactory::create<Type::AttributeItem>,
+// };

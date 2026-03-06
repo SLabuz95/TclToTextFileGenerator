@@ -4,12 +4,12 @@
 
 using RuleType = RulesFactory::ProductTypeEnum;
 
-template<>
-RulesFactory::CreateFunctionTable RulesFactory::createFunctionTable =
-{
-    &RulesFactory::create<RuleType::RawRule>,
-   // &RulesFactory::create<RuleType::RulesForArgument>
-};
+// template<>
+// RulesFactory::CreateFunctionTable RulesFactory::createFunctionTable =
+// {
+//     &RulesFactory::create<RuleType::RawRule>,
+//    // &RulesFactory::create<RuleType::RulesForArgument>
+// };
 
 
 /*

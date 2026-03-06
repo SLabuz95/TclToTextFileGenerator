@@ -10,9 +10,10 @@ const QList<QString> FCT::ModifierRules::ModifierControlFlagInfo::modifierContro
 };
 
 
-template<>
-ModifierRulesFactory::CreateFunctionTable ModifierRulesFactory::createFunctionTable =
-{
-    &ModifierRulesFactory::create<RuleType::RawRule>,
-   // &RulesFactory::create<RuleType::RulesForArgument>
-};
+// template<>
+// ModifierRulesFactory::CreateFunctionTable ModifierRulesFactory::createFunctionTable =
+//     ModifierRulesFactory::initCreateFunctionTable();
+// // {
+// //     &ModifierRulesFactory::create<RuleType::RawRule>,
+// //    // &RulesFactory::create<RuleType::RulesForArgument>
+// // };

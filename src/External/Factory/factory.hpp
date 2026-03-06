@@ -4,6 +4,7 @@
 #include<iostream>
 #include<type_traits>
 #include<QString>
+#include <utility>
 #include"External/Factory/products.hpp"
 
 
@@ -68,34 +69,32 @@ public:
         }
 
         inline static constexpr std::underlying_type_t<ProductsList> numbOfProducts(){return toUnderlyng(ProductsList::FCT_End) - toUnderlyng(ProductsList::FCT_Begin);}
-        using CreateFunction =  ProductBase*const (*)();
+        inline static constexpr ProductsList numbOfProductsAsEnum(){return (ProductsList)( toUnderlyng(ProductsList::FCT_End) - toUnderlyng(ProductsList::FCT_Begin));}
+        using CreateFunction = ProductBase*const (*)();
         public:
         using CreateFunctionTable = const std::array<CreateFunction, numbOfProducts()>;
 
+        private:
 
         template<ProductsList productType = ProductsList::FCT_Begin, class ...Args>
-        static constexpr ProductBase*const create(Args ...args){
+        static constexpr ProductBase*const internalCreate(Args ...args){
             return new Product<productType>(args...);
         }
 
+        public:
         static ProductBase* const create(ProductsList productType = ProductsList::FCT_Begin){
             return (productType < ProductsList::FCT_End)? (Factory::createFunctionTable[toUnderlyng(productType)])() : nullptr;
         }
 
-        private:
-        static constexpr CreateFunctionTable initCreateFunctionTable(){
-            CreateFunctionTable createFunctionTable;
-            for(ProductsList productType = ProductsList::FCT_Begin; productType < ProductsList::FCT_End; ){
-                //static_assert (std::is_base_of_v<ProductBase<productType>, Product<productType>>, "Invalid product base");
-                constexpr ProductsList productTypeT = productType;
-                createFunctionTable[toUnderlyng(productType)] = &Factory::create<productTypeT>();
-                productType = static_cast<ProductsList>(toUnderlyng(productType) + 1);
-
-            }
-            return createFunctionTable;
+        public:
+        template<std::size_t... Is>
+        constexpr static auto initCreateFunctionTable(std::index_sequence<Is...>) {
+            return CreateFunctionTable{
+                (*&Factory:: internalCreate<(ProductsList)Is>)...
+            };
         }
         public:
-        static  CreateFunctionTable createFunctionTable;// = initCreateFunctionTable();
+        static constexpr CreateFunctionTable createFunctionTable = initCreateFunctionTable(std::make_index_sequence<numbOfProducts()>());
 
     };
 //};

@@ -90,6 +90,7 @@ struct FSD{
 
 template <FSDTypes FSDType>
 template<class DataModelClass>
+requires (std::is_base_of<typename DataModelClass::DataModelBase, DataModelClass>::value)
 QVector<ProcessingFunctions_FRI<typename FSD<FSDType>::template Interpreter<DataModelClass>::Config>> FSD<FSDType>::Interpreter<DataModelClass>::processingFunctions;
 
 

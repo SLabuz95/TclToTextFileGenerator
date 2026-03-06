@@ -9,6 +9,7 @@
 template <typename ProductsList>
 requires (std::is_enum_v<ProductsList>)
 class ProductsConfiguration{
+    class EmptyClass{};
     /*requires
     (std::is_same_v<ProductDef, FactoryProductDefinition> and
      std::is_enum_v<ProductDef::Type> and
@@ -16,7 +17,8 @@ class ProductsConfiguration{
      FCT_toUnderlying<typename ProductDef::Type>(ProductDef::Type::FCT_Begin) == 0 and*/
      //FCT_toUnderlying<ProductDef::Type>(ProductDef::Type::FCT_End) - FCT_toUnderlying<ProductDef::Type>(ProductDef::Type::FCT_Begin) > 0/* and
      //(ProductDef::Type::FCT_End - ProductDef::Type::FCT_Begin) >= 0*/)
-
+    template<ProductsList ProductType>
+    static constexpr auto FCTSupported = requires {requires ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End;};
     // Products Definition
     using ProductDefinition = typename  ProductDefinition<ProductsList>::Definition;
 
@@ -29,7 +31,6 @@ class ProductsConfiguration{
     ProductsConfiguration(const ProductsConfiguration& ) = delete;
 
     template<ProductsList ProductType>
-    requires (ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End)
     class ImplementationData{
         public:
         static constexpr ProductsList type(){return ProductType;}
@@ -44,14 +45,14 @@ class ProductsConfiguration{
     public:
 
     template<ProductsList ProductType>
-    class Implementation : public ImplementationData<ProductType>::Methods{};
+    class Implementation : public std::conditional_t<
+                               FCTSupported<ProductType>,typename ImplementationData<ProductType>::Methods, EmptyClass>{};
 
     // Interface
     template<ProductsList ProductType>
-    requires (ProductType >= ProductsList::FCT_Begin and ProductType < ProductsList::FCT_End)
     class InterfaceData {
     public:
-        class Methods;
+        class Methods{};
         //static_assert (  std::is_base_of_v<Properties, Methods>, "ERROR");
     };
 
@@ -62,7 +63,9 @@ class ProductsConfiguration{
     public:
 
     template<ProductsList ProductType>
-    class Interface : public InterfaceData<ProductType>::Methods{};
+        class Interface : public std::conditional_t<
+                              FCTSupported<ProductType>, typename InterfaceData<ProductType>::Methods , EmptyClass>
+        {};
 
 };
 

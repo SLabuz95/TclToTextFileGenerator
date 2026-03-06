@@ -20,9 +20,9 @@ namespace Rules {
 
         //QuickRule = FCT_Begin, // To generate raw rule
         RawRule  = FCT_Begin,   // Like in Interpreter
-        RulesForArgument, // Raw Rule but for specific argument index only
-
         FCT_End,
+        RulesForArgument = FCT_End, // Raw Rule but for specific argument index only
+
 
     };
 }
